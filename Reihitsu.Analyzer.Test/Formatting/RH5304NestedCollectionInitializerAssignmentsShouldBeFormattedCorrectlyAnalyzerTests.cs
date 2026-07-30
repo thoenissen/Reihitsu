@@ -760,5 +760,179 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                      Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a formatter-stable same-line comment can prefix the nested collection closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedNestedCollectionClosingBrace()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    public List<int> Values { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        Values = {
+                                                                     1,
+                                                                     2
+                                                                 /* Keep close. */ }
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that misaligned ordinary elements in a multi-line nested collection report and are fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMisalignedOrdinaryElementsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    public List<int> Values { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:Values = {
+                                                            1,
+                                                            2
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     public List<int> Values { get; set; }
+
+                                     private static void Method()
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      1,
+                                                                      2
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that formatter-stable same-line comments can prefix ordinary nested collection elements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedOrdinaryElements()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    public List<int> Values { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        Values = {
+                                                                     /* Keep one. */ 1,
+
+                                                                     /* Keep two. */ 2
+                                                                 }
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All converges in one iteration for ordinary-element alignment diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllConvergesForOrdinaryElementAssignments()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    public List<int> First { get; } = [];
+                                    public List<int> Second { get; } = [];
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:First = {
+                                                            1,
+                                                                2
+                                                                }|},
+                                                        {|#1:Second = {
+                                                            3,
+                                                                4
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     public List<int> First { get; } = [];
+                                     public List<int> Second { get; } = [];
+
+                                     private static void Method()
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         First = {
+                                                                     1,
+                                                                     2
+                                                                 },
+                                                         Second = {
+                                                                      3,
+                                                                      4
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

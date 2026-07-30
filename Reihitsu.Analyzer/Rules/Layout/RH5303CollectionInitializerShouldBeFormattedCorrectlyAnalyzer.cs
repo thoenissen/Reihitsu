@@ -89,12 +89,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     {
         var isValid = true;
 
-        var openBracePosition = collectionInitializer.OpenBraceToken
-                                                     .GetLocation()
-                                                     .GetLineSpan()
-                                                     .StartLinePosition;
-
-        if (openBracePosition.Character != newKeywordPosition.Character)
+        if (InitializerLayoutAnalysisUtilities.IsAlignedAt(collectionInitializer.OpenBraceToken, newKeywordPosition.Character) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
@@ -102,12 +97,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
         }
         else
         {
-            var closeBracePosition = collectionInitializer.CloseBraceToken
-                                                          .GetLocation()
-                                                          .GetLineSpan()
-                                                          .StartLinePosition;
-
-            if (closeBracePosition.Character != newKeywordPosition.Character)
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(collectionInitializer.CloseBraceToken, newKeywordPosition.Character) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
@@ -138,7 +128,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
             if (expressionLine <= openBraceLine
                 || expressionLine >= closeBraceLine
                 || expressionLines.Add(expressionLine) == false
-                || ComplexElementInitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + 4) == false)
+                || InitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + 4) == false)
             {
                 // Report at the offending element so multiple misaligned elements do not produce duplicate
                 // diagnostics that all share the whole creation expression's span
@@ -150,7 +140,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
             if (expression is InitializerExpressionSyntax complexElement
                 && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                var misalignment = ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement, anchorPosition.Character + 4);
+                var misalignment = InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, anchorPosition.Character + 4);
 
                 if (misalignment != null)
                 {

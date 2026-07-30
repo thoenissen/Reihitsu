@@ -364,5 +364,121 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : An
         await Verify(testData, resultData, Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a formatter-stable same-line comment can prefix the opening brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedOpeningBrace()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    /* Keep open. */ {
+                                                        Value = 1
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a formatter-stable same-line comment can prefix the closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedClosingBrace()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        Value = 1
+                                                    /* Keep close. */ };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a formatter-stable same-line comment can prefix an object member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedAssignment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        /* Keep value. */ Value = 1
+                                                    };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a shifted same-line comment before an object member reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyShiftedCommentBeforeAssignmentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                                    {
+                                        /* Keep value. */ {|#0:Value = 1|}
+                                                    };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value { get; set; }
+
+                                     private static void Method()
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         /* Keep value. */ Value = 1
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
+    }
+
     #endregion // Tests
 }

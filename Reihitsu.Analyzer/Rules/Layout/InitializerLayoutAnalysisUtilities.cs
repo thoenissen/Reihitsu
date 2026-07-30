@@ -9,9 +9,9 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// Shared layout analysis for multi-line complex-element initializers
+/// Shared layout analysis for initializer anchors and multi-line complex elements
 /// </summary>
-internal static class ComplexElementInitializerLayoutAnalysisUtilities
+internal static class InitializerLayoutAnalysisUtilities
 {
     #region Constants
 
@@ -30,7 +30,7 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
     /// <param name="complexElement">Complex-element initializer to inspect</param>
     /// <param name="expectedOpenBraceColumn">Required column of the complex element's opening brace</param>
     /// <returns>The first misaligned location, or <see langword="null"/> when the element is valid</returns>
-    public static Location FindFirstMisalignment(InitializerExpressionSyntax complexElement, int expectedOpenBraceColumn)
+    public static Location FindFirstComplexElementMisalignment(InitializerExpressionSyntax complexElement, int expectedOpenBraceColumn)
     {
         var openBrace = complexElement.OpenBraceToken;
         var closeBrace = complexElement.CloseBraceToken;
@@ -70,7 +70,7 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
             if (expression is InitializerExpressionSyntax nestedComplexElement
                 && nestedComplexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                var nestedMisalignment = FindFirstMisalignment(nestedComplexElement, expectedOpenBraceColumn + IndentSize);
+                var nestedMisalignment = FindFirstComplexElementMisalignment(nestedComplexElement, expectedOpenBraceColumn + IndentSize);
 
                 if (nestedMisalignment != null)
                 {

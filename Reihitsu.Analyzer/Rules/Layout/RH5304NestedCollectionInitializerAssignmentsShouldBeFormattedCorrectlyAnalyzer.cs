@@ -122,7 +122,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         }
 
         // Rule 4: In multi-line form, opening and closing braces must be in the same column.
-        if (openBracePosition.Character != closeBracePosition.Character)
+        if (InitializerLayoutAnalysisUtilities.IsAlignedAt(collectionInitializer.CloseBraceToken, openBracePosition.Character) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 
@@ -139,11 +139,18 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
             return;
         }
 
-        foreach (var complexElement in collectionInitializer.Expressions
-                                                            .OfType<InitializerExpressionSyntax>()
-                                                            .Where(expression => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression)))
+        foreach (var expression in collectionInitializer.Expressions)
         {
-            if (ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement, openBracePosition.Character + 4) != null)
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(expression.GetFirstToken(), openBracePosition.Character + 4) == false)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
+
+                return;
+            }
+
+            if (expression is InitializerExpressionSyntax complexElement
+                && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression)
+                && InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, openBracePosition.Character + 4) != null)
             {
                 context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 

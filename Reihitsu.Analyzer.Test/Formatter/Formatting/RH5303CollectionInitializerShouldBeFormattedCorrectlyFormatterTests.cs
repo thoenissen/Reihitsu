@@ -222,5 +222,30 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
         await VerifyFormatterStability(source);
     }
 
+    /// <summary>
+    /// Verifies that comment-prefixed collection anchors remain analyzer-clean and formatter-stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsCommentPrefixedCollectionStable()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class Example
+                              {
+                                  private static void Method()
+                                  {
+                                      var values = new List<int>()
+                                                   /* Keep open. */ {
+                                                       /* Keep value. */ 1
+                                                   /* Keep close. */ };
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
     #endregion // Tests
 }

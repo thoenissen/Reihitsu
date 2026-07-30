@@ -745,5 +745,96 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a formatter-stable same-line comment can prefix the collection opening brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedCollectionOpeningBrace()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>()
+                                                     /* Keep open. */ {
+                                                         1
+                                                     };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a formatter-stable same-line comment can prefix the collection closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedCollectionClosingBrace()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>()
+                                                     {
+                                                         1
+                                                     /* Keep close. */ };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a shifted same-line comment before the collection opening brace reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyShiftedCommentBeforeCollectionOpeningBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = {|#0:new List<int>()
+                                        /* Keep open. */ {
+                                            1
+                                        }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var values = new List<int>()
+                                                      /* Keep open. */ {
+                                                          1
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
     #endregion // Tests
 }

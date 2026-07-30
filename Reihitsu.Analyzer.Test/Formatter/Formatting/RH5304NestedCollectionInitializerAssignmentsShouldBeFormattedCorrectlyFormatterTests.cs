@@ -272,5 +272,88 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         await VerifyFormatterStability(source);
     }
 
+    /// <summary>
+    /// Verifies that comment-prefixed ordinary elements and the closing brace remain analyzer-clean and formatter-stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsCommentPrefixedOrdinaryElementsStable()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class Example
+                              {
+                                  public List<int> Values { get; set; }
+
+                                  private static void Method()
+                                  {
+                                      var value = new Example
+                                                  {
+                                                      Values = {
+                                                                   /* Keep one. */ 1,
+
+                                                                   /* Keep two. */ 2
+
+                                                               /* Keep close. */ }
+                                                  };
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter fixes ordinary-element alignment and remains stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesOrdinaryElementMisalignment()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Example
+                             {
+                                 public List<int> Values { get; set; }
+
+                                 private static void Method()
+                                 {
+                                     var value = new Example
+                                                 {
+                                                     {|#0:Values = {
+                                                         1,
+                                                         2
+                                                              }|}
+                                                 };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     public List<int> Values { get; set; }
+
+                                     private static void Method()
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      1,
+                                                                      2
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
     #endregion // Tests
 }
