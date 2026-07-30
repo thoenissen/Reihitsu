@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Rules.Naming;
+namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
 /// Utilities for analyzers that reject single-letter identifiers
