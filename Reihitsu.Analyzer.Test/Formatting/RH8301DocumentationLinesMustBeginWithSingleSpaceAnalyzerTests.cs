@@ -66,6 +66,32 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that indentation used for nested list content does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNestedListIndentationDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Supported modes:
+                                    /// - Standard
+                                    ///   - Fast
+                                    ///   - Safe
+                                    /// - Advanced
+                                    /// </summary>
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that raw strings containing documentation-like text do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -96,7 +122,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
                                 {
                                     /// <summary>
                                     {|#0:///|}Summary.
-                                    {|#1:///|}  </summary>
+                                    {|#1:///|}</summary>
                                     void Method()
                                     {
                                     }
@@ -121,17 +147,40 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that a tab after the required space on a continuation line is detected and fixed
+    /// Verifies that a tab after the required space is treated as content indentation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyContinuationLineWithTabIsDetectedAndFixed()
+    public async Task VerifyTabContentIndentationDoesNotProduceDiagnostics()
     {
         const string testDataWithTabMarker = """
                                              internal class TestClass
                                              {
                                                  /// <summary>
-                                                 {|#0:///|} {TAB}Summary.
+                                                 /// {TAB}Summary.
+                                                 /// </summary>
+                                                 void Method()
+                                                 {
+                                                 }
+                                             }
+                                             """;
+        var testData = testDataWithTabMarker.Replace("{TAB}", "\t");
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that fixing an invalid separator preserves the indentation which follows it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInvalidSeparatorFixPreservesContentIndentation()
+    {
+        const string testDataWithTabMarker = """
+                                             internal class TestClass
+                                             {
+                                                 /// <summary>
+                                                 {|#0:///|}{TAB}  - Fast
                                                  /// </summary>
                                                  void Method()
                                                  {
@@ -142,7 +191,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
                                  internal class TestClass
                                  {
                                      /// <summary>
-                                     /// Summary.
+                                     ///   - Fast
                                      /// </summary>
                                      void Method()
                                      {
@@ -150,6 +199,36 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
                                  }
                                  """;
         var testData = testDataWithTabMarker.Replace("{TAB}", "\t");
+
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that extra whitespace without content is detected and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWhitespaceOnlySuffixIsDetectedAndFixed()
+    {
+        const string testDataWithWhitespaceMarker = """
+                                                    internal class TestClass
+                                                    {
+                                                        {|#0:///|}{WHITESPACE}
+                                                        void Method()
+                                                        {
+                                                        }
+                                                    }
+                                                    """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     ///
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+        var testData = testDataWithWhitespaceMarker.Replace("{WHITESPACE}", "  ");
 
         await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
     }

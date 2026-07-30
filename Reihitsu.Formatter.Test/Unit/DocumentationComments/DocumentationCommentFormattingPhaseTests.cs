@@ -25,16 +25,16 @@ public class DocumentationCommentFormattingPhaseTests
     #region Methods
 
     /// <summary>
-    /// Verifies that multiple spaces after a <c>///</c> line prefix are collapsed to a single space
+    /// Verifies that a missing separator after a <c>///</c> line prefix is inserted
     /// </summary>
     [TestMethod]
     public void NormalizesLinePrefixSpacing()
     {
         // Arrange
         const string input = """
-                             ///   <summary>
-                             ///   Does a thing.
-                             ///   </summary>
+                             ///<summary>
+                             ///Does a thing.
+                             ///</summary>
                              public class C
                              {
                              }
@@ -53,6 +53,30 @@ public class DocumentationCommentFormattingPhaseTests
 
         // Assert
         Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace after the canonical separator is preserved as content indentation
+    /// </summary>
+    [TestMethod]
+    public void PreservesContentIndentationAfterCanonicalSeparator()
+    {
+        // Arrange
+        const string input = """
+                             ///   <summary>
+                             ///   - Standard
+                             ///     - Fast
+                             ///   </summary>
+                             public class C
+                             {
+                             }
+                             """;
+
+        // Act
+        var actual = Format(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
     }
 
     /// <summary>

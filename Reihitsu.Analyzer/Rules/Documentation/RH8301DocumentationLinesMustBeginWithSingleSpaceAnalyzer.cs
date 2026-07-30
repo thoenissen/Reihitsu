@@ -67,8 +67,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
             var indentLength = lineText.Length - trimmed.Length;
             var suffix = trimmed.Substring(3);
 
-            if (suffix.Length == 0
-                || (suffix.StartsWith(" ", StringComparison.Ordinal) && (suffix.Length == 1 || char.IsWhiteSpace(suffix[1]) == false)))
+            if (string.Equals(suffix, DocumentationCommentUtilities.NormalizeExteriorSuffix(suffix), StringComparison.Ordinal))
             {
                 continue;
             }
