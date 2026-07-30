@@ -483,12 +483,6 @@
   <data name="RH4009MessageFormat" xml:space="preserve">
     <value>The given namespace is not allowed (see reihitsu.json)</value>
   </data>
-  <data name="RH4119Title" xml:space="preserve">
-    <value>Single-letter identifiers should not be used</value>
-  </data>
-  <data name="RH4119MessageFormat" xml:space="preserve">
-    <value>Single-letter identifiers should not be used</value>
-  </data>
   <data name="RH4010Title" xml:space="preserve">
     <value>Record names should be in PascalCase</value>
   </data>
@@ -512,6 +506,42 @@
   </data>
   <data name="RH4121MessageFormat" xml:space="preserve">
     <value>Type parameter names should start with an uppercase 'T'</value>
+  </data>
+  <data name="RH4122Title" xml:space="preserve">
+    <value>Single-letter parameter names should not be used</value>
+  </data>
+  <data name="RH4122MessageFormat" xml:space="preserve">
+    <value>Single-letter parameter names should not be used</value>
+  </data>
+  <data name="RH4123Title" xml:space="preserve">
+    <value>Single-letter local function parameter names should not be used</value>
+  </data>
+  <data name="RH4123MessageFormat" xml:space="preserve">
+    <value>Single-letter local function parameter names should not be used</value>
+  </data>
+  <data name="RH4124Title" xml:space="preserve">
+    <value>Single-letter lambda and anonymous method parameter names should not be used</value>
+  </data>
+  <data name="RH4124MessageFormat" xml:space="preserve">
+    <value>Single-letter lambda and anonymous method parameter names should not be used</value>
+  </data>
+  <data name="RH4125Title" xml:space="preserve">
+    <value>Single-letter local variable names should not be used</value>
+  </data>
+  <data name="RH4125MessageFormat" xml:space="preserve">
+    <value>Single-letter local variable names should not be used</value>
+  </data>
+  <data name="RH4126Title" xml:space="preserve">
+    <value>Single-letter foreach iteration variable names should not be used</value>
+  </data>
+  <data name="RH4126MessageFormat" xml:space="preserve">
+    <value>Single-letter foreach iteration variable names should not be used</value>
+  </data>
+  <data name="RH4127Title" xml:space="preserve">
+    <value>Single-letter catch exception variable names should not be used</value>
+  </data>
+  <data name="RH4127MessageFormat" xml:space="preserve">
+    <value>Single-letter catch exception variable names should not be used</value>
   </data>
   <data name="RH7301MessageFormat" xml:space="preserve">
     <value>The description of the #region and #endregion should match.</value>
