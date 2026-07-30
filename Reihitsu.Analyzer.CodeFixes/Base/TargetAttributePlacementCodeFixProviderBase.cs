@@ -143,18 +143,17 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             return false;
         }
 
-        var resolvedPlacementMode = ResolvePlacementMode(attributeList);
-
-        // Only the single-line placement joins the attribute list onto the member line, so only it has to
-        // refuse trivia in that gap. Applying the join guard to the separate-line placement as well withholds
-        // a fix for a move the formatter performs anyway, which leaves a diagnostic the user cannot clear
-        if (resolvedPlacementMode == TargetAttributePlacementMode.SingleLine
-            && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter))
+        // Both placements rewrite the gap between the closing bracket and the member token: the fix overwrites the
+        // bracket's trailing trivia and clears the member token's leading trivia, so trivia in that gap is destroyed
+        // whichever placement is resolved. The interior guard above cannot see it, because it belongs to neither the
+        // attribute list's own span nor the member's. The formatter preserves such a comment, so the fix stays
+        // unregistered rather than reshaping the source destructively
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter))
         {
             return false;
         }
 
-        placementMode = resolvedPlacementMode;
+        placementMode = ResolvePlacementMode(attributeList);
 
         return true;
     }

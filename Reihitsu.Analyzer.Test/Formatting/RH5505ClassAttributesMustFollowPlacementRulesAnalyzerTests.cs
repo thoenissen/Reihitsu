@@ -133,5 +133,31 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : Analyz
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies that a comment between the closing bracket and the member keeps the fix from being offered. The
+    /// fix rewrites the trailing trivia of the closing bracket and clears the leading trivia of the member token,
+    /// so anything sitting in that gap would be deleted (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBetweenAttributeListAndMemberIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   [First] /* keep me */ internal class Example { }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

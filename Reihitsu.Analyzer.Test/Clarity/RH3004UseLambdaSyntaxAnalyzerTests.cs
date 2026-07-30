@@ -368,5 +368,40 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH3004UseLam
         await Verify(testCode, fixedCode, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax."));
     }
 
+    /// <summary>
+    /// Verifying that a comment between the parameter list and the block keeps the fix from being offered. The
+    /// rewrite reassembles the lambda from the parameter list and the block text, and trivia in that gap belongs
+    /// to neither, so offering the fix would delete it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CommentBetweenParameterListAndBlockIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   using System;
+
+                                   public class Test
+                                   {
+                                       public Func<int> Run()
+                                       {
+                                           return delegate()
+                                                  /** Keep me. */
+                                                  {
+                                                      return 1;
+                                                  };
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3004UseLambdaSyntaxAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AnonymousMethodExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

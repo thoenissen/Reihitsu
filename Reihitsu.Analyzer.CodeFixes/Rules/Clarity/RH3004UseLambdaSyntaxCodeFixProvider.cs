@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
@@ -22,6 +23,28 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether the anonymous method carries trivia that the rewrite would discard. The replacement is
+    /// reassembled from the text of the parameter list and of the block, so only those two spans survive. Trivia
+    /// between the leading keywords and the parameter list, or between the parameter list and the block, belongs
+    /// to neither of them and would be dropped, which is why the fix is not offered for those shapes
+    /// </summary>
+    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
+    /// <returns><see langword="true"/> if the rewrite would discard trivia; otherwise, <see langword="false"/></returns>
+    private static bool ContainsDiscardedTrivia(AnonymousMethodExpressionSyntax anonymousMethodExpression)
+    {
+        var parameterList = anonymousMethodExpression.ParameterList;
+
+        if (parameterList == null
+            || anonymousMethodExpression.Body is not BlockSyntax block)
+        {
+            return true;
+        }
+
+        return SyntaxNodeUtilities.SpanContainsCommentOrDirective(anonymousMethodExpression, TextSpan.FromBounds(anonymousMethodExpression.Span.Start, parameterList.Span.Start))
+               || SyntaxNodeUtilities.SpanContainsCommentOrDirective(anonymousMethodExpression, TextSpan.FromBounds(parameterList.Span.End, block.Span.Start));
+    }
 
     /// <summary>
     /// Applying the code fix
@@ -78,7 +101,8 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
             {
                 var anonymousMethodExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<AnonymousMethodExpressionSyntax>().FirstOrDefault();
 
-                if (anonymousMethodExpression?.ParameterList != null)
+                if (anonymousMethodExpression?.ParameterList != null
+                    && ContainsDiscardedTrivia(anonymousMethodExpression) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
                                                               token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),

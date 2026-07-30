@@ -178,9 +178,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
         }
 
         var relevantSpan = GetRelevantPropertySpan(propertyDeclaration);
-        var lineSpan = propertyDeclaration.SyntaxTree.GetLineSpan(relevantSpan);
 
-        if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
+        if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, relevantSpan) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(propertyDeclaration.SyntaxTree, relevantSpan)));
         }

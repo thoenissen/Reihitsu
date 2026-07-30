@@ -1024,5 +1024,44 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a documentation comment on the member itself does not withhold the fix. It precedes the
+    /// property declaration and the join never reaches it, so the documented member is fixed exactly like an
+    /// undocumented one and the comment survives (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedPropertyIsFixedAndKeepsItsComment()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        /// <summary>
+                                        /// The value.
+                                        /// </summary>
+                                        {|#0:public string Property { get; set; }
+                                            = "test";|}
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         /// <summary>
+                                         /// The value.
+                                         /// </summary>
+                                         public string Property { get; set; } = "test";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
     #endregion // Tests
 }
