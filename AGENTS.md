@@ -59,13 +59,26 @@ The repository defines Codex-oriented command playbooks under `.codex/commands`:
 | `/create-rule-doc` | Write or update rule markdown under `documentation/rules/` |
 | `/draft-issue` | Create issue drafts in `plans/issues/` |
 | `/add-resource-texts` | Add or update localized resource strings |
-| `/gh-implement` | Implement a GitHub issue end to end |
+| `/gh-rubber-duck` | Derive the read-only Behavior Contract for an issue or pull request before implementing |
+| `/gh-implement` | Implement a GitHub issue end to end, starting with the mandatory Behavior Contract gate |
 | `/gh-preflight` | Run the read-only quality gate before external review |
 | `/gh-review` | Review a GitHub pull request |
 | `/gh-apply-review` | Apply review findings in the pull request author's task |
 | `/gh-rereview` | Re-review a pull request after findings were addressed |
 
 Use the command playbook that matches the task so the repository-specific workflow and checklist are applied from the start.
+
+## GitHub workflow stages
+
+Five distinct activities. Keep the names apart — calling all of them "review" is what causes analysis to be skipped and gates to be repeated:
+
+- **Rubber Duck analysis** (`/gh-rubber-duck`) — read-only requirements and design pass that produces the **Behavior Contract**: user-visible examples, behavior rows, anchor and trivia rules, the counterpart map, an adversarial matrix, non-goals, and any decision the user must settle. It changes nothing. `gh-implement` runs it automatically in a dedicated read-only subagent before its first edit; `gh-apply-review` may use it when review feedback introduces a materially ambiguous behavior change.
+- **Local self-review** — the implementing agent's own check of its change against every Behavior Contract row or review-worklist row, plus parity, defect-class closure, convergence, idempotency, directives, documentation, formatting, and focused tests. It is not official and needs no extra agent.
+- **Official preflight** (`/gh-preflight`) — the fresh, independent, read-only quality gate on the final head. `gh-implement` and `gh-apply-review` get one attempt plus one **preflight retry** after a single consolidated repair cycle; a third attempt requires explicit user direction.
+- **Full validation** — the solution build plus the four test projects, run once on the audited head.
+- **CI** — triggered by the run's single non-`[skip ci]` push at the very end.
+
+Sequencing rule: merge current `origin/main` into the working branch **before** the official preflight, so the audited head is the head that merges.
 
 ## GitHub issue ownership
 

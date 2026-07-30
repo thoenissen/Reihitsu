@@ -1,13 +1,36 @@
 ---
 name: gh-implement
-description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Claude Code Cloud Agent environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL) and the work must be carried out from a clean cloud sandbox. It claims the issue by opening a generic-placeholder draft PR before implementation, installs the latest .NET 10 SDK, delegates the change to the matching repository slash command, updates the draft after focused commits, passes the read-only `gh-preflight` quality gate, fully rewrites the PR title and description once the change is complete, and runs the full validation suite. GitHub operations use the GitHub MCP server; the `gh` CLI is not installed. Do NOT use locally when the SDK is already installed and the user is driving the workflow interactively.
+description: >-
+  Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Claude Code Cloud Agent environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL) and the work must be carried out from a clean cloud sandbox. It claims the issue by opening a generic-placeholder draft PR, installs the latest .NET 10 SDK, then runs the mandatory `gh-rubber-duck` Behavior Contract gate in a dedicated read-only subagent before touching any file, turns the accepted contract into the regression matrix, delegates the change to the matching repository slash command, updates the draft after focused commits, self-reviews locally, synchronizes `origin/main`, spends at most two official `gh-preflight` attempts, runs the full validation suite once, fully rewrites the PR title and description, and pushes the single CI trigger. GitHub operations use the GitHub MCP server; the `gh` CLI is not installed. Do NOT use locally when the SDK is already installed and the user is driving the workflow interactively.
 ---
 
 # Implement GitHub Issue (Cloud Agent Orchestrator)
 
 You are running inside a **Claude Code Cloud Agent** sandbox — a **Linux** environment, essentially identical to the one you are executing in right now. The repository checkout is present, but the build toolchain is not, and there is no `gh` CLI. Your job is to take a single GitHub issue from unclaimed to a validated draft PR, delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
 
-You own the environment, the issue lookup, the branch, the validation, and the pull request. The delegated command owns the production change and its tests.
+You own the environment, the issue lookup, the branch, the Behavior Contract gate, the validation, and the pull request. The delegated command owns the production change and its tests.
+
+## Run order
+
+Follow this sequence. The gates exist because rework in this repository is caused by starting to code against an unstated contract and by discovering problems one preflight round at a time — both are far more expensive than the analysis that prevents them.
+
+1. Read the repository instructions (`CLAUDE.md`) and the GitHub issue.
+2. Check issue ownership and open draft PRs.
+3. Claim the issue through the existing ownership workflow when it is unclaimed.
+4. Read `.claude/skills/gh-rubber-duck/SKILL.md` completely in this parent agent.
+5. Spawn exactly one fresh, read-only Rubber Duck subagent.
+6. Receive and process the Behavior Contract.
+7. Resolve every `NEEDS DECISION` before editing any production or test file.
+8. Convert the accepted contract into the implementation plan and the regression-test matrix.
+9. Add all intended regression tests before production changes.
+10. Implement, formatting changed paths and running focused tests as you go.
+11. Run the **local self-review**.
+12. Synchronize with current `origin/main`.
+13. Run the **official preflight** (`gh-preflight`) on that exact synchronized head.
+14. Run the complete **full validation** once.
+15. Push the final non-`[skip ci]` CI trigger and finish the PR.
+
+Claiming the issue (steps 1–3) happens before the contract gate so ownership is never lost while analysis runs. The SDK install fits between the claim and the first `dotnet` command. Production and regression-test edits do not begin until step 7 permits them.
 
 ## Build environment (after the issue claim)
 
@@ -48,13 +71,13 @@ Never shell out to `gh`, `git` against the API, or `curl` the GitHub REST API by
 | Create the pull request (draft) | `mcp__github__create_pull_request` |
 | Update the draft pull request | `mcp__github__update_pull_request` |
 
-The local `git` CLI is still available for branch/commit/push — only the *GitHub platform* calls go through MCP.
+The local `git` CLI is still available for branch/commit/push — only the *GitHub platform* calls go through MCP. Batch independent read-only calls in one step rather than issuing them one at a time.
 
 ## Keep CI silent until everything is done
 
 `SonarCloud.yml` runs on `push` to `main` and on `pull_request` (`opened`/`synchronize`/`reopened`) against `main`. Left alone that means one CI run per push while the branch is still being claimed, implemented, and fixed up — noise that only needs to happen once, at the end. GitHub Actions skips the workflow run entirely when the triggering commit's message contains `[skip ci]`, so every commit this skill creates **except the final one** must end its subject with `[skip ci]`:
 
-- The claim commit, every focused implementation commit, and any fix-up commit made while chasing a validation failure all get `[skip ci]`.
+- The claim commit, every focused implementation commit, the `origin/main` synchronization commit, and any fix-up commit made while working a preflight worklist or chasing a validation failure all get `[skip ci]`.
 - The single exception is the run's last commit, pushed in "Complete the draft pull request" once validation is fully green — it must **not** contain `[skip ci]`, so it becomes the one CI run for the issue.
 
 Don't rely on "whichever commit happens to be last" to satisfy this — "Complete the draft pull request" adds a dedicated, empty, non-skip-ci commit so the trigger is unambiguous even when validation needed no fix-up commits.
@@ -75,7 +98,7 @@ If no issue number can be extracted with confidence, stop and ask. Do not guess.
 
 Read the issue with `mcp__github__issue_read` (owner, repo, issue number). Capture its number, title, body, labels, state, and URL.
 
-Use the labels and body to pick a delegate (see next section). Cache the issue URL and title — you will need the title for the branch slug, and, later, the full issue context (not a copy of its title or body) to write the final PR title and body once implementation is complete.
+Use the labels and body to pick a delegate (see the routing table below). Cache the issue URL and title — you will need the title for the branch slug, and, later, the full issue context (not a copy of its title or body) to write the final PR title and body once implementation is complete.
 
 ## Claim the issue with an immediate draft PR
 
@@ -120,6 +143,82 @@ Avoid duplicate work before installing dependencies or editing files:
 
 The linked draft PR is the ownership record. Do not post a claim comment, PR-link comment, or `in-progress` label on the issue. GitHub links the PR automatically through `Closes #<N>`.
 
+## Behavior Contract gate (mandatory, before any edit)
+
+The claim is in place and nothing has been edited. Before the first test or production change, obtain a **Behavior Contract** from the `gh-rubber-duck` workflow.
+
+### 1. Read the skill in this agent
+
+Read `.claude/skills/gh-rubber-duck/SKILL.md` completely yourself. You need the output schema to consume the contract, to spot a malformed one, and to send follow-up evidence later.
+
+### 2. Spawn exactly one read-only Rubber Duck subagent
+
+Run the analysis in **one fresh subagent** with no access to your reasoning. Isolation is the point: an analysis primed with your intended fix will confirm it instead of challenging it. The subagent prompt must contain, and must contain nothing more:
+
+- the repository root;
+- the issue number or URL;
+- the PR number when one already exists;
+- the user's relevant clarifications from this conversation, quoted rather than summarized;
+- the path `.claude/skills/gh-rubber-duck/SKILL.md`, with the instruction to read and follow it completely;
+- a strict read-only instruction (no edits, commits, pushes, PR changes, GitHub comments, or full validation);
+- a request for the exact required output schema.
+
+Do **not** include your own proposed solution, suspected root cause, planned diff, or preferred interpretation.
+
+Use **one** Rubber Duck subagent per implementation run. When the user later clarifies the same contract, continue that same subagent with a follow-up message carrying the new evidence and ask for an amended contract — do not spawn a second one. Spawn a replacement only when the original agent is unavailable or the issue scope changes materially (a different defect, a different rule).
+
+If subagents are unavailable in the current environment, perform the analysis yourself by following `gh-rubber-duck` before any edit, and record the resulting contract in this chat. The gate still applies; only the isolation is lost.
+
+### 3. Handle the gate
+
+**`READY`**
+
+- Show the user a concise version of the user-visible examples and the important invariants — enough to catch a wrong contract in one glance, not the full report.
+- Fold the contract into the implementation plan and the regression matrix.
+- Continue automatically. Do not pause for approval unless the user explicitly asked to approve before implementation. If the user has already approved these examples or said "go" after seeing them, do not ask again.
+
+**`NEEDS DECISION`**
+
+- Show only the concrete unresolved decisions: the competing interpretations, one example each, and the recommendation. `AskUserQuestion` is the right tool when the options are discrete.
+- Wait for the user's answer.
+- Do not edit any production or test file while waiting.
+
+**`BLOCKED`**
+
+- Report exactly what could not be inspected and what would unblock it.
+- Stop. Make no implementation changes.
+
+### 4. When the contract changes mid-implementation
+
+A newly discovered fact that materially changes the contract (a second syntax shape, a counterpart that must move too, an anchor that is not where the issue implied) is a contract change, not a detail:
+
+1. Stop editing production code.
+2. Send the new evidence to the existing Rubber Duck subagent.
+3. Take the amended contract and update the plan and regression matrix from it.
+4. Ask the user only when the amended result is `NEEDS DECISION`.
+
+Never silently broaden the implemented behavior beyond the accepted contract.
+
+## Convert the contract into a regression matrix
+
+Before production code changes, turn the accepted contract into the complete test plan. A single narrow test is not acceptable when the contract identifies a broader defect class — that is precisely the gap that produces another review round.
+
+The matrix must cover, for the surfaces the contract names:
+
+- every known defect variant from the issue and the contract's adversarial matrix;
+- stable valid examples that must **not** change (the anti-regression side);
+- misaligned or invalid examples that must change;
+- code-fix convergence (one pass silences the diagnostic and raises no new RH diagnostic);
+- Fix All across several diagnostics in one document, where the fix supports it;
+- formatter second-pass idempotency;
+- analyzer / formatter / code-fix parity in both directions;
+- the trivia and directive cases the contract flagged as relevant (comments before the token and before both delimiters, `#if`/`#endif`/`#pragma`, disabled text);
+- LF **and** CRLF coverage whenever layout is affected.
+
+Per `CLAUDE.md`, an analyzer or formatter bug must be reproduced by a failing test before production code changes. Add the intended regression tests first, watch them fail for the right reason, then implement. Analyzer tests stay many small focused tests rather than one large multi-case test.
+
+Keep the contract row IDs (`B1`, `B2`, …) next to the tests you write. The local self-review walks that mapping later.
+
 ## Delegate to the matching slash command
 
 The orchestrator does **not** implement the change itself when a specific command fits. The commands live under `.claude/commands/` and each one has its own mandatory workflow, checklist, and validation guidance. Pick the most specific match:
@@ -135,7 +234,7 @@ The orchestrator does **not** implement the change itself when a specific comman
 | Issue itself is a draft to be uploaded | [`draft-issue`](../../commands/draft-issue.md) | Validates against `upload-issues.ps1` |
 | Nothing above matches | Implement inline using the rules in `CLAUDE.md` | Still run the full validation below |
 
-**Delegation rule.** When a command matches, follow that command's workflow as written. The orchestrator's job is to wrap it with the environment setup, the validation, and the PR — it does not relax or override the delegated command's own checklist (regression-test-first, single focused tests, code-fix-only-if-comprehensive, etc.).
+**Delegation rule.** When a command matches, follow that command's workflow as written. The orchestrator's job is to wrap it with the environment setup, the Behavior Contract, the validation, and the PR — it does not relax or override the delegated command's own checklist (regression-test-first, single focused tests, code-fix-only-if-comprehensive, etc.). The accepted contract is an input to the delegated command, not a replacement for it.
 
 If the issue contains two clearly separable concerns (e.g. a formatter bug *and* a new resource text), prefer two PRs over one. Open the most blocking one first and leave a `Follow-up work` note in the PR pointing at the second.
 
@@ -151,7 +250,13 @@ The branch already contains the empty claim commit, is pushed, and has an open d
    dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
    ```
 
-3. Commit with a Conventional-Commits style subject that mentions the issue and ends with `[skip ci]` (see "Keep CI silent until everything is done"), then push it:
+3. Run the focused tests for the changed rule or phase — not the suite:
+
+   ```bash
+   dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --filter "FullyQualifiedName~RH3204"
+   ```
+
+4. Commit with a Conventional-Commits style subject that mentions the issue and ends with `[skip ci]` (see "Keep CI silent until everything is done"), then push it:
 
    ```text
    Fix RH3204 code fix for interpolated strings (#<N>) [skip ci]
@@ -161,37 +266,84 @@ The branch already contains the empty claim commit, is pushed, and has an open d
 
 Immediately after the first focused implementation commit is pushed, update the existing draft PR's **body** with `mcp__github__update_pull_request`. Replace the generic placeholder wording with what the commits actually changed, retain `Closes #<N>`, and fill every template section. Update the body again whenever later commits materially change the summary, review notes, or follow-up work. Leave the placeholder **title** (`Claim: issue #<N>`) as-is for now — the mandatory full title rewrite happens once in "Complete the draft pull request", from the finished change, not incrementally. Keep the PR draft while validation is running and implementation continues.
 
-## Preflight gate (always run before full validation)
+## Local self-review (before the official preflight)
 
-After the intended implementation is committed, pushed with `[skip ci]`, and reflected in the PR body, read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate.
+The official preflight is a final quality gate, not a discovery loop, and you only get two attempts at it (see the budget below). Spend the cheap check first: walk your own change locally, in this agent, with no extra agent and no full suite.
 
-The preflight is an independent, read-only review. Do not post its findings through GitHub MCP. If it returns:
+Check, concretely:
 
-- `PASS`: proceed to full validation.
-- `BLOCKED — findings`: fix every in-scope confirmed finding, including the full defect class; format the changed paths, run focused tests, commit and push with `[skip ci]`, update the PR body when needed, then rerun preflight from current state.
-- `BLOCKED — state mismatch`: reconcile the author checkout, commits, and PR head, then rerun preflight.
+- **every Behavior Contract row** — for each `B<n>`, name the test or code path that satisfies it;
+- **counterpart parity** — formatter output is not flagged by the analyzer, analyzer-clean code is formatter-stable;
+- **defect-class closure** — grep for sibling shapes and private copies of the policy you changed; a guard that covers only the reported example is not closure;
+- **convergence** — the code fix silences its own diagnostic in one pass and raises no new RH diagnostic;
+- **idempotency** — a second formatter pass over the output is a no-op, on LF and CRLF;
+- **comments and directives** — the trivia shapes the contract marked relevant survive at sensible positions, or the edit is refused;
+- **documentation** — `documentation/rules/RH####.md` matches the shipped behavior when a rule changed;
+- **changed-path formatting** — every changed C# path went through `Reihitsu.Cli`;
+- **focused tests** — the tests for the changed rule/phase pass at the current working tree.
 
-Ask the user before expanding scope for an architecturally significant, public-API-changing, dependency-changing, contested, or unrelated pre-existing finding. Do not run the full validation suite until preflight passes. A direct `/gh-preflight` chat report is not required when this workflow invokes the skill internally.
+Fix what you find now. This is not an official preflight, does not consume a preflight attempt, and is not reported as one.
 
-## Validation (always run, never skip)
+## Synchronize with `origin/main` before the official gate
 
-Run from the repo root with the just-installed SDK on `PATH`:
+The audited head must be the head that will merge. Synchronizing after a passing preflight invalidates it, and preflighting a known-stale or known-conflicting branch wastes an attempt.
+
+1. Fetch the current base:
+
+   ```bash
+   git fetch origin main
+   ```
+
+2. Check worktree and branch state — `git status --short` must be clean of unintended changes, and the branch must be the PR head.
+3. Merge current `origin/main` into the working branch when the branch is behind.
+4. Resolve conflicts so that **both** the branch behavior and the `main` behavior survive. A conflict resolution that drops one side is a defect, not a merge detail.
+5. Run `Reihitsu.Cli` over every conflict-resolved and changed C# path.
+6. Run the focused tests affected by the merge.
+7. Commit and push the synchronized head with `[skip ci]`.
+8. Run the official preflight against that exact head.
+
+If `origin/main` moves again **after** a passing preflight: do not enter an unlimited re-merge/re-preflight loop. Check whether another merge is actually required (does the new `main` touch anything this PR touches?). If it is, say plainly that merging again changes the audited head, and follow the user's explicit direction — including their decision to rely on CI without spending another preflight attempt.
+
+## Official preflight gate — hard 1 + 1 budget
+
+`gh-preflight` is the final, independent quality gate. Read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings through GitHub MCP. Run it in a fresh, independent read-only subagent when subagents are available, exactly as that skill's reviewer-isolation section requires.
+
+The budget is fixed:
+
+1. **Attempt 1** runs automatically once implementation is complete, the local self-review is done, `main` is synchronized, and the head is pushed.
+2. On `PASS`, continue to full validation.
+3. On `BLOCKED — findings`, collect **every** finding into **one** consolidated worklist. Do not start fixing before the worklist is complete, and do not run a preflight in between.
+4. Fix the complete worklist in **one** repair cycle: close each finding's full defect class, format the changed paths, run the focused tests, redo the local self-review, then commit and push with `[skip ci]` and update the PR body when needed.
+5. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent, read-only subagent against the exact new head.
+6. If the retry also blocks, **stop**. Report the remaining findings to the user and let them decide. Never start a third official preflight automatically.
+
+On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head and rerun; a state mismatch is a setup error, not a review result, so it does not consume an attempt.
+
+Ask the user before expanding scope for an architecturally significant, public-API-changing, dependency-changing, contested, or unrelated pre-existing finding. Do not run the full validation suite until an attempt returns `PASS`.
+
+A tracked-file change made after a passing preflight leaves the final head unaudited. If an attempt is still unspent, use it on the new head. If the budget is exhausted, do not start another official preflight: run the local self-review and the focused tests over the change, and state in the final report that the final head carries post-preflight changes.
+
+The final report must state how many official preflight attempts were used, the result of each, and whether the budget was exhausted.
+
+## Full validation — run it once
+
+Focused, filtered tests run throughout implementation. The complete suite runs **once**, after implementation is complete, `main` is synchronized, the official preflight has passed, and the worktree matches the audited head. Do not rerun the whole solution after each small fix.
 
 ```bash
 dotnet build Reihitsu.sln -c Release --verbosity minimal
-dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Core.Test/Reihitsu.Core.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --verbosity minimal
+dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --no-build --verbosity minimal
+dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --no-build --verbosity minimal
+dotnet test Reihitsu.Core.Test/Reihitsu.Core.Test.csproj -c Release --no-build --verbosity minimal
+dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --no-build --verbosity minimal
 ```
 
-All four test projects must pass. If any fails:
+`--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
-2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`.
+2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`. Rerun the focused tests for the fix plus the project that failed — not the whole suite.
 3. If a failure exists on `main` independent of your change, record it in the draft PR's `Review notes` with `mcp__github__update_pull_request` and stop. Do not continue implementation on top of a broken baseline.
 
-Any tracked-file change made after a preflight `PASS` invalidates that result. Commit and push the fix with `[skip ci]`, rerun preflight against the new head until it passes, then rerun the full validation suite. The final CI trigger requires preflight and validation to cover the same code state.
+If the user explicitly asks to skip repeated local validation and rely on CI, obey that instruction and state in the final report exactly which local checks ran and which did not.
 
 Do not list the executed test commands in the PR body. CI re-runs them and the repo convention (`CLAUDE.md`) is to keep the PR description concise.
 
@@ -252,15 +404,47 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 3. Verify that the PR is still draft and that `Closes #<N>` links it to the issue. Do not post an issue comment; the linked draft PR is the ownership and status record.
 
+4. Report back in chat, stating at least:
+
+   - the Behavior Contract gate result and any decision the user settled;
+   - the regression matrix rows that were added;
+   - official preflight attempts used (1 or 2), the result of each, and whether the budget was exhausted;
+   - the `origin/main` synchronization and the full-validation result;
+   - anything deliberately left out of scope.
+
+## Execution economy
+
+Tokens and elapsed time are part of the deliverable. Without discipline this workflow re-reads the same files, re-runs passing tests, and prints thousands of warning lines nobody reads:
+
+- Use `rg` for discovery instead of opening candidate files one by one.
+- Batch independent read-only GitHub queries.
+- Read a large file once and work from that content; do not reload it per question.
+- Use focused `--filter` runs during implementation; keep the suite for the single full validation.
+- Do not rerun a passing focused test unless the head changed code it covers.
+- Keep build and test verbosity minimal.
+- Capture very large command output to a file and report a concise summary.
+- On failure, show the actionable error and the relevant log tail — not the full log.
+- Do not narrate unchanged state between steps.
+- Reuse the same Rubber Duck subagent for follow-up clarification instead of spawning another.
+
+None of this may reduce correctness or hide a failing result. When output is trimmed, say what was trimmed.
+
 ## Hard rules
 
+- **Never** edit a production or test file before the Behavior Contract gate returns `READY` (or before the user has resolved a `NEEDS DECISION`).
+- **Never** hand the Rubber Duck subagent your proposed solution, suspected cause, or planned diff — the analysis must stay independent.
+- **Never** spawn a second Rubber Duck subagent for the same contract; send follow-up evidence to the existing one.
+- **Never** start a third official preflight automatically. The budget is one attempt plus one retry; after that, report and stop.
+- **Never** split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
+- **Never** run the final preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.
+- **Never** start full validation or push the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head. If the budget is exhausted without a `PASS`, stop and report — that is not a licence to proceed.
 - **Never** mark the draft PR ready for review without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR from the cloud agent. The human reviewer marks ready.
 - **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and generic-placeholder draft before installing dependencies or editing files.
 - **Never** copy or paraphrase the issue's title or body into the claim-time draft PR. Title and body are the fixed generic placeholders; the only issue-specific content is the issue number and the `Closes #<N>` link.
 - **Never** post claim, PR-link, or status comments on the issue, and do not apply an `in-progress` label. Use the linked draft PR as the ownership record.
 - **Never** silence or skip a failing test to make the PR go green.
-- **Never** start full validation or push the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head.
+- **Never** ship a single narrow test when the contract identifies a broader defect class.
 - **Never** finish a run leaving the claim-time placeholder title or wording in place — "Complete the draft pull request" must rewrite both the title and every body section from the actual change.
 - **Never** push a commit without `[skip ci]` before validation is green — the empty trigger commit in "Complete the draft pull request" is the only exception.
 - **Never** modify `global.json` or the `TargetFramework` to dodge an SDK install — install the SDK via `dotnet-install.sh` instead.
@@ -276,10 +460,16 @@ End-state checklist for a finished run:
 - [ ] Issue number extracted and read via `mcp__github__issue_read`
 - [ ] Existing claim or draft PR checked; `claude/issue-<N>-<slug>` pushed with an empty claim commit
 - [ ] Generic-placeholder draft PR opened before implementation (title `Claim: issue #<N>`, every template section filled with static generic text, `Closes #<N>`) — nothing paraphrased from the issue
+- [ ] `gh-rubber-duck/SKILL.md` read in this agent; exactly one read-only Rubber Duck subagent spawned before any edit
+- [ ] Behavior Contract accepted (`READY`, or `NEEDS DECISION` resolved by the user) and shown to the user in short form
+- [ ] Regression matrix derived from the contract; red tests added before production changes
 - [ ] Delegated command (or inline plan) selected from the routing table
-- [ ] Change made, files formatted via `Reihitsu.Cli`
+- [ ] Change made, files formatted via `Reihitsu.Cli`, focused tests green
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
-- [ ] `gh-preflight` passed against the current PR head with no confirmed findings
-- [ ] `dotnet build` + all four `dotnet test` projects green
+- [ ] Local self-review completed against every contract row
+- [ ] Current `origin/main` merged, conflicts formatted and focused-tested, synchronized head pushed with `[skip ci]`
+- [ ] Official preflight `PASS` on that exact head, within the 1 + 1 budget
+- [ ] `dotnet build` + all four `dotnet test` projects green — run once
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label
+- [ ] Final chat report states the contract gate, preflight attempts used, and whether the budget was exhausted

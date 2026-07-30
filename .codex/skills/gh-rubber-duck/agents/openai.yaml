@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Rubber Duck"
+  short_description: "Derive a Reihitsu Behavior Contract before implementing"
+  default_prompt: "Use $gh-rubber-duck to derive the Behavior Contract for the referenced Reihitsu issue without changing anything."
