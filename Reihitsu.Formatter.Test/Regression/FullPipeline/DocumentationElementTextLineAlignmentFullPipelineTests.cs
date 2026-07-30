@@ -75,6 +75,40 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     }
 
     /// <summary>
+    /// Verifies that element expansion normalizes only the invalid separator and preserves content indentation
+    /// </summary>
+    [TestMethod]
+    public void ExpandsElementWithoutReclassifyingInvalidSeparatorAsContent()
+    {
+        const string inputWithTabMarker = """
+                                          internal class TestClass
+                                          {
+                                              /// <remarks>First
+                                              ///{TAB}  Second
+                                              /// </remarks>
+                                              void Method()
+                                              {
+                                              }
+                                          }
+                                          """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    /// <remarks>
+                                    /// First
+                                    ///   Second
+                                    /// </remarks>
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+        var input = inputWithTabMarker.Replace("{TAB}", "\t");
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a blank separator line inside a code element survives line alignment
     /// </summary>
     [TestMethod]

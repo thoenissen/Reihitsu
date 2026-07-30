@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 /// <summary>
@@ -54,20 +56,13 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
         }
 
-        // The match timeout is a safety net against pathological input, not a performance budget. These prefix
-        // patterns are anchored on /// and cannot backtrack catastrophically, so the value is deliberately generous:
+        // The match timeout is a safety net against pathological input, not a performance budget. This prefix
+        // pattern is anchored on /// and cannot backtrack catastrophically, so the value is deliberately generous:
         // a tight wall-clock timeout is tripped by ordinary CI scheduling jitter (a GC pause or a thread preemption
         // during one of the many calls the self-hosting tests make), not by real regex work
-        var normalizedWhitespaceOnlyPrefixes = Regex.Replace(normalizedCommentText,
-                                                             @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)(?:[^\S\r\n\u0085\u2028\u2029]{2,}|[^\S \r\n\u0085\u2028\u2029])(?=\r\n|\r|\n|\u0085|\u2028|\u2029|$)",
-                                                             "${indent}${prefix}",
-                                                             RegexOptions.None,
-                                                             TimeSpan.FromSeconds(2));
-        var normalizedLinePrefixes = Regex.Replace(normalizedWhitespaceOnlyPrefixes,
-                                                   @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)(?:(?<separator>[^\S\r\n\u0085\u2028\u2029])|(?=\S))",
-                                                   obj => obj.Groups["separator"].Value == " "
-                                                              ? obj.Value
-                                                              : $"{obj.Groups["indent"].Value}{obj.Groups["prefix"].Value} ",
+        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText,
+                                                   @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)(?<suffix>[^\r\n\u0085\u2028\u2029]*)(?=\r\n|\r|\n|\u0085|\u2028|\u2029|$)",
+                                                   obj => $"{obj.Groups["indent"].Value}{obj.Groups["prefix"].Value}{DocumentationCommentUtilities.NormalizeExteriorSuffix(obj.Groups["suffix"].Value)}",
                                                    RegexOptions.None,
                                                    TimeSpan.FromSeconds(2));
 

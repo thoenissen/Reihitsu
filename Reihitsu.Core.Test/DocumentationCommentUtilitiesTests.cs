@@ -86,6 +86,58 @@ public class DocumentationCommentUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a missing exterior separator is inserted without changing the content
+    /// </summary>
+    [TestMethod]
+    public void NormalizeExteriorSuffixAddsMissingSeparator()
+    {
+        // Act
+        var result = DocumentationCommentUtilities.NormalizeExteriorSuffix("Summary.");
+
+        // Assert
+        Assert.AreEqual(" Summary.", result);
+    }
+
+    /// <summary>
+    /// Verifies that an invalid separator is replaced without removing the indentation which follows it
+    /// </summary>
+    [TestMethod]
+    public void NormalizeExteriorSuffixPreservesContentIndentation()
+    {
+        // Act
+        var result = DocumentationCommentUtilities.NormalizeExteriorSuffix("\t  Second");
+
+        // Assert
+        Assert.AreEqual("   Second", result);
+    }
+
+    /// <summary>
+    /// Verifies that content indentation after an already canonical separator is left unchanged
+    /// </summary>
+    [TestMethod]
+    public void NormalizeExteriorSuffixLeavesCanonicalContentIndentationUnchanged()
+    {
+        // Act
+        var result = DocumentationCommentUtilities.NormalizeExteriorSuffix("   Second");
+
+        // Assert
+        Assert.AreEqual("   Second", result);
+    }
+
+    /// <summary>
+    /// Verifies that extra whitespace without documentation content is removed
+    /// </summary>
+    [TestMethod]
+    public void NormalizeExteriorSuffixRemovesWhitespaceOnlyExcess()
+    {
+        // Act
+        var result = DocumentationCommentUtilities.NormalizeExteriorSuffix("  ");
+
+        // Assert
+        Assert.AreEqual(string.Empty, result);
+    }
+
+    /// <summary>
     /// Parses a single line of source into a <see cref="SourceText"/>
     /// </summary>
     /// <param name="line">Line to parse</param>
