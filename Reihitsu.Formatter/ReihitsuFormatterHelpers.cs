@@ -349,7 +349,9 @@ internal static class ReihitsuFormatterHelpers
 
                 newTrivia.Add(adjustedTrivia);
                 atLineStart = trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                              || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+                              || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                              || (trivia.HasStructure
+                                  && trivia.GetStructure() is DirectiveTriviaSyntax);
             }
         }
 

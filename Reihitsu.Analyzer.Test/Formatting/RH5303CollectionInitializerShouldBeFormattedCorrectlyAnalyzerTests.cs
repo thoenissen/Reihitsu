@@ -836,5 +836,101 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                      Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that scoped formatting reanchors tokens after directive trivia in a field initializer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveTriviaConvergesInFieldInitializer()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private Dictionary<int, int> Values = new()
+                                                                          {
+                                                                              {
+                                                                                  1,
+                                #if false
+                                                                                  disabledValue
+                                #endif
+                                {|#0:2|}
+                                                                              }
+                                                                          };
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private Dictionary<int, int> Values = new()
+                                                                           {
+                                                                               {
+                                                                                   1,
+                                 #if false
+                                                                                   disabledValue
+                                 #endif
+                                                                                   2
+                                                                               }
+                                                                           };
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that scoped formatting reanchors tokens after directive trivia in an arrow expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveTriviaConvergesInArrowExpression()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private Dictionary<int, int> Create()
+                                        => new()
+                                           {
+                                               {
+                                                   1,
+                                #if false
+                                                   disabledValue
+                                #endif
+                                {|#0:2|}
+                                               }
+                                           };
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private Dictionary<int, int> Create()
+                                         => new()
+                                            {
+                                                {
+                                                    1,
+                                 #if false
+                                                    disabledValue
+                                 #endif
+                                                    2
+                                                }
+                                            };
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
     #endregion // Tests
 }

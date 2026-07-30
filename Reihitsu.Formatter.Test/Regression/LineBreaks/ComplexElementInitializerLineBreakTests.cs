@@ -10,9 +10,8 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
 /// Regression tests for issue #425: <see cref="LineBreakInitializerRewriter"/> must not explode
-/// complex element initializers (dictionary-style key/value pairs) one-token-per-line. Only the
-/// outer collection initializer is subject to one-element-per-line layout; each pair keeps its own
-/// single-line shape
+/// already-single-line complex element initializers (dictionary-style key/value pairs)
+/// one-token-per-line. Pairs whose contents become multi-line are recursively expanded
 /// </summary>
 [TestClass]
 public class ComplexElementInitializerLineBreakTests
@@ -44,15 +43,15 @@ public class ComplexElementInitializerLineBreakTests
     }
 
     /// <summary>
-    /// Asserts that the line-break phase leaves the input unchanged because each complex element
-    /// initializer pair must keep its single-line layout
+    /// Asserts that the line-break phase leaves an already-single-line complex element initializer
+    /// unchanged
     /// </summary>
     /// <param name="input">The C# source text</param>
     private void AssertUnchanged(string input)
     {
         var actual = ExecutePhase(input, TestContext.CancellationToken);
 
-        Assert.AreEqual(input, actual, "Complex element initializer pairs must keep their single-line layout.");
+        Assert.AreEqual(input, actual, "Already-single-line complex element initializer pairs must remain unchanged.");
     }
 
     #endregion // Methods
