@@ -19,8 +19,10 @@ public static class SyntaxNodeUtilities
     /// comment. The name states the omission because it is a trap: <see cref="ContainsCommentOrDirective"/> is
     /// the ordinary predicate and the one any guard protecting a reshape that could discard trivia must use,
     /// since the formatter's own join guard <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/> counts
-    /// documentation comments as comments. Use this one only where the formatter demonstrably reshapes across a
-    /// documentation comment without losing it, so that a guard blocking on one would withhold a fix that works
+    /// documentation comments as comments. Use this one only where the guarded rewrite delegates to the formatter
+    /// and has been verified to reshape across a documentation comment without losing it, so that blocking on one
+    /// would withhold a fix that works. A rewrite that rebuilds source text from node spans or reparses an operand
+    /// is never such a case: the comment lives in the trivia those spans exclude, so it is dropped
     /// </summary>
     /// <param name="node">Node</param>
     /// <returns><see langword="true"/> if a non-documentation comment or a directive is present; otherwise <see langword="false"/></returns>

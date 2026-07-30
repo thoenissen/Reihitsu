@@ -157,5 +157,29 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : Analyze
         await Verify(testData, Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix offered for a documented list pattern preserves the documentation comment. The rule
+    /// reports on a documentation comment on purpose, so the formatter-backed fix has to keep it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixForListPatternWithDocumentationCommentPreservesTheComment()
+    {
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       private static bool Method(int[] values)
+                                       {
+                                           return values is [/** doc */ 1,
+                                               2];
+                                       }
+                                   }
+                                   """;
+
+        var fixedCode = await ApplyCodeFixAsync(codeFixData);
+
+        Assert.Contains("/** doc */", fixedCode);
+    }
+
     #endregion // Tests
 }

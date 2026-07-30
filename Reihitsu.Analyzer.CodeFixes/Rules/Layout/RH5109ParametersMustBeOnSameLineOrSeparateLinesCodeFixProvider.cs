@@ -60,9 +60,11 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var replacement = $"({parameters.First()},{endOfLine}{alignment}{string.Join($",{endOfLine}{alignment}", parameters.Skip(1))})";
 
-        // The rebuilt text already places every parameter on its own line, aligned under the first parameter,
-        // so it is the final layout for the guarded scope (the registration rejects parameter lists that carry
-        // comments or directives). Return it directly instead of running the formatter over the owning member:
+        // The rebuilt text already places every parameter on its own line, aligned under the first parameter, so it
+        // is the final layout for the guarded scope: the registration rejects every parameter list that carries a
+        // comment or a directive, including a documentation comment, because the parameter spans read above exclude
+        // the trivia around them and rebuilding from them would drop it. Return the text directly instead of running
+        // the formatter over the owning member:
         // that oversized scope reformatted the unrelated member body and inherited the body-scope formatter
         // defects, while formatting the isolated parameter list mis-aligns its continuation lines.
         return document.WithText(sourceText.Replace(parameterList.Span, replacement));
@@ -96,7 +98,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
             var parameterList = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
 
             if (parameterList == null
-                || SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(parameterList))
+                || SyntaxNodeUtilities.ContainsCommentOrDirective(parameterList))
             {
                 continue;
             }

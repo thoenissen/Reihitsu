@@ -206,12 +206,13 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that a documentation comment in the parameter list still gets a code fix, because the
-    /// formatter reshapes the list across it without losing it (issue #420)
+    /// Verifies that a documentation comment inside the parameter list keeps the fix from being offered. The fix
+    /// rebuilds the list from the raw text of each <see cref="ParameterListSyntax.Parameters"/> span, and a comment
+    /// between two parameters lies outside every one of those spans, so offering the fix would delete it (issue #420)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDocumentationCommentedParameterListIsOfferedACodeFix()
+    public async Task VerifyDocumentationCommentedParameterListIsNotOfferedACodeFix()
     {
         const string codeFixData = """
                                    internal class TestClass
@@ -231,7 +232,32 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
                                                                .First()
                                                                .GetLocation());
 
-        Assert.IsNotEmpty(actions);
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment on the member itself does not block the fix. It sits in the leading
+    /// trivia of the return type, outside the parameter list, so the rebuilt list cannot touch it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedMemberStillGetsTheCodeFixAndKeepsItsComment()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Does something.</summary>
+                                       void Method(int first, int second,
+                                                   int third)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var fixedCode = await ApplyCodeFixAsync(codeFixData);
+
+        Assert.Contains("/// <summary>Does something.</summary>", fixedCode);
+        Assert.AreNotEqual(codeFixData, fixedCode);
     }
 
     #endregion // Tests
