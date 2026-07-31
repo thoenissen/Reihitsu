@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -122,7 +123,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         }
 
         // Rule 4: In multi-line form, opening and closing braces must be in the same column.
-        if (openBracePosition.Character != closeBracePosition.Character)
+        if (InitializerLayoutAnalysisUtilities.IsAlignedAt(collectionInitializer.CloseBraceToken, openBracePosition.Character) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 
@@ -135,6 +136,27 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
             || expressionLinePositions.Select(position => position.Line).Distinct().Count() != expressionLinePositions.Length)
         {
             context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
+
+            return;
+        }
+
+        foreach (var expression in collectionInitializer.Expressions)
+        {
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(expression.GetFirstToken(), openBracePosition.Character + 4) == false)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
+
+                return;
+            }
+
+            if (expression is InitializerExpressionSyntax complexElement
+                && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression)
+                && InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, openBracePosition.Character + 4) != null)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
+
+                return;
+            }
         }
     }
 

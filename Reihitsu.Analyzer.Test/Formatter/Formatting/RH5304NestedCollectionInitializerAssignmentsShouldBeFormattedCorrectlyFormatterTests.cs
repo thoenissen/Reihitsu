@@ -119,5 +119,241 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                  Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter fixes complex-element interior alignment and produces analyzer-clean, idempotent output
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesComplexElementInteriorMisalignment()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Data;
+
+                             internal class Example
+                             {
+                                 public Dictionary<Data, Data> Values { get; } = [];
+
+                                 private static void Method(Data existingKey, Data existingValue)
+                                 {
+                                     var value = new Example
+                                                 {
+                                                     {|#0:Values = {
+                                                                  {
+                                                                      existingKey,
+                                                                  existingValue
+                                                                  }
+                                                              }|}
+                                                 };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     public Dictionary<Data, Data> Values { get; } = [];
+
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      {
+                                                                          existingKey,
+                                                                          existingValue
+                                                                      }
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter fixes a shifted complex-element anchor and produces analyzer-clean, idempotent output
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesShiftedComplexElementAnchor()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Data;
+
+                             internal class Example
+                             {
+                                 public Dictionary<Data, Data> Values { get; } = [];
+
+                                 private static void Method(Data existingKey, Data existingValue)
+                                 {
+                                     var value = new Example
+                                                 {
+                                                     {|#0:Values = {
+                                                                      {
+                                                                          existingKey,
+                                                                          existingValue
+                                                                      }
+                                                              }|}
+                                                 };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     public Dictionary<Data, Data> Values { get; } = [];
+
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      {
+                                                                          existingKey,
+                                                                          existingValue
+                                                                      }
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that comment-prefixed complex-element tokens remain analyzer-clean and formatter-stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsCommentPrefixedComplexElementStable()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class Data;
+
+                              internal class Example
+                              {
+                                  public Dictionary<Data, Data> Values { get; } = [];
+
+                                  private static void Method(Data existingKey, Data existingValue)
+                                  {
+                                      var value = new Example
+                                                  {
+                                                      Values = {
+                                                                   /* Keep element. */ {
+                                                                       /* Keep key. */ existingKey,
+
+                                                                       /* Keep value. */ existingValue
+                                                                   /* Keep close. */ }
+                                                               }
+                                                  };
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
+    /// <summary>
+    /// Verifies that comment-prefixed ordinary elements and the closing brace remain analyzer-clean and formatter-stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsCommentPrefixedOrdinaryElementsStable()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class Example
+                              {
+                                  public List<int> Values { get; set; }
+
+                                  private static void Method()
+                                  {
+                                      var value = new Example
+                                                  {
+                                                      Values = {
+                                                                   /* Keep one. */ 1,
+
+                                                                   /* Keep two. */ 2
+
+                                                               /* Keep close. */ }
+                                                  };
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter fixes ordinary-element alignment and remains stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesOrdinaryElementMisalignment()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Example
+                             {
+                                 public List<int> Values { get; set; }
+
+                                 private static void Method()
+                                 {
+                                     var value = new Example
+                                                 {
+                                                     {|#0:Values = {
+                                                         1,
+                                                         2
+                                                              }|}
+                                                 };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     public List<int> Values { get; set; }
+
+                                     private static void Method()
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      1,
+                                                                      2
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
     #endregion // Tests
 }

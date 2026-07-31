@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
@@ -133,6 +134,14 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                 break;
 
             case InitializerExpressionSyntax { Parent: EqualsValueClauseSyntax } initializer:
+                {
+                    var anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
+
+                    AlignInitializerToColumn(anchorColumn, initializer, model, alignOpenBrace: false);
+                }
+                break;
+
+            case InitializerExpressionSyntax initializer when initializer.IsKind(SyntaxKind.ComplexElementInitializerExpression):
                 {
                     var anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
 

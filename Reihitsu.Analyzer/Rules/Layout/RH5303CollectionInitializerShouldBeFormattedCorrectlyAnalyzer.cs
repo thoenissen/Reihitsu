@@ -1,10 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -87,12 +90,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     {
         var isValid = true;
 
-        var openBracePosition = collectionInitializer.OpenBraceToken
-                                                     .GetLocation()
-                                                     .GetLineSpan()
-                                                     .StartLinePosition;
-
-        if (openBracePosition.Character != newKeywordPosition.Character)
+        if (InitializerLayoutAnalysisUtilities.IsAlignedAt(collectionInitializer.OpenBraceToken, newKeywordPosition.Character) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
@@ -100,12 +98,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
         }
         else
         {
-            var closeBracePosition = collectionInitializer.CloseBraceToken
-                                                          .GetLocation()
-                                                          .GetLineSpan()
-                                                          .StartLinePosition;
-
-            if (closeBracePosition.Character != newKeywordPosition.Character)
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(collectionInitializer.CloseBraceToken, newKeywordPosition.Character) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
@@ -120,22 +113,40 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     /// Checking the collection initializer elements
     /// </summary>
     /// <param name="context">Context</param>
-    /// <param name="newKeywordPosition">New keyword position</param>
+    /// <param name="anchorPosition">Position that owns the initializer's indentation level</param>
     /// <param name="collectionInitializer">Collection initializer</param>
-    private void CheckElements(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, InitializerExpressionSyntax collectionInitializer)
+    private void CheckElements(SyntaxNodeAnalysisContext context, LinePosition anchorPosition, InitializerExpressionSyntax collectionInitializer)
     {
+        var openBraceLine = collectionInitializer.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var closeBraceLine = collectionInitializer.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var expressionLines = new HashSet<int>();
+
         foreach (var expression in collectionInitializer.Expressions)
         {
-            var expressionPosition = expression.GetFirstToken()
-                                               .GetLocation()
-                                               .GetLineSpan()
-                                               .StartLinePosition;
+            var firstToken = expression.GetFirstToken();
+            var expressionLine = firstToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-            if (expressionPosition.Character != newKeywordPosition.Character + 4)
+            if (expressionLine <= openBraceLine
+                || expressionLine >= closeBraceLine
+                || expressionLines.Add(expressionLine) == false
+                || InitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + 4) == false)
             {
                 // Report at the offending element so multiple misaligned elements do not produce duplicate
                 // diagnostics that all share the whole creation expression's span
                 context.ReportDiagnostic(CreateDiagnostic(expression.GetLocation()));
+
+                continue;
+            }
+
+            if (expression is InitializerExpressionSyntax complexElement
+                && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
+            {
+                var misalignment = InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, anchorPosition.Character + 4);
+
+                if (misalignment != null)
+                {
+                    context.ReportDiagnostic(CreateDiagnostic(misalignment));
+                }
             }
         }
     }
