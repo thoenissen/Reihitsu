@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -33,29 +33,6 @@ public class RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
     private static async Task<Document> ApplyCodeFixAsync(Document document, ArgumentListSyntax argumentList, CancellationToken cancellationToken)
     {
         return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, argumentList, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Determines whether the given node contains comments or directives that would make the formatter
-    /// refuse a line join, leaving the diagnostic unresolved
-    /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
-    private static bool HasCommentsOrDirectives(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective
-                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     #endregion // Methods
@@ -83,7 +60,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 var argumentList = node.FirstAncestorOrSelf<ArgumentListSyntax>();
 
-                if (argumentList != null && HasCommentsOrDirectives(argumentList) == false)
+                if (argumentList != null && SyntaxNodeUtilities.ContainsCommentOrDirective(argumentList) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5101Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, argumentList, cancellationToken),

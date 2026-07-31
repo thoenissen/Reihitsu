@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -80,26 +80,19 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     }
 
     /// <summary>
-    /// Determines whether the formatting node carries comments or directives. A line join across a
-    /// comment would move code into the comment, so the fix is not offered in that case (issue #226)
+    /// Determines whether the formatting node carries trivia that blocks the line join. A variable declarator
+    /// is inspected with its full trivia, because the declaration's own comment sits inside the join. An
+    /// assignment expression or a property declaration is inspected by its own span instead: the member's
+    /// documentation comment precedes it and the join never reaches it, so counting it would withhold a fix
+    /// from a documented member that an undocumented one still gets
     /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
-    private static bool HasCommentsOrDirectives(SyntaxNode node)
+    /// <param name="node">The formatting node to inspect</param>
+    /// <returns><see langword="true"/> if the join is blocked; otherwise, <see langword="false"/></returns>
+    private static bool ContainsJoinBlockingTrivia(SyntaxNode node)
     {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective
-                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return node is VariableDeclaratorSyntax
+                   ? SyntaxNodeUtilities.ContainsCommentOrDirective(node)
+                   : SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node);
     }
 
     #endregion // Methods
@@ -130,7 +123,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
             var diagnosticNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
             var assignmentNode = GetFormattingNode(diagnosticNode);
 
-            if (assignmentNode == null || HasCommentsOrDirectives(assignmentNode))
+            if (assignmentNode == null || ContainsJoinBlockingTrivia(assignmentNode))
             {
                 continue;
             }

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -322,6 +324,179 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH3004UseLam
                                  """;
 
         await Verify(testCode, fixedCode, onConfigure: config => config.NumberOfFixAllIterations = 2, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax.", 2));
+    }
+
+    /// <summary>
+    /// Verifying that a documentation comment in the anonymous method body is preserved: the rewrite keeps
+    /// the block instead of inlining the return expression and discarding the comment (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DocumentationCommentedAnonymousMethodKeepsItsBody()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Func<int> Run()
+                                    {
+                                        return {|#0:delegate|}()
+                                               {
+                                                   /// <summary>Result of the callback.</summary>
+                                                   return 1;
+                                               };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public Func<int> Run()
+                                     {
+                                         return () => {
+                                                    /// <summary>Result of the callback.</summary>
+                                                    return 1;
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax."));
+    }
+
+    /// <summary>
+    /// Verifying that a comment between the parameter list and the block keeps the fix from being offered. The
+    /// rewrite reassembles the lambda from the parameter list and the block text, and trivia in that gap belongs
+    /// to neither, so offering the fix would delete it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CommentBetweenParameterListAndBlockIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   using System;
+
+                                   public class Test
+                                   {
+                                       public Func<int> Run()
+                                       {
+                                           return delegate()
+                                                  /** Keep me. */
+                                                  {
+                                                      return 1;
+                                                  };
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3004UseLambdaSyntaxAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AnonymousMethodExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment between the delegate keyword and the parameter list keeps the fix from being
+    /// offered. It lies outside both spans the rewrite copies, so it would be deleted (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CommentBetweenDelegateKeywordAndParameterListIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   using System;
+
+                                   public class Test
+                                   {
+                                       public Func<int, int> Run()
+                                       {
+                                           return delegate /* keep me */ (int value) { return value; };
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3004UseLambdaSyntaxAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AnonymousMethodExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a preprocessor directive between the delegate keyword and the parameter list keeps the fix
+    /// from being offered, just like a comment in the same gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DirectiveBetweenDelegateKeywordAndParameterListIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   using System;
+
+                                   public class Test
+                                   {
+                                       public Func<int, int> Run()
+                                       {
+                                           return delegate
+                                   #if DEBUG
+                                   #endif
+                                                  (int value) { return value; };
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3004UseLambdaSyntaxAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AnonymousMethodExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a preprocessor directive between the parameter list and the block keeps the fix from being
+    /// offered, just like a comment in the same gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DirectiveBetweenParameterListAndBlockIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   using System;
+
+                                   public class Test
+                                   {
+                                       public Func<int, int> Run()
+                                       {
+                                           return delegate (int value)
+                                   #if DEBUG
+                                   #endif
+                                                  { return value; };
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3004UseLambdaSyntaxAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AnonymousMethodExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

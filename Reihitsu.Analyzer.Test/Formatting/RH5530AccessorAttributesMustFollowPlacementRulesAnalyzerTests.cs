@@ -170,5 +170,31 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Ana
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a comment between the closing bracket and the accessor keyword keeps the diagnostic from being
+    /// reported. The multi-line property resolves to separate-line placement, and the fix refuses that gap under
+    /// either placement, so reporting here would leave a diagnostic nobody can clear (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenCommentSitsBetweenAttributeListAndAccessor()
+    {
+        const string testData = """
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                internal class Example
+                                {
+                                    internal int Value
+                                    {
+                                        [First] /* keep me */ get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -160,7 +160,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
         }
 
         var diagnosticLine = diagnostic.Location.GetLineSpan().StartLinePosition.Line;
-        var allowFollowingAnchor = IsCommentTrivia(diagnosticTrivia);
+        var allowFollowingAnchor = SyntaxTriviaUtilities.IsCommentTrivia(diagnosticTrivia);
 
         for (var current = diagnosticNode; current != null; current = current.Parent)
         {
@@ -178,19 +178,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
         scope = diagnosticNode;
 
         return true;
-    }
-
-    /// <summary>
-    /// Determines whether the trivia is a comment
-    /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if the trivia is a comment</returns>
-    private static bool IsCommentTrivia(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
     }
 
     #endregion // Methods

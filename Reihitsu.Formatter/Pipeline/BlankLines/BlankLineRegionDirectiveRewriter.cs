@@ -1,6 +1,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
@@ -51,24 +53,13 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the trivia is a <c>#region</c> or <c>#endregion</c> directive
-    /// </summary>
-    /// <param name="trivia">Trivia to inspect</param>
-    /// <returns><see langword="true"/> when the trivia is a region or end-region directive</returns>
-    private static bool IsRegionDirective(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
-    }
-
-    /// <summary>
     /// Determines whether the leading trivia of the specified token contains a region or end-region directive
     /// </summary>
     /// <param name="token">The token to inspect</param>
     /// <returns><see langword="true"/> if any region directive trivia is found in the leading trivia</returns>
     private static bool HasRegionDirectiveInLeadingTrivia(SyntaxToken token)
     {
-        return token.LeadingTrivia.Any(IsRegionDirective);
+        return token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsRegionDirective);
     }
 
     /// <summary>
@@ -85,7 +76,7 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
 
         for (var triviaIndex = trivia.Count - 1; triviaIndex >= 0; triviaIndex--)
         {
-            if (IsRegionDirective(trivia[triviaIndex]) == false)
+            if (SyntaxTriviaUtilities.IsRegionDirective(trivia[triviaIndex]) == false)
             {
                 continue;
             }

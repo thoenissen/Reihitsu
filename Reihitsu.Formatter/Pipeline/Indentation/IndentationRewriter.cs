@@ -284,8 +284,7 @@ internal static class IndentationRewriter
     {
         return trivia.HasStructure
                && trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: true }
-               && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
-               && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
+               && SyntaxTriviaUtilities.IsRegionDirective(trivia) == false;
     }
 
     /// <summary>

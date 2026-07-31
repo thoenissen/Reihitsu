@@ -550,6 +550,59 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a documentation comment inside the condition keeps the fix from being offered. The swap
+    /// reparses both operands without their trivia, so offering the fix would delete the comment (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DocumentationCommentedYodaConditionIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   public class Test
+                                   {
+                                       public bool Run(int count)
+                                       {
+                                           return 0 < /** The counter. */ count;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3005UseReadableConditionsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<BinaryExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a documentation comment on the member itself does not block the fix. It sits in the leading
+    /// trivia of the member, outside the comparison, so the swap cannot touch it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DocumentedMemberWithYodaConditionIsFixedAndKeepsItsComment()
+    {
+        const string codeFixData = """
+                                   public class Test
+                                   {
+                                       /// <summary>Checks the counter.</summary>
+                                       public bool Run(int count)
+                                       {
+                                           return 0 < count;
+                                       }
+                                   }
+                                   """;
+
+        var fixedCode = await ApplyCodeFixAsync(codeFixData);
+
+        Assert.Contains("/// <summary>Checks the counter.</summary>", fixedCode);
+        Assert.Contains("return count > 0;", fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -142,5 +142,30 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that multiline indexer arguments carrying a documentation comment are ignored, because the
+    /// formatter refuses to collapse across it and the fix would otherwise never converge (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMultilineIndexerArgumentsWithDocumentationComment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static int Method(int[] values)
+                                    {
+                                        return values[
+                                            /// <summary>
+                                            /// index
+                                            /// </summary>
+                                            0];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

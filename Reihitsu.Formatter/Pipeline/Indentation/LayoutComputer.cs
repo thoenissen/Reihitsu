@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation;
@@ -279,7 +280,7 @@ internal static class LayoutComputer
     /// <param name="baseColumn">The base indentation column</param>
     private static void SetDirectiveIndentation(SyntaxToken token, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, LayoutModel model, int baseColumn)
     {
-        foreach (var directiveTrivia in token.LeadingTrivia.Where(IsRegionDirective))
+        foreach (var directiveTrivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsRegionDirective))
         {
             var directiveIndent = IsInsideBraceRange(directiveTrivia.SpanStart, braceRange)
                                       ? indentLevel + 1
@@ -289,17 +290,6 @@ internal static class LayoutComputer
 
             model.Set(directiveLine, new TokenLayout(directiveIndent * FormattingContext.IndentSize + baseColumn, "Directive"));
         }
-    }
-
-    /// <summary>
-    /// Determines whether trivia represents a <c>#region</c> or <c>#endregion</c> directive
-    /// </summary>
-    /// <param name="trivia">The trivia to inspect</param>
-    /// <returns><see langword="true"/> if the trivia is a region directive; otherwise, <see langword="false"/></returns>
-    private static bool IsRegionDirective(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
     }
 
     /// <summary>

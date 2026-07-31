@@ -442,5 +442,62 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that an accessor list carrying a documentation comment is not flagged, because collapsing it
+    /// would delete the comment (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDocumentedAccessorList()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        /// <summary>
+                                        /// Getter
+                                        /// </summary>
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for an accessor list carrying a documentation comment, so the fix
+    /// cannot delete it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedAccessorListIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class RH5408
+                                   {
+                                       public int Value
+                                       {
+                                           /// <summary>
+                                           /// Getter
+                                           /// </summary>
+                                           get;
+                                           set;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

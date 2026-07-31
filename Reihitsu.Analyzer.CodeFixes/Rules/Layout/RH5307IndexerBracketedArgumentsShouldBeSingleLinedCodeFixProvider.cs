@@ -53,8 +53,8 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
     /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
     private static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
     {
-        return FormattingSafetyUtilities.HasCommentsOrDirectives(bracketedArgumentList) == false
-               && FormattingSafetyUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);
+        return SyntaxNodeUtilities.ContainsCommentOrDirective(bracketedArgumentList) == false
+               && SyntaxNodeUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);
     }
 
     /// <summary>
