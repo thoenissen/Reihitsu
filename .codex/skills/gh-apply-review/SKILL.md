@@ -116,8 +116,11 @@ The single non-`[skip ci]` trigger commit comes at the very end, after preflight
 ```shell
 git push
 git commit --allow-empty -m "Ready for CI (#<PR>)"
+git diff --exit-code <audited-sha> HEAD
 git push
 ```
+
+The trigger commit is empty, so it carries the audited tree under a new SHA. `git diff --exit-code` must print nothing; if it prints a diff, the audit no longer covers what you are about to push.
 
 Do not create the trigger commit when no change was applied.
 
@@ -139,7 +142,7 @@ Fix what you find now. This is not an official preflight, does not consume a pre
 
 ## Synchronize with `origin/main` before the official gate
 
-The audited head must be the head that will merge:
+The audited tree must be the tree that will merge:
 
 1. `git fetch origin main`.
 2. Check worktree and branch state — clean of unintended changes, on the PR head branch.
@@ -150,13 +153,13 @@ The audited head must be the head that will merge:
 7. Commit and push the synchronized head with `[skip ci]`.
 8. Run the official preflight against that exact head.
 
-If `origin/main` moves again after a passing preflight, do not enter an unlimited re-merge/re-preflight loop. Check whether another merge is actually required, state that merging again changes the audited head, and follow the user's explicit direction — including their decision to rely on CI without another preflight attempt.
+If `origin/main` moves again after a passing preflight, do not enter an unlimited re-merge/re-preflight loop. Check whether another merge is actually required, state that merging again changes the audited tree, and follow the user's explicit direction — including their decision to rely on CI without another preflight attempt.
 
 ## Official preflight gate — hard 1 + 1 budget
 
 After the accepted fixes are committed and pushed with `[skip ci]`, the local self-review is done, and `main` is synchronized, read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal, read-only gate against the current PR head. Do not post preflight findings to GitHub. Run it in a fresh, independent read-only subagent when subagents are available.
 
-A **routine round** — one whose diff contains no production code at all (documentation, repository instructions, or workflow files only) and whose accepted findings touch no analyzer, formatter, code-fix, or `Reihitsu.Core` behavior — may skip the official preflight and go straight to full validation. Record the skip and its reason in the Validation block. Every other round spends at least attempt 1.
+A **routine round** — no compiled file anywhere in the diff, and no accepted finding touching analyzer, formatter, code-fix, or `Reihitsu.Core` behavior — skips the official preflight and the full validation alike; the PR review is the gate for text-only changes. Record the skip and its reason in the Validation block. Every other round spends at least attempt 1.
 
 The budget is fixed:
 
@@ -171,7 +174,11 @@ On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head be
 
 Ask the user before acting on a preflight finding that is architecturally significant, public-API-changing, dependency-changing, contested, or unrelated to the accepted review work. Do not create the final CI-trigger commit until both preflight and full validation are green.
 
-A tracked-file change made after a passing preflight leaves the final head unaudited. If an attempt is still unspent, use it on the new head. If the budget is exhausted, do not start another official preflight: run the local self-review and the focused tests over the change, and say so in the report.
+A tracked-file change made after a passing preflight means the audited tree is no longer the tree that will merge:
+
+- the change touches no compiled file → note it in the report and continue;
+- it touches compiled files and an attempt is unspent → spend the retry on the new tree;
+- it touches compiled files and the budget is exhausted → stop and report. The user decides whether to ship a tree that no audit covered; you do not decide it silently.
 
 ## Full validation — run it once
 
@@ -181,7 +188,7 @@ Before the first build or test, confirm the preinstalled SDK:
 dotnet --list-sdks
 ```
 
-Do not install an SDK or modify `PATH`. Focused tests run throughout the repair cycle; the complete suite runs **once**, after the fixes are in, `main` is synchronized, the official preflight has passed, and the worktree matches the audited head:
+Do not install an SDK or modify `PATH`. Focused tests run throughout the repair cycle; the complete suite runs **once**, after the fixes are in, `main` is synchronized, the official preflight has passed, and the worktree matches the audited tree:
 
 ```shell
 dotnet build Reihitsu.sln -c Release --verbosity minimal
@@ -191,7 +198,7 @@ dotnet test Reihitsu.Core.Test/Reihitsu.Core.Test.csproj -c Release --no-build -
 dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --no-build --verbosity minimal
 ```
 
-`--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All relevant tests must pass. Fix regressions caused by the review changes in focused `[skip ci]` commits and rerun the focused tests plus the failing project — not the whole suite. Never silence, ignore, or delete a test to obtain a green run. If the SDK is absent or the base branch has an independent failure, stop and report the evidence.
+`--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All relevant tests must pass. Fix regressions caused by the review changes in focused `[skip ci]` commits. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`. Never silence, ignore, or delete a test to obtain a green run. If the SDK is absent or the base branch has an independent failure, stop and report the evidence.
 
 If the user explicitly asks to skip repeated local validation and rely on CI, obey that instruction and report exactly which local checks ran and which did not.
 
@@ -227,7 +234,7 @@ _None._
 ## Validation
 - Local self-review: every worklist row checked; parity, convergence, idempotency, directives re-checked.
 - Base sync: merged `origin/main` at `<sha>`; conflicts formatted and focused-tested.
-- Official preflight: 1 attempt used, PASS; budget not exhausted. (State a skip and its reason here instead when the round changed no production code.)
+- Official preflight: 1 attempt used, PASS on tree `<sha>`; budget not exhausted. (State the skip and its reason here instead when the round changed no compiled file.)
 - Build: green.
 - Analyzer / Formatter / Core / CLI tests: green (one full run).
 
@@ -260,7 +267,8 @@ None of this may reduce correctness or hide a failing result.
 - Never start a third official preflight automatically; the budget is one attempt plus one retry.
 - Never split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
 - Never run the official preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.
-- Never start full validation or create the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head — the only exception is a round with no production code in the diff, which records the skip. If the budget is exhausted without a `PASS`, stop and report; that is not a licence to proceed.
+- Never start full validation or create the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR tree — the one exception is a round with no compiled file in the diff, which skips both and records the skip. If the budget is exhausted without a `PASS`, stop and report; that is not a licence to proceed.
+- Never treat an earlier green project result as still valid after a compiled file changed, and never claim the audit covered the final commit when only the tree matches.
 - Never install an SDK or modify `PATH`.
 - Never push a non-`[skip ci]` commit before validation is green.
 - Never stage unrelated paths, open another PR, or change the PR's draft state.

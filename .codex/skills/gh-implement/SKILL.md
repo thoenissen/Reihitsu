@@ -27,7 +27,7 @@ Follow this sequence. The gates exist because rework in this repository is cause
 11. Implement, formatting changed paths and running focused tests as you go.
 12. Run the **local self-review**.
 13. Synchronize with current `origin/main`.
-14. Run the **official preflight** (`gh-preflight`) on that exact synchronized head.
+14. Run the **official preflight** (`gh-preflight`) on that exact synchronized tree.
 15. Run the complete **full validation** once.
 16. Push the final non-`[skip ci]` CI trigger and finish the PR.
 
@@ -135,7 +135,16 @@ The linked draft PR is the ownership record. Do not post a claim comment, PR-lin
 
 Both gates default to **on**. The escape below exists for work that is genuinely small — not for work that merely looks small at first glance, because misjudging that is exactly the failure the gates were built to catch. Classify from evidence, not from the issue's tone or length.
 
-A run is **routine** only when every one of these holds after reading the issue and doing one quick `rg` pass over the surfaces it names:
+**Mechanical veto first.** Look at the file set before judging anything. If the diff touches any of these, the run is **behavioral** — no further judgment needed:
+
+- `Reihitsu.Analyzer/**`, `Reihitsu.Analyzer.CodeFixes/**`, `Reihitsu.Formatter/**`, `Reihitsu.Core/**`, `Reihitsu.Cli/**`;
+- any test project (`Reihitsu.*.Test/**`, `Reihitsu.ArchitectureTests/**`);
+- `*.csproj`, `Reihitsu.sln`, `Directory.Build.props`, `*.ruleset`, `.editorconfig`;
+- a mixed diff that contains any of the above next to documentation.
+
+Only a diff limited to non-compiled files — Markdown, `.codex`/`.claude` skill and command files, issue and PR templates — can be routine at all. The veto can push a run to behavioral; it never certifies one as routine.
+
+Passing the veto is necessary, not sufficient. A run is **routine** only when, in addition, every one of these holds after reading the issue and doing one quick `rg` pass over the surfaces it names:
 
 1. No behavior of an analyzer, formatter phase, code fix, Fix All, or `Reihitsu.Core` helper changes — diagnostics and formatter output stay byte-identical.
 2. The issue admits exactly one reading; there is nothing a reviewer could reasonably interpret differently.
@@ -143,17 +152,23 @@ A run is **routine** only when every one of these holds after reading the issue 
 4. No new rule, no diagnostic ID / severity / message change, no public API change, no dependency change.
 5. It is not an analyzer or formatter bug report — those always get the contract, because the defect class *is* the question.
 
+`documentation/rules/RH####.md` deserves a second look: fixing its wording is routine, changing the behavior it documents is not — the doc is part of the rule contract and `AnalyzerPackageMetadataTests` compares it against the shipped analyzers.
+
 Typical routine work: rule-doc wording, repository instructions, workflow skill and command files, a comment typo, a test added for behavior that is already correct.
 
 Everything else is **behavioral** and runs both gates exactly as written below.
 
-| Gate | Routine run | Behavioral run |
+| Gate | Routine run — no compiled file in the diff | Behavioral run |
 |---|---|---|
 | Rubber Duck subagent | Optional — replace it with a **contract note** (see below) | Mandatory |
-| Official preflight | Optional **only when the diff contains no production code**; anything that compiles keeps at least attempt 1 | Mandatory, 1 + 1 budget |
-| Local self-review | Mandatory | Mandatory |
-| Test-first for bug fixes | Mandatory | Mandatory |
-| Full validation | Mandatory | Mandatory |
+| Official preflight | Not run — the PR review is the gate for text-only changes | Mandatory, 1 + 1 budget |
+| Local self-review | Mandatory, in its routine form (below) | Mandatory |
+| Test-first for bug fixes | N/A — a routine run changes no behavior | Mandatory |
+| Full validation | Not run — nothing in the diff can affect it | Mandatory |
+
+Skipping the .NET suite for a text-only diff is not a shortcut: no compiled file changed, so build and tests can only reproduce the result they already produced on `main`, and CI plus the human PR review still see the change. Record both skips and their reason in the report.
+
+On a routine run the local self-review replaces the .NET checks with what actually applies to text: referenced paths and links resolve, YAML frontmatter parses, `git diff --check` is clean, and nothing in the change contradicts `AGENTS.md`/`CLAUDE.md` or a neighboring skill.
 
 **Contract note.** On a routine run, write three or four lines in chat before editing: the expected behavior, the files you will touch, and what must not change. It costs seconds, it is the artifact the local self-review walks instead of contract rows, and writing it is often what exposes that the run was not routine after all.
 
@@ -242,7 +257,7 @@ The matrix must cover, for the surfaces the contract names:
 
 Per `AGENTS.md`, an analyzer or formatter bug must be reproduced by a failing test before production code changes. Add the intended regression tests first, watch them fail for the right reason, then implement. Analyzer tests stay many small focused tests rather than one large multi-case test.
 
-Keep the contract row IDs (`B1`, `B2`, …) next to the tests you write. The local self-review walks that mapping later.
+Track the contract row IDs (`B1`, `B2`, …) in your working plan and in the final report, never in the repository. Test names and test bodies have to stand on their own long after the contract is gone, so `KeepsSingleLineValueBesideKey` is the deliverable and `B1` is scaffolding — do not write contract IDs into test code, comments, or any tracked file.
 ### Use the existing test infrastructure
 
 The repository already owns most of this coverage; write new helpers only when none of these fits. Naming the right helper matters — `VerifyFormatterFix` proves the formatter clears the diagnostic, but it checks neither a second pass nor CRLF, so a layout change verified with it looks green while the invariant is untested.
@@ -327,7 +342,7 @@ Fix what you find now. This is not an official preflight, does not consume a pre
 
 ## Synchronize with `origin/main` before the official gate
 
-The audited head must be the head that will merge. Synchronizing after a passing preflight invalidates it, and preflighting a known-stale or known-conflicting branch wastes an attempt.
+The audited tree must be the tree that will merge. Synchronizing after a passing preflight invalidates the audit, and preflighting a known-stale or known-conflicting branch wastes an attempt.
 
 1. Fetch the current base:
 
@@ -343,13 +358,13 @@ The audited head must be the head that will merge. Synchronizing after a passing
 7. Commit and push the synchronized head with `[skip ci]`.
 8. Run the official preflight against that exact head.
 
-If `origin/main` moves again **after** a passing preflight: do not enter an unlimited re-merge/re-preflight loop. Check whether another merge is actually required (does the new `main` touch anything this PR touches?). If it is, say plainly that merging again changes the audited head, and follow the user's explicit direction — including their decision to rely on CI without spending another preflight attempt.
+If `origin/main` moves again **after** a passing preflight: do not enter an unlimited re-merge/re-preflight loop. Check whether another merge is actually required (does the new `main` touch anything this PR touches?). If it is, say plainly that merging again changes the audited tree, and follow the user's explicit direction — including their decision to rely on CI without spending another preflight attempt.
 
 ## Official preflight gate — hard 1 + 1 budget
 
 `gh-preflight` is the final, independent quality gate. Read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings to GitHub. Run it in a fresh, independent read-only subagent when subagents are available, exactly as that skill's reviewer-isolation section requires.
 
-A routine run whose diff contains **no production code** — documentation, repository instructions, workflow files — may skip the official preflight entirely and go straight to full validation, with the skip and its reason recorded in the final report. Every other run, routine or not, spends at least attempt 1.
+A routine run — no compiled file anywhere in the diff — skips this gate and the full validation with it, and goes straight to finishing the PR; the human PR review is the gate for text-only changes. Record both skips and the reason in the final report. Anything that compiles spends at least attempt 1.
 
 The budget is fixed:
 
@@ -364,13 +379,17 @@ On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head an
 
 Ask the user before expanding scope for an architecturally significant, public-API-changing, dependency-changing, contested, or unrelated pre-existing finding. Do not run the full validation suite until an attempt returns `PASS`.
 
-A tracked-file change made after a passing preflight leaves the final head unaudited. If an attempt is still unspent, use it on the new head. If the budget is exhausted, do not start another official preflight: run the local self-review and the focused tests over the change, and state in the final report that the final head carries post-preflight changes.
+A tracked-file change made after a passing preflight means the audited tree is no longer the tree that will merge:
+
+- the change touches no compiled file → note it in the report and continue;
+- it touches compiled files and an attempt is unspent → spend the retry on the new tree;
+- it touches compiled files and the budget is exhausted → stop and report. The user decides whether to ship a tree that no audit covered; you do not decide it silently.
 
 The final report must state how many official preflight attempts were used, the result of each, and whether the budget was exhausted.
 
 ## Full validation — run it once
 
-Focused, filtered tests run throughout implementation. The complete suite runs **once**, after implementation is complete, `main` is synchronized, the official preflight has passed, and the worktree matches the audited head. Do not rerun the whole solution after each small fix.
+Focused, filtered tests run throughout implementation. The complete suite runs **once**, after implementation is complete, `main` is synchronized, the official preflight has passed, and the worktree matches the audited tree. Do not rerun the whole solution after each small fix. A routine run with no compiled file in the diff skips this section entirely — see "Scope triage".
 
 ```shell
 dotnet build Reihitsu.sln -c Release --verbosity minimal
@@ -383,7 +402,7 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --no-build --v
 `--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
-2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`. Rerun the focused tests for the fix plus the project that failed — not the whole suite.
+2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`.
 3. If a failure exists on `main` independent of your change, record it in the draft PR's `Review notes` with `gh pr edit` and stop. Do not continue implementation on top of a broken baseline.
 
 If the user explicitly asks to skip repeated local validation and rely on CI, obey that instruction and state in the final report exactly which local checks ran and which did not.
@@ -401,6 +420,13 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
    ```
 
    This is the only commit in the run that must not contain `[skip ci]`.
+   The trigger commit is empty, so it carries the audited tree under a new SHA. Prove that before pushing it:
+
+   ```shell
+   git diff --exit-code <audited-sha> HEAD
+   ```
+
+   It must print nothing. If it prints a diff, the audit no longer covers what you are about to push — reconcile instead of pushing.
 
 2. Update the existing draft PR with `gh pr edit <PR> --title "<title>" --body "<body>"`, rewriting both in the same call. This is the mandatory full rewrite — not an edit of the claim-time placeholder:
 
@@ -449,7 +475,8 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 4. Report back in chat, stating at least:
 
-   - the scope classification (routine or behavioral) and which gates it kept or skipped, with the reason;
+   - the scope classification (routine or behavioral), which gates it kept or skipped, and why;
+   - the run metrics, so the workflow itself can be evaluated after a dozen runs: contract gate result, number of contract rows, tests added, findings on the first official preflight, whether the retry was needed;
    - a coverage table so the reader can check the change without reading the diff:
 
      | Contract row | Test | Helper |
@@ -488,7 +515,10 @@ None of this may reduce correctness or hide a failing result. When output is tri
 - **Never** start a third official preflight automatically. The budget is one attempt plus one retry; after that, report and stop.
 - **Never** split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
 - **Never** run the final preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.
-- **Never** start full validation or push the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head — the only exception is a routine run with no production code in the diff, which records the skip. If the budget is exhausted without a `PASS`, stop and report; that is not a licence to proceed.
+- **Never** start full validation or push the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR tree — the one exception is a routine run with no compiled file in the diff, which skips both and records the skip. If the budget is exhausted without a `PASS`, stop and report; that is not a licence to proceed.
+- **Never** claim that preflight or validation covered the final *commit* when only the tree matches. Say tree, and prove it with `git diff --exit-code <audited-sha> HEAD`.
+- **Never** treat an earlier green project result as still valid after a compiled file changed — build and all four projects have to be green on one and the same final tree.
+- **Never** write contract row IDs into test code or any tracked file; the mapping lives in the plan and the report.
 - **Never** mark the draft PR ready for review without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR. The human reviewer marks ready.
 - **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and generic-placeholder draft before editing files.
@@ -521,8 +551,9 @@ End-state checklist for a finished run:
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
 - [ ] Local self-review completed against every contract row
 - [ ] Current `origin/main` merged, conflicts formatted and focused-tested, synchronized head pushed with `[skip ci]`
-- [ ] Official preflight `PASS` on that exact head, within the 1 + 1 budget — or a recorded skip on a routine run with no production code
-- [ ] `dotnet build` + all four `dotnet test` projects green — run once
+- [ ] Official preflight `PASS` on that exact tree, within the 1 + 1 budget — or a recorded skip on a routine run with no compiled file in the diff
+- [ ] `dotnet build` + all four `dotnet test` projects green on the final tree — run once, or recorded as skipped on a routine run
+- [ ] Trigger commit proven content-free with `git diff --exit-code <audited-sha> HEAD`
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label
 - [ ] Final chat report states the scope classification with its reason, the contract gate result, preflight attempts used, and whether the budget was exhausted

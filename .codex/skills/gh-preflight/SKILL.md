@@ -44,7 +44,7 @@ A parent should invoke preflight only when all of the following hold. Preflighti
 - current `origin/main` is merged into the branch and any conflict resolution is formatted and focused-tested;
 - the head is pushed and the local checkout matches it.
 
-A run the parent triaged as **routine** and whose diff contains no production code at all — documentation, repository instructions, or workflow files only — may legitimately skip this gate; the parent records that decision. Everything that compiles goes through at least attempt 1.
+A run the parent triaged as **routine** — no compiled file anywhere in the diff, only Markdown, skill and command files, or templates — skips this gate entirely, and skips the full validation with it; the PR review is the gate for text-only changes and the parent records the decision. Anything that compiles goes through at least attempt 1.
 
 ## Reviewer isolation
 
@@ -79,6 +79,8 @@ git log --oneline origin/<base-branch>..HEAD
 Use `gh issue view` only for an issue linked by `Closes`, `Fixes`, or `Resolves` in the PR body.
 
 The gate requires the local checkout to match the PR head SHA and all intended scoped changes to be committed and pushed. If it does not, return `BLOCKED — state mismatch` with the exact mismatch. Do not switch branches or repair the state from this skill.
+
+What the gate certifies is the **tree**, not the commit id. The parent may add a content-free CI-trigger commit afterwards; that keeps the audit valid as long as `git diff --exit-code <audited-sha> HEAD` prints nothing. Any change with content invalidates the audit.
 
 ## Apply the review methodology
 

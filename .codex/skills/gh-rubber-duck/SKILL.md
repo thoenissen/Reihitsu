@@ -55,6 +55,8 @@ Then work from the local checkout:
 - Read `documentation/rules/RH####.md` when a rule is in scope; it is part of the contract.
 - Use `git log -- <path>` or `git show <sha>` when the issue refers to a regression, so the previous behavior is evidence rather than assumption.
 
+**Pin the baseline before reading anything.** Record the exact commit your evidence comes from and report it under `Evidence baseline`. When a PR is in scope, either stand on its head SHA or read files through that commit; never mix a stale checkout with fresh PR metadata, because a contract derived from code nobody is reviewing is worse than no contract. For an issue with no PR, the baseline is current `origin/main`.
+
 Read the conversation too. Clarifications the user typed in chat are part of the contract and frequently contradict the issue body; when they do, the user wins and the contract must say so.
 
 ## Build the contract
@@ -114,6 +116,9 @@ Return exactly these sections, in this order, rendering `_None._` under any that
 ## Gate
 READY
 
+## Evidence baseline
+`thoenissen/Reihitsu` @ `<sha>` — PR #<N> head, or `origin/main` when the target is an issue
+
 ## Requirement summary
 <one short paragraph: the requested outcome, in behavioral terms>
 
@@ -153,6 +158,7 @@ _None._
 Section rules:
 
 - **User-visible examples** show input *and* expected output whenever formatting changes are involved. For key/value or paired-element formatting, cover all four combinations explicitly: single-line key + single-line value, multi-line key + single-line value, single-line key + multi-line value, multi-line key + multi-line value. If a combination cannot occur, say why instead of omitting it.
+- **Evidence baseline** names the commit every statement below was derived from, so a later reader can check whether the contract still applies.
 - **Behavior contract** `Owner` names the responsible surface: the analyzer, the formatter phase, the code fix, a shared helper, or the rule doc. One row per verifiable scenario; the IDs are what the implementer's regression matrix and the local self-review reference later.
 - **Adversarial matrix** carries one row per shape kept from the list above, plus `N/A` rows with their reason for the shapes that were considered and dismissed.
 - **Decisions needed** is `_None._` for `READY`. Otherwise, per decision: the competing interpretations, a concrete example of each (input and the differing output), and a recommended choice with the reason it fits the repository's existing behavior.
