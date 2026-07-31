@@ -109,7 +109,8 @@ For every bug fix or review fix:
 2. Search for sibling syntax shapes and private copies of the same policy.
 3. Trace wrappers, aliases, nested executable scopes, repeated tokens, and target re-resolution when relevant.
 4. Verify the regression test reproduces the actual failure shape.
-5. Verify the relevant matrix:
+5. Verify the tests use the helper that actually proves the claim — a layout change verified with `VerifyFormatterFix` checks neither the second pass nor CRLF, so it is not idempotency coverage; `VerifyFormatterFixAndIdempotency` is. The same holds for a code fix asserted without re-analysis and for a formatter phase tested on LF only.
+6. Verify the relevant matrix:
    - token or trivia changes: comments, directives, and disabled text;
    - formatter changes: LF, CRLF, second-pass idempotency, and neighboring phases;
    - code fixes: one-pass convergence, multiple-diagnostic Fix All, and target identity after earlier edits;

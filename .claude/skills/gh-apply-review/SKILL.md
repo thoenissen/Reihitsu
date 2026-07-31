@@ -107,7 +107,7 @@ Before editing each accepted finding, state its general defect class and inspect
 Honor the repository workflow — the review found these problems *because* the workflow was skipped, so do not skip it again:
 
 - **Analyzer or formatter bug fix** → write the failing regression/repro test **first**, watch it fail, then fix. Analyzer tests are many small focused tests, not one large multi-case test.
-- **New/changed formatter behavior** → add the idempotency (double-run) and CRLF assertions the reviewer asked for.
+- **New/changed formatter behavior** → add the idempotency (double-run) and CRLF assertions the reviewer asked for, through the existing helpers: `VerifyFormatterFixAndIdempotency` (second pass plus LF/CRLF), `VerifyFormatterStability` for code that must stay untouched, `AssertRuleResult(input, expected, endOfLine)` for formatter phases. `VerifyFormatterFix` alone checks neither the second pass nor CRLF.
 - **New/changed code fix** → add the convergence (and FixAll where relevant) test; ship a comprehensive code fix or none.
 - **Format the changed files** through the CLI before running tests:
 

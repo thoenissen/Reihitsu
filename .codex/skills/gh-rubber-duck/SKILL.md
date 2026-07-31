@@ -156,7 +156,7 @@ Section rules:
 - **Behavior contract** `Owner` names the responsible surface: the analyzer, the formatter phase, the code fix, a shared helper, or the rule doc. One row per verifiable scenario; the IDs are what the implementer's regression matrix and the local self-review reference later.
 - **Adversarial matrix** carries one row per shape kept from the list above, plus `N/A` rows with their reason for the shapes that were considered and dismissed.
 - **Decisions needed** is `_None._` for `READY`. Otherwise, per decision: the competing interpretations, a concrete example of each (input and the differing output), and a recommended choice with the reason it fits the repository's existing behavior.
-- **Implementation handoff** lists the red tests that should exist before production code, matching the repository's test-first rule for analyzer and formatter bug fixes, and names focused `--filter` commands rather than the full suite.
+- **Implementation handoff** lists the red tests that should exist before production code, matching the repository's test-first rule for analyzer and formatter bug fixes, and names focused `--filter` commands rather than the full suite. Name the existing test helper each red test should use — `VerifyFormatterFixAndIdempotency` for layout changes (second pass plus LF/CRLF), `VerifyFormatterFix` for plain analyzer/formatter parity, `VerifyFormatterStability` for code that must stay untouched, `AnalyzerTestsBase<TAnalyzer, TCodeFix>.Verify` for a code fix and its convergence, `AssertRuleResult(input, expected, endOfLine)` for formatter phases. Pointing at the wrong helper is how an invariant ends up looking covered while it is not.
 
 ## When `gh-implement` invokes this skill
 

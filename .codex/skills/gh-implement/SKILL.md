@@ -243,6 +243,22 @@ The matrix must cover, for the surfaces the contract names:
 Per `AGENTS.md`, an analyzer or formatter bug must be reproduced by a failing test before production code changes. Add the intended regression tests first, watch them fail for the right reason, then implement. Analyzer tests stay many small focused tests rather than one large multi-case test.
 
 Keep the contract row IDs (`B1`, `B2`, …) next to the tests you write. The local self-review walks that mapping later.
+### Use the existing test infrastructure
+
+The repository already owns most of this coverage; write new helpers only when none of these fits. Naming the right helper matters — `VerifyFormatterFix` proves the formatter clears the diagnostic, but it checks neither a second pass nor CRLF, so a layout change verified with it looks green while the invariant is untested.
+
+| Concern | Use |
+|---|---|
+| Analyzer diagnostic + code fix, one pass | `AnalyzerTestsBase<TAnalyzer, TCodeFix>.Verify(source, fixedSource, …)` — the verifier re-analyzes the fixed state, which is the convergence check |
+| Code fix applied by hand / several diagnostics | `ApplyCodeFixAsync`, `GetCodeFixActionsAsync` on the same base |
+| Analyzer ↔ formatter parity | `Analyzer.Test/Base/FormatterTestsBase<TAnalyzer>.VerifyFormatterFix` |
+| Parity **plus** second pass **plus** LF/CRLF | `VerifyFormatterFixAndIdempotency` — required whenever the change affects layout |
+| Analyzer-clean code must stay untouched | `VerifyFormatterStability` |
+| Formatter phase behavior, per line ending | `Formatter.Test/Helpers/FormatterTestsBase.AssertRuleResult(input, expected, endOfLine)` with `_lineEndings` |
+| Repo-wide formatter stability | `Formatter.Test/Idempotency/SelfHostingTests` already covers every source file — do not duplicate it per rule |
+| Rule doc, README row, code-fix and formatter columns | `Analyzer.Test/SelfHosting/AnalyzerPackageMetadataTests` enforces these; keep the doc and README in sync instead of adding a test |
+
+Record which helper each new test uses; the local self-review and the run report reference it.
 
 ## Delegate to the matching slash command
 
@@ -434,6 +450,12 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 4. Report back in chat, stating at least:
 
    - the scope classification (routine or behavioral) and which gates it kept or skipped, with the reason;
+   - a coverage table so the reader can check the change without reading the diff:
+
+     | Contract row | Test | Helper |
+     |---|---|---|
+     | B1 | `RH5111…Tests.KeyAndValueStayOnOneLine` | `VerifyFormatterFixAndIdempotency` |
+
    - the Behavior Contract gate result — or the contract note — and any decision the user settled;
    - the regression matrix rows that were added;
    - official preflight attempts used (0, 1, or 2), the result of each, and whether the budget was exhausted;

@@ -90,7 +90,7 @@ Before editing each accepted finding, state its general defect class and inspect
 Apply the repository workflow from `AGENTS.md`:
 
 - For analyzer or formatter bug fixes, add the reproducing regression test first and confirm it fails before changing production code.
-- For formatter behavior, add the requested idempotency, CRLF, and combined-pipeline coverage when applicable.
+- For formatter behavior, add the requested idempotency, CRLF, and combined-pipeline coverage when applicable. Use the existing helpers rather than new ones: `VerifyFormatterFixAndIdempotency` (second pass plus LF/CRLF) for layout changes, `VerifyFormatterFix` for plain parity, `VerifyFormatterStability` for code that must stay untouched, and `AssertRuleResult(input, expected, endOfLine)` for formatter phases. `VerifyFormatterFix` alone is not idempotency coverage.
 - For code fixes, add convergence and relevant FixAll coverage. Deliver a comprehensive code fix or omit it.
 - Format all changed paths before tests:
 
