@@ -91,6 +91,25 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the given accessor list needs its braces normalized
+    /// </summary>
+    /// <param name="accessorList">The accessor list to inspect</param>
+    /// <returns><see langword="true"/> if the accessor list's braces should be normalized; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// Auto-accessor lists are excluded because their layout is owned by the property rules, which
+    /// deliberately keep a single-line accessor list such as <c>{ get; set; }</c> on the declaration line.
+    /// </remarks>
+    private static bool ShouldNormalizeAccessorList(AccessorListSyntax accessorList)
+    {
+        if (accessorList == null || accessorList.OpenBraceToken.IsMissing)
+        {
+            return false;
+        }
+
+        return LineBreakDetection.IsAutoPropertyAccessorList(accessorList) == false;
+    }
+
+    /// <summary>
     /// Places an opening and closing brace on their own lines and keeps the first content token
     /// and the close-brace continuation correct
     /// </summary>
@@ -144,6 +163,31 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
         node = _gapNormalizer.NormalizeGapBeforeToken(node, getBody(node).OpenBraceToken, blankLineCount: 0);
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, getBody(node).OpenBraceToken);
         node = _gapNormalizer.NormalizeGapBeforeToken(node, getBody(node).CloseBraceToken, blankLineCount: 0);
+
+        return node;
+    }
+
+    /// <summary>
+    /// Normalizes an accessor list's braces (open brace on its own line, first content on a new
+    /// line, and close brace on its own line)
+    /// </summary>
+    /// <typeparam name="TNode">The owning declaration node type</typeparam>
+    /// <param name="node">The declaration owning the accessor list</param>
+    /// <param name="getAccessorList">Selects the accessor list from the current node</param>
+    /// <returns>The node with normalized accessor-list braces</returns>
+    /// <remarks>
+    /// The normalization runs on the declaration node rather than on the accessor list itself,
+    /// because the token preceding the open brace lives outside the accessor list. A rewriter that
+    /// visits the accessor list alone receives a detached node whenever one of its descendants
+    /// changed during the same pass, so the anchor cannot be resolved and the brace stays put.
+    /// </remarks>
+    private TNode NormalizeAccessorListBraces<TNode>(TNode node,
+                                                     Func<TNode, AccessorListSyntax> getAccessorList)
+        where TNode : SyntaxNode
+    {
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, getAccessorList(node).OpenBraceToken, blankLineCount: 0);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, getAccessorList(node).OpenBraceToken);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, getAccessorList(node).CloseBraceToken, blankLineCount: 0);
 
         return node;
     }
@@ -336,6 +380,20 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             case DestructorDeclarationSyntax destructor:
                 {
                     return NormalizeDestructor(destructor);
+                }
+
+            case IndexerDeclarationSyntax indexer:
+                {
+                    return ShouldNormalizeAccessorList(indexer.AccessorList)
+                               ? NormalizeAccessorListBraces(indexer, static declaration => declaration.AccessorList)
+                               : visited;
+                }
+
+            case EventDeclarationSyntax eventDeclaration:
+                {
+                    return ShouldNormalizeAccessorList(eventDeclaration.AccessorList)
+                               ? NormalizeAccessorListBraces(eventDeclaration, static declaration => declaration.AccessorList)
+                               : visited;
                 }
 
             case LocalFunctionStatementSyntax localFunction:
