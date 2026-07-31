@@ -1063,5 +1063,46 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
         await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a region directive preceding the member does not withhold the fix either. Like the member's
+    /// documentation comment it sits outside the property declaration's own span, so the interior guard lets the
+    /// fix through and the directives survive it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPropertyPrecededByRegionDirectiveIsFixedAndKeepsTheDirectives()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        #region Properties
+
+                                        {|#0:public string Property { get; set; }
+                                            = "test";|}
+
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         #region Properties
+
+                                         public string Property { get; set; } = "test";
+
+                                         #endregion
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
     #endregion // Tests
 }
