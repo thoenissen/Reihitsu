@@ -100,7 +100,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
         // The formatter's CanCollapseAutoPropertyToSingleLine bails out on any comment or directive in the
         // accessor list (for example a comment between accessors), so the analyzer must guard the same shape,
         // otherwise it flags a property the formatter never collapses, leaving a permanent diagnostic.
-        if (FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.AccessorList))
+        if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.AccessorList))
         {
             return false;
         }
@@ -125,19 +125,19 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             return false;
         }
 
-        if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;
         }
 
         if (propertyDeclaration.Initializer != null)
         {
-            if (FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.Initializer))
+            if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.Initializer))
             {
                 return false;
             }
 
-            if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
+            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
             {
                 return false;
             }
@@ -178,9 +178,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
         }
 
         var relevantSpan = GetRelevantPropertySpan(propertyDeclaration);
-        var lineSpan = propertyDeclaration.SyntaxTree.GetLineSpan(relevantSpan);
 
-        if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
+        if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, relevantSpan) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(propertyDeclaration.SyntaxTree, relevantSpan)));
         }

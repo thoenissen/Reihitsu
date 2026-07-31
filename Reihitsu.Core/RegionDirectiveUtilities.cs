@@ -97,8 +97,7 @@ public static class RegionDirectiveUtilities
                                              .ToList();
 
         foreach (var directiveTrivia in typeDeclaration.DescendantTrivia(descendIntoTrivia: true)
-                                                       .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                                                                        || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)))
+                                                       .Where(SyntaxTriviaUtilities.IsRegionDirective))
         {
             if (BelongsToType(typeDeclaration, nestedTypeSpans, directiveTrivia) == false)
             {
@@ -179,14 +178,13 @@ public static class RegionDirectiveUtilities
     {
         matchingDirectiveTrivia = default;
 
-        if (syntaxRoot == null || IsRegionDirective(directiveTrivia) == false)
+        if (syntaxRoot == null || SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia) == false)
         {
             return false;
         }
 
         var directives = syntaxRoot.DescendantTrivia(descendIntoTrivia: true)
-                                   .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                                                    || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                                   .Where(SyntaxTriviaUtilities.IsRegionDirective)
                                    .ToList();
         var directiveIndex = directives.FindIndex(currentDirective => currentDirective == directiveTrivia);
 
@@ -223,17 +221,6 @@ public static class RegionDirectiveUtilities
         }
 
         return nestedTypeSpans.Any(nestedTypeSpan => nestedTypeSpan.Contains(directiveTrivia.SpanStart)) == false;
-    }
-
-    /// <summary>
-    /// Determines whether a directive trivia is #region or #endregion
-    /// </summary>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <returns><see langword="true"/> if supported</returns>
-    private static bool IsRegionDirective(SyntaxTrivia directiveTrivia)
-    {
-        return directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-               || directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
     }
 
     /// <summary>

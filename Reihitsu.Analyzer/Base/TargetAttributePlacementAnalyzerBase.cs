@@ -75,10 +75,13 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
         var hasViolation = expectedMode == TargetAttributePlacementMode.SeparateLine
                                ? closeLine == nextLine
                                : closeLine != nextLine;
-        var isBlockedSingleLineJoin = expectedMode == TargetAttributePlacementMode.SingleLine
-                                      && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter);
 
-        if (hasViolation && isBlockedSingleLineJoin == false)
+        // Both placements rewrite the gap between the closing bracket and the member token, so the code fix refuses
+        // it whenever it carries unjoinable trivia — separate-line placement no less than single-line. Reporting
+        // here would leave a diagnostic that no fix can clear
+        var isBlockedByGapTrivia = SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter);
+
+        if (hasViolation && isBlockedByGapTrivia == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(attributeList.GetLocation()));
         }

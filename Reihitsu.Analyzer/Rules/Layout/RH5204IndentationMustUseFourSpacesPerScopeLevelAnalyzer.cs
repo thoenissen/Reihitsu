@@ -86,7 +86,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
 
             foreach (var trivia in token.LeadingTrivia)
             {
-                if (IsComment(trivia) == false)
+                if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
                 {
                     continue;
                 }
@@ -270,19 +270,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Determines whether a trivia is a comment
-    /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if the trivia is a comment</returns>
-    private static bool IsComment(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-    }
-
-    /// <summary>
     /// Determines whether the position is within the specified brace range
     /// </summary>
     /// <param name="position">Position</param>
@@ -324,17 +311,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Determines whether the specified trivia is a region directive
-    /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if the trivia is a region directive</returns>
-    private static bool IsRegionDirective(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
-    }
-
-    /// <summary>
     /// Determines whether a first-on-line token should participate in scope indentation analysis
     /// </summary>
     /// <param name="token">Token</param>
@@ -373,7 +349,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     {
         foreach (var trivia in token.LeadingTrivia)
         {
-            if (IsRegionDirective(trivia) == false)
+            if (SyntaxTriviaUtilities.IsRegionDirective(trivia) == false)
             {
                 continue;
             }
