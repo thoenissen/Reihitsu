@@ -33,7 +33,7 @@ internal static class NestedRegionRemovalStep
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if ((trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            if (SyntaxTriviaUtilities.IsRegionDirective(trivia)
                 && RegionDirectiveUtilities.IsWithinElementBody(trivia))
             {
                 var line = sourceText.Lines.GetLineFromPosition(trivia.Span.Start);

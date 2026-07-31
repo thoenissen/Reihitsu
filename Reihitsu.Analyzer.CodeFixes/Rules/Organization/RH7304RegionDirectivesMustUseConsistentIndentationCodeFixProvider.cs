@@ -246,8 +246,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider :
         {
             var directiveTrivia = syntaxRoot.FindTrivia(diagnostic.Location.SourceSpan.Start);
 
-            if (directiveTrivia.RawKind == (int)SyntaxKind.RegionDirectiveTrivia
-                || directiveTrivia.RawKind == (int)SyntaxKind.EndRegionDirectiveTrivia)
+            if (SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7304Title,
                                                           token => ApplyCodeFixAsync(context.Document, directiveTrivia, token),

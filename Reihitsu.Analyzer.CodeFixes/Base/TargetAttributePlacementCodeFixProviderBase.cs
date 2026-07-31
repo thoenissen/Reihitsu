@@ -138,8 +138,17 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
             || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false
-            || SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList)
-            || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter))
+            || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))
+        {
+            return false;
+        }
+
+        // Both placements rewrite the gap between the closing bracket and the member token: the fix overwrites the
+        // bracket's trailing trivia and clears the member token's leading trivia, so trivia in that gap is destroyed
+        // whichever placement is resolved. The interior guard above cannot see it, because it belongs to neither the
+        // attribute list's own span nor the member's. The formatter preserves such a comment, so the fix stays
+        // unregistered rather than reshaping the source destructively
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter))
         {
             return false;
         }

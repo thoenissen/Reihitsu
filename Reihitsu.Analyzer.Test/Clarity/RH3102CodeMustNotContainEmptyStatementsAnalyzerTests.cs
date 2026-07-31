@@ -357,5 +357,34 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that no code fix is offered when a documentation comment is attached to the empty statement,
+    /// because removing the statement would discard it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentedEmptyStatementIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static void Method()
+                                       {
+                                           /// <summary>Deliberate no-op placeholder.</summary>
+                                           ;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<EmptyStatementSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

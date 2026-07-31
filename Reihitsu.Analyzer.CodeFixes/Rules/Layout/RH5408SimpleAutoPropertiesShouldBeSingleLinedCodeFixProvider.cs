@@ -59,7 +59,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
     private static bool CanApplyCodeFix(PropertyDeclarationSyntax propertyDeclaration)
     {
-        if (propertyDeclaration.AccessorList == null || FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.AccessorList))
+        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.AccessorList))
         {
             return false;
         }
@@ -90,19 +90,19 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
             return false;
         }
 
-        if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;
         }
 
         if (propertyDeclaration.Initializer != null)
         {
-            if (FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.Initializer))
+            if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.Initializer))
             {
                 return false;
             }
 
-            if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
+            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
             {
                 return false;
             }

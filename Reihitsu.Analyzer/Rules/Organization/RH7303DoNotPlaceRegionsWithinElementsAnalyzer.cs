@@ -47,7 +47,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerB
 
         foreach (var directiveTrivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true))
         {
-            if ((directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) || directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            if (SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia)
                 && RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia))
             {
                 context.ReportDiagnostic(CreateDiagnostic(directiveTrivia.GetLocation()));
