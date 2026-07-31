@@ -236,24 +236,134 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an indexer with an empty accessor list gets its opening brace moved to its own
-    /// line instead of being mistaken for an auto-accessor list
+    /// Verifies that an indexer with an empty accessor list keeps its opening brace on the
+    /// declaration line, matching the property counterpart
     /// </summary>
     [TestMethod]
-    public void IndexerBraceMovesWhenAccessorListIsEmpty()
+    public void EmptyAccessorListRemainsUnchanged()
     {
         // Arrange
         const string input = """
                              class C
                              {
+                                 public int Value { }
+
                                  public int this[int index] { }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an auto-accessor indexer containing a comment gets its opening brace moved to
+    /// its own line, matching the property counterpart, which cannot collapse either
+    /// </summary>
+    [TestMethod]
+    public void AutoAccessorIndexerWithCommentMovesBraceLikeProperty()
+    {
+        // Arrange
+        const string input = """
+                             interface I
+                             {
+                                 int Value {
+                                     // note
+                                     get;
+                                     set;
+                                 }
+
+                                 int this[int index] {
+                                     // note
+                                     get;
+                                     set;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                interface I
+                                {
+                                    int Value
+                                    {
+                                        // note
+                                        get;
+                                        set;
+                                    }
+
+                                    int this[int index]
+                                    {
+                                        // note
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an auto-accessor indexer containing a conditional directive gets its opening
+    /// brace moved to its own line, matching the property counterpart
+    /// </summary>
+    [TestMethod]
+    public void AutoAccessorIndexerWithDirectiveMovesBraceLikeProperty()
+    {
+        // Arrange
+        const string input = """
+                             interface I
+                             {
+                                 int this[int index] {
+                             #if DEBUG
+                                     get;
+                             #endif
+                                     set;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                interface I
+                                {
+                                    int this[int index]
+                                    {
+                                #if DEBUG
+                                        get;
+                                #endif
+                                        set;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the parameter list and the accessor-list opening brace is
+    /// preserved when the brace is moved to its own line
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeAccessorListOpenBraceIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int this[int index] /* c */ {
+                                     get { return 0; }
+                                 }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    public int this[int index]
+                                    public int this[int index] /* c */
                                     {
+                                        get
+                                        {
+                                            return 0;
+                                        }
                                     }
                                 }
                                 """;

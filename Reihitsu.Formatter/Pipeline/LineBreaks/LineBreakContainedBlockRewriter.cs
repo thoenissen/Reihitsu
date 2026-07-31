@@ -78,6 +78,7 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
                     UsingStatementSyntax usingStatement => usingStatement.Statement as BlockSyntax,
                     LockStatementSyntax lockStatement => lockStatement.Statement as BlockSyntax,
                     FixedStatementSyntax fixedStatement => fixedStatement.Statement as BlockSyntax,
+                    UnsafeStatementSyntax unsafeStatement => unsafeStatement.Block,
                     CheckedStatementSyntax checkedStatement => checkedStatement.Block,
                     TryStatementSyntax tryStatement => tryStatement.Block,
                     CatchClauseSyntax catchClause => catchClause.Block,

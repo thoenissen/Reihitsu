@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
@@ -98,10 +100,12 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the accessor list's braces should be normalized; otherwise, <see langword="false"/></returns>
     /// <remarks>
     /// Auto-accessor lists such as <c>{ get; set; }</c> are excluded so their existing layout is kept.
-    /// An accessor list with no accessors at all is not an auto-accessor list: it is empty, or its
-    /// accessors sit in an inactive conditional branch and are therefore disabled text. Such a list
-    /// still needs its braces normalized, so the accessor count is checked before the auto-accessor
-    /// test, which would otherwise report an empty list as an auto-accessor list.
+    /// An accessor list carrying a comment or a directive is never excluded, which mirrors
+    /// <c>PropertyLayoutLineBreakRewriter.CanCollapseAutoPropertyToSingleLine</c>: a property whose
+    /// accessor list holds one of those cannot collapse either and therefore has its braces
+    /// normalized. Testing the accessor count instead would diverge from that counterpart in both
+    /// directions, because an accessor list whose accessors are disabled text reports itself as an
+    /// auto-accessor list while an empty one is not really an auto-accessor list at all.
     /// </remarks>
     private static bool ShouldNormalizeAccessorList(AccessorListSyntax accessorList)
     {
@@ -110,7 +114,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (accessorList.Accessors.Count == 0)
+        if (SyntaxNodeUtilities.ContainsCommentOrDirective(accessorList))
         {
             return true;
         }
@@ -158,34 +162,6 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes a brace pair owned by a declaration (open brace on its own line, first content on
-    /// a new line, and close brace on its own line)
-    /// </summary>
-    /// <typeparam name="TNode">The owning syntax node type</typeparam>
-    /// <param name="node">The node owning the braces</param>
-    /// <param name="getOpenBrace">Selects the open brace token from the current node</param>
-    /// <param name="getCloseBrace">Selects the close brace token from the current node</param>
-    /// <returns>The node with normalized braces</returns>
-    /// <remarks>
-    /// The normalization runs on the owning declaration rather than on the braced node itself,
-    /// because the token preceding the open brace lives outside that node. A rewriter that visits
-    /// the braced node alone receives a detached node whenever one of its descendants changed
-    /// during the same pass, so the anchor cannot be resolved and the brace stays put. Each token is
-    /// re-selected from the current node between steps, because every step returns a new node.
-    /// </remarks>
-    private TNode NormalizeOwnedBraces<TNode>(TNode node,
-                                              Func<TNode, SyntaxToken> getOpenBrace,
-                                              Func<TNode, SyntaxToken> getCloseBrace)
-        where TNode : SyntaxNode
-    {
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, getOpenBrace(node), blankLineCount: 0);
-        node = _bracePlacer.EnsureFirstContentOnNewLine(node, getOpenBrace(node));
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, getCloseBrace(node), blankLineCount: 0);
-
-        return node;
-    }
-
-    /// <summary>
     /// Ensures the constructor initializer (<c>: base()</c> or <c>: this()</c>) starts on a new line
     /// </summary>
     /// <param name="node">The constructor declaration node</param>
@@ -225,7 +201,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeOwnedBraces(node, static constructor => constructor.Body.OpenBraceToken, static constructor => constructor.Body.CloseBraceToken);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static constructor => constructor.Body.OpenBraceToken, static constructor => constructor.Body.CloseBraceToken);
         }
 
         return node;
@@ -242,7 +218,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeOwnedBraces(node, static method => method.Body.OpenBraceToken, static method => method.Body.CloseBraceToken);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static method => method.Body.OpenBraceToken, static method => method.Body.CloseBraceToken);
         }
 
         return node;
@@ -259,7 +235,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeOwnedBraces(node, static conversionOperator => conversionOperator.Body.OpenBraceToken, static conversionOperator => conversionOperator.Body.CloseBraceToken);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static conversionOperator => conversionOperator.Body.OpenBraceToken, static conversionOperator => conversionOperator.Body.CloseBraceToken);
         }
 
         return node;
@@ -276,7 +252,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeOwnedBraces(node, static destructor => destructor.Body.OpenBraceToken, static destructor => destructor.Body.CloseBraceToken);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static destructor => destructor.Body.OpenBraceToken, static destructor => destructor.Body.CloseBraceToken);
         }
 
         return node;
@@ -293,7 +269,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeOwnedBraces(node, static localFunction => localFunction.Body.OpenBraceToken, static localFunction => localFunction.Body.CloseBraceToken);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static localFunction => localFunction.Body.OpenBraceToken, static localFunction => localFunction.Body.CloseBraceToken);
         }
 
         return node;
@@ -362,7 +338,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
                 {
                     return operatorDeclaration.Body == null
                                ? visited
-                               : NormalizeOwnedBraces(operatorDeclaration, static declaration => declaration.Body.OpenBraceToken, static declaration => declaration.Body.CloseBraceToken);
+                               : _bracePlacer.NormalizeOwnedBraces(operatorDeclaration, static declaration => declaration.Body.OpenBraceToken, static declaration => declaration.Body.CloseBraceToken);
                 }
 
             case ConversionOperatorDeclarationSyntax conversionOperator:
@@ -378,14 +354,14 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             case IndexerDeclarationSyntax indexer:
                 {
                     return ShouldNormalizeAccessorList(indexer.AccessorList)
-                               ? NormalizeOwnedBraces(indexer, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
+                               ? _bracePlacer.NormalizeOwnedBraces(indexer, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
                                : visited;
                 }
 
             case EventDeclarationSyntax eventDeclaration:
                 {
                     return ShouldNormalizeAccessorList(eventDeclaration.AccessorList)
-                               ? NormalizeOwnedBraces(eventDeclaration, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
+                               ? _bracePlacer.NormalizeOwnedBraces(eventDeclaration, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
                                : visited;
                 }
 

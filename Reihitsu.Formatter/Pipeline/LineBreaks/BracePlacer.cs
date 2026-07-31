@@ -160,6 +160,34 @@ internal sealed class BracePlacer
     }
 
     /// <summary>
+    /// Normalizes a brace pair owned by a declaration (open brace on its own line, first content on
+    /// a new line, and close brace on its own line)
+    /// </summary>
+    /// <typeparam name="TNode">The owning syntax node type</typeparam>
+    /// <param name="node">The node owning the braces</param>
+    /// <param name="getOpenBrace">Selects the open brace token from the current node</param>
+    /// <param name="getCloseBrace">Selects the close brace token from the current node</param>
+    /// <returns>The node with normalized braces</returns>
+    /// <remarks>
+    /// The normalization runs on the owning declaration rather than on the braced node itself,
+    /// because the token preceding the open brace lives outside that node. A rewriter that visits
+    /// the braced node alone receives a detached node whenever one of its descendants changed
+    /// during the same pass, so the anchor cannot be resolved and the brace stays put. Each token is
+    /// re-selected from the current node between steps, because every step returns a new node.
+    /// </remarks>
+    public TNode NormalizeOwnedBraces<TNode>(TNode node,
+                                             Func<TNode, SyntaxToken> getOpenBrace,
+                                             Func<TNode, SyntaxToken> getCloseBrace)
+        where TNode : SyntaxNode
+    {
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, getOpenBrace(node), blankLineCount: 0);
+        node = EnsureFirstContentOnNewLine(node, getOpenBrace(node));
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, getCloseBrace(node), blankLineCount: 0);
+
+        return node;
+    }
+
+    /// <summary>
     /// Normalizes brace placement for a block contained by a parent syntax node
     /// </summary>
     /// <typeparam name="TNode">The parent syntax node type</typeparam>
