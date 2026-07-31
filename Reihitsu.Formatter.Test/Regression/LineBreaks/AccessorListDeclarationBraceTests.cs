@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -163,6 +163,103 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer whose only accessor sits in an inactive conditional branch still
+    /// gets its accessor-list opening brace moved to its own line, matching the property counterpart
+    /// </summary>
+    [TestMethod]
+    public void IndexerBraceMovesWhenAccessorsAreInInactiveBranch()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int this[int index] {
+                             #if DEBUG
+                                     get { return 0; }
+                             #endif
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    public int this[int index]
+                                    {
+                                #if DEBUG
+                                        get { return 0; }
+                                #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an event whose accessors sit in an inactive conditional branch still gets its
+    /// accessor-list opening brace moved to its own line
+    /// </summary>
+    [TestMethod]
+    public void EventBraceMovesWhenAccessorsAreInInactiveBranch()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public event EventHandler Changed {
+                             #if DEBUG
+                                     add { }
+                                     remove { }
+                             #endif
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    public event EventHandler Changed
+                                    {
+                                #if DEBUG
+                                        add { }
+                                        remove { }
+                                #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer with an empty accessor list gets its opening brace moved to its own
+    /// line instead of being mistaken for an auto-accessor list
+    /// </summary>
+    [TestMethod]
+    public void IndexerBraceMovesWhenAccessorListIsEmpty()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int this[int index] { }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    public int this[int index]
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
