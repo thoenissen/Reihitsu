@@ -159,5 +159,24 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : Analyz
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a comment between the closing bracket and the member keeps the diagnostic from being reported.
+    /// The fix refuses that gap under either placement, so reporting here would leave a diagnostic nobody can clear
+    /// (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenCommentSitsBetweenAttributeListAndMember()
+    {
+        const string testData = """
+                                [First] /* keep me */ internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
