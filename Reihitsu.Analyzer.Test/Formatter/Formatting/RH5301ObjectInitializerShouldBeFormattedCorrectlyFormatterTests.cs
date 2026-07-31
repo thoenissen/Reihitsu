@@ -97,5 +97,30 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
                                  ExpectedDiagnostic(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 25, 8, 10, AnalyzerResources.RH5301MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that comment-prefixed object initializer anchors remain analyzer-clean and formatter-stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsCommentPrefixedInitializerStable()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                                  internal int Value { get; set; }
+
+                                  private static void Method()
+                                  {
+                                      var value = new Example
+                                                  /* Keep open. */ {
+                                                      /* Keep value. */ Value = 1
+                                                  /* Keep close. */ };
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
     #endregion // Tests
 }

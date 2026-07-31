@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -87,12 +88,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     {
         var isValid = true;
 
-        var openBracePosition = objectInitializer.OpenBraceToken
-                                                 .GetLocation()
-                                                 .GetLineSpan()
-                                                 .StartLinePosition;
-
-        if (openBracePosition.Character != newKeywordPosition.Character)
+        if (InitializerLayoutAnalysisUtilities.IsAlignedAt(objectInitializer.OpenBraceToken, newKeywordPosition.Character) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
@@ -100,12 +96,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
         }
         else
         {
-            var closeBracePosition = objectInitializer.CloseBraceToken
-                                                      .GetLocation()
-                                                      .GetLineSpan()
-                                                      .StartLinePosition;
-
-            if (closeBracePosition.Character != newKeywordPosition.Character)
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(objectInitializer.CloseBraceToken, newKeywordPosition.Character) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
@@ -126,12 +117,9 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     {
         foreach (var memberInitializer in objectInitializer.Expressions.OfType<AssignmentExpressionSyntax>())
         {
-            var memberNamePosition = memberInitializer.Left
-                                                      .GetLocation()
-                                                      .GetLineSpan()
-                                                      .StartLinePosition;
+            var firstToken = memberInitializer.Left.GetFirstToken();
 
-            if (memberNamePosition.Character != newKeywordPosition.Character + 4)
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, newKeywordPosition.Character + 4) == false)
             {
                 // Report at the offending member so multiple misaligned members do not produce duplicate
                 // diagnostics that all share the whole creation expression's span

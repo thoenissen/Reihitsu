@@ -176,10 +176,27 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (node.IsKind(SyntaxKind.ArrayInitializerExpression)
-            || node.IsKind(SyntaxKind.ComplexElementInitializerExpression))
+        if (node.IsKind(SyntaxKind.ArrayInitializerExpression))
         {
             return node;
+        }
+
+        if (node.IsKind(SyntaxKind.ComplexElementInitializerExpression))
+        {
+            if (LineBreakTriviaUtilities.SpansMultipleLines(node.OpenBraceToken, node.CloseBraceToken) == false)
+            {
+                return node;
+            }
+
+            if (node.Expressions.Count > 1)
+            {
+                node = EnsureElementsOnSeparateLines(node, static initializer => initializer.Expressions);
+            }
+
+            node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
+            node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+
+            return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBraceToken);
         }
 
         if (node.Expressions.Count > 1)
