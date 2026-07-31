@@ -177,7 +177,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (LineBreakDetection.IsAutoPropertyAccessorList(node))
+        if (LineBreakDetection.ShouldNormalizeAccessorListBraces(node) == false)
         {
             return node;
         }

@@ -340,6 +340,27 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment trailing the accessor list does not force a single-line auto-accessor
+    /// indexer apart, because it sits outside the accessor list
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterAutoAccessorListDoesNotSplitTheIndexer()
+    {
+        // Arrange
+        const string input = """
+                             interface I
+                             {
+                                 int this[int index] { get; set; } // trailing
+
+                                 int this[string key] { get; set; } /* block */
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that a comment between the parameter list and the accessor-list opening brace is
     /// preserved when the brace is moved to its own line
     /// </summary>

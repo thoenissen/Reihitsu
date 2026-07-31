@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
@@ -10,6 +12,34 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 internal static class LineBreakDetection
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether an accessor list's braces should be placed on their own lines
+    /// </summary>
+    /// <param name="accessorList">The accessor list to inspect</param>
+    /// <returns><see langword="true"/> if the accessor list's braces should be normalized; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// This is the single owner of the decision, shared by every rewriter that places accessor-list
+    /// braces, so a property, an indexer and an event cannot drift apart. Auto-accessor lists such as
+    /// <c>{ get; set; }</c> keep their existing layout, unless the list itself carries a comment or a
+    /// directive, which is what stops a property from collapsing too. The interior-scoped check is
+    /// deliberate: a comment trailing the closing brace sits outside the list and must not force the
+    /// braces apart.
+    /// </remarks>
+    public static bool ShouldNormalizeAccessorListBraces(AccessorListSyntax accessorList)
+    {
+        if (accessorList == null || accessorList.OpenBraceToken.IsMissing)
+        {
+            return false;
+        }
+
+        if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(accessorList))
+        {
+            return true;
+        }
+
+        return IsAutoPropertyAccessorList(accessorList) == false;
+    }
 
     /// <summary>
     /// Determines whether an accessor list belongs to an auto-property

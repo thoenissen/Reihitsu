@@ -94,10 +94,12 @@ internal static class NestedRegionRemovalStep
     /// <param name="endRegionTrivia">The matching <c>#endregion</c> directive trivia when the pair is removable</param>
     /// <returns><see langword="true"/> if both halves of the pair may be removed; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// Both halves have to qualify. A pair that straddles an element-body boundary — the
-    /// <c>#region</c> inside a body and its <c>#endregion</c> outside, or the reverse — is left
-    /// untouched, because removing only the qualifying half orphans the other one and turns source
-    /// that compiles into source that does not (CS1028).
+    /// One qualifying half is enough, and then both are removed. A pair that straddles an
+    /// element-body boundary — the <c>#region</c> inside a body and its <c>#endregion</c> outside, or
+    /// the reverse — must not lose only its qualifying half, because the orphaned directive turns
+    /// source that compiles into source that does not (CS1028). Removing the pair as a unit also
+    /// matches <c>RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider</c>, which deletes both halves
+    /// once either one is reported, so the formatter and the code fix agree on the same input.
     /// </remarks>
     private static bool TryGetRemovableRegionPair(SyntaxTrivia regionTrivia,
                                                   CancellationToken cancellationToken,
@@ -127,7 +129,7 @@ internal static class NestedRegionRemovalStep
         }
 
         if (RegionDirectiveUtilities.IsWithinElementBody(regionTrivia) == false
-            || RegionDirectiveUtilities.IsWithinElementBody(candidate) == false)
+            && RegionDirectiveUtilities.IsWithinElementBody(candidate) == false)
         {
             return false;
         }

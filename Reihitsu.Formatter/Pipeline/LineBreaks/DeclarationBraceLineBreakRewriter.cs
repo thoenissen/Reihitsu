@@ -2,8 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Core;
-
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
@@ -91,35 +89,6 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
                                   (original, _) => original == declarationToken
                                                        ? newDeclarationToken
                                                        : newOpenParen);
-    }
-
-    /// <summary>
-    /// Determines whether the given accessor list needs its braces normalized
-    /// </summary>
-    /// <param name="accessorList">The accessor list to inspect</param>
-    /// <returns><see langword="true"/> if the accessor list's braces should be normalized; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// Auto-accessor lists such as <c>{ get; set; }</c> are excluded so their existing layout is kept.
-    /// An accessor list carrying a comment or a directive is never excluded, which mirrors
-    /// <c>PropertyLayoutLineBreakRewriter.CanCollapseAutoPropertyToSingleLine</c>: a property whose
-    /// accessor list holds one of those cannot collapse either and therefore has its braces
-    /// normalized. Testing the accessor count instead would diverge from that counterpart in both
-    /// directions, because an accessor list whose accessors are disabled text reports itself as an
-    /// auto-accessor list while an empty one is not really an auto-accessor list at all.
-    /// </remarks>
-    private static bool ShouldNormalizeAccessorList(AccessorListSyntax accessorList)
-    {
-        if (accessorList == null || accessorList.OpenBraceToken.IsMissing)
-        {
-            return false;
-        }
-
-        if (SyntaxNodeUtilities.ContainsCommentOrDirective(accessorList))
-        {
-            return true;
-        }
-
-        return LineBreakDetection.IsAutoPropertyAccessorList(accessorList) == false;
     }
 
     /// <summary>
@@ -353,14 +322,14 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
             case IndexerDeclarationSyntax indexer:
                 {
-                    return ShouldNormalizeAccessorList(indexer.AccessorList)
+                    return LineBreakDetection.ShouldNormalizeAccessorListBraces(indexer.AccessorList)
                                ? _bracePlacer.NormalizeOwnedBraces(indexer, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
                                : visited;
                 }
 
             case EventDeclarationSyntax eventDeclaration:
                 {
-                    return ShouldNormalizeAccessorList(eventDeclaration.AccessorList)
+                    return LineBreakDetection.ShouldNormalizeAccessorListBraces(eventDeclaration.AccessorList)
                                ? _bracePlacer.NormalizeOwnedBraces(eventDeclaration, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
                                : visited;
                 }

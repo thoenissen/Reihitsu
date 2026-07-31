@@ -292,7 +292,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
         {
             // Collapsing is the only branch specific to an auto-property accessor list; every other
             // accessor list, auto or not, gets the shared brace normalization.
-            node = LineBreakDetection.IsAutoPropertyAccessorList(node.AccessorList) && CanCollapseAutoPropertyToSingleLine(node)
+            node = LineBreakDetection.ShouldNormalizeAccessorListBraces(node.AccessorList) == false && CanCollapseAutoPropertyToSingleLine(node)
                        ? CollapseAutoPropertyAccessorList(node)
                        : _bracePlacer.NormalizeOwnedBraces(node,
                                                            static property => property.AccessorList.OpenBraceToken,

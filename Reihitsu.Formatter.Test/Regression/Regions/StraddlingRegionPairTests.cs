@@ -1,4 +1,3 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -6,10 +5,11 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Regions;
 
 /// <summary>
-/// Regression tests for a region pair that straddles an element-body boundary: the opening
-/// directive sits inside a body while the matching closing directive does not. Removing only the
-/// half that sits inside the body left the other half orphaned, so formatting turned source that
-/// parsed cleanly into source that no longer compiles (CS1028)
+/// Regression tests for a region pair that straddles an element-body boundary: one directive sits
+/// inside a body while its match does not. Removing only the half that sits inside the body left
+/// the other half orphaned, so formatting turned source that parsed cleanly into source that no
+/// longer compiles (CS1028). The pair is removed as a unit instead, which also matches what
+/// <c>RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider</c> does for the same input
 /// </summary>
 [TestClass]
 public class StraddlingRegionPairTests : FormatterTestsBase
@@ -17,40 +17,11 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Asserts that formatting the given source keeps the region directives balanced and does not
-    /// introduce a preprocessor diagnostic
-    /// </summary>
-    /// <param name="input">The source text to format</param>
-    private static void AssertFormattedSourceKeepsDirectivesBalanced(string input)
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            var normalizedInput = NormalizeLineEndings(input, endOfLine);
-            var endingName = DescribeLineEnding(endOfLine);
-
-            Assert.IsEmpty(CSharpSyntaxTree.ParseText(normalizedInput).GetDiagnostics(),
-                           $"The fixture itself must parse cleanly under {endingName} line endings.");
-
-            var actual = ApplyRule(normalizedInput, endOfLine);
-
-            var regionCount = actual.Split("#region").Length - 1;
-            var endRegionCount = actual.Split("#endregion").Length - 1;
-
-            Assert.AreEqual(regionCount,
-                            endRegionCount,
-                            $"Formatted output has unbalanced region directives under {endingName} line endings.");
-
-            Assert.IsEmpty(CSharpSyntaxTree.ParseText(actual).GetDiagnostics(),
-                           $"Formatted output no longer parses cleanly under {endingName} line endings.");
-        }
-    }
-
-    /// <summary>
-    /// Verifies that a region opened between an indexer declaration and its accessor list keeps its
-    /// matching closing directive, so the formatted source still compiles
+    /// Verifies that a region opened between an indexer declaration and its accessor list is
+    /// removed together with its matching closing directive
     /// </summary>
     [TestMethod]
-    public void RegionStraddlingAnAccessorListKeepsBothDirectives()
+    public void RegionStraddlingAnAccessorListIsRemovedAsAPair()
     {
         // Arrange
         const string input = """
@@ -68,17 +39,33 @@ public class StraddlingRegionPairTests : FormatterTestsBase
                              #endregion
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Members
+
+                                    public int this[int index]
+                                    {
+                                        get
+                                        {
+                                            return 0;
+                                        }
+                                    }
+
+                                    #endregion // Members
+                                }
+                                """;
 
         // Act & Assert
-        AssertFormattedSourceKeepsDirectivesBalanced(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that a region opened between a method declaration and its body keeps its matching
-    /// closing directive, so the formatted source still compiles
+    /// Verifies that a region opened between a method declaration and its body is removed together
+    /// with its matching closing directive
     /// </summary>
     [TestMethod]
-    public void RegionStraddlingAMethodBodyKeepsBothDirectives()
+    public void RegionStraddlingAMethodBodyIsRemovedAsAPair()
     {
         // Arrange
         const string input = """
@@ -96,9 +83,54 @@ public class StraddlingRegionPairTests : FormatterTestsBase
                              #endregion
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Members
+
+                                    public int M()
+                                    {
+                                        return 0;
+                                    }
+
+                                    #endregion // Members
+                                }
+                                """;
 
         // Act & Assert
-        AssertFormattedSourceKeepsDirectivesBalanced(input);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region whose closing directive sits inside a method body is removed together
+    /// with its opening directive, so no directive the analyzer reports survives formatting
+    /// </summary>
+    [TestMethod]
+    public void RegionClosingInsideAMethodBodyIsRemovedAsAPair()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 #region Members
+
+                                 public void M()
+                                 {
+                                     #endregion
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -131,6 +163,30 @@ public class StraddlingRegionPairTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region pair fully outside any element body is preserved
+    /// </summary>
+    [TestMethod]
+    public void RegionAroundMembersRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 #region Members
+
+                                 public void M()
+                                 {
+                                 }
+
+                                 #endregion // Members
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     #endregion // Methods
