@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,11 +15,18 @@ public static class SyntaxNodeUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether comments or directives are present in a node
+    /// Determines whether a node contains a preprocessor directive or a comment that is not a documentation
+    /// comment. The name states the omission because it is a trap: <see cref="ContainsCommentOrDirective"/> is
+    /// the ordinary predicate and the one any guard protecting a reshape that could discard trivia must use,
+    /// since the formatter's own join guard <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/> counts
+    /// documentation comments as comments. Use this one only where the guarded rewrite delegates to the formatter
+    /// and has been verified to reshape across a documentation comment without losing it, so that blocking on one
+    /// would withhold a fix that works. A rewrite that rebuilds source text from node spans or reparses an operand
+    /// is never such a case: the comment lives in the trivia those spans exclude, so it is dropped
     /// </summary>
     /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise <see langword="false"/></returns>
-    public static bool HasCommentsOrDirectives(SyntaxNode node)
+    /// <returns><see langword="true"/> if a non-documentation comment or a directive is present; otherwise <see langword="false"/></returns>
+    public static bool ContainsNonDocumentationCommentOrDirective(SyntaxNode node)
     {
         foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
         {
@@ -34,26 +42,13 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
-    /// Determines whether the given trivia is a comment
-    /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if the trivia is a comment; otherwise <see langword="false"/></returns>
-    public static bool IsComment(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-    }
-
-    /// <summary>
     /// Determines whether the given trivia is a comment or a preprocessor directive
     /// </summary>
     /// <param name="trivia">Trivia</param>
     /// <returns><see langword="true"/> if the trivia is a comment or a directive; otherwise <see langword="false"/></returns>
     public static bool IsCommentOrDirective(SyntaxTrivia trivia)
     {
-        return IsComment(trivia) || trivia.IsDirective;
+        return SyntaxTriviaUtilities.IsCommentTrivia(trivia) || trivia.IsDirective;
     }
 
     /// <summary>
@@ -64,8 +59,8 @@ public static class SyntaxNodeUtilities
     /// <returns><see langword="true"/> if a comment is present in the gap; otherwise <see langword="false"/></returns>
     public static bool GapContainsComment(SyntaxToken firstToken, SyntaxToken secondToken)
     {
-        return firstToken.TrailingTrivia.Any(IsComment)
-               || secondToken.LeadingTrivia.Any(IsComment);
+        return firstToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia)
+               || secondToken.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia);
     }
 
     /// <summary>
@@ -77,7 +72,23 @@ public static class SyntaxNodeUtilities
     public static bool SpanContainsComment(SyntaxNode root, TextSpan span)
     {
         return root.DescendantTrivia(span, descendIntoTrivia: true)
-                   .Any(IsComment);
+                   .Any(SyntaxTriviaUtilities.IsCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a node contains a comment or a preprocessor directive. This is the node-scoped form
+    /// of <see cref="IsCommentOrDirective"/>, next to the span-scoped <see cref="SpanContainsCommentOrDirective"/>.
+    /// The comment set includes documentation comments, which is what every guard protecting a reshape needs: the
+    /// formatter's own join guard <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/> counts them too, so a
+    /// guard that omitted them would let a reshape delete a documentation comment or register a fix the formatter
+    /// then refuses. The two sets are not identical — the formatter's guard additionally blocks on disabled text
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if a comment or directive is present; otherwise <see langword="false"/></returns>
+    public static bool ContainsCommentOrDirective(SyntaxNode node)
+    {
+        return node.DescendantTrivia(descendIntoTrivia: true)
+                   .Any(IsCommentOrDirective);
     }
 
     /// <summary>
@@ -93,6 +104,67 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
+    /// Determines whether a node's own span contains a comment or a preprocessor directive, ignoring the
+    /// leading and trailing trivia attached to it. <see cref="ContainsCommentOrDirective"/> walks the node's
+    /// full trivia, so for a node that begins a member declaration — an attribute list, most commonly — it also
+    /// counts that member's documentation comment, which sits in the leading trivia of the node's first token.
+    /// A guard for a reshape that only rearranges the node's interior must use this predicate, or a documented
+    /// member loses a fix that an undocumented one still gets
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if the node's own span contains a comment or directive; otherwise <see langword="false"/></returns>
+    public static bool InteriorContainsCommentOrDirective(SyntaxNode node)
+    {
+        return SpanContainsCommentOrDirective(node, node.Span);
+    }
+
+    /// <summary>
+    /// Determines whether the region covered by a group of sibling nodes — including the gaps between them —
+    /// contains a comment or a preprocessor directive. A rewrite that folds the siblings into one must refuse
+    /// when trivia sits between them, because the fold would consume it, while the leading documentation
+    /// comment of the member the first sibling begins lies before the group and must not block the rewrite.
+    /// The region runs to the last sibling's full span, because a fold discards the trailing siblings whole,
+    /// including the trivia that trails them.
+    /// <see cref="InteriorContainsCommentOrDirective"/> is the single-node form, for a rewrite that only
+    /// rearranges one node
+    /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <param name="nodes">The sibling nodes, in source order</param>
+    /// <returns>
+    /// <see langword="true"/> if the group's region contains a comment or directive, or when the nodes have no
+    /// common parent and the region therefore cannot be inspected; otherwise <see langword="false"/>
+    /// </returns>
+    public static bool GroupInteriorContainsCommentOrDirective<TNode>(IReadOnlyList<TNode> nodes)
+        where TNode : SyntaxNode
+    {
+        if (nodes.Count == 0)
+        {
+            return false;
+        }
+
+        var root = nodes[0].Parent;
+
+        if (root == null)
+        {
+            return true;
+        }
+
+        var lastNode = nodes[nodes.Count - 1];
+
+        if (SpanContainsCommentOrDirective(root, TextSpan.FromBounds(nodes[0].Span.Start, lastNode.FullSpan.End)))
+        {
+            return true;
+        }
+
+        // A directive touching either end of the group is excluded from the span above — the leading one so a
+        // member's documentation comment does not block the fold, the trailing one because it belongs to the
+        // following token. Both must still refuse it: the fold rewrites the trivia around the group and would
+        // move the directive off its own line, which does not compile (CS1040/CS1027)
+        return nodes[0].GetLeadingTrivia().Any(static trivia => trivia.IsDirective)
+               || lastNode.GetLastToken().GetNextToken().LeadingTrivia.Any(static trivia => trivia.IsDirective);
+    }
+
+    /// <summary>
     /// Determines whether a node is single line
     /// </summary>
     /// <param name="node">Node</param>
@@ -104,8 +176,47 @@ public static class SyntaxNodeUtilities
             return false;
         }
 
-        var lineSpan = node.SyntaxTree.GetLineSpan(node.Span);
+        return IsSingleLineSpan(node.SyntaxTree, node.Span);
+    }
 
+    /// <summary>
+    /// Determines whether a span occupies a single source line
+    /// </summary>
+    /// <param name="syntaxTree">The syntax tree the span belongs to</param>
+    /// <param name="span">The span to inspect</param>
+    /// <returns><see langword="true"/> if the span is on a single line; otherwise <see langword="false"/></returns>
+    public static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
+    {
+        return CoversSingleLine(syntaxTree.GetLineSpan(span));
+    }
+
+    /// <summary>
+    /// Determines whether every node in the sequence occupies a single source line
+    /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <param name="nodes">The nodes to inspect</param>
+    /// <returns><see langword="true"/> if every node is on a single line; otherwise <see langword="false"/></returns>
+    public static bool AreAllSingleLine<TNode>(IEnumerable<TNode> nodes)
+        where TNode : SyntaxNode
+    {
+        foreach (var node in nodes)
+        {
+            if (CoversSingleLine(node.GetLocation().GetLineSpan()) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether a line span starts and ends on the same source line
+    /// </summary>
+    /// <param name="lineSpan">Line span</param>
+    /// <returns><see langword="true"/> if the line span covers a single line; otherwise <see langword="false"/></returns>
+    private static bool CoversSingleLine(FileLinePositionSpan lineSpan)
+    {
         return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
     }
 

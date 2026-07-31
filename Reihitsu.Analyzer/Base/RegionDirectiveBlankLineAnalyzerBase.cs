@@ -60,7 +60,7 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase : DiagnosticAnalyzerB
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
-            if (RegionDirectiveBlankLineUtilities.IsRegionDirective(trivia) == false)
+            if (SyntaxTriviaUtilities.IsRegionDirective(trivia) == false)
             {
                 continue;
             }

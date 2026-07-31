@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
@@ -36,7 +38,7 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
 
         foreach (var trivia in token.LeadingTrivia)
         {
-            if (IsComment(trivia) == false)
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
             {
                 continue;
             }
@@ -48,19 +50,6 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
                 model.Set(commentLine, new TokenLayout(alignColumn, "CommentAlignment"));
             }
         }
-    }
-
-    /// <summary>
-    /// Determines whether a trivia is a comment (single-line, multi-line, or documentation)
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a comment; otherwise, <see langword="false"/></returns>
-    private static bool IsComment(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
     }
 
     #endregion // Methods

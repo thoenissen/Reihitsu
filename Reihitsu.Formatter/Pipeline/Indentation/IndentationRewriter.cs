@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation;
 
 /// <summary>
@@ -328,8 +330,7 @@ internal static class IndentationRewriter
     {
         return trivia.HasStructure
                && trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: true }
-               && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
-               && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
+               && SyntaxTriviaUtilities.IsRegionDirective(trivia) == false;
     }
 
     /// <summary>

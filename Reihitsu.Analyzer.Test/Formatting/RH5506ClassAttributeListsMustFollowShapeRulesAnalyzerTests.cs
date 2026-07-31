@@ -143,5 +143,36 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : Analyz
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies that the member's own documentation comment does not withhold the code fix. It sits in the
+    /// leading trivia of the attribute list, so a full-span guard would treat a documented class differently
+    /// from an identical undocumented one (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedClassAttributeListIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   using System;
+
+                                   /// <summary>
+                                   /// A documented class.
+                                   /// </summary>
+                                   [Serializable, Obsolete]
+                                   public class TestClass
+                                   {
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
     #endregion // Tests
 }

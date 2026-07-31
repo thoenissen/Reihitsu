@@ -991,5 +991,118 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a documentation comment in the join gap is gated like other comments, so the registration guard
+    /// and the formatter agree on what counts as a comment (issue #226)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentedAssignmentIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   namespace TestNamespace
+                                   {
+                                       class TestClass
+                                       {
+                                           public void TestMethod()
+                                           {
+                                               var value
+                                                   /// note
+                                                   = "test";
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a documentation comment on the member itself does not withhold the fix. It precedes the
+    /// property declaration and the join never reaches it, so the documented member is fixed exactly like an
+    /// undocumented one and the comment survives (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedPropertyIsFixedAndKeepsItsComment()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        /// <summary>
+                                        /// The value.
+                                        /// </summary>
+                                        {|#0:public string Property { get; set; }
+                                            = "test";|}
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         /// <summary>
+                                         /// The value.
+                                         /// </summary>
+                                         public string Property { get; set; } = "test";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a region directive preceding the member does not withhold the fix either. Like the member's
+    /// documentation comment it sits outside the property declaration's own span, so the interior guard lets the
+    /// fix through and the directives survive it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPropertyPrecededByRegionDirectiveIsFixedAndKeepsTheDirectives()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        #region Properties
+
+                                        {|#0:public string Property { get; set; }
+                                            = "test";|}
+
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         #region Properties
+
+                                         public string Property { get; set; } = "test";
+
+                                         #endregion
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
     #endregion // Tests
 }

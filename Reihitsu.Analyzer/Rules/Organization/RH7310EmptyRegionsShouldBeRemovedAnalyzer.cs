@@ -80,10 +80,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase
     {
         return root.DescendantTrivia(contentSpan, descendIntoTrivia: true)
                    .Any(trivia => contentSpan.Contains(trivia.SpanStart)
-                                  && (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                                      || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                                      || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                      || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)));
+                                  && SyntaxTriviaUtilities.IsCommentTrivia(trivia));
     }
 
     /// <summary>
