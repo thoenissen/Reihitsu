@@ -172,6 +172,8 @@ If `origin/main` moves again after a passing preflight, do not enter an unlimite
 
 After the accepted fixes are committed and pushed with `[skip ci]`, the local self-review is done, and `main` is synchronized, read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal, read-only gate against the current PR head. Do not post preflight findings through GitHub MCP. Run it in a fresh, independent read-only subagent when subagents are available.
 
+A **routine round** — one whose diff contains no production code at all (documentation, repository instructions, or workflow files only) and whose accepted findings touch no analyzer, formatter, code-fix, or `Reihitsu.Core` behavior — may skip the official preflight and go straight to full validation. Record the skip and its reason in the Validation block. Every other round spends at least attempt 1.
+
 The budget is fixed:
 
 1. **Attempt 1** runs automatically on the synchronized head.
@@ -231,7 +233,7 @@ _None._
 ## Validation
 - Local self-review: every worklist row checked; parity, convergence, idempotency, directives re-checked.
 - Base sync: merged `origin/main` at `<sha>`; conflicts formatted and focused-tested.
-- Official preflight: 1 attempt used, PASS; budget not exhausted.
+- Official preflight: 1 attempt used, PASS; budget not exhausted. (State a skip and its reason here instead when the round changed no production code.)
 - Build: green.
 - Analyzer / Formatter / Core / Cli tests: green, one full run (SDK installed via dotnet-install.sh).
 
@@ -271,7 +273,7 @@ None of this may reduce correctness or hide a failing result.
 - **Never** start a third official preflight automatically; the budget is one attempt plus one retry.
 - **Never** split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
 - **Never** run the official preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.
-- **Never** start full validation or create the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head. If the budget is exhausted without a `PASS`, stop and report — that is not a licence to proceed.
+- **Never** start full validation or create the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head — the only exception is a round with no production code in the diff, which records the skip. If the budget is exhausted without a `PASS`, stop and report; that is not a licence to proceed.
 - **Never** silence, `[Ignore]`, or delete a test to make validation green.
 - **Never** push a non-`[skip ci]` commit before validation is green — the empty trigger commit is the only exception.
 - **Never** `git add -A` blindly, and never edit files outside the review items' scope.

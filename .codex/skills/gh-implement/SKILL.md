@@ -1,7 +1,7 @@
 ---
 name: gh-implement
 description: >-
-  Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, claims the issue by opening a generic-placeholder draft PR, then runs the mandatory `gh-rubber-duck` Behavior Contract gate in a dedicated read-only subagent before touching any file, turns the accepted contract into the regression matrix, delegates the change to the matching repository command playbook, updates the draft after focused commits, self-reviews locally, synchronizes `origin/main`, spends at most two official `gh-preflight` attempts, runs the full validation suite once, fully rewrites the PR title and description, and pushes the single CI trigger. GitHub operations use the authenticated `gh` CLI.
+  Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, claims the issue by opening a generic-placeholder draft PR, triages the run as routine or behavioral, runs the `gh-rubber-duck` Behavior Contract gate in a dedicated read-only subagent before touching any file on every behavioral run, turns the accepted contract into the regression matrix, delegates the change to the matching repository command playbook, updates the draft after focused commits, self-reviews locally, synchronizes `origin/main`, spends at most two official `gh-preflight` attempts, runs the full validation suite once, fully rewrites the PR title and description, and pushes the single CI trigger. GitHub operations use the authenticated `gh` CLI.
 ---
 
 # Implement GitHub Issue
@@ -17,20 +17,21 @@ Follow this sequence. The gates exist because rework in this repository is cause
 1. Read the repository instructions (`AGENTS.md`) and the GitHub issue.
 2. Check issue ownership and open draft PRs.
 3. Claim the issue through the existing ownership workflow when it is unclaimed.
-4. Read `.codex/skills/gh-rubber-duck/SKILL.md` completely in this parent agent.
-5. Spawn exactly one fresh, read-only Rubber Duck subagent.
-6. Receive and process the Behavior Contract.
-7. Resolve every `NEEDS DECISION` before editing any production or test file.
-8. Convert the accepted contract into the implementation plan and the regression-test matrix.
-9. Add all intended regression tests before production changes.
-10. Implement, formatting changed paths and running focused tests as you go.
-11. Run the **local self-review**.
-12. Synchronize with current `origin/main`.
-13. Run the **official preflight** (`gh-preflight`) on that exact synchronized head.
-14. Run the complete **full validation** once.
-15. Push the final non-`[skip ci]` CI trigger and finish the PR.
+4. Triage the run as **routine** or **behavioral**, and record which gates that decision keeps.
+5. Read `.codex/skills/gh-rubber-duck/SKILL.md` completely in this parent agent (behavioral runs).
+6. Spawn exactly one fresh, read-only Rubber Duck subagent (behavioral runs).
+7. Receive and process the Behavior Contract.
+8. Resolve every `NEEDS DECISION` before editing any production or test file.
+9. Convert the accepted contract — or, on a routine run, the recorded contract note — into the implementation plan and the regression-test matrix.
+10. Add all intended regression tests before production changes.
+11. Implement, formatting changed paths and running focused tests as you go.
+12. Run the **local self-review**.
+13. Synchronize with current `origin/main`.
+14. Run the **official preflight** (`gh-preflight`) on that exact synchronized head.
+15. Run the complete **full validation** once.
+16. Push the final non-`[skip ci]` CI trigger and finish the PR.
 
-Claiming the issue (steps 1–3) happens before the contract gate so ownership is never lost while analysis runs. Production and regression-test edits do not begin until step 7 permits them.
+Claiming the issue (steps 1–3) happens before the triage and the contract gate so ownership is never lost while analysis runs. Production and regression-test edits do not begin until step 8 permits them.
 
 ## Environment baseline (read first, every run)
 
@@ -130,9 +131,46 @@ Avoid duplicate work before editing files:
 
 The linked draft PR is the ownership record. Do not post a claim comment, PR-link comment, or `in-progress` label on the issue. GitHub links the PR automatically through `Closes #<N>`.
 
-## Behavior Contract gate (mandatory, before any edit)
+## Scope triage — decide which gates this run needs
 
-The claim is in place and nothing has been edited. Before the first test or production change, obtain a **Behavior Contract** from the `gh-rubber-duck` workflow.
+Both gates default to **on**. The escape below exists for work that is genuinely small — not for work that merely looks small at first glance, because misjudging that is exactly the failure the gates were built to catch. Classify from evidence, not from the issue's tone or length.
+
+A run is **routine** only when every one of these holds after reading the issue and doing one quick `rg` pass over the surfaces it names:
+
+1. No behavior of an analyzer, formatter phase, code fix, Fix All, or `Reihitsu.Core` helper changes — diagnostics and formatter output stay byte-identical.
+2. The issue admits exactly one reading; there is nothing a reviewer could reasonably interpret differently.
+3. The change is confined to a small set of files you can list before you start.
+4. No new rule, no diagnostic ID / severity / message change, no public API change, no dependency change.
+5. It is not an analyzer or formatter bug report — those always get the contract, because the defect class *is* the question.
+
+Typical routine work: rule-doc wording, repository instructions, workflow skill and command files, a comment typo, a test added for behavior that is already correct.
+
+Everything else is **behavioral** and runs both gates exactly as written below.
+
+| Gate | Routine run | Behavioral run |
+|---|---|---|
+| Rubber Duck subagent | Optional — replace it with a **contract note** (see below) | Mandatory |
+| Official preflight | Optional **only when the diff contains no production code**; anything that compiles keeps at least attempt 1 | Mandatory, 1 + 1 budget |
+| Local self-review | Mandatory | Mandatory |
+| Test-first for bug fixes | Mandatory | Mandatory |
+| Full validation | Mandatory | Mandatory |
+
+**Contract note.** On a routine run, write three or four lines in chat before editing: the expected behavior, the files you will touch, and what must not change. It costs seconds, it is the artifact the local self-review walks instead of contract rows, and writing it is often what exposes that the run was not routine after all.
+
+**Trip-wires.** The classification is provisional. Stop and run the full Behavior Contract gate before any further edit as soon as one of these appears:
+
+- the change starts touching production behavior after all;
+- a second reasonable interpretation of the issue surfaces;
+- the file list grows beyond the one you wrote down;
+- a test shows the current behavior is not what the issue assumed.
+
+From that moment the run is behavioral: the official preflight is required again and the earlier routine classification is void.
+
+**Record it.** The final report names the classification, which gates ran, which were skipped, and the one-line reason. A skipped gate is a judgment you own — it is never silent.
+
+## Behavior Contract gate (behavioral runs — before any edit)
+
+The claim is in place and nothing has been edited. Before the first test or production change, obtain a **Behavior Contract** from the `gh-rubber-duck` workflow. On a routine run this section is replaced by the contract note above — until a trip-wire fires, at which point it applies in full.
 
 ### 1. Read the skill in this agent
 
@@ -188,7 +226,7 @@ Never silently broaden the implemented behavior beyond the accepted contract.
 
 ## Convert the contract into a regression matrix
 
-Before production code changes, turn the accepted contract into the complete test plan. A single narrow test is not acceptable when the contract identifies a broader defect class — that is precisely the gap that produces another review round.
+Before production code changes, turn the accepted contract — or the routine run's contract note — into the complete test plan. A single narrow test is not acceptable when the contract identifies a broader defect class — that is precisely the gap that produces another review round.
 
 The matrix must cover, for the surfaces the contract names:
 
@@ -259,7 +297,7 @@ The official preflight is a final quality gate, not a discovery loop, and you on
 
 Check, concretely:
 
-- **every Behavior Contract row** — for each `B<n>`, name the test or code path that satisfies it;
+- **every Behavior Contract row** — for each `B<n>`, name the test or code path that satisfies it; on a routine run, walk the contract note the same way;
 - **counterpart parity** — formatter output is not flagged by the analyzer, analyzer-clean code is formatter-stable;
 - **defect-class closure** — grep for sibling shapes and private copies of the policy you changed; a guard that covers only the reported example is not closure;
 - **convergence** — the code fix silences its own diagnostic in one pass and raises no new RH diagnostic;
@@ -294,6 +332,8 @@ If `origin/main` moves again **after** a passing preflight: do not enter an unli
 ## Official preflight gate — hard 1 + 1 budget
 
 `gh-preflight` is the final, independent quality gate. Read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings to GitHub. Run it in a fresh, independent read-only subagent when subagents are available, exactly as that skill's reviewer-isolation section requires.
+
+A routine run whose diff contains **no production code** — documentation, repository instructions, workflow files — may skip the official preflight entirely and go straight to full validation, with the skip and its reason recorded in the final report. Every other run, routine or not, spends at least attempt 1.
 
 The budget is fixed:
 
@@ -393,9 +433,10 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 4. Report back in chat, stating at least:
 
-   - the Behavior Contract gate result and any decision the user settled;
+   - the scope classification (routine or behavioral) and which gates it kept or skipped, with the reason;
+   - the Behavior Contract gate result — or the contract note — and any decision the user settled;
    - the regression matrix rows that were added;
-   - official preflight attempts used (1 or 2), the result of each, and whether the budget was exhausted;
+   - official preflight attempts used (0, 1, or 2), the result of each, and whether the budget was exhausted;
    - the `origin/main` synchronization and the full-validation result;
    - anything deliberately left out of scope.
 
@@ -418,13 +459,14 @@ None of this may reduce correctness or hide a failing result. When output is tri
 
 ## Hard rules
 
-- **Never** edit a production or test file before the Behavior Contract gate returns `READY` (or before the user has resolved a `NEEDS DECISION`).
+- **Never** edit a production or test file on a behavioral run before the Behavior Contract gate returns `READY` (or before the user has resolved a `NEEDS DECISION`). On a routine run the recorded contract note takes its place.
+- **Never** classify a run routine to dodge the gates. The five criteria are all-or-nothing, a trip-wire voids the classification, and the report has to name the reason.
 - **Never** hand the Rubber Duck subagent your proposed solution, suspected cause, or planned diff — the analysis must stay independent.
 - **Never** spawn a second Rubber Duck subagent for the same contract; send follow-up evidence to the existing one.
 - **Never** start a third official preflight automatically. The budget is one attempt plus one retry; after that, report and stop.
 - **Never** split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
 - **Never** run the final preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.
-- **Never** start full validation or push the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head. If the budget is exhausted without a `PASS`, stop and report — that is not a licence to proceed.
+- **Never** start full validation or push the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head — the only exception is a routine run with no production code in the diff, which records the skip. If the budget is exhausted without a `PASS`, stop and report; that is not a licence to proceed.
 - **Never** mark the draft PR ready for review without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR. The human reviewer marks ready.
 - **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and generic-placeholder draft before editing files.
@@ -448,16 +490,17 @@ End-state checklist for a finished run:
 - [ ] Issue number extracted and read via `gh issue view`
 - [ ] Existing claim or draft PR checked; `codex/issue-<N>-<slug>` pushed with an empty claim commit
 - [ ] Generic-placeholder draft PR opened before implementation (title `Claim: issue #<N>`, every template section filled with static generic text, `Closes #<N>`) — nothing paraphrased from the issue
-- [ ] `gh-rubber-duck/SKILL.md` read in this agent; exactly one read-only Rubber Duck subagent spawned before any edit
+- [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded
+- [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent and exactly one read-only Rubber Duck subagent spawned before any edit — routine run: contract note written before any edit
 - [ ] Behavior Contract accepted (`READY`, or `NEEDS DECISION` resolved by the user) and shown to the user in short form
-- [ ] Regression matrix derived from the contract; red tests added before production changes
+- [ ] Regression matrix derived from the contract or contract note; red tests added before production changes
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`, focused tests green
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
 - [ ] Local self-review completed against every contract row
 - [ ] Current `origin/main` merged, conflicts formatted and focused-tested, synchronized head pushed with `[skip ci]`
-- [ ] Official preflight `PASS` on that exact head, within the 1 + 1 budget
+- [ ] Official preflight `PASS` on that exact head, within the 1 + 1 budget — or a recorded skip on a routine run with no production code
 - [ ] `dotnet build` + all four `dotnet test` projects green — run once
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label
-- [ ] Final chat report states the contract gate, preflight attempts used, and whether the budget was exhausted
+- [ ] Final chat report states the scope classification with its reason, the contract gate result, preflight attempts used, and whether the budget was exhausted

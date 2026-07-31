@@ -44,6 +44,8 @@ A parent should invoke preflight only when all of the following hold. Preflighti
 - current `origin/main` is merged into the branch and any conflict resolution is formatted and focused-tested;
 - the head is pushed and the local checkout matches it.
 
+A run the parent triaged as **routine** and whose diff contains no production code at all — documentation, repository instructions, or workflow files only — may legitimately skip this gate; the parent records that decision. Everything that compiles goes through at least attempt 1.
+
 ## Reviewer isolation
 
 When `gh-implement` or `gh-apply-review` invokes preflight and a subagent facility is available, run the audit in exactly one fresh read-only subagent with no author transcript. Give it only the repository root, PR identifier, current head SHA, and this skill path. Do not pass the author's conclusions, suspected findings, or intended fixes. The parent remains the only writer and consumes the subagent's gate report.

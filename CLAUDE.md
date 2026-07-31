@@ -50,18 +50,19 @@ The repository defines custom Claude slash commands under `.claude/commands`:
 | `/draft-issue` | Create issue drafts in `plans/issues/` |
 | `/add-resource-texts` | Add or update localized resource strings |
 | `/gh-rubber-duck` | Derive the read-only Behavior Contract for an issue or pull request before implementing |
-| `/gh-implement` | Implement a GitHub issue with an early branch and draft-PR claim, starting with the mandatory Behavior Contract gate |
+| `/gh-implement` | Implement a GitHub issue with an early branch and draft-PR claim, starting with the Behavior Contract gate for behavioral work |
 | `/gh-preflight` | Run the read-only quality gate before external review |
 
 Use the command that matches the task so the repository-specific workflow and checklist are applied from the start.
 
 ## GitHub workflow stages
 
-Five distinct activities. Keep the names apart — calling all of them "review" is what causes analysis to be skipped and gates to be repeated:
+Five distinct activities, plus the triage that decides which of them a run needs. Keep the names apart — calling all of them "review" is what causes analysis to be skipped and gates to be repeated:
 
 - **Rubber Duck analysis** (`/gh-rubber-duck`) — read-only requirements and design pass that produces the **Behavior Contract**: user-visible examples, behavior rows, anchor and trivia rules, the counterpart map, an adversarial matrix, non-goals, and any decision the user must settle. It changes nothing. `gh-implement` runs it automatically in a dedicated read-only subagent before its first edit; `gh-apply-review` may use it when review feedback introduces a materially ambiguous behavior change.
+- **Scope triage** — the orchestrator's own up-front call on which gates a run needs. A run is *routine* only when it changes no analyzer, formatter, code-fix, or `Reihitsu.Core` behavior, admits exactly one reading, stays inside a small listable file set, adds no rule and changes no diagnostic, public API, or dependency, and is not an analyzer or formatter bug report. A routine run may replace the Rubber Duck subagent with a short contract note, and may skip the official preflight only when the diff contains no production code. Any trip-wire voids the classification and restores both gates. The run report always names the classification and the reason.
 - **Local self-review** — the implementing agent's own check of its change against every Behavior Contract row or review-worklist row, plus parity, defect-class closure, convergence, idempotency, directives, documentation, formatting, and focused tests. It is not official and needs no extra agent.
-- **Official preflight** (`/gh-preflight`) — the fresh, independent, read-only quality gate on the final head. `gh-implement` and `gh-apply-review` get one attempt plus one **preflight retry** after a single consolidated repair cycle; a third attempt requires explicit user direction.
+- **Official preflight** (`/gh-preflight`) — the fresh, independent, read-only quality gate on the final head. `gh-implement` and `gh-apply-review` get one attempt plus one **preflight retry** after a single consolidated repair cycle; a third attempt requires explicit user direction. Everything that compiles goes through at least one attempt.
 - **Full validation** — the solution build plus the four test projects, run once on the audited head.
 - **CI** — triggered by the run's single non-`[skip ci]` push at the very end.
 
