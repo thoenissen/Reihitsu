@@ -2,6 +2,8 @@
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
+
 namespace Reihitsu.Cli.Abstractions;
 
 /// <summary>
@@ -9,6 +11,15 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal sealed class DefaultFileSystem : IFileSystem
 {
+    #region Constants
+
+    /// <summary>
+    /// Number of decoded characters read before checking whether the complete source header is available
+    /// </summary>
+    private const int SourceHeaderBufferSize = 4096;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -81,6 +92,22 @@ internal sealed class DefaultFileSystem : IFileSystem
         return new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     }
 
+    /// <summary>
+    /// Determines whether decoded source contains a complete token after its leading trivia
+    /// </summary>
+    /// <param name="sourceText">The decoded source prefix</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
+    /// <returns><see langword="true"/> when the complete source header is available; otherwise, <see langword="false"/></returns>
+    private static bool HasCompleteSourceHeader(string sourceText, CancellationToken cancellationToken)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
+        var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true);
+
+        return firstToken.RawKind != (int)SyntaxKind.EndOfFileToken
+               && firstToken.IsMissing == false
+               && firstToken.Span.End < sourceText.Length;
+    }
+
     #endregion // Methods
 
     #region IFileSystem
@@ -107,6 +134,55 @@ internal sealed class DefaultFileSystem : IFileSystem
         var content = Decode(fileBytes, encoding);
 
         return new FileReadResult(content, encoding);
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> ReadSourceHeaderAsync(string path, CancellationToken cancellationToken)
+    {
+        using (var fileStream = new FileStream(path,
+                                               FileMode.Open,
+                                               FileAccess.Read,
+                                               FileShare.ReadWrite | FileShare.Delete,
+                                               SourceHeaderBufferSize,
+                                               FileOptions.Asynchronous | FileOptions.SequentialScan))
+            using (var reader = new StreamReader(fileStream,
+                                                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: false,
+                                                                  throwOnInvalidBytes: true),
+                                                 detectEncodingFromByteOrderMarks: true,
+                                                 SourceHeaderBufferSize))
+            {
+                var sourceHeader = new StringBuilder();
+                var buffer = new char[SourceHeaderBufferSize];
+                var nextInspectionLength = SourceHeaderBufferSize;
+
+                while (true)
+                {
+                    var charactersRead = await reader.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
+
+                    if (charactersRead == 0)
+                    {
+                        return sourceHeader.ToString();
+                    }
+
+                    sourceHeader.Append(buffer, 0, charactersRead);
+
+                    if (sourceHeader.Length < nextInspectionLength)
+                    {
+                        continue;
+                    }
+
+                    var sourceHeaderText = sourceHeader.ToString();
+
+                    if (HasCompleteSourceHeader(sourceHeaderText, cancellationToken))
+                    {
+                        return sourceHeaderText;
+                    }
+
+                    nextInspectionLength = nextInspectionLength <= int.MaxValue / 2
+                                               ? nextInspectionLength * 2
+                                               : int.MaxValue;
+                }
+            }
     }
 
     /// <inheritdoc/>

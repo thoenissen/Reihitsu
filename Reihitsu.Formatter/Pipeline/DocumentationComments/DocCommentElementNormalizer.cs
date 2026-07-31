@@ -162,8 +162,9 @@ internal static class DocCommentElementNormalizer
         if (trimmedStart.StartsWith(DocumentationCommentUtilities.DocumentationExterior, StringComparison.Ordinal))
         {
             var afterExterior = trimmedStart.Substring(DocumentationCommentUtilities.DocumentationExterior.Length);
+            var normalizedSuffix = DocumentationCommentUtilities.NormalizeExteriorSuffix(afterExterior);
 
-            return (afterExterior.StartsWith(" ", StringComparison.Ordinal) ? afterExterior.Substring(1) : afterExterior).TrimEnd();
+            return (normalizedSuffix.StartsWith(" ", StringComparison.Ordinal) ? normalizedSuffix.Substring(1) : normalizedSuffix).TrimEnd();
         }
 
         return rawLine.Trim();

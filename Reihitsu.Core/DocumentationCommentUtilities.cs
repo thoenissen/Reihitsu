@@ -55,6 +55,44 @@ public static class DocumentationCommentUtilities
     }
 
     /// <summary>
+    /// Normalizes the suffix after a single-line documentation exterior without removing content indentation
+    /// </summary>
+    /// <param name="suffix">Text after the <c>///</c> exterior</param>
+    /// <returns>The suffix with a canonical separator</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="suffix"/> is <see langword="null"/></exception>
+    /// <remarks>
+    /// The first character is the separator. An ordinary space is preserved, another whitespace character is
+    /// replaced, and a missing separator is inserted. Whitespace after that first character belongs to the
+    /// documentation content. A whitespace-only suffix is reduced to either one canonical space or no suffix
+    /// </remarks>
+    public static string NormalizeExteriorSuffix(string suffix)
+    {
+        if (suffix == null)
+        {
+            throw new ArgumentNullException(nameof(suffix));
+        }
+
+        if (suffix.Length == 0)
+        {
+            return suffix;
+        }
+
+        if (string.IsNullOrWhiteSpace(suffix))
+        {
+            return suffix.Length == 1 && suffix[0] == ' ' ? suffix : string.Empty;
+        }
+
+        if (suffix[0] == ' ')
+        {
+            return suffix;
+        }
+
+        var contentStartIndex = char.IsWhiteSpace(suffix[0]) ? 1 : 0;
+
+        return string.Concat(" ", suffix.Substring(contentStartIndex));
+    }
+
+    /// <summary>
     /// Gets the continuation prefix for the specified documentation comment line. The prefix consists of
     /// the leading indentation, the <c>///</c> exterior marker and a single trailing space. Any sentence
     /// text that follows the exterior on the line is intentionally excluded so that rebuilt continuation

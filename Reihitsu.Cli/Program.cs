@@ -73,7 +73,7 @@ internal static class Program
                 var diffGenerator = new DefaultDiffGenerator();
 
                 var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
-                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, dependencies);
+                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, dependencies);
 
                 return await handler.ExecuteAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
@@ -107,6 +107,7 @@ internal static class Program
         var dryRun = false;
         var verbose = false;
         var force = false;
+        var utf8Bom = false;
         var showHelp = false;
         var paths = new List<string>();
         string unknownOption = null;
@@ -154,6 +155,12 @@ internal static class Program
                     }
                     break;
 
+                case "--utf8-bom":
+                    {
+                        utf8Bom = true;
+                    }
+                    break;
+
                 case "--help":
                 case "-h":
                     {
@@ -176,7 +183,7 @@ internal static class Program
             }
         }
 
-        return new ParseResult(checkOnly, dryRun, verbose, force, showHelp, paths, unknownOption);
+        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, showHelp, paths, unknownOption);
     }
 
     /// <summary>
@@ -195,6 +202,7 @@ internal static class Program
         writer.WriteLine("  --dry-run    Show what would change without applying (cannot be combined with --check)");
         writer.WriteLine("  --verbose    Show detailed output for each file");
         writer.WriteLine($"  --force      Skip the confirmation prompt shown when more than {FormatCommandHandler.LargeRunConfirmationThreshold} files would be formatted");
+        writer.WriteLine("  --utf8-bom   Write processed files as UTF-8 with a byte order mark");
         writer.WriteLine("  --help, -h   Show this help message");
         writer.WriteLine("  --           Treat all following arguments as paths");
     }

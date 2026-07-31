@@ -47,7 +47,33 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
     }
 
     /// <summary>
-    /// Verifies that the formatter removes non-breaking space from a documentation line and clears the analyzer diagnostic
+    /// Verifies that formatter-preserved nested-list indentation remains analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterPreservesNestedListIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Supported modes:
+                                    /// - Standard
+                                    ///   - Fast
+                                    ///   - Safe
+                                    /// - Advanced
+                                    /// </summary>
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter replaces a non-breaking-space separator and clears the analyzer diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -56,7 +82,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
         const string testDataWithNonBreakingSpaceMarker = """
                                                           internal class TestClass
                                                           {
-                                                              {|#0:///|} {NBSP}Summary.
+                                                              {|#0:///|}{NBSP}Summary.
                                                               void Method()
                                                               {
                                                               }

@@ -23,6 +23,7 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -40,6 +41,7 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -57,6 +59,7 @@ public class ProgramTests
         Assert.IsTrue(result.DryRun);
         Assert.IsFalse(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -74,6 +77,7 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsTrue(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -91,6 +95,25 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
         Assert.IsTrue(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
+        Assert.IsFalse(result.ShowHelp);
+        Assert.IsEmpty(result.Paths);
+        Assert.IsNull(result.UnknownOption);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--utf8-bom</c> sets <see cref="ParseResult.Utf8Bom"/> to <see langword="true"/>
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsUtf8BomFlagSetsUtf8Bom()
+    {
+        var result = Program.ParseArguments(["--utf8-bom"]);
+
+        Assert.IsFalse(result.CheckOnly);
+        Assert.IsFalse(result.DryRun);
+        Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
+        Assert.IsTrue(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -108,6 +131,7 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsTrue(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -125,6 +149,7 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsTrue(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -147,12 +172,13 @@ public class ProgramTests
     [TestMethod]
     public void ParseArgumentsMultipleFlagsCombine()
     {
-        var result = Program.ParseArguments(["--check", "--verbose"]);
+        var result = Program.ParseArguments(["--check", "--verbose", "--utf8-bom"]);
 
         Assert.IsTrue(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsTrue(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsTrue(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -173,6 +199,7 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsNull(result.UnknownOption);
     }
@@ -189,6 +216,7 @@ public class ProgramTests
         Assert.IsFalse(result.DryRun);
         Assert.IsTrue(result.Verbose);
         Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
         Assert.HasCount(1, result.Paths);
         Assert.AreEqual("file.cs", result.Paths[0]);

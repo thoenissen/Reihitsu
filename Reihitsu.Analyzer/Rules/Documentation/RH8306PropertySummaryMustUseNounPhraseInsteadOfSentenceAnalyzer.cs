@@ -99,6 +99,23 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
     }
 
     /// <summary>
+    /// Determines whether the specified type is Boolean or nullable Boolean
+    /// </summary>
+    /// <param name="type">Type</param>
+    /// <returns><see langword="true"/> if the type is Boolean or nullable Boolean</returns>
+    private static bool IsBooleanType(ITypeSymbol type)
+    {
+        if (type?.SpecialType == SpecialType.System_Boolean)
+        {
+            return true;
+        }
+
+        return type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } namedType
+               && namedType.TypeArguments.Length == 1
+               && namedType.TypeArguments[0].SpecialType == SpecialType.System_Boolean;
+    }
+
+    /// <summary>
     /// Gets the first whitespace separated word of the specified text
     /// </summary>
     /// <param name="text">Text</param>
@@ -128,8 +145,9 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
     /// Determines whether the summary text reads as a sentence rather than a noun phrase
     /// </summary>
     /// <param name="text">Summary text</param>
+    /// <param name="isBooleanProperty"><see langword="true"/> when the summary belongs to a Boolean or nullable Boolean property</param>
     /// <returns><see langword="true"/> if the text is written as a sentence</returns>
-    private static bool IsSentence(string text)
+    private static bool IsSentence(string text, bool isBooleanProperty)
     {
         var trimmed = text.Trim();
 
@@ -138,7 +156,11 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
             return false;
         }
 
-        if (IsSentenceTerminator(trimmed[trimmed.Length - 1]))
+        var finalCharacter = trimmed[trimmed.Length - 1];
+
+        if (IsSentenceTerminator(finalCharacter)
+            && (finalCharacter != '?'
+                || isBooleanProperty == false))
         {
             return true;
         }
@@ -160,8 +182,14 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
         var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(propertyDeclaration);
 
         if (documentationComment == null
-            || DirectDocumentationSyntaxChecker.GetFirstTagIncludingNested(documentationComment, "summary") is not XmlElementSyntax summaryElement
-            || IsSentence(GetTextContent(summaryElement)) == false)
+            || DirectDocumentationSyntaxChecker.GetFirstTagIncludingNested(documentationComment, "summary") is not XmlElementSyntax summaryElement)
+        {
+            return;
+        }
+
+        var propertyType = context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken)?.Type;
+
+        if (IsSentence(GetTextContent(summaryElement), IsBooleanType(propertyType)) == false)
         {
             return;
         }
