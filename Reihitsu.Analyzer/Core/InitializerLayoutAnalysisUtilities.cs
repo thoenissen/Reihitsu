@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 
-namespace Reihitsu.Analyzer.Rules.Layout;
+namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
 /// Shared layout analysis for initializer anchors and multi-line complex elements
