@@ -239,5 +239,66 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that an indexer inside an active conditional directive branch is converted with the
+    /// opening brace on its own line while the directives stay in column zero
+    /// </summary>
+    [TestMethod]
+    public void IndexerInsideActiveDirectiveBranchConvertsWithBraceOnOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private readonly int[] _items = [1, 2, 3];
+
+                             #if true
+                                 public int this[int index] => _items[index];
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                #if true
+                                    public int this[int index]
+                                    {
+                                        get
+                                        {
+                                            return _items[index];
+                                        }
+                                    }
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer inside disabled text is left byte-identical
+    /// </summary>
+    [TestMethod]
+    public void IndexerInsideDisabledTextRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #if false
+                                 public int this[string key] {
+                                     get { return 0; }
+                                 }
+                             #endif
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }
