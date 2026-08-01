@@ -27,7 +27,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// <summary>
     /// Indent size
     /// </summary>
-    private const int IndentSize = 4;
+    private const int IndentSize = SyntaxIndentationUtilities.IndentSize;
 
     #endregion // Constants
 
@@ -114,19 +114,15 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
             return;
         }
 
-        var braceRange = GetIndentingBraceRange(node);
-        var isSwitchSection = node is SwitchSectionSyntax;
-        var embeddedStatement = GetEmbeddedStatement(node);
-
         foreach (var child in node.ChildNodesAndTokens())
         {
-            var childIndent = GetChildIndentLevel(child, indentLevel, braceRange, isSwitchSection, embeddedStatement);
+            var childIndent = SyntaxIndentationUtilities.GetChildIndentLevel(node, child, indentLevel);
 
             if (child.IsToken)
             {
                 var token = child.AsToken();
 
-                SetDirectiveIndentation(token, indentLevel, braceRange, expectedIndentationByLine);
+                SetDirectiveIndentation(token, node, indentLevel, expectedIndentationByLine);
                 SetTokenIndentation(token, childIndent, expectedIndentationByLine);
 
                 continue;
@@ -137,68 +133,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Gets the child indentation level
-    /// </summary>
-    /// <param name="child">Child node or token</param>
-    /// <param name="indentLevel">Current indent level</param>
-    /// <param name="braceRange">Brace range</param>
-    /// <param name="isSwitchSection"><see langword="true"/> if the parent is a switch section</param>
-    /// <param name="embeddedStatement">The unbraced embedded statement owned by the parent, if any</param>
-    /// <returns>The child indentation level</returns>
-    private static int GetChildIndentLevel(SyntaxNodeOrToken child, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, bool isSwitchSection, StatementSyntax embeddedStatement)
-    {
-        var childIndent = indentLevel;
-
-        if (IsInsideBraceRange(child.SpanStart, braceRange))
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        if (isSwitchSection
-            && child.IsNode
-            && child.AsNode() is StatementSyntax)
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        if (embeddedStatement != null
-            && child.IsNode
-            && child.AsNode() == embeddedStatement)
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        return childIndent;
-    }
-
-    /// <summary>
-    /// Gets the unbraced embedded statement owned by a control-flow construct, so its indentation can be
-    /// incremented one level even though the construct has no brace range of its own. An <c>else if</c> chain
-    /// link is intentionally excluded so the chain stays flat instead of accumulating one level per link
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns>The embedded statement, or <see langword="null"/> if the node owns none or it is a block</returns>
-    private static StatementSyntax GetEmbeddedStatement(SyntaxNode node)
-    {
-        var statement = node switch
-                        {
-                            IfStatementSyntax ifStatement => ifStatement.Statement,
-                            ElseClauseSyntax { Statement: IfStatementSyntax } => null,
-                            ElseClauseSyntax elseClause => elseClause.Statement,
-                            WhileStatementSyntax whileStatement => whileStatement.Statement,
-                            DoStatementSyntax doStatement => doStatement.Statement,
-                            ForStatementSyntax forStatement => forStatement.Statement,
-                            CommonForEachStatementSyntax forEachStatement => forEachStatement.Statement,
-                            UsingStatementSyntax usingStatement => usingStatement.Statement,
-                            LockStatementSyntax lockStatement => lockStatement.Statement,
-                            FixedStatementSyntax fixedStatement => fixedStatement.Statement,
-                            _ => null
-                        };
-
-        return statement is BlockSyntax ? null : statement;
-    }
-
-    /// <summary>
     /// Gets the 0-based line number of a token
     /// </summary>
     /// <param name="token">Token</param>
@@ -206,85 +140,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     private static int GetLine(SyntaxToken token)
     {
         return token.GetLocation().GetLineSpan().StartLinePosition.Line;
-    }
-
-    /// <summary>
-    /// Gets the brace range of indenting constructs
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns>Brace range</returns>
-    private static (int OpenEnd, int CloseStart)? GetIndentingBraceRange(SyntaxNode node)
-    {
-        SyntaxToken openBrace;
-        SyntaxToken closeBrace;
-
-        switch (node)
-        {
-            case NamespaceDeclarationSyntax namespaceDeclaration:
-                {
-                    openBrace = namespaceDeclaration.OpenBraceToken;
-                    closeBrace = namespaceDeclaration.CloseBraceToken;
-                }
-                break;
-
-            case BaseTypeDeclarationSyntax typeDeclaration:
-                {
-                    openBrace = typeDeclaration.OpenBraceToken;
-                    closeBrace = typeDeclaration.CloseBraceToken;
-                }
-                break;
-
-            case BlockSyntax block:
-                {
-                    openBrace = block.OpenBraceToken;
-                    closeBrace = block.CloseBraceToken;
-                }
-                break;
-
-            case SwitchStatementSyntax switchStatement:
-                {
-                    openBrace = switchStatement.OpenBraceToken;
-                    closeBrace = switchStatement.CloseBraceToken;
-                }
-                break;
-
-            case AccessorListSyntax accessorList:
-                {
-                    openBrace = accessorList.OpenBraceToken;
-                    closeBrace = accessorList.CloseBraceToken;
-                }
-                break;
-
-            default:
-                {
-                    return null;
-                }
-        }
-
-        if (openBrace.IsMissing || closeBrace.IsMissing)
-        {
-            return null;
-        }
-
-        return (openBrace.Span.End, closeBrace.SpanStart);
-    }
-
-    /// <summary>
-    /// Determines whether the position is within the specified brace range
-    /// </summary>
-    /// <param name="position">Position</param>
-    /// <param name="braceRange">Brace range</param>
-    /// <returns><see langword="true"/> if the position is inside the brace range</returns>
-    private static bool IsInsideBraceRange(int position, (int OpenEnd, int CloseStart)? braceRange)
-    {
-        if (braceRange == null)
-        {
-            return false;
-        }
-
-        var (openEnd, closeStart) = braceRange.Value;
-
-        return position >= openEnd && position < closeStart;
     }
 
     /// <summary>
@@ -319,7 +174,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     {
         if (token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CloseBraceToken))
         {
-            return token.Parent != null && GetIndentingBraceRange(token.Parent) != null;
+            return token.Parent != null && SyntaxIndentationUtilities.IsIndentingBraceScope(token.Parent);
         }
 
         if (token.Parent == null || token.Parent.GetFirstToken() != token)
@@ -342,10 +197,10 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// Sets the indentation for region directives
     /// </summary>
     /// <param name="token">Token</param>
+    /// <param name="parent">Syntax node that owns the token</param>
     /// <param name="indentLevel">Current indent level</param>
-    /// <param name="braceRange">Brace range</param>
     /// <param name="expectedIndentationByLine">Expected indentation by line</param>
-    private static void SetDirectiveIndentation(SyntaxToken token, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, Dictionary<int, (int Indentation, Location Location)> expectedIndentationByLine)
+    private static void SetDirectiveIndentation(SyntaxToken token, SyntaxNode parent, int indentLevel, Dictionary<int, (int Indentation, Location Location)> expectedIndentationByLine)
     {
         foreach (var trivia in token.LeadingTrivia)
         {
@@ -354,9 +209,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                 continue;
             }
 
-            var directiveIndentLevel = IsInsideBraceRange(trivia.SpanStart, braceRange)
-                                           ? indentLevel + 1
-                                           : indentLevel;
+            var directiveIndentLevel = SyntaxIndentationUtilities.GetTriviaIndentLevel(parent, trivia, indentLevel);
             var directiveLine = trivia.GetLocation().GetLineSpan().StartLinePosition.Line;
 
             expectedIndentationByLine[directiveLine] = (directiveIndentLevel * IndentSize, trivia.GetLocation());

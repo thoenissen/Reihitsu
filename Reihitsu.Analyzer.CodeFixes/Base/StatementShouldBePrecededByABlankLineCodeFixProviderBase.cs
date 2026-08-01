@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,8 +7,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
@@ -62,6 +65,55 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
         if (syntaxRoot != null)
         {
             var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
+            var previousToken = token.GetPreviousToken();
+
+            if (previousToken.IsKind(SyntaxKind.None) == false
+                && TokenGapAnalysis.Between(previousToken, token).RequiredLineBreakCountForBlankLine == 2)
+            {
+                var indentation = GetIndentation(token);
+                var targetLeadingTrivia = token.LeadingTrivia;
+                var suffixStart = 0;
+
+                while (suffixStart < targetLeadingTrivia.Count && targetLeadingTrivia[suffixStart].IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    suffixStart++;
+                }
+
+                var newLeadingTriviaItems = new List<SyntaxTrivia>(targetLeadingTrivia.Count - suffixStart + 3)
+                                            {
+                                                SyntaxFactory.EndOfLine(endOfLine),
+                                                SyntaxFactory.EndOfLine(endOfLine)
+                                            };
+
+                if (indentation.Length > 0)
+                {
+                    newLeadingTriviaItems.Add(SyntaxFactory.Whitespace(indentation));
+                }
+
+                for (var triviaIndex = suffixStart; triviaIndex < targetLeadingTrivia.Count; triviaIndex++)
+                {
+                    newLeadingTriviaItems.Add(targetLeadingTrivia[triviaIndex]);
+                }
+
+                var previousTrailingTrivia = previousToken.TrailingTrivia;
+
+                while (previousTrailingTrivia.Count > 0
+                       && previousTrailingTrivia[previousTrailingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    previousTrailingTrivia = previousTrailingTrivia.RemoveAt(previousTrailingTrivia.Count - 1);
+                }
+
+                var newPreviousToken = previousToken.WithTrailingTrivia(previousTrailingTrivia);
+                var updatedToken = token.WithLeadingTrivia(SyntaxFactory.TriviaList(newLeadingTriviaItems));
+
+                syntaxRoot = syntaxRoot.ReplaceTokens([previousToken, token],
+                                                      (originalToken, _) => originalToken == previousToken
+                                                                                ? newPreviousToken
+                                                                                : updatedToken);
+
+                return document.WithSyntaxRoot(syntaxRoot);
+            }
+
             var leadingTrivia = token.LeadingTrivia;
             var newLeadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
             var newToken = token.WithLeadingTrivia(newLeadingTrivia);
@@ -72,6 +124,20 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
         }
 
         return document;
+    }
+
+    /// <summary>
+    /// Gets the syntax-derived indentation of a same-line diagnostic target
+    /// </summary>
+    /// <param name="token">First token of the diagnostic target</param>
+    /// <returns>Indentation to apply to the target after moving it to its own line</returns>
+    private static string GetIndentation(SyntaxToken token)
+    {
+        var targetStatement = token.Parent?.FirstAncestorOrSelf<StatementSyntax>();
+
+        return targetStatement == null
+                   ? string.Empty
+                   : new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
     }
 
     #endregion // Methods

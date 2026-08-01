@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 
 /// <summary>
@@ -451,9 +453,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         // Separate trailing break from the statements that go into the block
         StatementSyntax trailingBreak = null;
 
-        if (statements.Count > 0 && statements[statements.Count - 1] is BreakStatementSyntax breakStatement)
+        if (statements.Count > 0
+            && BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statements[statements.Count - 1]))
         {
-            trailingBreak = breakStatement;
+            trailingBreak = statements[statements.Count - 1];
         }
 
         var statementsForBlock = trailingBreak != null

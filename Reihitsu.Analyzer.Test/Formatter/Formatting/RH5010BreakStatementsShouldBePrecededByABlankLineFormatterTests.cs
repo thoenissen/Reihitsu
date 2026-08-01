@@ -56,12 +56,59 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
     }
 
     /// <summary>
-    /// Verifies that the formatter does not insert a blank line before a break statement inside a block that is
-    /// itself the braced body of a switch section (issue #440)
+    /// Verifies that the formatter inserts a blank line before a break statement inside a block that is itself the
+    /// braced body of a switch section
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterLeavesBreakInsideBracedSwitchSectionUntouched()
+    public async Task VerifyFormatterFixesBreakInsideBracedSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                                 {
+                                                     var value = choice;
+                                                     {|#0:break|};
+                                                 }
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     var value = choice;
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter keeps a terminal break that belongs directly to a switch section unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterLeavesDirectSwitchSectionBreakUntouched()
     {
         const string input = """
                              internal class Example
@@ -72,7 +119,38 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
                                      {
                                          case 1:
                                              {
-                                                 var value = choice;
+                                                 Consume();
+                                             }
+                                             break;
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves a break that is the first statement of a braced switch-section body
+    /// unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterLeavesFirstBreakInsideBracedSwitchSectionUntouched()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             {
                                                  break;
                                              }
                                      }
@@ -136,6 +214,250 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
         await VerifyFormatterFix(input,
                                  fixedData,
                                  ExpectedDiagnostic(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 11, 13, 11, 18, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the formatter fixes a same-line break inside a braced switch-section body in one idempotent pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesSameLineBreakInsideBracedSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             {
+                                                 if (choice > 0)
+                                                 {
+                                                     Consume();
+                                                 } {|#0:break|};
+                                             }
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (choice > 0)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the formatter preserves a same-line block comment while fixing the braced switch-section gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterPreservesSameLineBlockCommentInsideBracedSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             {
+                                                 if (choice > 0)
+                                                 {
+                                                     Consume();
+                                                 } /* Keep this comment. */ {|#0:break|};
+                                             }
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (choice > 0)
+                                                     {
+                                                         Consume();
+                                                     } /* Keep this comment. */
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the formatter treats an embedded line break in a same-line block comment as comment content and
+    /// converges after inserting the required terminator and blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterConvergesForMultilineBlockCommentInsideBracedSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             {
+                                                 if (choice > 0)
+                                                 {
+                                                     Consume();
+                                                 } /* Keep
+                             comment. */ {|#0:break|};
+                                             }
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (choice > 0)
+                                                     {
+                                                         Consume();
+                                                     } /* Keep
+                                 comment. */
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a non-terminal direct switch-section break receives normal spacing before case braces are added
+    /// and the full formatter converges under both line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesNonTerminalDirectSwitchSectionBreakInOnePass()
+    {
+        const string input = """
+                             #pragma warning disable CS0162
+
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             Consume();
+                                             {|#0:break|};
+                                             Consume();
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 #pragma warning disable CS0162
+
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     Consume();
+
+                                                     break;
+
+                                                     Consume();
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
     }
 
     #endregion // Tests
