@@ -59,7 +59,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
     private static bool CanApplyCodeFix(PropertyDeclarationSyntax propertyDeclaration)
     {
-        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.AccessorList))
+        // The guard is interior-scoped to match the formatter's collapse: a comment trailing the accessor
+        // list's closing brace is never crossed, so it must not block the fix (see issue #604).
+        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.AccessorList))
         {
             return false;
         }

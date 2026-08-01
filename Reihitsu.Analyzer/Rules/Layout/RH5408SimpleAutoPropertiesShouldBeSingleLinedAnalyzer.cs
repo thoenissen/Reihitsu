@@ -97,10 +97,12 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             return false;
         }
 
-        // The formatter's CanCollapseAutoPropertyToSingleLine bails out on any comment or directive in the
+        // The formatter's CanCollapseAutoPropertyToSingleLine bails out on a comment or directive inside the
         // accessor list (for example a comment between accessors), so the analyzer must guard the same shape,
-        // otherwise it flags a property the formatter never collapses, leaving a permanent diagnostic.
-        if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.AccessorList))
+        // otherwise it flags a property the formatter never collapses, leaving a permanent diagnostic. The
+        // guard is interior-scoped to match the formatter exactly: a comment trailing the closing brace sits
+        // outside the accessor list, is never crossed by the collapse, and must not suppress the diagnostic.
+        if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.AccessorList))
         {
             return false;
         }

@@ -136,11 +136,17 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// <remarks>
     /// The initializer is a sibling that follows the accessor list and is laid out by other subphases.
     /// Collapsing the accessor list does not touch it, so a multi-line initializer must not prevent the
-    /// simple auto-property accessor list from staying single-line (see issue #311)
+    /// simple auto-property accessor list from staying single-line (see issue #311).
+    /// The comment and directive guard is interior-scoped for the same reason: the collapse rewrites only
+    /// the closing brace's leading trivia, so a comment trailing that brace sits outside the accessor list
+    /// and is never crossed. Guarding the accessor list's full span instead would count that trailing
+    /// comment and force an already-correct single-line property apart (see issue #604).
+    /// Trivia the collapse would cross is still guarded: inside the accessor list by the check below, and
+    /// in the gap between the signature and the opening brace by <see cref="LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia"/>
     /// </remarks>
     private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
     {
-        if (node?.AccessorList == null || SyntaxNodeUtilities.ContainsCommentOrDirective(node.AccessorList))
+        if (node?.AccessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node.AccessorList))
         {
             return false;
         }

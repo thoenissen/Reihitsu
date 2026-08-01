@@ -499,5 +499,131 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a multi-line get/set auto-property followed by a trailing comment is detected and fixed,
+    /// because the comment sits outside the accessor list and is never crossed by the collapse (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAutoPropertyWithTrailingCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        set;
+                                    }|} // explanation
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } // explanation
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a multi-line get-only auto-property followed by a trailing comment is detected and fixed
+    /// (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyGetOnlyAutoPropertyWithTrailingCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                    }|} // explanation
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; } // explanation
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a multi-line auto-property followed by a trailing block comment is detected and fixed
+    /// (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAutoPropertyWithTrailingBlockCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        set;
+                                    }|} /* explanation */
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } /* explanation */
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that two multi-line auto-properties with trailing comments in one document are both detected and
+    /// fixed together, so a Fix All pass converges (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleAutoPropertiesWithTrailingCommentsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int First
+                                    {
+                                        get;
+                                        set;
+                                    }|} // first
+
+                                    {|#1:public int Second
+                                    {
+                                        get;
+                                    }|} /* second */
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int First { get; set; } // first
+
+                                     public int Second { get; } /* second */
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat, 2));
+    }
+
     #endregion // Tests
 }
