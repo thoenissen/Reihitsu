@@ -1,6 +1,6 @@
 ---
 name: gh-rereview
-description: Re-review a GitHub Pull Request for the Reihitsu repository after the author has addressed a previous review. Triggers on "re-review PR", "rereview", "review PR again", "re-check PR #", "the review was addressed, review again", or any prompt that asks to repeat a review on a PR that already received one. Runs in a Linux Claude Code Cloud Agent environment. All GitHub interaction goes through the GitHub MCP server (`mcp__github__*`) — the `gh` CLI is not installed. It rebuilds the prior finding set from the reviewer's earlier GitHub comments (and any findings table still in the chat), re-runs the full gh-review pass on the current PR state, then reconciles: each prior finding becomes resolved or open, and anything new since the last pass becomes a new finding. It resolves threads for verified fixes, replies on still-open threads, submits every new confirmed finding in one GitHub review, and never searches for or creates follow-up issues. Re-posts the same 19-item checklist plus prior/new findings tables in chat. No praise, no chit-chat, no LGTM.
+description: Re-review a GitHub Pull Request for the Reihitsu repository after the author has addressed a previous review. Triggers on "re-review PR", "rereview", "review PR again", "re-check PR #", "the review was addressed, review again", or any prompt that asks to repeat a review on a PR that already received one. Runs in a Linux Claude Code Cloud Agent environment. All GitHub interaction goes through the GitHub MCP server (`mcp__github__*`) — the `gh` CLI is not installed. It rebuilds the prior finding set from the reviewer's earlier GitHub comments (and any findings table still in the chat), re-runs the full gh-review pass on the current PR state, then reconciles: each prior finding becomes resolved, validly moved to an explicitly linked follow-up issue, or open, and anything new since the last pass becomes a new finding. It resolves threads for verified fixes and verified follow-up handoffs, replies on still-open threads, submits every new confirmed finding in one GitHub review, and never searches for or creates follow-up issues — it only verifies an exact issue URL the author linked. Re-posts the same 19-item checklist plus prior/new findings tables in chat. No praise, no chit-chat, no LGTM.
 ---
 
 # Reihitsu GitHub PR Re-Review
@@ -46,7 +46,7 @@ Every GitHub interaction goes through the **GitHub MCP server** (`mcp__github__*
 The prior findings are the source of truth for "the reported points". Reconstruct them from GitHub, because a fresh session no longer has the earlier chat:
 
 1. `mcp__github__get_me` to learn the reviewer login, so you can pick out the comments **you** posted.
-2. Read the reviewer's inline review comments (`get_review_comments`) and general PR comments (`get_comments`). Each is one prior finding: capture its severity (inferred from wording), file, line, thread id, resolved-state, and the change it demanded.
+2. Read the reviewer's inline review comments (`get_review_comments`) and general PR comments (`get_comments`). Each is one prior finding: capture its severity (inferred from wording), file, line, thread id, resolved-state, and the change it demanded. Also capture author replies and `Follow-up work` entries that link a concrete GitHub issue for the finding.
 3. If a `gh-review` findings table for this PR is still present in the current chat, merge it in. Merge uncertain observations from its separate Hints section too; GitHub comments remain authoritative for anything posted.
 
 If no prior review comments exist and no prior table is in chat, this PR has not been reviewed yet — stop and tell the user to run `gh-review` first instead of guessing a baseline.
@@ -62,6 +62,7 @@ Match each prior finding to the current code — never to the author's claim or 
 Classify each prior finding:
 
 - **resolved** — the reported defect is genuinely gone in the current code. Confirm the fix addresses the *defect class* the original finding named, not just the one line: a finding about a missing `#if` guard is not resolved by handling comments only. A finding fixed by deleting the code, or by a change that silently reintroduces it elsewhere, is not resolved — trace it.
+- **follow-up** — the author linked an existing GitHub issue from the finding's thread or the PR's `Follow-up work`; the issue captures the same mechanism and acceptance boundary; the item is new behavior, a different pre-existing mechanism, or a diagnostic/public-API/dependency change; and the current PR did not introduce the defect. Read that exact issue URL to verify the handoff. A chat draft, ignored file path, unapproved draft ID, or generic promise is not durable follow-up evidence.
 - **open** — not addressed, or the attempt is inadequate (wrong shape, partial, moved the bug). If the author changed the code but the defect survives, keep it `open` and say precisely what still fails.
 
 A prior finding whose surrounding code no longer exists is `resolved` only if the concern it raised cannot recur there; otherwise re-express it against the new code as `open`.
@@ -75,9 +76,10 @@ Any finding in the current set with no matching prior finding is **new** — mos
 Reuse gh-review's posting rules (high-confidence only, English, concise, state problem + fix, no softening, no praise, dedupe against existing comments). On top of that:
 
 - **resolved** prior finding on an inline thread → post a one-line reply confirming it is fixed, then resolve the thread with `mcp__github__resolve_review_thread`. Do not resolve a thread you have not verified.
+- **follow-up** prior finding on an inline thread → post a one-line confirmation naming the linked issue and scope reason, then resolve the thread with `mcp__github__resolve_review_thread` as triaged rather than fixed.
 - **open** prior finding → reply on the thread stating concisely what still fails (only when the author changed something and missed — a short reply is warranted because they believe it is done). Leave the thread unresolved; reopen it with `mcp__github__unresolve_review_thread` if the author resolved it prematurely.
 - **new** finding → submit every new confirmed finding in **one** pending review (`pull_request_review_write` create → `add_comment_to_pending_review` for valid changed-line anchors → `submit_pending` once with event `COMMENT`). Put non-line, systemic, pre-existing, and out-of-scope findings in that review's summary body. Never use `add_issue_comment` for a new finding.
-- Never search for or create a follow-up issue. Keep every confirmed finding in the current GitHub review, and do not demote it to a hint because of scope.
+- Never search for or create a follow-up issue. Keep every new confirmed finding in the current GitHub review for the author workflow to classify, and do not demote it to a hint because of scope. Reading an exact issue URL the author linked, to verify a follow-up handoff, is the only permitted issue access.
 
 ### 6. Verification
 
@@ -113,7 +115,8 @@ Same discipline as gh-review: static tracing by default; CI already runs the ful
 | # | Severity | Location | Status | GitHub | Notes |
 |---|----------|----------|--------|--------|-------|
 | 1 | high   | Reihitsu.Formatter/Pipeline/Foo.cs:42 | resolved | thread resolved | `#endif` now preserved; double-run clean |
-| 2 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | open | replied | Parsing still inline in the diagnostic method — not split |
+| 2 | medium | Reihitsu.Formatter/Pipeline/Bar.cs:88 | follow-up #612 | thread resolved | New formatter behavior captured with the same acceptance boundary |
+| 3 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | open | replied | Parsing still inline in the diagnostic method — not split |
 
 ## New findings
 | # | Severity | Location | Posted | Summary |
@@ -130,7 +133,7 @@ _None._
 
 Rules for the chat block:
 
-- **Prior findings** lists every baseline finding with its reconciled `Status` (`resolved` / `open`). `GitHub` records the action taken (`thread resolved`, `replied`, `—`). Keep `Notes` to one sentence.
+- **Prior findings** lists every baseline finding with its reconciled `Status` (`resolved` / `follow-up #<N>` / `open`). `GitHub` records the action taken (`thread resolved`, `replied`, `—`). Keep `Notes` to one sentence.
 - **New findings** contains confirmed findings only. Every row must be part of the submitted GitHub review and read `yes` in `Posted`; never put hints in this table.
 - Uncertain observations belong only under **Hints**, never in a table cell.
 - If every prior finding is `resolved` and there are no new findings, still render all sections — Prior findings with the resolved rows, New findings as `_None._`. That is the success state, and it is the deliverable, not a no-op to skip.
@@ -139,6 +142,7 @@ Rules for the chat block:
 ## Hard containment rules
 
 - Never call `mcp__github__issue_write`, `mcp__github__search_issues`, `mcp__github__list_issues`, or an equivalent issue-search or issue-creation tool during re-review.
-- Reading an issue explicitly linked by the PR is allowed only for issue-coverage verification; do not mutate it.
-- Never move, copy, redirect, omit, or demote a confirmed finding because it is systemic, pre-existing, or broader than the diff. Keep it in the current GitHub review.
+- Reading an issue explicitly linked by the PR or an author's finding reply is allowed for issue coverage and follow-up-handoff verification; do not mutate it and do not search for alternatives.
+- Never independently move, copy, redirect, omit, or demote a new confirmed finding because it is systemic, pre-existing, or broader than the diff. Keep it in the current GitHub review for the author workflow to classify. Verifying an exact author-linked follow-up issue during reconciliation is not reviewer-initiated redirection.
+- Never accept a chat block, local path, draft ID, or unlinked title as a completed follow-up handoff; require an existing issue URL and verify its mechanism and scope rationale.
 - Never post a new confirmed finding outside the submitted GitHub review; use its inline comments or summary body.
