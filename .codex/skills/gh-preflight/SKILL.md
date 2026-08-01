@@ -1,13 +1,15 @@
 ---
 name: gh-preflight
-description: Run a read-only, local preflight review of a Reihitsu pull request before external review or re-review. Use for `/gh-preflight`, "preflight this PR", "review before review", or as the mandatory final quality gate inside `gh-implement` and `gh-apply-review` — invoked once their implementation, local self-review, and `origin/main` synchronization are done, and before their single full validation and CI-trigger commit. Apply the complete repository `gh-review` checklist, adversarial corpus, test expectations, counterpart tracing, defect-class closure, and an explicit three-axis audit of guard scope, policy ownership, and assertion adequacy without posting to GitHub or changing code. Report every confirmed finding in one pass, because the parent gets one consolidated repair cycle and at most one retry attempt. Return a blocking gate when any confirmed finding remains.
+description: Run a read-only, local preflight review of a Reihitsu pull request before external review or re-review. Use for `/gh-preflight`, `$gh-preflight`, "preflight this PR", "review before review", or as the risk-triggered final quality gate inside `gh-implement` and `gh-apply-review` — invoked once their implementation, admission artifact, and `origin/main` synchronization are done, and before their single full validation and CI-trigger commit. Owns the trigger list that decides when an audit is required at all, the four gate results, the repair-delta retry contract, and the evidence-bundle and restart policy for isolated gate agents. Apply the complete repository `gh-review` checklist, adversarial corpus, test expectations, counterpart tracing, defect-class closure, and an explicit three-axis audit of guard scope, policy ownership, and assertion adequacy without posting to GitHub or changing code. Report every confirmed finding in one pass, because the parent gets one consolidated repair cycle and at most one retry attempt.
 ---
 
 # Reihitsu GitHub PR Preflight
 
 Audit the current PR as an independent reviewer before the author declares it ready. Find the issues that would otherwise create another `gh-review` / `gh-apply-review` round.
 
-Preflight is the **final quality gate**, not a discovery or debugging loop. The parent workflow is expected to arrive here with its Behavior Contract satisfied, its local self-review done, and current `origin/main` already merged, so this audit confirms a finished change instead of driving it. That is also why the parent may spend at most two official attempts on it: one, plus one retry after a single consolidated repair cycle.
+Preflight is the **final quality gate**, not a discovery or debugging loop. The parent workflow is expected to arrive here with its Behavior Contract satisfied, its complete admission artifact recorded, and current `origin/main` already merged, so this audit confirms a finished change instead of driving it. That is also why the parent may spend at most two official attempts on it: one, plus one retry after a single consolidated repair cycle.
+
+It is also the most expensive step in the workflow, which is why "the diff contains a compiled file" is not the trigger. An audit is spent on risk — a moved predicate, a changed rewrite, a new diagnostic — and never on a guess. This skill owns that trigger list, the gate results, the retry contract, and the evidence-bundle and restart policy; `gh-implement` and `gh-apply-review` reference them rather than restating them, so the policy has exactly one owner.
 
 Preflight is read-only:
 
@@ -22,37 +24,106 @@ Preflight is read-only:
 gh-implement / gh-apply-review
   -> Behavior Contract (gh-implement) or complete review worklist (gh-apply-review)
   -> implementation + focused tests
-  -> local self-review (parent, not official)
+  -> local self-review -> admission artifact complete (parent, not official)
   -> merge current origin/main, format, focused tests, push
-  -> gh-preflight  ........................ official attempt 1
-       PASS    -> full validation (once) -> final CI-trigger commit
-       BLOCKED -> one consolidated worklist -> one repair cycle
-                  -> local self-review
-                  -> gh-preflight  ......... official attempt 2 (the retry, fresh agent, new head)
-                       PASS    -> full validation (once) -> final CI-trigger commit
-                       BLOCKED -> stop and report; no third attempt without the user
+  -> trigger list says preflight is required?
+       no  -> record the skip and its proof -> full validation -> final CI-trigger commit
+       yes -> gh-preflight  ................ official attempt 1
+         PASS                       -> full validation (once) -> final CI-trigger commit
+         PASS — non-blocking cleanup -> parent fixes the text, proves it non-behavioral,
+                                        -> full validation (once) -> final CI-trigger commit
+         BLOCKED — findings          -> one consolidated worklist -> one repair cycle
+                    -> local self-review + admission artifact
+                    -> gh-preflight  ....... official attempt 2 (retry, fresh agent, repair-delta aware)
+                         PASS / cleanup -> full validation (once) -> final CI-trigger commit
+                         BLOCKED        -> stop and report; no third attempt without the user
 ```
 
 When a parent workflow invokes this skill, return the gate result to that workflow and let it continue. Use the strict chat output below only when `/gh-preflight` is invoked directly.
 
+## When preflight is required
+
+**Required** when the diff changes any of:
+
+- a predicate, a guard, or the condition or span under which a diagnostic is reported;
+- which tokens or trivia a formatter rewrite writes;
+- a code-fix registration or its applicability;
+- a diagnostic ID, severity, or message; public API; a dependency;
+- a new rule;
+- a repository script, build property, ruleset, or CI workflow the build and the workflows themselves depend on.
+
+**Not required** when the diff only:
+
+- edits comments, XML documentation, Markdown, skill and command files, or issue and PR templates — *including inside `.cs` files*;
+- adds tests for behavior that is already correct, without touching production code.
+
+A carve-out inside a compiled file is a claim about syntax, so it is proven mechanically rather than argued:
+
+```powershell
+scripts/verify-text-only.ps1 -NoInstall -Base <base-sha> -Head <head-sha>
+```
+
+Exit code `0` and its `TEXT-ONLY PROOF: PASS …` line are the evidence the parent records in place of the attempt. Exit code `1` means the diff carries compiled behavior, so the attempt is required. Exit code `2` is a tool failure that proves nothing — run the attempt. A line-based `grep` over the diff is not an acceptable substitute: it does not recognize every block-comment form and cannot tell a comment apart from a directive or from comment-looking text inside a string literal.
+
+A rename is **not** a carve-out. Renaming reaches `nameof`, reflection, serialization, source generators, public API, and named arguments, so it stays behavioral unless a narrower mechanical proof establishes otherwise.
+
+**Uncertain → ask the user.** When a diff fits neither list cleanly, ask the user and let them decide. Preflight is the single most expensive step in the workflow and is not spent on a guess — in either direction.
+
+Skipping preflight never implies skipping the full validation. A diff that contains any compiled file still gets the build and all four test projects; only a diff with no compiled file at all skips validation too. Test runtime costs wall-clock and almost no tokens, so it is never the thing to economize.
+
 ## Calling conditions
 
-A parent should invoke preflight only when all of the following hold. Preflighting earlier burns one of the two attempts on a state that was going to change anyway:
+Once the trigger list says an audit is required, a parent should invoke it only when all of the following hold. Preflighting earlier burns one of the two attempts on a state that was going to change anyway:
 
 - the intended implementation or review repair cycle is complete and committed;
-- the parent's local self-review has run and its findings are fixed;
+- the parent's local self-review has run, its findings are fixed, and its admission artifact is complete — a missing row there is a cheap local gap that must not become an expensive audit finding;
 - current `origin/main` is merged into the branch and any conflict resolution is formatted and focused-tested;
 - the head is pushed and the local checkout matches it.
 
-A run the parent triaged as **routine** — no compiled file anywhere in the diff, only Markdown, skill and command files, or templates — skips this gate entirely, and skips the full validation with it; the PR review is the gate for text-only changes and the parent records the decision. Anything that compiles goes through at least attempt 1.
+## Reviewer isolation and the evidence bundle
 
-## Reviewer isolation
+When `gh-implement` or `gh-apply-review` invokes preflight and a subagent facility is available, run the audit in exactly one fresh read-only subagent with no author transcript. The parent remains the only writer and consumes the subagent's gate report.
 
-When `gh-implement` or `gh-apply-review` invokes preflight and subagents are available, run the audit in exactly one fresh read-only subagent with no author transcript. Give it only the repository root, PR identifier, current head SHA, and this skill path. Do not pass the author's conclusions, suspected findings, or intended fixes. The parent remains the only writer and consumes the subagent's gate report.
+The subagent receives the repository root, this skill path, and one **immutable evidence bundle** the parent gathered once:
 
-The retry attempt gets its own fresh subagent on the exact new head — never a continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be independent.
+- the issue JSON and any linked clarification;
+- the PR metadata and body;
+- the base and head SHAs, and the merge base;
+- the changed-file list and the diff;
+- the parent's proof that the local checkout matches the PR head.
+
+That bundle is neutral fact-gathering. It contains no author conclusion, no suspected finding, and no intended fix, so consuming it preserves independence while removing the unreliable GitHub reconstruction each isolated agent would otherwise repeat. If the bundle disagrees with the repository — a head SHA that is not the checkout, a diff that does not match — return `BLOCKED — state mismatch` rather than auditing a tree nobody is reviewing.
+
+The retry attempt gets its own fresh subagent on the exact new head — never a continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be independent — plus the repair-delta inputs below.
 
 If subagents are unavailable, perform the audit locally from GitHub and filesystem evidence. A direct `/gh-preflight` invocation already acts as the reviewer and does not need another agent.
+
+### Bounded restart policy
+
+An isolated reviewer that never returns a verdict must not silently consume the workflow's audit budget, and must not spin either:
+
+1. one agent start;
+2. at most one restart when the agent errors, returns without a verdict, or the parent's own wait passes roughly 15 minutes without a result — report which of the three it was rather than inferring activity you cannot observe inside another agent;
+3. then the local read-only fallback above, performed by the parent.
+
+A start that produced no verdict costs a **process start**, not an official attempt. The parent reports both numbers separately.
+
+### Attempt 1 and the repair-delta retry
+
+**Attempt 1** is a complete, independent audit of the whole change.
+
+**The retry** is repair-delta-aware. The parent adds to the bundle:
+
+- the previous independent report;
+- the previously audited SHA;
+- the repaired SHA;
+- the repair diff.
+
+Verify every previous finding, the complete repair delta, every guard and predicate the repair moved, the counterparts those reach, and the boundary tests the repair added. Evidence for a decision or a test that is byte-identical to attempt 1 may be reused instead of re-derived — that reuse is the entire saving, and it is what keeps a retry from re-auditing hundreds of untouched tests row by row.
+
+Incremental retry mode becomes **invalid** when the repair expands into an unrelated production surface, changes the accepted contract, or materially enlarges the file set. Then audit the change in full and say in the report that scope grew: that situation needs a new scope decision from the parent, not a silent second implementation review.
+
+The previous report is reviewer output, not author reasoning, so receiving it does not break isolation. Author conclusions, suspected findings, and intended fixes stay excluded in both attempts.
 
 ## Resolve the PR
 
@@ -95,7 +166,7 @@ Read `.codex/skills/gh-review/SKILL.md` completely. Apply its complete methodolo
 
 Override the review skill's GitHub-posting, existing-comment deduplication, and output rules with this skill. Review the current code independently; do not fetch prior review comments merely to learn what another reviewer found.
 
-Limit blocking findings to defects caused by the PR, missing issue requirements, incomplete tests required by the change, and pre-existing behavior that the changed code newly depends on or exposes. Record unrelated pre-existing concerns as hints rather than expanding the PR. Give each confirmed scope hint a defect mechanism and `new mechanism` relation so `gh-apply-review` can preserve it without treating it as a blocking repair.
+Limit blocking findings to defects caused by the PR, missing issue requirements, incomplete tests required by the change, and pre-existing behavior that the changed code newly depends on or exposes. Record unrelated pre-existing concerns as hints rather than expanding the PR. Give each confirmed scope hint a defect mechanism and `new mechanism` relation so the parent workflow can preserve it against its scope ledger without treating it as a blocking repair.
 
 Complete the entire checklist and relevant adversarial corpus before returning. Report every confirmed finding in one pass; never stop after the first.
 
@@ -106,6 +177,8 @@ Build the three tables in the required report before deciding the gate. Cover ev
 ### Guard scope
 
 For each changed decision, state the exact inspected span: full trivia, node interior, an explicit `TextSpan`, or another precisely named range. Name the existing counterpart predicate used for the same decision and compare their spans and boundary semantics. If no counterpart exists, say so and justify why the decision is genuinely one-sided. A mismatch is a finding even when every test passes.
+
+When the Behavior Contract carries a guard-delta or predicate-boundary table, audit it rather than trusting it: verify that every region it lists as losing coverage really is covered by the decision that depends on it, and that each boundary it names has a test on both sides. A region the contract dismissed is exactly where the expensive findings live.
 
 ### Policy ownership
 
@@ -137,32 +210,33 @@ A narrow guard for one example is not closure when sibling shapes retain the sam
 
 ## Verification
 
-Default to static tracing. Run only targeted tests or formatter double-runs that resolve a concrete suspicion. Before execution, confirm the preinstalled SDK with:
-
-```shell
-dotnet --list-sdks
-```
-
-Do not install an SDK or modify `PATH`. Do not run the full solution test suite; the parent workflow owns full validation after this gate passes.
+Default to static tracing. Run only targeted tests or formatter double-runs that resolve a concrete suspicion. Before execution, confirm the preinstalled SDK with `scripts/prepare.ps1 -NoInstall`, then use `scripts/test.ps1 -NoInstall -Project <name> -Filter <expression>`. Do not install an SDK or modify `PATH`. Do not run the full solution test suite; the parent workflow owns full validation after this gate.
 
 ## Gate decision
 
 - `PASS`: no confirmed `high`, `medium`, or `low` finding remains.
-- `BLOCKED — findings`: at least one confirmed finding remains.
+- `PASS — non-blocking cleanup`: every remaining confirmed finding is confined to comments or documentation and **cannot** affect compiled behavior, diagnostics, public API documentation, generated artifacts, or required rule metadata. List them exactly as findings; the parent fixes that text without spending another attempt.
+- `BLOCKED — findings`: at least one confirmed finding remains that does not satisfy the cleanup condition.
 - `BLOCKED — state mismatch`: the checkout, PR head, or intended committed scope cannot be reviewed reliably.
 - Hints do not block the gate.
 
+The cleanup result exists because risk-based admission alone does not solve the problem it was built for: an audit can be genuinely required by a moved predicate and still come back carrying nothing but "a comment no longer describes the code it sits next to". That is worth fixing and is not worth a second audit. It is not a discount for a finding that is merely *small* — one doubt about whether a finding can reach compiled behavior makes it `BLOCKED — findings`.
+
 Report every confirmed finding in the one gate report. The parent has a single repair cycle to work from it, so a finding withheld for a "next round" never gets one.
 
-`PASS` also requires a complete three-axis audit. Missing rows, unnamed owners, an unexamined changed test, or an assertion without a concrete falsifier is a blocking finding rather than an incomplete note.
+Both passing results also require a complete three-axis audit. Missing rows, unnamed owners, an unexamined changed test, or an assertion without a concrete falsifier is a blocking finding rather than an incomplete note.
+
+The `Required change` column is a **suggestion, not a specification**. It is written from the reviewer's read of one finding, and implementing it literally is how an over-broad repair creates the next round's finding. The parent owns the repair and must re-derive its scope.
 
 When invoked by `gh-implement` or `gh-apply-review`, the parent owns the budget:
 
 1. It merges all confirmed findings into one consolidated worklist and fixes every in-scope item — including the complete defect class — in a single repair cycle, without invoking preflight in between.
-2. It formats changed paths, runs focused tests, redoes its local self-review, commits with `[skip ci]`, pushes, and updates the PR body when needed.
-3. It applies its own scope policy: `gh-implement` asks before expanding the accepted issue contract, while `gh-apply-review` classifies against its frozen scope ledger and preserves confirmed out-of-scope work as an unapproved follow-up draft.
-4. It spends the **preflight retry** — one fresh, independent, read-only run against the exact new head. `BLOCKED — state mismatch` does not consume an attempt; reconcile the state and rerun.
-5. It proceeds to full validation only after `PASS`, and it stops and reports if the retry blocks. A third official attempt requires explicit user direction.
+2. It re-runs the contract's guard-delta and predicate-boundary tables **against its own repair**, not only against the original change, and adds a test on each side of any boundary the repair moved.
+3. It formats changed paths, runs focused tests, redoes its local self-review and admission artifact, commits with `[skip ci]`, pushes, and updates the PR body when needed.
+4. It applies its own scope policy: both parents classify against a frozen scope ledger, ask before expanding the accepted contract, and preserve confirmed out-of-scope work as an unapproved follow-up draft.
+5. It spends the **preflight retry** — one fresh, independent, read-only run against the exact new head, with the repair-delta inputs above. `BLOCKED — state mismatch` does not consume an attempt; neither does an agent start that returned no verdict. Reconcile and rerun.
+6. On `PASS — non-blocking cleanup` it applies the listed text fixes and proves them non-behavioral with `scripts/verify-text-only.ps1 -NoInstall -StrictDocs -Base <audited-sha> -Head worktree`, then continues to full validation without another attempt. `-StrictDocs` is required here rather than optional: this result excludes public API documentation, and a plain exit code 0 does not establish that, because a documentation edit is exactly what a comment-only change is otherwise allowed to be. A proven text-only cleanup does not invalidate the audit; anything the proof rejects does.
+7. It proceeds to full validation only after a passing result, and it stops and reports if the retry blocks. A third official attempt requires explicit user direction.
 
 ## Direct chat output
 
@@ -174,6 +248,7 @@ PASS
 
 ## Scope
 - PR #123 at `<head-sha>`; local checkout matches.
+- Audit mode: full — or `repair delta against <previously-audited-sha>`, naming what was reused.
 - Reviewed changed files, linked issue requirements, and named counterpart files.
 
 ## Checklist
@@ -199,11 +274,14 @@ _None._
 ## Verification
 - Static tracing only; no targeted execution needed.
 
+## Gate metrics
+- Elapsed: `<duration, or "not measured">`; audit mode: `<full | repair delta>`; agent starts: `<n>`.
+
 ## Hints
 _None._
 ```
 
-For findings, set the gate to `BLOCKED — findings` and use:
+For findings, set the gate to `BLOCKED — findings` — or to `PASS — non-blocking cleanup` when every one of them satisfies the cleanup condition — and use:
 
 ```markdown
 | # | Severity | Location | Defect class | Scope relation | Required change |
@@ -213,6 +291,8 @@ For findings, set the gate to `BLOCKED — findings` and use:
 
 Keep every confirmed finding in the table exactly once. Provide a concrete counterexample for each high finding. Do not add a preamble or closing text.
 
+When the gate is `PASS — non-blocking cleanup`, add a `Cleanup-safe` column stating, per finding, why it cannot reach compiled behavior, diagnostics, public API documentation, generated artifacts, or rule metadata. A finding without that justification belongs under `BLOCKED — findings`.
+
 In `Scope relation`, state `same mechanism/requirement`, `PR-introduced`, or `new mechanism`. This is evidence for the parent workflow's scope decision; preflight itself neither fixes nor drafts follow-up work. In each three-axis subsection, render an explicit `_N/A — no applicable changed …._` line when there is no row so absence is distinguishable from an omitted audit.
 
 When Hints is non-empty, use `| Location | Defect class | Scope relation | Evidence |`. Keep uncertain observations clearly marked as uncertain; use `new mechanism` for a confirmed concern that is non-blocking only because it is unrelated and pre-existing.
@@ -220,8 +300,11 @@ When Hints is non-empty, use `| Location | Defect class | Scope relation | Evide
 ## Hard rules
 
 - Never edit tracked files or mutate GitHub or repository history.
-- Never mark `PASS` with a confirmed finding.
-- Never mark `PASS` without explicit guard-scope, policy-ownership, and assertion-adequacy rows for every applicable changed decision and test.
+- Never mark plain `PASS` with a confirmed finding; `PASS — non-blocking cleanup` is the only passing result that carries findings, and only ones proven unable to reach compiled behavior, diagnostics, public API documentation, generated artifacts, or rule metadata.
+- Never mark either passing result without explicit guard-scope, policy-ownership, and assertion-adequacy rows for every applicable changed decision and test.
+- Never accept a line-based `grep` as the proof for a comment-only carve-out — the syntax-aware proof is the evidence.
+- Never treat a rename as behavior-preserving without a narrower mechanical proof.
+- Never turn a retry into a silent full re-review after the repair grew: say scope expanded and audit it as a new scope decision.
 - Never review only the diff when a counterpart or pipeline neighbor is relevant.
 - Never accept a test-only or paper fix when the defect class remains open.
 - Never run the full validation suite from preflight.

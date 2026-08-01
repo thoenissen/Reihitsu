@@ -97,7 +97,7 @@ Default to static tracing because CI already builds and runs the full suite. Exe
 Before execution, confirm the preinstalled SDK:
 
 ```shell
-dotnet --list-sdks
+scripts/prepare.ps1 -NoInstall
 ```
 
 Do not install an SDK or modify `PATH`. Run only targeted filtered tests or the formatter double-run required to settle the question. Record both executed and static verification in the output.

@@ -83,7 +83,7 @@ Reuse gh-review's posting rules (high-confidence only, English, concise, state p
 
 ### 6. Verification
 
-Same discipline as gh-review: static tracing by default; CI already runs the full suite. Reach for execution only when a specific reconcile question is checkable and changes a classification — e.g. "does the author's fix actually converge now?" or "is the formatter idempotent on the reshaped construct?". Then install the .NET 10 SDK via `dotnet-install.sh` and run **only** the targeted, filtered tests (or a formatter double-run) that settle it. Never run the whole suite to fill the block.
+Same discipline as gh-review: static tracing by default; CI already runs the full suite. Reach for execution only when a specific reconcile question is checkable and changes a classification — e.g. "does the author's fix actually converge now?" or "is the formatter idempotent on the reshaped construct?". Then prepare the toolchain with `scripts/prepare.sh` and run **only** the targeted, filtered tests through `scripts/test.sh` (or a formatter double-run) that settle it. Never run the whole suite to fill the block.
 
 ## What to write back in chat
 

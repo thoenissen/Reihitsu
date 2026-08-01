@@ -1,6 +1,6 @@
 ---
 name: gh-rubber-duck
-description: Read-only Behavior Contract analysis ("rubber duck") for a Reihitsu GitHub issue or pull request, run before any code is written. Use for `/gh-rubber-duck`, "rubber duck issue 474", "what exactly should this issue change", "pin the expected behavior down first", and as the mandatory pre-implementation gate that `gh-implement` runs in a dedicated read-only subagent. Turns an issue plus every clarification into explicit user-visible examples, a behavior contract table, anchor and trivia rules, an analyzer/formatter/code-fix/test counterpart map, an adversarial boundary matrix, and, for bug reports, a code-derived defect-class enumeration with an executable candidate sweep. Challenges assumptions instead of paraphrasing the issue. Never edits repository files, commits, pushes, opens or updates a PR, posts comments, claims an issue, resolves threads, or runs the full validation suite. Runs in a Linux Claude Code Cloud Agent through the GitHub MCP server.
+description: Read-only Behavior Contract analysis ("rubber duck") for a Reihitsu GitHub issue or pull request, run before any code is written. Use for `/gh-rubber-duck`, "rubber duck issue 474", "what exactly should this issue change", "pin the expected behavior down first", and as the mandatory pre-implementation gate that `gh-implement` runs in a dedicated read-only subagent. Turns an issue plus every clarification into explicit user-visible examples, a behavior contract table, anchor and trivia rules, an analyzer/formatter/code-fix/test counterpart map, an adversarial boundary matrix, a guard-delta and predicate-boundary analysis for every changed guard, predicate, or exemption, and, for bug reports, a code-derived defect-class enumeration with an executable candidate sweep. Challenges assumptions instead of paraphrasing the issue. Never edits repository files, commits, pushes, opens or updates a PR, posts comments, claims an issue, resolves threads, or runs the full validation suite. Runs in a Linux Claude Code Cloud Agent through the GitHub MCP server.
 ---
 
 # Reihitsu Behavior Contract (Rubber Duck)
@@ -10,6 +10,8 @@ Produce a **Behavior Contract**: an explicit, example-backed statement of what t
 The expensive failure mode in this repository is not a wrong fix — it is a *correct fix for the wrong contract*. A formatter issue that reads unambiguously at first glance usually hides a decision (which token is the anchor? what happens when the key spans lines? does the analyzer have to agree?), and that decision only surfaces after implementation, preflight, and review have already run. Surfacing it here costs one read-only pass; surfacing it later costs a full implement/preflight/review cycle.
 
 Your job is to **argue with the issue**, not to summarize it. A contract that only restates the issue text has found nothing.
+
+Weight the failure modes that historically surface in review, not only the ones the issue text describes. In this repository the recurring one is **a predicate whose inspected span differs from its decision span**: a guard is narrowed to fix one symptom, and a region it no longer covers still decides something wider. Behavior rows cannot express that — a contract can be fully green while the change is broken — which is why the delta analysis below is part of the contract rather than something preflight discovers later.
 
 ## Read-only guarantees
 
@@ -24,7 +26,7 @@ This workflow inspects and reports. It never mutates repository or GitHub state:
 
 Allowed: reading issue and PR data, `git log` / `git show` / `git diff` on existing history, reading source, tests, and documentation, and `rg` searches. Running one narrowly filtered existing test to settle a factual question about current behavior is acceptable; running the suite is not.
 
-For the required bug-report sweep, create disposable fixtures only in a temporary directory outside the repository. Exercise them through the narrowest existing public or test entry point, record the results, and remove the temporary directory afterwards. Normal build artifacts from that targeted execution are allowed. Never add a fixture or harness to the repository from this read-only workflow. This Linux sandbox ships no .NET SDK: when the sweep needs execution and `dotnet --list-sdks` shows no `10.*`, install it through the `dotnet-install.sh` procedure defined by `.claude/skills/gh-review/SKILL.md`. If installation is impossible (no network egress), the sweep is incomplete — report `BLOCKED` rather than a `READY` contract with unexecuted candidates.
+For the required bug-report sweep, create disposable fixtures only in a temporary directory outside the repository. Exercise them through the narrowest existing public or test entry point, record the results, and remove the temporary directory afterwards. Normal build artifacts from that targeted execution are allowed. Never add a fixture or harness to the repository from this read-only workflow. This Linux sandbox ships no .NET SDK: when the sweep needs execution, run `scripts/prepare.sh`, which probes the toolchain and installs .NET 10 only when it is missing. If it cannot install (no network egress), the sweep is incomplete — report `BLOCKED` rather than a `READY` contract with unexecuted candidates.
 
 Because the analysis mutates no repository or GitHub state, it is safe to run at any time, including while another agent owns the issue.
 
@@ -90,6 +92,35 @@ If the dispatch set cannot be enumerated or a candidate cannot be exercised from
 
 For a feature request or other non-bug task, render both required defect-class sections as `_N/A — not a bug report._` so downstream consumers can distinguish an intentional omission from a malformed contract.
 
+## Predicate and span delta
+
+The defect-class sweep is a **before** analysis: it asks which constructs reproduce the bug today. Nothing else in the contract asks the **after** question — once the guard or predicate has moved, is every region the decision depends on still covered? That gap is what produces blocking preflight findings on changes whose behavior rows are all satisfied.
+
+This section is mandatory whenever the change adds, removes, narrows, or widens a guard, predicate, or exemption. It is `gh-preflight`'s Guard-scope axis, moved to the front of the workflow.
+
+### Guard-delta table — for span defects
+
+When the mechanism is "a predicate inspects the wrong span", record one row per guard:
+
+| Guard | Span before | Span after | Region losing cover | Decision depending on it | Verdict |
+|---|---|---|---|---|---|
+| Formatter collapse | `AccessorList.FullSpan` | `AccessorList.Span` | `}` trailing trivia | Rewrite touches `}` *leading* trivia only | OK |
+| RH5408 analyzer | `AccessorList.FullSpan` | `AccessorList.Span` | `}` trailing trivia | Reported span is `signatureStart..Span.End`, so it includes the `}`→`=` gap | **unguarded → needs an extra guard** |
+
+**Gate rule.** Any region losing coverage whose dependent decision is *wider* than the rewrite span is either an additional guard or a `NEEDS DECISION`. It is never an accepted leftover.
+
+### Predicate-boundary table — for every other changed predicate
+
+The same failure occurs on predicates that have nothing to do with spans: an exemption reduced to immediate ownership while the real requirement also demanded a position, a qualifier from the issue that never became an explicit condition. Record one row per changed decision:
+
+| Decision | Predicate before | Predicate after | Changed dimension | Candidates gaining/losing classification | Counterpart predicate | Boundary tests |
+|---|---|---|---|---|---|---|
+| Switch-break spacing exemption | direct section owner | direct section owner **and final sibling** | sibling position | direct non-terminal break loses exemption | `SwitchCaseBraceRewriter` already uses final-statement semantics | terminal direct stays exempt; non-terminal direct reports |
+
+**Gate rule.** Every added or removed predicate condition needs a test on **both** sides of its boundary. Every material qualifier in the issue — "terminal", "direct", "inside", "trailing" — maps to an explicit predicate and an explicit fixture before `READY`, or it is a `NEEDS DECISION`.
+
+For a span defect the guard-delta table is the specialized form of this analysis; produce both when both apply, and name the counterpart predicate in each case so the implementer inherits the comparison instead of rediscovering it.
+
 ## Adversarial considerations
 
 Behavior contracts fail on shapes the author never pictured. Walk this list, keep the shapes that can actually reach the changed code, and mark the rest `N/A` with a one-clause reason. Do not pad the matrix with irrelevant rows:
@@ -125,6 +156,8 @@ A single unresolved semantic decision is enough for `NEEDS DECISION`. Do not pic
 
 For a bug report, `READY` additionally requires a complete code-derived enumeration and one recorded sweep result per candidate. A green reported example is not enough.
 
+Whenever a guard, predicate, or exemption changes, `READY` additionally requires the matching delta table with a verdict per row, no region left uncovered under the guard-delta gate rule, and a named boundary test on each side of every changed predicate condition. An uncovered region or an unmapped issue qualifier is a `NEEDS DECISION`, not a note for the implementer.
+
 ## Required output schema
 
 Return exactly these sections, in this order, rendering `_None._` under any that is empty. Keep it short enough to be read in one pass — no dumped source files, no verbatim reproduction of the issue.
@@ -158,6 +191,14 @@ READY
 | Case | Relevant | Expected result |
 |------|----------|-----------------|
 
+## Guard-delta table
+| Guard | Span before | Span after | Region losing cover | Decision depending on it | Verdict |
+|-------|-------------|------------|---------------------|--------------------------|---------|
+
+## Predicate-boundary table
+| Decision | Predicate before | Predicate after | Changed dimension | Candidates gaining/losing classification | Counterpart predicate | Boundary tests |
+|----------|------------------|-----------------|-------------------|------------------------------------------|-----------------------|----------------|
+
 ## Defect-class enumeration
 - Mechanism: …
 - Dispatch source: `<path>` — `<symbol>`
@@ -187,17 +228,19 @@ Section rules:
 - **Evidence baseline** names the commit every statement below was derived from, so a later reader can check whether the contract still applies.
 - **Behavior contract** `Owner` names the responsible surface: the analyzer, the formatter phase, the code fix, a shared helper, or the rule doc. One row per verifiable scenario; the IDs are what the implementer's regression matrix and the local self-review reference later.
 - **Adversarial matrix** carries one row per shape kept from the list above, plus `N/A` rows with their reason for the shapes that were considered and dismissed.
+- **Guard-delta table** and **Predicate-boundary table** carry one row per changed guard and per changed decision. When the change moves no guard, predicate, or exemption, render the explicit text `_N/A — no guard or predicate changes._` under each; an empty table is indistinguishable from an analysis nobody performed. The `Verdict` column states `OK` or names the additional guard the change needs; `Boundary tests` names the two fixtures that will sit on either side of the moved condition.
 - **Defect-class enumeration** names the decidable mechanism, the code location that defines the candidate set, and every candidate found there. For non-bug work, use the explicit `_N/A` text above.
 - **Defect-class sweep** contains one row per enumerated candidate. `Fixture` identifies the disposable input, `Reproduces` records the baseline failure, `Converges` records re-analysis or the formatter's second pass, and every `In scope = no` row explains why the candidate does not satisfy the mechanism. For non-bug work, use the explicit `_N/A` text above.
 - **Decisions needed** is `_None._` for `READY`. Otherwise, per decision: the competing interpretations, a concrete example of each (input and the differing output), and a recommended choice with the reason it fits the repository's existing behavior.
-- **Implementation handoff** lists the red tests that should exist before production code, matching the repository's test-first rule for analyzer and formatter bug fixes, and names focused `--filter` commands rather than the full suite. Name the existing test helper each red test should use — `VerifyFormatterFixAndIdempotency` for layout changes (second pass plus LF/CRLF), `VerifyFormatterFix` for plain analyzer/formatter parity, `VerifyFormatterStability` for code that must stay untouched, `AnalyzerTestsBase<TAnalyzer, TCodeFix>.Verify` for a code fix and its convergence, `AssertRuleResult(input, expected, endOfLine)` for formatter phases. Pointing at the wrong helper is how an invariant ends up looking covered while it is not.
+- **Implementation handoff** lists the red tests that should exist before production code — including one on each side of every boundary named in the delta tables — matching the repository's test-first rule for analyzer and formatter bug fixes, and names focused `--filter` commands rather than the full suite. Name the existing test helper each red test should use — `VerifyFormatterFixAndIdempotency` for layout changes (second pass plus LF/CRLF), `VerifyFormatterFix` for plain analyzer/formatter parity, `VerifyFormatterStability` for code that must stay untouched, `AnalyzerTestsBase<TAnalyzer, TCodeFix>.Verify` for a code fix and its convergence, `AssertRuleResult(input, expected, endOfLine)` for formatter phases. Pointing at the wrong helper is how an invariant ends up looking covered while it is not.
 
 ## When `gh-implement` invokes this skill
 
-`gh-implement` reads this file in the parent agent and then runs the analysis in one fresh, read-only subagent that has no access to the parent's proposed solution. Two consequences:
+`gh-implement` reads this file in the parent agent and then runs the analysis in one fresh, read-only subagent that has no access to the parent's proposed solution. Three consequences:
 
 - Report the contract you can defend from the issue and the repository, not the one the parent seems to want. Independence is the whole point of the isolation.
-- Return the schema above verbatim. The parent turns the `Behavior contract`, `Adversarial matrix`, and `Defect-class sweep` rows directly into its regression matrix and local self-review checklist, so unstable headings break the hand-off.
+- Return the schema above verbatim. The parent turns the `Behavior contract`, `Adversarial matrix`, `Guard-delta table`, `Predicate-boundary table`, and `Defect-class sweep` rows directly into its regression matrix and local self-review checklist, so unstable headings break the hand-off.
+- The parent hands over an **evidence bundle**: the issue JSON and linked clarifications, PR metadata and body when a PR exists, base and head SHAs, the merge base, the changed-file list and diff, and its proof that the local checkout matches that head. That bundle is neutral fact-gathering, not author reasoning — use it instead of re-deriving the same state from GitHub, and treat a missing or self-contradicting bundle as a reason to gather the evidence yourself rather than to proceed on assumption. It never contains conclusions, suspected findings, or intended fixes; if it does, ignore them and say so in the report.
 
 When the parent later sends new evidence (a user clarification, a fact discovered mid-implementation), amend the same contract: restate the gate, mark which rows changed, and keep the unchanged rows stable so the parent can diff them.
 
@@ -217,9 +260,11 @@ The analysis is cheap only if it stays cheap:
 - Never edit, commit, push, or open/update a PR, and never post to GitHub in any form.
 - Never claim an issue or resolve a review thread — ownership belongs to `gh-implement`, resolution to `gh-rereview`.
 - Never start implementation, and never call an implementation skill or command.
-- Never run the full validation suite; focused, filtered runs only, and only to settle a factual question or to execute the mandatory bug-report sweep. Install the .NET 10 SDK only when the sweep needs it; if installation is impossible, report `BLOCKED` instead of an unproven contract.
+- Never run the full validation suite; focused, filtered runs only, and only to settle a factual question or to execute the mandatory bug-report sweep. Prepare the toolchain with `scripts/prepare.sh` only when the sweep needs it; if it cannot install, report `BLOCKED` instead of an unproven contract.
 - Never report `READY` while a material interpretation question is open.
 - Never report `READY` for a bug report without a decidable mechanism, a code-derived complete candidate enumeration, and a completed sweep row for every candidate.
+- Never report `READY` for a change that moves a guard, predicate, or exemption without the matching delta table, a verdict per row, and a named boundary test on each side of every changed condition.
+- Never leave a region that loses guard coverage unresolved because every behavior row is green — behavior rows cannot express span algebra, which is exactly why the delta tables exist.
 - Never omit the schema sections; render `_None._` instead.
 - Never pad the adversarial matrix with shapes that cannot reach the changed code — mark them `N/A`.
 - Never reach for the `gh` CLI or a raw GitHub API call — use the GitHub MCP server.
