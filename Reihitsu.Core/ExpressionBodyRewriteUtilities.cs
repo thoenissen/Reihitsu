@@ -22,13 +22,16 @@ public static class ExpressionBodyRewriteUtilities
     /// <param name="semicolonToken">The member's terminating semicolon</param>
     /// <returns><see langword="true"/> if the rewrite must be refused; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// Two distinct hazards block the rewrite, and only these two. A directive between the arrow and
-    /// the expression is re-hosted directly after the injected <c>return</c> or expression statement,
-    /// where a directive cannot legally sit because it must start its own line; that produces source
-    /// which no longer parses. A conditional or region group whose partner lies outside the rebuilt
-    /// span is split by the rewrite, orphaning the half that stays behind. A directive that sits
-    /// between the expression and the semicolon is neither: it travels inside the generated statement
-    /// and keeps both its position relative to the surrounding code and its own line.
+    /// Three hazards block the rewrite. A directive between the arrow and the expression is re-hosted
+    /// directly after the injected <c>return</c> or expression statement, where a directive cannot
+    /// legally sit because it must start its own line; that produces source which no longer parses.
+    /// A conditional group whose partner lies outside the rebuilt span is split by the rewrite,
+    /// orphaning the half that stays behind. Any region directive in or immediately before the
+    /// rebuilt span blocks it as well, balanced or not, because the region phase reparses changed
+    /// text right after the structural transforms and therefore re-lexes the rewritten member before
+    /// horizontal spacing has run over it. An ordinary conditional or position sensitive directive
+    /// between the expression and the semicolon is none of these: it travels inside the generated
+    /// statement and keeps both its position relative to the surrounding code and its own line.
     /// </remarks>
     public static bool BlocksRewrite(SyntaxNode member,
                                      ArrowExpressionClauseSyntax expressionBody,
@@ -51,8 +54,17 @@ public static class ExpressionBodyRewriteUtilities
                                                     ? expressionBody.Span.End
                                                     : semicolonToken.Span.End);
 
-        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(member, rewrittenSpan)
-               || SyntaxTriviaUtilities.ContainsUnbalancedRegionDirectives(member, rewrittenSpan);
+        if (SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(member, rewrittenSpan))
+        {
+            return true;
+        }
+
+        // The region phase reparses changed text, so it re-lexes the rewritten member before the
+        // spacing phase has run over it. Refuse every region directive that reaches the rewrite,
+        // including one opened in the arrow's own leading trivia, which sits outside the span above.
+        var regionSpan = TextSpan.FromBounds(expressionBody.ArrowToken.FullSpan.Start, rewrittenSpan.End);
+
+        return SyntaxTriviaUtilities.ContainsRegionDirectives(member, regionSpan);
     }
 
     #endregion // Methods

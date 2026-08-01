@@ -347,6 +347,62 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a region pair following the expression is refused. The region phase reparses
+    /// changed text, so converting re-lexed the generated statement before the spacing phase had run
+    /// and produced <c>return1</c>, dropping both directives and corrupting sibling members
+    /// </summary>
+    [TestMethod]
+    public void MethodWithRegionAfterExpressionIsNotConverted()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int A() => 1
+
+                                 #region R
+
+                                 #endregion // R
+
+                                 ;
+
+                                 public int B()
+                                 {
+                                     return 2;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a region opened before the arrow is refused, so the formatter and the code fix
+    /// agree on a member whose region directive sits outside the rewritten span
+    /// </summary>
+    [TestMethod]
+    public void MethodWithRegionBeforeArrowIsNotConverted()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int M()
+
+                                 #region Body
+
+                                 => 1;
+
+                                 #endregion // Body
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that an expression-bodied member carrying only a comment is still converted, so the
     /// guard stays limited to directives
     /// </summary>
