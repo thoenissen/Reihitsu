@@ -506,12 +506,82 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for a break statement that follows a closing brace when both
-    /// statements are inside a single block that is itself the braced body of a switch section (issue #440)
+    /// Verifies diagnostics are reported and fixed for a break statement that follows a closing brace when both
+    /// statements are inside a single block that is itself the braced body of a switch section
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForBreakAfterClosingBraceInsideBracedSwitchSection()
+    public async Task VerifyDiagnosticAndFixForBreakAfterClosingBraceInsideBracedSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    if (GetValue())
+                                                    {
+                                                        Consume();
+                                                    {|#0:}|}
+                                                    break;
+                                                }
+                                        }
+                                    }
+
+                                    private bool GetValue()
+                                    {
+                                        return false;
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5030
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (GetValue())
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private bool GetValue()
+                                     {
+                                         return false;
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported after RH5010 inserts the required blank line inside a braced
+    /// switch-section body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticAfterRH5010FixInsideBracedSwitchSection()
     {
         const string testCode = """
                                 internal class RH5030
@@ -526,6 +596,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
                                                     {
                                                         Consume();
                                                     }
+
                                                     break;
                                                 }
                                         }
@@ -543,6 +614,87 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All inserts one blank line after every affected closing brace in braced switch-section bodies
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllConvergesForBreaksInsideBracedSwitchSections()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    if (value > 0)
+                                                    {
+                                                        Consume();
+                                                    {|#0:}|}
+                                                    break;
+                                                }
+
+                                            case 2:
+                                                {
+                                                    if (value > 1)
+                                                    {
+                                                        Consume();
+                                                    {|#1:}|}
+                                                    break;
+                                                }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5030
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (value > 0)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+
+                                             case 2:
+                                                 {
+                                                     if (value > 1)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat, 2));
     }
 
     /// <summary>
@@ -689,6 +841,102 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies RH5030 retains its same-line exclusion inside a braced switch-section body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSameLineBreakInsideBracedSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    if (value > 0)
+                                                    {
+                                                        Consume();
+                                                    } break;
+                                                }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a closing brace followed by a non-terminal direct switch-section break is diagnosed and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndFixForNonTerminalDirectBreakAfterClosingBrace()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5030
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                if (value > 0)
+                                                {
+                                                    Consume();
+                                                {|#0:}|}
+                                                break;
+                                                Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 internal class RH5030
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 if (value > 0)
+                                                 {
+                                                     Consume();
+                                                 }
+
+                                                 break;
+                                                 Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
     }
 
     #endregion // Tests

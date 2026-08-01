@@ -172,19 +172,15 @@ internal static class LayoutComputer
     /// <param name="baseColumn">The base column offset</param>
     private static void ComputeBlockIndentation(SyntaxNode node, int indentLevel, LayoutModel model, int baseColumn)
     {
-        var braceRange = GetIndentingBraceRange(node);
-        var isSwitchSection = node is SwitchSectionSyntax;
-        var embeddedStatement = GetEmbeddedStatement(node);
-
         foreach (var child in node.ChildNodesAndTokens())
         {
-            var childIndent = GetChildIndentLevel(child, indentLevel, braceRange, isSwitchSection, embeddedStatement);
+            var childIndent = SyntaxIndentationUtilities.GetChildIndentLevel(node, child, indentLevel);
 
             if (child.IsToken)
             {
                 var token = child.AsToken();
 
-                SetDirectiveIndentation(token, indentLevel, braceRange, model, baseColumn);
+                SetDirectiveIndentation(token, node, indentLevel, model, baseColumn);
                 SetTokenIndentation(token, childIndent, model, baseColumn);
             }
             else
@@ -195,96 +191,18 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Computes the indentation level to use for a child node or token
-    /// </summary>
-    /// <param name="child">The child node or token</param>
-    /// <param name="indentLevel">The current indentation level</param>
-    /// <param name="braceRange">The optional brace range for indenting scopes</param>
-    /// <param name="isSwitchSection">Whether the parent node is a switch section</param>
-    /// <param name="embeddedStatement">The unbraced embedded statement owned by the parent, if any</param>
-    /// <returns>The computed child indentation level</returns>
-    private static int GetChildIndentLevel(SyntaxNodeOrToken child, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, bool isSwitchSection, StatementSyntax embeddedStatement)
-    {
-        var childIndent = indentLevel;
-
-        if (IsInsideBraceRange(child.SpanStart, braceRange))
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        if (isSwitchSection && child.IsNode && child.AsNode() is StatementSyntax)
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        if (embeddedStatement != null && child.IsNode && child.AsNode() == embeddedStatement)
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        return childIndent;
-    }
-
-    /// <summary>
-    /// Gets the unbraced embedded statement owned by a control-flow construct, so its indentation can be
-    /// incremented one level even though the construct has no brace range of its own. An <c>else if</c> chain
-    /// link is intentionally excluded so the chain stays flat instead of accumulating one level per link
-    /// </summary>
-    /// <param name="node">The syntax node to check</param>
-    /// <returns>The embedded statement, or <see langword="null"/> if the node owns none or it is a block</returns>
-    private static StatementSyntax GetEmbeddedStatement(SyntaxNode node)
-    {
-        var statement = node switch
-                        {
-                            IfStatementSyntax ifStatement => ifStatement.Statement,
-                            ElseClauseSyntax { Statement: IfStatementSyntax } => null,
-                            ElseClauseSyntax elseClause => elseClause.Statement,
-                            WhileStatementSyntax whileStatement => whileStatement.Statement,
-                            DoStatementSyntax doStatement => doStatement.Statement,
-                            ForStatementSyntax forStatement => forStatement.Statement,
-                            CommonForEachStatementSyntax forEachStatement => forEachStatement.Statement,
-                            UsingStatementSyntax usingStatement => usingStatement.Statement,
-                            LockStatementSyntax lockStatement => lockStatement.Statement,
-                            FixedStatementSyntax fixedStatement => fixedStatement.Statement,
-                            _ => null
-                        };
-
-        return statement is BlockSyntax ? null : statement;
-    }
-
-    /// <summary>
-    /// Determines whether a span position is inside the provided brace range
-    /// </summary>
-    /// <param name="spanStart">The span start position</param>
-    /// <param name="braceRange">The optional brace range</param>
-    /// <returns><see langword="true"/> if the position is within the range; otherwise, <see langword="false"/></returns>
-    private static bool IsInsideBraceRange(int spanStart, (int OpenEnd, int CloseStart)? braceRange)
-    {
-        if (braceRange == null)
-        {
-            return false;
-        }
-
-        var (openEnd, closeStart) = braceRange.Value;
-
-        return spanStart >= openEnd && spanStart < closeStart;
-    }
-
-    /// <summary>
     /// Applies indentation entries for region-related directive trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia is inspected</param>
+    /// <param name="parent">The syntax node that owns the token</param>
     /// <param name="indentLevel">The current indentation level</param>
-    /// <param name="braceRange">The optional brace range for indenting scopes</param>
     /// <param name="model">The layout model to update</param>
     /// <param name="baseColumn">The base indentation column</param>
-    private static void SetDirectiveIndentation(SyntaxToken token, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, LayoutModel model, int baseColumn)
+    private static void SetDirectiveIndentation(SyntaxToken token, SyntaxNode parent, int indentLevel, LayoutModel model, int baseColumn)
     {
         foreach (var directiveTrivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsRegionDirective))
         {
-            var directiveIndent = IsInsideBraceRange(directiveTrivia.SpanStart, braceRange)
-                                      ? indentLevel + 1
-                                      : indentLevel;
+            var directiveIndent = SyntaxIndentationUtilities.GetTriviaIndentLevel(parent, directiveTrivia, indentLevel);
 
             var directiveLine = directiveTrivia.GetLocation().GetLineSpan().StartLinePosition.Line;
 
@@ -309,68 +227,6 @@ internal static class LayoutComputer
         var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
 
         model.Set(line, new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
-    }
-
-    /// <summary>
-    /// Returns the span range between open and close braces for indenting constructs,
-    /// or <see langword="null"/> if the node is not an indenting brace construct
-    /// </summary>
-    /// <param name="node">The syntax node to check</param>
-    /// <returns>The open brace end and close brace start positions, or null</returns>
-    private static (int OpenEnd, int CloseStart)? GetIndentingBraceRange(SyntaxNode node)
-    {
-        SyntaxToken openBrace;
-        SyntaxToken closeBrace;
-
-        switch (node)
-        {
-            case NamespaceDeclarationSyntax ns:
-                {
-                    openBrace = ns.OpenBraceToken;
-                    closeBrace = ns.CloseBraceToken;
-                }
-                break;
-
-            case BaseTypeDeclarationSyntax typeDecl:
-                {
-                    openBrace = typeDecl.OpenBraceToken;
-                    closeBrace = typeDecl.CloseBraceToken;
-                }
-                break;
-
-            case BlockSyntax block:
-                {
-                    openBrace = block.OpenBraceToken;
-                    closeBrace = block.CloseBraceToken;
-                }
-                break;
-
-            case SwitchStatementSyntax switchStmt:
-                {
-                    openBrace = switchStmt.OpenBraceToken;
-                    closeBrace = switchStmt.CloseBraceToken;
-                }
-                break;
-
-            case AccessorListSyntax accessorList:
-                {
-                    openBrace = accessorList.OpenBraceToken;
-                    closeBrace = accessorList.CloseBraceToken;
-                }
-                break;
-
-            default:
-                {
-                    return null;
-                }
-        }
-
-        if (openBrace.IsMissing || closeBrace.IsMissing)
-        {
-            return null;
-        }
-
-        return (openBrace.Span.End, closeBrace.SpanStart);
     }
 
     /// <summary>

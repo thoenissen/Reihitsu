@@ -16,10 +16,12 @@ public readonly struct TokenGapAnalysis
     /// Constructor
     /// </summary>
     /// <param name="hasLineBreak">Whether any line break was found</param>
+    /// <param name="hasTerminalLineBreak">Whether a line break occurs after the last content in the range</param>
     /// <param name="blankLineCount">Number of blank lines found</param>
-    private TokenGapAnalysis(bool hasLineBreak, int blankLineCount)
+    private TokenGapAnalysis(bool hasLineBreak, bool hasTerminalLineBreak, int blankLineCount)
     {
         HasLineBreak = hasLineBreak;
+        HasTerminalLineBreak = hasTerminalLineBreak;
         BlankLineCount = blankLineCount;
     }
 
@@ -31,6 +33,20 @@ public readonly struct TokenGapAnalysis
     /// Whether the analysed gap contains at least one line break
     /// </summary>
     public bool HasLineBreak { get; }
+
+    /// <summary>
+    /// Whether the analysed range contains a line break after its last non-whitespace content. Unlike
+    /// <see cref="HasLineBreak"/>, an embedded line break followed by more comment content does not satisfy this
+    /// property
+    /// </summary>
+    public bool HasTerminalLineBreak { get; }
+
+    /// <summary>
+    /// Number of line breaks that must be inserted at the end of this range to create one blank line. A terminal
+    /// line break already ends the content line, so only the blank-line terminator remains; otherwise both are
+    /// required
+    /// </summary>
+    public int RequiredLineBreakCountForBlankLine => HasTerminalLineBreak ? 1 : 2;
 
     /// <summary>
     /// Number of blank lines found in the analysed gap
@@ -68,7 +84,7 @@ public readonly struct TokenGapAnalysis
         AnalyzeTriviaList(previous.TrailingTrivia, 0, previous.TrailingTrivia.Count, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
         AnalyzeTriviaList(next.LeadingTrivia, 0, leadingTriviaEndExclusive, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
 
-        return new TokenGapAnalysis(sawLineBreak, blankLineCount);
+        return new TokenGapAnalysis(sawLineBreak, sawLineBreak && lineHasContent == false, blankLineCount);
     }
 
     /// <summary>
@@ -97,7 +113,7 @@ public readonly struct TokenGapAnalysis
 
         AnalyzeTriviaList(trivia, startIndex, endExclusive, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
 
-        return new TokenGapAnalysis(sawLineBreak, blankLineCount);
+        return new TokenGapAnalysis(sawLineBreak, sawLineBreak && lineHasContent == false, blankLineCount);
     }
 
     /// <summary>

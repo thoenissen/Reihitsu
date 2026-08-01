@@ -92,6 +92,46 @@ public class TokenGapAnalysisTests
 
     #endregion // Between - HasLineBreak
 
+    #region Between - HasTerminalLineBreak
+
+    /// <summary>
+    /// Verifies a line break embedded in comment content does not terminate the token gap
+    /// </summary>
+    [TestMethod]
+    public void BetweenHasTerminalLineBreakReturnsFalseAfterMultilineCommentContent()
+    {
+        // Arrange
+        var (prev, next) = GetStatementBoundary("class C { void M() { if (true) { } /* Keep\ncomment. */ break; } }", TestContext.CancellationToken);
+
+        // Act
+        var result = TokenGapAnalysis.Between(prev, next);
+
+        // Assert
+        Assert.IsTrue(result.HasLineBreak);
+        Assert.IsFalse(result.HasTerminalLineBreak);
+        Assert.AreEqual(2, result.RequiredLineBreakCountForBlankLine);
+    }
+
+    /// <summary>
+    /// Verifies an explicit line break after multiline comment content terminates the token gap
+    /// </summary>
+    [TestMethod]
+    public void BetweenHasTerminalLineBreakReturnsTrueAfterMultilineCommentContent()
+    {
+        // Arrange
+        var (prev, next) = GetStatementBoundary("class C { void M() { if (true) { } /* Keep\ncomment. */\n\nbreak; } }", TestContext.CancellationToken);
+
+        // Act
+        var result = TokenGapAnalysis.Between(prev, next);
+
+        // Assert
+        Assert.IsTrue(result.HasTerminalLineBreak);
+        Assert.AreEqual(1, result.BlankLineCount);
+        Assert.AreEqual(1, result.RequiredLineBreakCountForBlankLine);
+    }
+
+    #endregion // Between - HasTerminalLineBreak
+
     #region Between - BlankLineCount
 
     /// <summary>

@@ -375,7 +375,18 @@ internal sealed class BlankLineEditor
     private StatementSyntax InsertBlankLineBeforeToken(StatementSyntax statement, SyntaxToken token, int insertIndex)
     {
         var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var newLeading = token.LeadingTrivia.Insert(insertIndex, eol);
+        var previousToken = token.GetPreviousToken();
+        var lineBreakCount = previousToken == default
+                             || previousToken.IsKind(SyntaxKind.None)
+                                 ? 1
+                                 : TokenGapAnalysis.Between(previousToken, token).RequiredLineBreakCountForBlankLine;
+        var newLeading = token.LeadingTrivia;
+
+        for (var lineBreakIndex = 0; lineBreakIndex < lineBreakCount; lineBreakIndex++)
+        {
+            newLeading = newLeading.Insert(insertIndex, eol);
+        }
+
         var newToken = token.WithLeadingTrivia(newLeading);
 
         return statement.ReplaceToken(token, newToken);

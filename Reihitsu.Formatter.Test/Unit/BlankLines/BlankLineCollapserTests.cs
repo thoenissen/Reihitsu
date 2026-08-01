@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System.Linq;
+using System.Threading;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -108,6 +110,88 @@ public class BlankLineCollapserTests
 
         // Assert
         Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the line break terminating a preceding same-line statement is not counted as a blank line
+    /// </summary>
+    [TestMethod]
+    public void PreservesBlankLineWhoseFirstLineBreakTerminatesPreviousStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                         Consume();
+                                     } break;
+                                 }
+
+                                 void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        var root = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+        var breakToken = root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.BreakKeyword));
+        var endOfLine = SyntaxFactory.EndOfLine("\n");
+        var updatedBreakToken = breakToken.WithLeadingTrivia(endOfLine,
+                                                             endOfLine,
+                                                             SyntaxFactory.Whitespace("                    "));
+        var updatedRoot = root.ReplaceToken(breakToken, updatedBreakToken);
+        var expected = updatedRoot.ToFullString();
+
+        // Act
+        var actual = new BlankLineCollapser(TestContext.CancellationToken).Visit(updatedRoot).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies an embedded line break inside trailing comment content does not cause the collapser to remove the
+    /// separate blank line that follows the comment
+    /// </summary>
+    [TestMethod]
+    public void PreservesBlankLineAfterTrailingMultilineComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                         Consume();
+                                     } /* Keep
+                             comment. */ break;
+                                 }
+
+                                 void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        var root = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+        var breakToken = root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.BreakKeyword));
+        var endOfLine = SyntaxFactory.EndOfLine("\n");
+        var updatedBreakToken = breakToken.WithLeadingTrivia(endOfLine,
+                                                             endOfLine,
+                                                             SyntaxFactory.Whitespace("                    "));
+        var updatedRoot = root.ReplaceToken(breakToken, updatedBreakToken);
+        var expected = updatedRoot.ToFullString();
+
+        // Act
+        var actual = new BlankLineCollapser(TestContext.CancellationToken).Visit(updatedRoot).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual);
     }
 
     /// <summary>
