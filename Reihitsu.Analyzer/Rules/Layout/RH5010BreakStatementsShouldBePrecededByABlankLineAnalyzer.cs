@@ -53,7 +53,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// <inheritdoc />
     protected override bool IsRelevant(BreakStatementSyntax statement)
     {
-        return BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(statement) == false;
+        return BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statement) == false;
     }
 
     #endregion // StatementShouldBePrecededByABlankLineAnalyzerBase

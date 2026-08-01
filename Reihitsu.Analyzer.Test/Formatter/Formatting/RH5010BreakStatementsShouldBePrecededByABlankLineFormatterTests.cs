@@ -399,5 +399,66 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
                                                Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a non-terminal direct switch-section break receives normal spacing before case braces are added
+    /// and the full formatter converges under both line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesNonTerminalDirectSwitchSectionBreakInOnePass()
+    {
+        const string input = """
+                             #pragma warning disable CS0162
+
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             Consume();
+                                             {|#0:break|};
+                                             Consume();
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 #pragma warning disable CS0162
+
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     Consume();
+
+                                                     break;
+
+                                                     Consume();
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
     #endregion // Tests
 }

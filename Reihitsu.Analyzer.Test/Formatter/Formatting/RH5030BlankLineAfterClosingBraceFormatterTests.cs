@@ -480,6 +480,73 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies a closing brace before a non-terminal direct switch-section break is spaced before case braces are
+    /// added and the full formatter converges under both line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesNonTerminalDirectBreakAfterClosingBraceInOnePass()
+    {
+        const string input = """
+                             #pragma warning disable CS0162
+
+                             internal class Example
+                             {
+                                 internal void Method(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             if (value > 0)
+                                             {
+                                                 Consume();
+                                             {|#0:}|}
+                                             break;
+                                             Consume();
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 #pragma warning disable CS0162
+
+                                 internal class Example
+                                 {
+                                     internal void Method(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (value > 0)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+
+                                                     Consume();
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies the formatter leaves already compliant code unchanged
     /// </summary>
     /// <param name="source">Source code</param>

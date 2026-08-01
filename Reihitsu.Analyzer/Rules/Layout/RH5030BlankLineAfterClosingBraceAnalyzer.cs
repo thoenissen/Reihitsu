@@ -58,7 +58,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
                 continue;
             }
 
-            if (BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(next))
+            if (BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(next))
             {
                 continue;
             }

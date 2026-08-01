@@ -876,5 +876,68 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies a closing brace followed by a non-terminal direct switch-section break is diagnosed and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndFixForNonTerminalDirectBreakAfterClosingBrace()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5030
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                if (value > 0)
+                                                {
+                                                    Consume();
+                                                {|#0:}|}
+                                                break;
+                                                Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 internal class RH5030
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 if (value > 0)
+                                                 {
+                                                     Consume();
+                                                 }
+
+                                                 break;
+                                                 Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -15,24 +15,36 @@ public class BlankLineSpacingPolicyTests
     /// Verifies a break statement owned directly by a switch section is exempt
     /// </summary>
     [TestMethod]
-    public void IsDirectSwitchSectionBreakReturnsTrueForDirectBreak()
+    public void IsTerminalDirectSwitchSectionBreakReturnsTrueForTerminalDirectBreak()
     {
         const string source = "class C { void M(int value) { switch (value) { case 1: Consume(); break; } } void Consume() { } }";
         var breakStatement = CoreSyntaxTestHelper.GetSingleNode<BreakStatementSyntax>(source);
 
-        Assert.IsTrue(BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(breakStatement));
+        Assert.IsTrue(BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(breakStatement));
+    }
+
+    /// <summary>
+    /// Verifies a direct break with a following switch-section statement is not exempt
+    /// </summary>
+    [TestMethod]
+    public void IsTerminalDirectSwitchSectionBreakReturnsFalseForNonTerminalDirectBreak()
+    {
+        const string source = "class C { void M(int value) { switch (value) { case 1: Consume(); break; Consume(); } } void Consume() { } }";
+        var breakStatement = CoreSyntaxTestHelper.GetSingleNode<BreakStatementSyntax>(source);
+
+        Assert.IsFalse(BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(breakStatement));
     }
 
     /// <summary>
     /// Verifies a break statement owned by a block within a switch section is not exempt
     /// </summary>
     [TestMethod]
-    public void IsDirectSwitchSectionBreakReturnsFalseForBlockOwnedBreak()
+    public void IsTerminalDirectSwitchSectionBreakReturnsFalseForBlockOwnedBreak()
     {
         const string source = "class C { void M(int value) { switch (value) { case 1: { Consume(); break; } } } void Consume() { } }";
         var breakStatement = CoreSyntaxTestHelper.GetSingleNode<BreakStatementSyntax>(source);
 
-        Assert.IsFalse(BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(breakStatement));
+        Assert.IsFalse(BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(breakStatement));
     }
 
     #endregion // Tests

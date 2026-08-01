@@ -753,5 +753,230 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
                      Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a direct switch-section break is diagnosed and fixed when a following statement makes it
+    /// non-terminal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndFixForNonTerminalDirectSwitchSectionBreak()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5010
+                                {
+                                    public void StopSwitch(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                Consume();
+                                                {|#0:break|};
+                                                Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 internal class RH5010
+                                 {
+                                     public void StopSwitch(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 Consume();
+
+                                                 break;
+                                                 Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfIncrementalIterations = 1,
+                     Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies RH5010 reports and fixes a non-terminal direct switch-section break that follows a closing brace,
+    /// matching RH5030 on the shared gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndFixForNonTerminalDirectBreakAfterClosingBrace()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5010
+                                {
+                                    public void StopSwitch(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                if (choice > 0)
+                                                {
+                                                    Consume();
+                                                }
+                                                {|#0:break|};
+                                                Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 internal class RH5010
+                                 {
+                                     public void StopSwitch(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 if (choice > 0)
+                                                 {
+                                                     Consume();
+                                                 }
+
+                                                 break;
+                                                 Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfIncrementalIterations = 1,
+                     Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a non-terminal direct break is not diagnosed when it is the switch section's first statement because
+    /// no preceding statement gap exists
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFirstNonTerminalDirectSwitchSectionBreak()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5010
+                                {
+                                    public void StopSwitch(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                break;
+                                                Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All inserts one blank line before every non-terminal direct switch-section break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllConvergesForNonTerminalDirectSwitchSectionBreaks()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5010
+                                {
+                                    public void StopSwitch(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                Consume();
+                                                {|#0:break|};
+                                                Consume();
+
+                                            case 2:
+                                                Consume();
+                                                {|#1:break|};
+                                                Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 internal class RH5010
+                                 {
+                                     public void StopSwitch(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 Consume();
+
+                                                 break;
+                                                 Consume();
+
+                                             case 2:
+                                                 Consume();
+
+                                                 break;
+                                                 Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

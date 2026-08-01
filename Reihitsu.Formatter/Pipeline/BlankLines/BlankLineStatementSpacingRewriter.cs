@@ -57,7 +57,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     private static bool IsAfterClosingBrace(StatementSyntax statement, StatementSyntax previous)
     {
         return previous.GetLastToken().IsKind(SyntaxKind.CloseBraceToken)
-               && BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(statement) == false;
+               && BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statement) == false;
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
                 return true;
 
             case BreakStatementSyntax:
-                return BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(statement) == false;
+                return BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statement) == false;
 
             case YieldStatementSyntax:
                 return previous is YieldStatementSyntax == false;

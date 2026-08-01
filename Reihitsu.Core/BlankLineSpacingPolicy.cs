@@ -10,14 +10,16 @@ public static class BlankLineSpacingPolicy
     #region Methods
 
     /// <summary>
-    /// Determines whether a break statement belongs directly to a switch section. A break inside a block owned by
-    /// the section is not exempt because the block owns that statement list
+    /// Determines whether a break statement is the terminal statement owned directly by a switch section. A
+    /// non-terminal direct break and a break inside a block owned by the section are not exempt
     /// </summary>
     /// <param name="statement">Statement to inspect</param>
-    /// <returns><see langword="true"/> if the statement is a break owned directly by a switch section</returns>
-    public static bool IsDirectSwitchSectionBreak(StatementSyntax statement)
+    /// <returns><see langword="true"/> if the statement is the terminal break owned directly by a switch section</returns>
+    public static bool IsTerminalDirectSwitchSectionBreak(StatementSyntax statement)
     {
-        return statement is BreakStatementSyntax { Parent: SwitchSectionSyntax };
+        return statement is BreakStatementSyntax { Parent: SwitchSectionSyntax section }
+               && section.Statements.Count > 0
+               && section.Statements[section.Statements.Count - 1] == statement;
     }
 
     #endregion // Methods
