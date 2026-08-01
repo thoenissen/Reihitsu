@@ -49,6 +49,11 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
             return node;
         }
 
+        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken))
+        {
+            return node;
+        }
+
         var expression = node.ExpressionBody.Expression;
         var statementForm = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers)
                                 ? ExpressionBodyStatementForm.ExpressionStatement

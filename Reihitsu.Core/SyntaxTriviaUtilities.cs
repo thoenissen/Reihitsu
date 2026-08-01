@@ -269,6 +269,30 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the specified span contains any conditional-compilation directive. A rewrite that
+    /// reshapes the span into a different construct — an expression body turned into a block, for example —
+    /// cannot keep such a directive meaningful, because the directive delimits alternative source text rather
+    /// than a node it could travel with. <see cref="ContainsUnbalancedConditionalDirectives"/> is the weaker
+    /// partner for a rewrite that only relocates a span as one piece and therefore keeps a balanced group intact
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains a conditional directive, or when <paramref name="root"/> is
+    /// <see langword="null"/> and the span therefore cannot be inspected; otherwise, <see langword="false"/>
+    /// </returns>
+    public static bool ContainsConditionalDirectives(SyntaxNode root, TextSpan span)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        return root.DescendantTrivia(span, descendIntoTrivia: true)
+                   .Any(trivia => span.Contains(trivia.SpanStart) && IsConditionalDirective(trivia));
+    }
+
+    /// <summary>
     /// Determines whether the specified span contains a preprocessor directive whose effect is bound to where it
     /// sits rather than to the block around it. <c>#pragma warning</c>, <c>#nullable</c> and <c>#line</c> all
     /// apply from their own position onwards, so a rewrite that relocates the surrounding block silently changes

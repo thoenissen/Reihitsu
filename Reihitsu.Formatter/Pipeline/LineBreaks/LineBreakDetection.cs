@@ -19,12 +19,14 @@ internal static class LineBreakDetection
     /// <param name="accessorList">The accessor list to inspect</param>
     /// <returns><see langword="true"/> if the accessor list's braces should be normalized; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// This is the single owner of the decision, shared by every rewriter that places accessor-list
-    /// braces, so a property, an indexer and an event cannot drift apart. Auto-accessor lists such as
-    /// <c>{ get; set; }</c> keep their existing layout, unless the list itself carries a comment or a
-    /// directive, which is what stops a property from collapsing too. The interior-scoped check is
-    /// deliberate: a comment trailing the closing brace sits outside the list and must not force the
-    /// braces apart.
+    /// This is the single owner of the normalize-or-leave decision, shared by every rewriter that
+    /// places accessor-list braces. Auto-accessor lists such as <c>{ get; set; }</c> keep their
+    /// existing layout, unless the list itself carries a comment or a directive. The interior-scoped
+    /// check is deliberate: a comment trailing the closing brace sits outside the list and must not
+    /// force the braces apart.
+    /// The property collapse path in <c>PropertyLayoutLineBreakRewriter</c> applies a second, wider
+    /// guard of its own, so a property and an indexer still diverge for a comment that follows the
+    /// accessor list. That divergence is pre-existing and is not owned by this predicate.
     /// </remarks>
     public static bool ShouldNormalizeAccessorListBraces(AccessorListSyntax accessorList)
     {

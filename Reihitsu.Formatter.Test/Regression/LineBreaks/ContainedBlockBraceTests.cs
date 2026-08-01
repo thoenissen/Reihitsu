@@ -66,6 +66,45 @@ public class ContainedBlockBraceTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a labeled statement block gets its opening brace moved to its own line in the
+    /// same pass that re-flows its contents
+    /// </summary>
+    [TestMethod]
+    public void LabeledBlockBraceMovesWhenContentsAreReflowed()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     label: {
+                                         if (true) { int x = 1; }
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        label:
+                                        {
+                                            if (true)
+                                            {
+                                                int x = 1;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an unsafe statement block that is already laid out correctly stays untouched
     /// </summary>
     [TestMethod]

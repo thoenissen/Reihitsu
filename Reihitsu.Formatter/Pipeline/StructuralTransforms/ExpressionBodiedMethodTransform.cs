@@ -50,6 +50,11 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
             return node;
         }
 
+        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken))
+        {
+            return node;
+        }
+
         var expression = node.ExpressionBody.Expression;
         var statementForm = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers)
                                 ? ExpressionBodyStatementForm.ExpressionStatement
