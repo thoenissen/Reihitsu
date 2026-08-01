@@ -759,5 +759,34 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a statement moved off an inline switch-section block line is correctly indented for its syntax depth
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSyntaxDerivedIndentationInsideInlineSwitchBlock()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1: { Consume();
+
+                                                    break; }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

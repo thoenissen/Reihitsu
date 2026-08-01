@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -35,21 +36,6 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Determines whether the break statement belongs directly to a switch section. A break inside a block owned
-    /// by the section follows the normal blank-line rules because the block owns that statement list
-    /// </summary>
-    /// <param name="statement">Break statement</param>
-    /// <returns><see langword="true"/> if the break statement is in a switch section</returns>
-    private static bool IsInSwitchSection(BreakStatementSyntax statement)
-    {
-        return statement.Parent is SwitchSectionSyntax;
-    }
-
-    #endregion // Methods
-
     #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
@@ -67,7 +53,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// <inheritdoc />
     protected override bool IsRelevant(BreakStatementSyntax statement)
     {
-        return IsInSwitchSection(statement) == false;
+        return BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(statement) == false;
     }
 
     #endregion // StatementShouldBePrecededByABlankLineAnalyzerBase

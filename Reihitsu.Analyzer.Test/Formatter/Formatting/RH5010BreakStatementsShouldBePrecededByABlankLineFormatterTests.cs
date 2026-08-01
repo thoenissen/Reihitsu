@@ -336,5 +336,68 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
                                                Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the formatter treats an embedded line break in a same-line block comment as comment content and
+    /// converges after inserting the required terminator and blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterConvergesForMultilineBlockCommentInsideBracedSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             {
+                                                 if (choice > 0)
+                                                 {
+                                                     Consume();
+                                                 } /* Keep
+                             comment. */ {|#0:break|};
+                                             }
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (choice > 0)
+                                                     {
+                                                         Consume();
+                                                     } /* Keep
+                                 comment. */
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
     #endregion // Tests
 }

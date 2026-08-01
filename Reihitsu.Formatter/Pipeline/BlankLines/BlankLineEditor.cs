@@ -378,9 +378,8 @@ internal sealed class BlankLineEditor
         var previousToken = token.GetPreviousToken();
         var lineBreakCount = previousToken == default
                              || previousToken.IsKind(SyntaxKind.None)
-                             || TokenGapAnalysis.Between(previousToken, token).HasLineBreak
                                  ? 1
-                                 : 2;
+                                 : TokenGapAnalysis.Between(previousToken, token).RequiredLineBreakCountForBlankLine;
         var newLeading = token.LeadingTrivia;
 
         for (var lineBreakIndex = 0; lineBreakIndex < lineBreakCount; lineBreakIndex++)

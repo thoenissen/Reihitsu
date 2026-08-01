@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
@@ -46,17 +48,16 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="statement">The current statement</param>
     /// <param name="previous">The preceding statement</param>
-    /// <param name="inSwitchSection">Whether the statements are inside a switch section</param>
     /// <returns><see langword="true"/> if the statement follows a closing brace and needs a blank line</returns>
     /// <remarks>
     /// This mirrors RH5030, which carries no directive exemption, unlike the statement-kind rules in
     /// <see cref="NeedsBlankLineForStatementKind"/>. Callers must reposition the insertion past a leading
     /// directive rather than skip it (issue #415)
     /// </remarks>
-    private static bool IsAfterClosingBrace(StatementSyntax statement, StatementSyntax previous, bool inSwitchSection)
+    private static bool IsAfterClosingBrace(StatementSyntax statement, StatementSyntax previous)
     {
         return previous.GetLastToken().IsKind(SyntaxKind.CloseBraceToken)
-               && (statement is BreakStatementSyntax == false || inSwitchSection == false);
+               && BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(statement) == false;
     }
 
     /// <summary>
@@ -64,9 +65,8 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="statement">The current statement</param>
     /// <param name="previous">The preceding statement</param>
-    /// <param name="inSwitchSection">Whether the statements are inside a switch section</param>
     /// <returns><see langword="true"/> if a blank line should be inserted before the statement</returns>
-    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, StatementSyntax previous, bool inSwitchSection)
+    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, StatementSyntax previous)
     {
         switch (statement)
         {
@@ -91,7 +91,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
                 return true;
 
             case BreakStatementSyntax:
-                return inSwitchSection == false;
+                return BlankLineSpacingPolicy.IsDirectSwitchSectionBreak(statement) == false;
 
             case YieldStatementSyntax:
                 return previous is YieldStatementSyntax == false;
@@ -109,9 +109,8 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// Applies statement-spacing rules to a statement list
     /// </summary>
     /// <param name="statements">Statements to process</param>
-    /// <param name="inSwitchSection">Whether this list belongs to a switch section</param>
     /// <returns>Updated statement list and a modified flag</returns>
-    private (SyntaxList<StatementSyntax> Statements, bool Modified) ApplyStatementSpacing(SyntaxList<StatementSyntax> statements, bool inSwitchSection)
+    private (SyntaxList<StatementSyntax> Statements, bool Modified) ApplyStatementSpacing(SyntaxList<StatementSyntax> statements)
     {
         if (statements.Count <= 1)
         {
@@ -130,10 +129,10 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
         {
             var previousStatement = newStatements[statementIndex - 1];
             var currentStatement = newStatements[statementIndex];
-            var isAfterClosingBrace = IsAfterClosingBrace(currentStatement, previousStatement, inSwitchSection);
+            var isAfterClosingBrace = IsAfterClosingBrace(currentStatement, previousStatement);
 
             if (isAfterClosingBrace == false
-                && NeedsBlankLineForStatementKind(currentStatement, previousStatement, inSwitchSection) == false)
+                && NeedsBlankLineForStatementKind(currentStatement, previousStatement) == false)
             {
                 continue;
             }
@@ -170,7 +169,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var result = ApplyStatementSpacing(node.Statements, inSwitchSection: false);
+        var result = ApplyStatementSpacing(node.Statements);
 
         return result.Modified
                    ? node.WithStatements(result.Statements)
@@ -189,7 +188,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var result = ApplyStatementSpacing(node.Statements, inSwitchSection: true);
+        var result = ApplyStatementSpacing(node.Statements);
 
         return result.Modified
                    ? node.WithStatements(result.Statements)

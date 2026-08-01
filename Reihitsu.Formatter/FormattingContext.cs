@@ -11,7 +11,7 @@ internal sealed class FormattingContext
     /// <summary>
     /// Indentation unit: 4 spaces (non-configurable)
     /// </summary>
-    public const int IndentSize = 4;
+    public const int IndentSize = Reihitsu.Core.SyntaxIndentationUtilities.IndentSize;
 
     #endregion // Constants
 

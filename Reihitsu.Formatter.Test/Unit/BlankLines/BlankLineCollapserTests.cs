@@ -153,6 +153,48 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
+    /// Verifies an embedded line break inside trailing comment content does not cause the collapser to remove the
+    /// separate blank line that follows the comment
+    /// </summary>
+    [TestMethod]
+    public void PreservesBlankLineAfterTrailingMultilineComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                         Consume();
+                                     } /* Keep
+                             comment. */ break;
+                                 }
+
+                                 void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        var root = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+        var breakToken = root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.BreakKeyword));
+        var endOfLine = SyntaxFactory.EndOfLine("\n");
+        var updatedBreakToken = breakToken.WithLeadingTrivia(endOfLine,
+                                                             endOfLine,
+                                                             SyntaxFactory.Whitespace("                    "));
+        var updatedRoot = root.ReplaceToken(breakToken, updatedBreakToken);
+        var expected = updatedRoot.ToFullString();
+
+        // Act
+        var actual = new BlankLineCollapser(TestContext.CancellationToken).Visit(updatedRoot).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that code without any blank lines is preserved without modification
     /// </summary>
     [TestMethod]

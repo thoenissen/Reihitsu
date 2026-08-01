@@ -392,5 +392,35 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the shared same-line code fix uses the return statement's syntax depth rather than the physical
+    /// indentation of earlier code on the line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySameLineFixUsesReturnStatementSyntaxDepth()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute() { var value = 1; {|#0:return|} value; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5008
+                                 {
+                                     public int Execute() { var value = 1;
+
+                                         return value; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfIncrementalIterations = 1,
+                     Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat));
+    }
+
     #endregion // Tests
 }

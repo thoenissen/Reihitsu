@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Core;
@@ -69,10 +68,9 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
             var previousToken = token.GetPreviousToken();
 
             if (previousToken.IsKind(SyntaxKind.None) == false
-                && TokenGapAnalysis.Between(previousToken, token).HasLineBreak == false)
+                && TokenGapAnalysis.Between(previousToken, token).RequiredLineBreakCountForBlankLine == 2)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var indentation = GetIndentation(previousToken, sourceText);
+                var indentation = GetIndentation(token);
                 var targetLeadingTrivia = token.LeadingTrivia;
                 var suffixStart = 0;
 
@@ -129,18 +127,17 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     }
 
     /// <summary>
-    /// Gets the indentation of the statement that precedes a same-line diagnostic target
+    /// Gets the syntax-derived indentation of a same-line diagnostic target
     /// </summary>
-    /// <param name="previousToken">Token before the diagnostic target</param>
-    /// <param name="sourceText">Document source text</param>
+    /// <param name="token">First token of the diagnostic target</param>
     /// <returns>Indentation to apply to the target after moving it to its own line</returns>
-    private static string GetIndentation(SyntaxToken previousToken, SourceText sourceText)
+    private static string GetIndentation(SyntaxToken token)
     {
-        var previousStatement = previousToken.Parent?.FirstAncestorOrSelf<StatementSyntax>();
-        var position = previousStatement?.SpanStart ?? previousToken.SpanStart;
-        var line = sourceText.Lines.GetLineFromPosition(position);
+        var targetStatement = token.Parent?.FirstAncestorOrSelf<StatementSyntax>();
 
-        return FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+        return targetStatement == null
+                   ? string.Empty
+                   : new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
     }
 
     #endregion // Methods

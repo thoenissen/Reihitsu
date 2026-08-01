@@ -147,7 +147,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
                                   && previousToken.IsKind(SyntaxKind.None) == false
                                   && TokenGapAnalysis.OfTriviaRange(previousToken.TrailingTrivia,
                                                                     0,
-                                                                    previousToken.TrailingTrivia.Count).HasLineBreak == false;
+                                                                    previousToken.TrailingTrivia.Count).HasTerminalLineBreak == false;
         var collapsed = CollapseBlankLinesInTrivia(leading, firstLineHasContent);
 
         if (collapsed.Count != leading.Count)
