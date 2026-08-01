@@ -198,7 +198,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses each accessor's attribute-list brackets, keyword, and semicolon onto the accessor line
+    /// Collapses each accessor's attribute-list brackets, modifiers, keyword, and semicolon onto the accessor line
     /// </summary>
     /// <param name="updatedNode">The property declaration whose accessors are collapsed</param>
     /// <returns>The property declaration with each accessor collapsed onto a single line</returns>
