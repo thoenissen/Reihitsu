@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
@@ -20,6 +19,11 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Whether one serialized line break before root documentation should be preserved for node-scoped formatting
+    /// </summary>
+    private readonly bool _preserveRootDocumentationBoundary;
+
     #endregion // Fields
 
     #region Constructor
@@ -27,9 +31,11 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="preserveRootDocumentationBoundary">Whether one line break before root documentation should be preserved</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineTokenCleanupRewriter(CancellationToken cancellationToken)
+    public BlankLineTokenCleanupRewriter(bool preserveRootDocumentationBoundary, CancellationToken cancellationToken)
     {
+        _preserveRootDocumentationBoundary = preserveRootDocumentationBoundary;
         _cancellationToken = cancellationToken;
     }
 
@@ -48,12 +54,14 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a token starts with a formatter-created documentation boundary
+    /// Determines whether a token starts with a line break followed by a single-line documentation comment
     /// </summary>
     /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> when the annotated boundary line break must be preserved</returns>
-    private static bool StartsWithRelocatedDocumentationBoundary(SyntaxToken token)
+    /// <returns><see langword="true"/> when one boundary line break can be preserved before the documentation comment</returns>
+    private static bool StartsWithSingleLineDocumentationCommentAfterLineBreak(SyntaxToken token)
     {
+        var foundLineBreak = false;
+
         foreach (var trivia in token.LeadingTrivia)
         {
             if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
@@ -63,10 +71,12 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
             if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                return trivia.HasAnnotation(DocumentationCommentRelocationAnnotations.BoundaryLineBreak);
+                foundLineBreak = true;
+
+                continue;
             }
 
-            return false;
+            return foundLineBreak && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
         }
 
         return false;
@@ -399,7 +409,10 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
         {
-            token = CollapseLeadingBlankLines(token, StartsWithRelocatedDocumentationBoundary(token));
+            var keepDocumentationBoundary = _preserveRootDocumentationBoundary
+                                            && StartsWithSingleLineDocumentationCommentAfterLineBreak(token);
+
+            token = CollapseLeadingBlankLines(token, keepDocumentationBoundary);
         }
 
         if (previousToken.IsKind(SyntaxKind.OpenBraceToken))

@@ -227,9 +227,73 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
             Assert.AreEqual(expected, firstPass, $"Subtree formatting should preserve documentation under {DescribeLineEnding(endOfLine)} line endings.");
 
-            var secondResult = ReihitsuFormatter.FormatNode(result, indentLevel: 1, cancellationToken: TestContext.CancellationToken);
+            var reparsedTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
+            var reparsedProperty = reparsedTree.GetRoot(TestContext.CancellationToken)
+                                               .DescendantNodes()
+                                               .OfType<PropertyDeclarationSyntax>()
+                                               .Single();
+            var secondResult = ReihitsuFormatter.FormatNode(reparsedProperty, indentLevel: 1, cancellationToken: TestContext.CancellationToken);
 
             Assert.AreEqual(firstPass, secondResult.ToFullString(), $"Subtree formatting should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> preserves line endings stored only inside documentation trivia
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreePreservesDocumentationOnlyLineEndings()
+    {
+        const string inputWithLf = "/* banner */ /// trailing documentation\ninternal class TestClass;";
+        const string expectedWithLf = "/* banner */\n/// trailing documentation\ninternal class TestClass;";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var input = NormalizeLineEndings(inputWithLf, endOfLine);
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+            var firstResult = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+            var firstPass = firstResult.GetRoot(TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(expected, firstPass, $"Documentation-only input should preserve {DescribeLineEnding(endOfLine)} line endings.");
+
+            var reparsedTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
+            var secondResult = ReihitsuFormatter.FormatSyntaxTree(reparsedTree, TestContext.CancellationToken);
+
+            Assert.AreEqual(firstPass, secondResult.GetRoot(TestContext.CancellationToken).ToFullString(), $"Documentation-only input should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> normalizes documentation newlines to the predominant source style
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeNormalizesDocumentationNewlinesToPredominantStyle()
+    {
+        var testCases = new[]
+                        {
+                            new
+                            {
+                                Input = "/* banner */ /// trailing documentation\ninternal class TestClass\r\n{\r\n}",
+                                Expected = "/* banner */\r\n/// trailing documentation\r\ninternal class TestClass;",
+                                Description = "CRLF",
+                            },
+                            new
+                            {
+                                Input = "/* banner */ /// trailing documentation\r\ninternal class TestClass\n{\n}",
+                                Expected = "/* banner */\n/// trailing documentation\ninternal class TestClass;",
+                                Description = "LF",
+                            }
+                        };
+
+        foreach (var testCase in testCases)
+        {
+            var tree = CSharpSyntaxTree.ParseText(testCase.Input, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+
+            Assert.AreEqual(testCase.Expected,
+                            result.GetRoot(TestContext.CancellationToken).ToFullString(),
+                            $"Documentation newlines should normalize to predominant {testCase.Description} input.");
         }
     }
 

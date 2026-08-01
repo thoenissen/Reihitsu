@@ -66,32 +66,32 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Inserts a line break before documentation trivia in its owning token's leading trivia
+    /// Inserts line breaks before documentation trivia in their owning token's leading trivia
     /// </summary>
     /// <param name="token">Owning token</param>
-    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia owned by the token</param>
     /// <param name="endOfLine">Line-ending sequence</param>
     /// <returns>The token with the documentation comment moved onto a line of its own</returns>
-    private static SyntaxToken MoveBeforeOwningToken(SyntaxToken token, SyntaxTrivia documentationCommentTrivia, string endOfLine)
+    private static SyntaxToken MoveBeforeOwningToken(SyntaxToken token, IReadOnlyCollection<SyntaxTrivia> documentationCommentTrivia, string endOfLine)
     {
         var leadingTrivia = token.LeadingTrivia;
-        var documentationIndex = leadingTrivia.IndexOf(documentationCommentTrivia);
+        var documentationIndices = documentationCommentTrivia.Select(trivia => leadingTrivia.IndexOf(trivia))
+                                                             .Where(index => index >= 0)
+                                                             .OrderByDescending(index => index)
+                                                             .ToList();
 
-        if (documentationIndex < 0)
+        foreach (var originalDocumentationIndex in documentationIndices)
         {
-            return token;
+            var documentationIndex = originalDocumentationIndex;
+
+            if (documentationIndex > 0 && leadingTrivia[documentationIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                leadingTrivia = leadingTrivia.RemoveAt(documentationIndex - 1);
+                documentationIndex--;
+            }
+
+            leadingTrivia = leadingTrivia.Insert(documentationIndex, SyntaxFactory.EndOfLine(endOfLine));
         }
-
-        if (documentationIndex > 0 && leadingTrivia[documentationIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            leadingTrivia = leadingTrivia.RemoveAt(documentationIndex - 1);
-            documentationIndex--;
-        }
-
-        var lineBreak = SyntaxFactory.EndOfLine(endOfLine)
-                                     .WithAdditionalAnnotations(DocumentationCommentRelocationAnnotations.BoundaryLineBreak);
-
-        leadingTrivia = leadingTrivia.Insert(documentationIndex, lineBreak);
 
         return token.WithLeadingTrivia(leadingTrivia);
     }
@@ -106,7 +106,8 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
     private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
-        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+        var owningRelocations = new Dictionary<SyntaxToken, List<SyntaxTrivia>>();
+        var previousTokenRelocationCounts = new Dictionary<SyntaxToken, int>();
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
@@ -132,14 +133,31 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
             if (shouldSplitOwningTrivia)
             {
-                var currentOwningToken = replacements.TryGetValue(owningToken, out var owningReplacement) ? owningReplacement : owningToken;
+                if (owningRelocations.TryGetValue(owningToken, out var documentationTrivia) == false)
+                {
+                    documentationTrivia = [];
+                    owningRelocations[owningToken] = documentationTrivia;
+                }
 
-                replacements[owningToken] = MoveBeforeOwningToken(currentOwningToken, trivia, endOfLine);
+                documentationTrivia.Add(trivia);
 
                 continue;
             }
 
-            var currentPreviousToken = replacements.TryGetValue(previousToken, out var previousReplacement) ? previousReplacement : previousToken;
+            previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
+            previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+        }
+
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var owningRelocation in owningRelocations)
+        {
+            replacements[owningRelocation.Key] = MoveBeforeOwningToken(owningRelocation.Key, owningRelocation.Value, endOfLine);
+        }
+
+        foreach (var previousTokenRelocation in previousTokenRelocationCounts)
+        {
+            var currentPreviousToken = replacements.TryGetValue(previousTokenRelocation.Key, out var replacement) ? replacement : previousTokenRelocation.Key;
             var trailingTrivia = currentPreviousToken.TrailingTrivia;
 
             if (trailingTrivia.Count > 0 && trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
@@ -147,9 +165,12 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                 trailingTrivia = trailingTrivia.RemoveAt(trailingTrivia.Count - 1);
             }
 
-            trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
+            for (var relocationIndex = 0; relocationIndex < previousTokenRelocation.Value; relocationIndex++)
+            {
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
+            }
 
-            replacements[previousToken] = currentPreviousToken.WithTrailingTrivia(trailingTrivia);
+            replacements[previousTokenRelocation.Key] = currentPreviousToken.WithTrailingTrivia(trailingTrivia);
         }
 
         return replacements.Count == 0

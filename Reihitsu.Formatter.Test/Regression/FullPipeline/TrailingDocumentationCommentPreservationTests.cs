@@ -455,5 +455,33 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that every off-position documentation comment sharing one owner is relocated in the same pass
+    /// </summary>
+    [TestMethod]
+    public void MovesDocumentationCommentsSharingOneOwnerInOnePass()
+    {
+        const string input = """
+                             /* first */ /// first documentation
+                             /* second */ /// second documentation
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                /* first */
+                                /// first documentation
+                                /* second */
+                                /// second documentation
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
