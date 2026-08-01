@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.LineBreaks;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
@@ -34,6 +35,37 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
+    /// Determines whether significant trivia owned by the following token precedes documentation on its physical line
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns><see langword="true"/> when the owning token carries same-line source before the documentation comment</returns>
+    private static bool HasOwningLeadingSourceOnSameLine(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
+    {
+        var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
+
+        foreach (var leadingTrivia in documentationCommentTrivia.Token.LeadingTrivia)
+        {
+            var overlapStart = Math.Max(line.Start, leadingTrivia.FullSpan.Start);
+            var overlapEnd = Math.Min(documentationCommentTrivia.FullSpan.Start, leadingTrivia.FullSpan.End);
+
+            if (overlapStart >= overlapEnd)
+            {
+                continue;
+            }
+
+            var overlap = sourceText.ToString(TextSpan.FromBounds(overlapStart, overlapEnd));
+
+            if (overlap.Any(character => char.IsWhiteSpace(character) == false && character != '\uFEFF'))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Inserts a line break before documentation trivia in its owning token's leading trivia
     /// </summary>
     /// <param name="token">Owning token</param>
@@ -56,7 +88,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             documentationIndex--;
         }
 
-        leadingTrivia = leadingTrivia.Insert(documentationIndex, SyntaxFactory.EndOfLine(endOfLine));
+        var lineBreak = SyntaxFactory.EndOfLine(endOfLine)
+                                     .WithAdditionalAnnotations(DocumentationCommentRelocationAnnotations.BoundaryLineBreak);
+
+        leadingTrivia = leadingTrivia.Insert(documentationIndex, lineBreak);
 
         return token.WithLeadingTrivia(leadingTrivia);
     }
@@ -83,14 +118,20 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                 continue;
             }
 
-            var previousToken = trivia.Token.GetPreviousToken(includeZeroWidth: true);
-            var previousTokenIsInScope = previousToken.RawKind != 0
-                                         && previousToken.SpanStart >= root.SpanStart
-                                         && previousToken.Span.End <= root.Span.End;
+            var owningToken = trivia.Token;
+            var previousToken = owningToken.GetPreviousToken(includeZeroWidth: true);
 
-            if (previousTokenIsInScope == false)
+            while (previousToken.RawKind != 0 && previousToken.IsMissing)
             {
-                var owningToken = trivia.Token;
+                previousToken = previousToken.GetPreviousToken(includeZeroWidth: true);
+            }
+
+            var shouldSplitOwningTrivia = HasOwningLeadingSourceOnSameLine(trivia, sourceText)
+                                          || previousToken.RawKind == 0
+                                          || TokenLocator.ContainsToken(root, previousToken) == false;
+
+            if (shouldSplitOwningTrivia)
+            {
                 var currentOwningToken = replacements.TryGetValue(owningToken, out var owningReplacement) ? owningReplacement : owningToken;
 
                 replacements[owningToken] = MoveBeforeOwningToken(currentOwningToken, trivia, endOfLine);
@@ -98,8 +139,8 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                 continue;
             }
 
-            var currentToken = replacements.TryGetValue(previousToken, out var replacement) ? replacement : previousToken;
-            var trailingTrivia = currentToken.TrailingTrivia;
+            var currentPreviousToken = replacements.TryGetValue(previousToken, out var previousReplacement) ? previousReplacement : previousToken;
+            var trailingTrivia = currentPreviousToken.TrailingTrivia;
 
             if (trailingTrivia.Count > 0 && trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
             {
@@ -107,7 +148,8 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
 
             trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
-            replacements[previousToken] = currentToken.WithTrailingTrivia(trailingTrivia);
+
+            replacements[previousToken] = currentPreviousToken.WithTrailingTrivia(trailingTrivia);
         }
 
         return replacements.Count == 0

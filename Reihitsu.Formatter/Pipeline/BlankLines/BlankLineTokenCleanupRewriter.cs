@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
@@ -47,14 +48,12 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a token starts with a line break followed by a single-line documentation comment
+    /// Determines whether a token starts with a formatter-created documentation boundary
     /// </summary>
     /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> when one boundary line break must be preserved before the documentation comment</returns>
-    private static bool StartsWithSingleLineDocumentationCommentAfterLineBreak(SyntaxToken token)
+    /// <returns><see langword="true"/> when the annotated boundary line break must be preserved</returns>
+    private static bool StartsWithRelocatedDocumentationBoundary(SyntaxToken token)
     {
-        var foundLineBreak = false;
-
         foreach (var trivia in token.LeadingTrivia)
         {
             if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
@@ -64,12 +63,10 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
             if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                foundLineBreak = true;
-
-                continue;
+                return trivia.HasAnnotation(DocumentationCommentRelocationAnnotations.BoundaryLineBreak);
             }
 
-            return foundLineBreak && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+            return false;
         }
 
         return false;
@@ -402,7 +399,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
         {
-            token = CollapseLeadingBlankLines(token, StartsWithSingleLineDocumentationCommentAfterLineBreak(token));
+            token = CollapseLeadingBlankLines(token, StartsWithRelocatedDocumentationBoundary(token));
         }
 
         if (previousToken.IsKind(SyntaxKind.OpenBraceToken))

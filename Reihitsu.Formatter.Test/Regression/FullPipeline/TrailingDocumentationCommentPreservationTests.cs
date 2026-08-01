@@ -70,6 +70,95 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a leading block-comment sibling is separated from following documentation inside a containing root
+    /// </summary>
+    [TestMethod]
+    public void MovesDocumentationBelowLeadingBlockCommentSibling()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; }
+                                 /* banner */ /// <summary>Other value.</summary>
+                                 public int Other { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+
+                                    /* banner */
+                                    /// <summary>
+                                    /// Other value.
+                                    /// </summary>
+                                    public int Other { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line block-comment sibling is separated from following documentation inside a containing root
+    /// </summary>
+    [TestMethod]
+    public void MovesDocumentationBelowLeadingMultilineBlockCommentSibling()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; }
+                                 /* first banner line
+                                  * second banner line */ /// <summary>Other value.</summary>
+                                 public int Other { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+
+                                    /* first banner line
+                                     * second banner line */
+                                    /// <summary>
+                                    /// Other value.
+                                    /// </summary>
+                                    public int Other { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that ordinary full-file cleanup still removes a leading line before existing documentation
+    /// </summary>
+    [TestMethod]
+    public void RemovesLeadingLineBeforeExistingDocumentationInFullTree()
+    {
+        const string input = """
+
+                             /// <summary>Documented type.</summary>
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                /// <summary>
+                                /// Documented type.
+                                /// </summary>
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that every line of a trailing multi-line element is moved above the following member
     /// </summary>
     [TestMethod]
