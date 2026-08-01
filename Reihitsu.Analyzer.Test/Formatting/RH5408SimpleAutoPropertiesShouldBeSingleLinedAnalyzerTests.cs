@@ -737,5 +737,65 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that an auto-property whose initializer gap sits on one line is still detected and fixed, because
+    /// the formatter never has to join that gap (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySameLineInitializerGapAutoPropertyIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } /* note */ = 1;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } /* note */ = 1;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a multi-line auto-property with an accessor modifier and a trailing comment is detected and
+    /// fixed, and that the fix collapses the modifier together with its keyword (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAccessorModifierAutoPropertyWithTrailingCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        private set;
+                                    }|} // explanation
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; private set; } // explanation
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -405,6 +405,92 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment sitting on one line between the accessor list and the initializer is
+    /// carried along when the accessor list collapses, because that gap is never crossed
+    /// </summary>
+    [TestMethod]
+    public void SameLineCommentBeforeInitializerCollapsesWithTheProperty()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value
+                                 {
+                                     get; set;
+                                 } /* note */ = 1;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; } /* note */ = 1;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an accessor modifier is collapsed together with its keyword, so a single pass
+    /// produces the final spacing instead of leaving the modifier's original indentation behind
+    /// </summary>
+    [TestMethod]
+    public void AccessorModifierWithTrailingCommentCollapsesInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value
+                                 {
+                                     get;
+                                     private set;
+                                 } // explanation
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; private set; } // explanation
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an accessor modifier is collapsed in one pass even without a trailing comment,
+    /// which is the shape that reaches the collapse independently of this issue
+    /// </summary>
+    [TestMethod]
+    public void AccessorModifierCollapsesInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value
+                                 {
+                                     get;
+                                     private set;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; private set; }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an indexer with a multi-line auto-accessor list and a trailing comment keeps its
     /// existing layout, so the property fix does not leak into the indexer path
     /// </summary>

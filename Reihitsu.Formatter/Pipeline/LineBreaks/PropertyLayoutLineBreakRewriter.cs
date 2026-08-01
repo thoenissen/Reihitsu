@@ -214,6 +214,15 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
                 accessor = updatedNode.AccessorList.Accessors[accessorIndex];
             }
 
+            // Modifiers precede the keyword, so an accessor such as "private set;" carries the line break and the
+            // indentation on its modifier rather than on its keyword. Collapsing only the keyword would leave that
+            // indentation behind as stray spacing that a second pass has to clean up.
+            for (var modifierIndex = 0; modifierIndex < accessor.Modifiers.Count; modifierIndex++)
+            {
+                updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.Modifiers[modifierIndex]);
+                accessor = updatedNode.AccessorList.Accessors[accessorIndex];
+            }
+
             updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.Keyword);
             accessor = updatedNode.AccessorList.Accessors[accessorIndex];
 

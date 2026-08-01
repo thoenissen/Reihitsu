@@ -104,9 +104,13 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
                 return false;
             }
 
-            // A comment or directive between the accessor list and the initializer makes the formatter refuse to
-            // join the initializer, so registering the fix here would produce a no-op action. Guard the same gap.
-            if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(propertyDeclaration.AccessorList.CloseBraceToken, propertyDeclaration.Initializer.EqualsToken))
+            // A comment or directive between the accessor list and an initializer that starts on a later line makes
+            // the formatter refuse to join the initializer, so registering the fix here would produce a no-op
+            // action. Guard the same gap, and only when the gap actually spans lines.
+            var initializerGapSpan = TextSpan.FromBounds(propertyDeclaration.AccessorList.CloseBraceToken.Span.End, propertyDeclaration.Initializer.EqualsToken.SpanStart);
+
+            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializerGapSpan) == false
+                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(propertyDeclaration.AccessorList.CloseBraceToken, propertyDeclaration.Initializer.EqualsToken))
             {
                 return false;
             }
