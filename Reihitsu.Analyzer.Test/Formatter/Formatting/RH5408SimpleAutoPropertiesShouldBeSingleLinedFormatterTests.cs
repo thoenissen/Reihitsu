@@ -142,5 +142,53 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
                                  Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter collapses a multi-line auto-property whose accessor list is followed by a
+    /// trailing comment, so analyzer and formatter agree on that shape (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesAutoPropertyWithTrailingComment()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 {|#0:internal int Value
+                                 {
+                                     get;
+                                     set;
+                                 }|} // explanation
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal int Value { get; set; } // explanation
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves a single-line auto-property with a trailing comment untouched, so
+    /// analyzer-clean code stays stable (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsSingleLineAutoPropertyWithTrailingComment()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal int Value { get; set; } // explanation
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
     #endregion // Tests
 }
