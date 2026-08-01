@@ -47,6 +47,35 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a token starts with a line break followed by a single-line documentation comment
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> when one boundary line break must be preserved before the documentation comment</returns>
+    private static bool StartsWithSingleLineDocumentationCommentAfterLineBreak(SyntaxToken token)
+    {
+        var foundLineBreak = false;
+
+        foreach (var trivia in token.LeadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                foundLineBreak = true;
+
+                continue;
+            }
+
+            return foundLineBreak && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Removes all leading blank lines from the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading blank lines should be removed</param>
@@ -373,7 +402,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
         {
-            token = CollapseLeadingBlankLines(token, keepSingleLineBreak: false);
+            token = CollapseLeadingBlankLines(token, StartsWithSingleLineDocumentationCommentAfterLineBreak(token));
         }
 
         if (previousToken.IsKind(SyntaxKind.OpenBraceToken))

@@ -43,6 +43,33 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that documentation on the first token is separated safely from an ordinary banner comment
+    /// </summary>
+    [TestMethod]
+    public void MovesFirstTokenDocumentationBelowPrecedingBannerComment()
+    {
+        const string input = """
+                             /* banner */ /// <summary>Trailing summary.</summary>
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                /* banner */
+                                /// <summary>
+                                /// Trailing summary.
+                                /// </summary>
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that every line of a trailing multi-line element is moved above the following member
     /// </summary>
     [TestMethod]

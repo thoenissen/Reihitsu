@@ -34,6 +34,34 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
+    /// Inserts a line break before documentation trivia in its owning token's leading trivia
+    /// </summary>
+    /// <param name="token">Owning token</param>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="endOfLine">Line-ending sequence</param>
+    /// <returns>The token with the documentation comment moved onto a line of its own</returns>
+    private static SyntaxToken MoveBeforeOwningToken(SyntaxToken token, SyntaxTrivia documentationCommentTrivia, string endOfLine)
+    {
+        var leadingTrivia = token.LeadingTrivia;
+        var documentationIndex = leadingTrivia.IndexOf(documentationCommentTrivia);
+
+        if (documentationIndex < 0)
+        {
+            return token;
+        }
+
+        if (documentationIndex > 0 && leadingTrivia[documentationIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            leadingTrivia = leadingTrivia.RemoveAt(documentationIndex - 1);
+            documentationIndex--;
+        }
+
+        leadingTrivia = leadingTrivia.Insert(documentationIndex, SyntaxFactory.EndOfLine(endOfLine));
+
+        return token.WithLeadingTrivia(leadingTrivia);
+    }
+
+    /// <summary>
     /// Moves off-position single-line documentation trivia onto a line of its own before its following token
     /// </summary>
     /// <param name="root">Root node</param>
@@ -56,9 +84,17 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
 
             var previousToken = trivia.Token.GetPreviousToken(includeZeroWidth: true);
+            var previousTokenIsInScope = previousToken.RawKind != 0
+                                         && previousToken.SpanStart >= root.SpanStart
+                                         && previousToken.Span.End <= root.Span.End;
 
-            if (previousToken.RawKind == 0)
+            if (previousTokenIsInScope == false)
             {
+                var owningToken = trivia.Token;
+                var currentOwningToken = replacements.TryGetValue(owningToken, out var owningReplacement) ? owningReplacement : owningToken;
+
+                replacements[owningToken] = MoveBeforeOwningToken(currentOwningToken, trivia, endOfLine);
+
                 continue;
             }
 
@@ -71,7 +107,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
 
             trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
-            replacements[previousToken] = previousToken.WithTrailingTrivia(trailingTrivia);
+            replacements[previousToken] = currentToken.WithTrailingTrivia(trailingTrivia);
         }
 
         return replacements.Count == 0

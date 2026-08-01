@@ -198,6 +198,42 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> preserves off-position documentation when its preceding token is outside the target subtree
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeWithPreviousTokenOutsideTargetPreservesTrailingDocumentation()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; } /// <summary>Trailing summary.</summary>
+                                 public int Other { get; set; }
+                             }
+                             """;
+        const string expectedWithLf = "\n    /// <summary>\n    /// Trailing summary.\n    /// </summary>\n    public int Other { get; set; }";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var normalizedInput = NormalizeLineEndings(input, endOfLine);
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var tree = CSharpSyntaxTree.ParseText(normalizedInput, cancellationToken: TestContext.CancellationToken);
+            var property = tree.GetRoot(TestContext.CancellationToken)
+                               .DescendantNodes()
+                               .OfType<PropertyDeclarationSyntax>()
+                               .Single(obj => obj.Identifier.ValueText == "Other");
+
+            var result = ReihitsuFormatter.FormatNode(property, indentLevel: 1, cancellationToken: TestContext.CancellationToken);
+            var firstPass = result.ToFullString();
+
+            Assert.AreEqual(expected, firstPass, $"Subtree formatting should preserve documentation under {DescribeLineEnding(endOfLine)} line endings.");
+
+            var secondResult = ReihitsuFormatter.FormatNode(result, indentLevel: 1, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(firstPass, secondResult.ToFullString(), $"Subtree formatting should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> handles an empty file without throwing exceptions
     /// </summary>
     [TestMethod]
