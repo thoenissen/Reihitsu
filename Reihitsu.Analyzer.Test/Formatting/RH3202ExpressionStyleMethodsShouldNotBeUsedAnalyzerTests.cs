@@ -111,5 +111,58 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
         await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a method whose expression body carries a directive before the expression is not reported,
+    /// because the formatter refuses to rewrite it and the code fix could therefore not converge
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int GetValue() =>
+                                #pragma warning disable CS0618
+                                        1;
+                                #pragma warning restore CS0618
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a method whose expression body carries a directive after the expression is still reported
+    /// and fixed, because that directive travels into the generated statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    {|#0:public int GetValue() => 1
+                                #pragma warning disable CS0618
+                                        ;|}
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          return 1
+                                  #pragma warning disable CS0618
+                                          ;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
     #endregion // Tests
 }

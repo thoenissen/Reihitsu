@@ -379,67 +379,67 @@ public class SyntaxTriviaUtilitiesTests
     /// Verifies that a conditional directive inside the span is reported
     /// </summary>
     [TestMethod]
-    public void ContainsConditionalDirectivesReturnsTrueForConditionalDirectives()
-    {
-        const string source = "class C\n{\n#if DEBUG\n    private int _x;\n#else\n    private int _y;\n#endif\n}\n";
-
-        Assert.IsTrue(ContainsConditionalDirectives(source, 0, source.Length));
-    }
-
-    /// <summary>
-    /// Verifies that a conditional directive is reported even when its partner lies outside the span,
-    /// unlike the unbalanced-directive predicate, which is about pairing
-    /// </summary>
-    [TestMethod]
-    public void ContainsConditionalDirectivesReturnsTrueForHalfOfAPair()
+    public void ContainsDirectivesReturnsTrueForConditionalDirective()
     {
         const string source = "class C\n{\n#if DEBUG\n    private int _x;\n#endif\n}\n";
         var endBeforeEndIf = source.IndexOf("#endif", StringComparison.Ordinal);
 
-        Assert.IsTrue(ContainsConditionalDirectives(source, 0, endBeforeEndIf));
+        Assert.IsTrue(ContainsDirectives(source, 0, endBeforeEndIf));
     }
 
     /// <summary>
-    /// Verifies that region directives are not reported as conditional directives
+    /// Verifies that a span holding only code and whitespace carries no directive
     /// </summary>
     [TestMethod]
-    public void ContainsConditionalDirectivesReturnsFalseForRegionDirectives()
-    {
-        const string source = "class C\n{\n    #region Fields\n\n    private int _x;\n\n    #endregion\n}\n";
-
-        Assert.IsFalse(ContainsConditionalDirectives(source, 0, source.Length));
-    }
-
-    /// <summary>
-    /// Verifies that a pragma directive is not reported as a conditional directive
-    /// </summary>
-    [TestMethod]
-    public void ContainsConditionalDirectivesReturnsFalseForPragmaDirective()
-    {
-        const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
-
-        Assert.IsFalse(ContainsConditionalDirectives(source, 0, source.Length));
-    }
-
-    /// <summary>
-    /// Verifies that a conditional directive outside the inspected span is not reported
-    /// </summary>
-    [TestMethod]
-    public void ContainsConditionalDirectivesReturnsFalseForDirectiveOutsideTheSpan()
+    public void ContainsDirectivesReturnsFalseForDirectiveOutsideTheSpan()
     {
         const string source = "class C\n{\n#if DEBUG\n    private int _x;\n#endif\n}\n";
         var spanStart = source.IndexOf("private", StringComparison.Ordinal);
 
-        Assert.IsFalse(ContainsConditionalDirectives(source, spanStart, spanStart + "private int _x;".Length));
+        Assert.IsFalse(ContainsDirectives(source, spanStart, spanStart + "private int _x;".Length));
     }
 
     /// <summary>
-    /// Verifies that an unusable root refuses the rewrite instead of reporting no conditional directive
+    /// Verifies that a pragma directive inside the span is reported
     /// </summary>
     [TestMethod]
-    public void ContainsConditionalDirectivesReturnsTrueForMissingRoot()
+    public void ContainsDirectivesReturnsTrueForPragmaDirectiveInSpan()
     {
-        Assert.IsTrue(SyntaxTriviaUtilities.ContainsConditionalDirectives(null, TextSpan.FromBounds(0, 1)));
+        const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
+
+        Assert.IsTrue(ContainsDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a region directive inside the span is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsDirectivesReturnsTrueForRegionDirective()
+    {
+        const string source = "class C\n{\n    #region Fields\n\n    private int _x;\n\n    #endregion\n}\n";
+        var endBeforeEndRegion = source.IndexOf("#endregion", StringComparison.Ordinal);
+
+        Assert.IsTrue(ContainsDirectives(source, 0, endBeforeEndRegion));
+    }
+
+    /// <summary>
+    /// Verifies that a span carrying no directive at all is not reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsDirectivesReturnsFalseWithoutAnyDirective()
+    {
+        const string source = "class C\n{\n    private int _x;\n}\n";
+
+        Assert.IsFalse(ContainsDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an unusable root refuses the rewrite instead of reporting a directive-free span
+    /// </summary>
+    [TestMethod]
+    public void ContainsDirectivesReturnsTrueForMissingRoot()
+    {
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsDirectives(null, TextSpan.FromBounds(0, 1)));
     }
 
     /// <summary>
@@ -705,15 +705,15 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
-    /// Parses the source and checks the requested span for conditional directives
+    /// Parses the source and checks the requested span for directives
     /// </summary>
     /// <param name="source">Source text</param>
     /// <param name="start">Span start</param>
     /// <param name="end">Span end</param>
-    /// <returns><see langword="true"/> if the span contains a conditional directive; otherwise, <see langword="false"/></returns>
-    private static bool ContainsConditionalDirectives(string source, int start, int end)
+    /// <returns><see langword="true"/> if the span contains a directive; otherwise, <see langword="false"/></returns>
+    private static bool ContainsDirectives(string source, int start, int end)
     {
-        return SyntaxTriviaUtilities.ContainsConditionalDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
+        return SyntaxTriviaUtilities.ContainsDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
     }
 
     /// <summary>

@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 
@@ -16,34 +15,23 @@ internal static class ExpressionBodiedTransformUtilities
 
     /// <summary>
     /// Determines whether an expression-bodied member must keep its expression body because a
-    /// conditional directive splits it
+    /// directive in its span would not survive the rewrite
     /// </summary>
     /// <param name="member">The member declaration that owns the expression body</param>
     /// <param name="expressionBody">The expression body to inspect</param>
     /// <param name="semicolonToken">The member's terminating semicolon</param>
     /// <returns><see langword="true"/> if the conversion must be refused; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// A conditional directive delimits alternative source text, not a node, so it cannot travel with
-    /// the expression when the arrow body is rebuilt as a block. Converting anyway moved <c>#if</c>
-    /// into the middle of the generated statement and pushed <c>#endif</c> outside the member, which
-    /// turned source that parsed cleanly into source that no longer compiles. Every expression-bodied
-    /// transform consults this guard, so the refusal covers the whole member family at once. Comments
-    /// are deliberately not covered: the converter routes those onto the generated braces correctly.
+    /// The decision lives in <see cref="ExpressionBodyRewriteUtilities.BlocksRewrite"/> so the
+    /// analyzers that report these members apply exactly the same rule; a drifting copy would let an
+    /// analyzer report a member whose code fix this transform then refuses to rewrite. Every
+    /// expression-bodied transform consults this guard, so the whole member family is covered at once.
     /// </remarks>
     internal static bool RequiresExpressionBodyPreservation(SyntaxNode member,
                                                             ArrowExpressionClauseSyntax expressionBody,
                                                             SyntaxToken semicolonToken)
     {
-        if (member == null || expressionBody == null)
-        {
-            return false;
-        }
-
-        var spanEnd = semicolonToken.IsKind(SyntaxKind.None) || semicolonToken.IsMissing
-                          ? expressionBody.Span.End
-                          : semicolonToken.Span.End;
-
-        return SyntaxTriviaUtilities.ContainsConditionalDirectives(member, TextSpan.FromBounds(expressionBody.ArrowToken.SpanStart, spanEnd));
+        return ExpressionBodyRewriteUtilities.BlocksRewrite(member, expressionBody, semicolonToken);
     }
 
     /// <summary>

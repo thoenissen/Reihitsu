@@ -269,19 +269,19 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified span contains any conditional-compilation directive. A rewrite that
-    /// reshapes the span into a different construct — an expression body turned into a block, for example —
-    /// cannot keep such a directive meaningful, because the directive delimits alternative source text rather
-    /// than a node it could travel with. <see cref="ContainsUnbalancedConditionalDirectives"/> is the weaker
-    /// partner for a rewrite that only relocates a span as one piece and therefore keeps a balanced group intact
+    /// Determines whether the specified span contains any preprocessor directive, of any kind. A directive must
+    /// start its own line, so a rewrite that re-hosts the trivia of this span into the middle of a line cannot
+    /// keep one. Callers that only relocate a span as a whole want the narrower
+    /// <see cref="ContainsUnbalancedConditionalDirectives"/>, <see cref="ContainsUnbalancedRegionDirectives"/> or
+    /// <see cref="ContainsPositionSensitiveDirectives"/> instead
     /// </summary>
     /// <param name="root">Syntax node containing the span</param>
     /// <param name="span">Span to inspect</param>
     /// <returns>
-    /// <see langword="true"/> if the span contains a conditional directive, or when <paramref name="root"/> is
+    /// <see langword="true"/> if the span contains a directive, or when <paramref name="root"/> is
     /// <see langword="null"/> and the span therefore cannot be inspected; otherwise, <see langword="false"/>
     /// </returns>
-    public static bool ContainsConditionalDirectives(SyntaxNode root, TextSpan span)
+    public static bool ContainsDirectives(SyntaxNode root, TextSpan span)
     {
         if (root == null)
         {
@@ -289,7 +289,7 @@ public static class SyntaxTriviaUtilities
         }
 
         return root.DescendantTrivia(span, descendIntoTrivia: true)
-                   .Any(trivia => span.Contains(trivia.SpanStart) && IsConditionalDirective(trivia));
+                   .Any(trivia => span.Contains(trivia.SpanStart) && trivia.IsDirective);
     }
 
     /// <summary>
