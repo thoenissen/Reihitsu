@@ -517,5 +517,127 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies a same-line break inside a braced switch-section body is fixed to a converged blank-line gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndFixForSameLineBreakInsideBracedSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5010
+                                {
+                                    public void StopSwitch(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                {
+                                                    if (choice > 0)
+                                                    {
+                                                        Consume();
+                                                    } {|#0:break|};
+                                                }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5010
+                                 {
+                                     public void StopSwitch(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (choice > 0)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfIncrementalIterations = 1,
+                     Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a same-line block comment is preserved when the code fix creates the required blank-line gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySameLineBlockCommentIsPreservedInsideBracedSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5010
+                                {
+                                    public void StopSwitch(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                {
+                                                    if (choice > 0)
+                                                    {
+                                                        Consume();
+                                                    } /* Keep this comment. */ {|#0:break|};
+                                                }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5010
+                                 {
+                                     public void StopSwitch(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (choice > 0)
+                                                     {
+                                                         Consume();
+                                                     } /* Keep this comment. */
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfIncrementalIterations = 1,
+                     Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
     #endregion // Tests
 }

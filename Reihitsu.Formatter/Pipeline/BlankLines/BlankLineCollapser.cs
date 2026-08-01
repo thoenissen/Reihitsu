@@ -41,8 +41,9 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     /// Collapses sequences of two or more consecutive blank lines in the trivia list to a single blank line
     /// </summary>
     /// <param name="trivia">The trivia list to process</param>
+    /// <param name="firstLineHasContent">Whether the first trivia line continues content from the previous token</param>
     /// <returns>The trivia list with excessive blank lines collapsed</returns>
-    private static SyntaxTriviaList CollapseBlankLinesInTrivia(SyntaxTriviaList trivia)
+    private static SyntaxTriviaList CollapseBlankLinesInTrivia(SyntaxTriviaList trivia, bool firstLineHasContent)
     {
         // Parse trivia into lines (each line ends with EndOfLine, except possibly the last)
         var lines = new List<List<SyntaxTrivia>>();
@@ -68,9 +69,13 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
         var result = new List<SyntaxTrivia>();
         var blankLineBuffer = new List<List<SyntaxTrivia>>();
 
-        foreach (var line in lines)
+        for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
         {
-            if (IsBlankLine(line))
+            var line = lines[lineIndex];
+            var isBlankLine = IsBlankLine(line)
+                              && (lineIndex > 0 || firstLineHasContent == false);
+
+            if (isBlankLine)
             {
                 blankLineBuffer.Add(line);
             }
@@ -137,7 +142,13 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
             return token;
         }
 
-        var collapsed = CollapseBlankLinesInTrivia(leading);
+        var previousToken = token.GetPreviousToken();
+        var firstLineHasContent = previousToken != default
+                                  && previousToken.IsKind(SyntaxKind.None) == false
+                                  && TokenGapAnalysis.OfTriviaRange(previousToken.TrailingTrivia,
+                                                                    0,
+                                                                    previousToken.TrailingTrivia.Count).HasLineBreak == false;
+        var collapsed = CollapseBlankLinesInTrivia(leading, firstLineHasContent);
 
         if (collapsed.Count != leading.Count)
         {
