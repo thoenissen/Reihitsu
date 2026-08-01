@@ -59,7 +59,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
     private static bool CanApplyCodeFix(PropertyDeclarationSyntax propertyDeclaration)
     {
-        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.AccessorList))
+        // The guard is interior-scoped to match the formatter's collapse: a comment trailing the accessor
+        // list's closing brace is never crossed, so it must not block the fix (see issue #604).
+        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.AccessorList))
         {
             return false;
         }
@@ -98,6 +100,17 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
         if (propertyDeclaration.Initializer != null)
         {
             if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.Initializer))
+            {
+                return false;
+            }
+
+            // A comment or directive between the accessor list and an initializer that starts on a later line makes
+            // the formatter refuse to join the initializer, so registering the fix here would produce a no-op
+            // action. Guard the same gap, and only when the gap actually spans lines.
+            var initializerGapSpan = TextSpan.FromBounds(propertyDeclaration.AccessorList.CloseBraceToken.Span.End, propertyDeclaration.Initializer.EqualsToken.SpanStart);
+
+            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializerGapSpan) == false
+                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(propertyDeclaration.AccessorList.CloseBraceToken, propertyDeclaration.Initializer.EqualsToken))
             {
                 return false;
             }

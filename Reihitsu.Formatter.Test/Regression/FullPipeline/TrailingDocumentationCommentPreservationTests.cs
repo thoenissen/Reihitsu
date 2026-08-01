@@ -345,19 +345,8 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
                                  public int Other { get; set; }
                              }
                              """;
-        const string expected = """
-                                internal class TestClass
-                                {
-                                    public int Value
-                                    {
-                                        get; set;
-                                    } // trailing note
 
-                                    public int Other { get; set; }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -374,19 +363,8 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
                                  public int Other { get; set; }
                              }
                              """;
-        const string expected = """
-                                internal class TestClass
-                                {
-                                    public int Value
-                                    {
-                                        get; set;
-                                    } /* trailing note */
 
-                                    public int Other { get; set; }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -406,10 +384,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
         const string expected = """
                                 internal class TestClass
                                 {
-                                    public int Value
-                                    {
-                                        get; set;
-                                    } /* value note */
+                                    public int Value { get; set; } /* value note */
 
                                     /// trailing documentation
                                     public int Other { get; set; }
