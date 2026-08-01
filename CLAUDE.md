@@ -2,32 +2,31 @@
 
 ## Build, test, and lint
 
-```powershell
-dotnet build Reihitsu.sln -c Release --verbosity minimal
-```
+The repository scripts under `scripts/` are the canonical entry points. Each one resolves the .NET SDK itself — it probes `dotnet --list-sdks` and installs .NET 10 into `$HOME/.dotnet` only when no `10.*` SDK is present — so they work unchanged in a fresh cloud sandbox and on a developer machine. Every script exists as a `.sh` and a `.ps1` variant; see `scripts/README.md`.
 
 ```powershell
-dotnet test Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --verbosity minimal
+.\scripts\prepare.ps1        # verify the toolchain, installing only if needed
+.\scripts\build.ps1          # dotnet build Reihitsu.sln -c Release
+.\scripts\test.ps1           # all four test projects
 ```
 
-Single-test examples:
+Focused runs:
 
 ```powershell
-dotnet test Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Analyzer.Test.Formatting.RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests.VerifyExpressionBodiedMethodsAreDetectedAndFixed"
-dotnet test Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.Indentation.LayoutComputerTests.ComputeReturnsNonEmptyModelForSimpleClass"
-dotnet test Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Core.Test.CasingUtilitiesTests.ToCamelCaseTest"
-dotnet test Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
+.\scripts\test.ps1 -Project analyzer -Filter "FullyQualifiedName~Reihitsu.Analyzer.Test.Formatting.RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests.VerifyExpressionBodiedMethodsAreDetectedAndFixed"
+.\scripts\test.ps1 -Project formatter -Filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.Indentation.LayoutComputerTests.ComputeReturnsNonEmptyModelForSimpleClass"
+.\scripts\test.ps1 -Project core -Filter "FullyQualifiedName~Reihitsu.Core.Test.CasingUtilitiesTests.ToCamelCaseTest"
+.\scripts\test.ps1 -Project cli -Filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
 ```
+
+`scripts/verify-text-only.sh` / `.ps1` proves mechanically that a change carries no compiled behavior — a Roslyn comparison of the token stream, directive and disabled-text structure, literal contents, and changed trivia categories of every changed C# file. The `gh-*` workflows use its verdict to decide whether an expensive audit is required at all.
 
 ## Workflow expectations
 
-- Before running tests, run `Reihitsu.Cli` over the changed paths so formatting issues are corrected first. A repository-local invocation is:
+- Before running tests, run `Reihitsu.Cli` over the changed paths so formatting issues are corrected first:
 
 ```shell
-dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
+scripts/format.sh <changed-path-1> [<changed-path-2> ...]
 ```
 
 - Do not consider a change complete until all relevant unit tests pass.
@@ -59,14 +58,16 @@ Use the command that matches the task so the repository-specific workflow and ch
 
 Five distinct activities, plus the triage that decides which of them a run needs. Keep the names apart — calling all of them "review" is what causes analysis to be skipped and gates to be repeated:
 
-- **Rubber Duck analysis** (`/gh-rubber-duck`) — read-only requirements and design pass that produces the **Behavior Contract**: user-visible examples, behavior rows, anchor and trivia rules, the counterpart map, an adversarial matrix, non-goals, and any decision the user must settle. Every bug report also gets a decidable defect mechanism, a candidate enumeration derived from the dispatch code, and an executable sweep over every candidate before the gate can return `READY`. It changes no repository or GitHub state. `gh-implement` runs it automatically in a dedicated read-only subagent before its first edit; `gh-apply-review` may use it when review feedback introduces a materially ambiguous behavior change.
-- **Scope triage** — the orchestrator's own up-front call on which gates a run needs. A run is *routine* only when it changes no analyzer, formatter, code-fix, or `Reihitsu.Core` behavior, admits exactly one reading, stays inside a small listable file set, adds no rule and changes no diagnostic, public API, or dependency, and is not an analyzer or formatter bug report. A mechanical veto comes first: any diff touching `Reihitsu.*` source, a test project, `*.csproj`, `Directory.Build.props`, a ruleset, or `.editorconfig` — or mixing those with documentation — is behavioral. A routine run may replace the Rubber Duck subagent with a short contract note, and skips both the official preflight and the full validation, because no compiled file changed and the human PR review is the gate for text-only work. Any trip-wire voids the classification and restores both gates. The run report always names the classification and the reason.
-- **Local self-review** — the implementing agent's own check of its change against every Behavior Contract row or review-worklist row, plus parity, defect-class closure, convergence, idempotency, directives, documentation, formatting, and focused tests. It is not official and needs no extra agent.
-- **Official preflight** (`/gh-preflight`) — the fresh, independent, read-only quality gate on the final tree. Its report explicitly audits guard scope against the counterpart predicate, enumerates every owner of a changed policy, and states the falsifiable invariant of every new or materially changed test. `gh-implement` and `gh-apply-review` get one attempt plus one **preflight retry** after a single consolidated repair cycle; a third attempt requires explicit user direction. Everything that compiles goes through at least one attempt.
-- **Full validation** — the solution build plus the four test projects, run once on the audited tree. A run whose diff contains no compiled file skips it. Any change to a compiled file invalidates the build, the earlier project results, and the preflight alike.
+- **Rubber Duck analysis** (`/gh-rubber-duck`) — read-only requirements and design pass that produces the **Behavior Contract**: user-visible examples, behavior rows, anchor and trivia rules, the counterpart map, an adversarial matrix, non-goals, and any decision the user must settle. Every bug report also gets a decidable defect mechanism, a candidate enumeration derived from the dispatch code, and an executable sweep over every candidate before the gate can return `READY`. Every change that moves a guard, predicate, or exemption additionally gets a **guard-delta** and **predicate-boundary** table: the sweep is a *before* analysis, and those tables are the *after* analysis that asks whether every region a decision depends on is still covered once the predicate has moved. Behavior rows cannot express that, which is why a fully green contract could otherwise ship a broken change. It changes no repository or GitHub state. `gh-implement` runs it automatically in a dedicated read-only subagent before its first edit; `gh-apply-review` may use it when review feedback introduces a materially ambiguous behavior change.
+- **Scope triage** — the orchestrator's own up-front call on which gates a run needs. A run is *routine* only when it changes no analyzer, formatter, code-fix, or `Reihitsu.Core` behavior, admits exactly one reading, stays inside a small listable file set, adds no rule and changes no diagnostic, public API, or dependency, and is not an analyzer or formatter bug report. A mechanical veto comes first: any diff touching `Reihitsu.*` source, a test project, `*.csproj`, `Directory.Build.props`, a ruleset, `.editorconfig`, `scripts/**`, or a CI workflow — or mixing those with documentation — is behavioral. Touching a `.cs` file is not by itself a reason to audit when only its comments changed; `scripts/verify-text-only.sh` proves that mechanically with a Roslyn comparison rather than a line-based `grep`, and a rename never qualifies. Any trip-wire voids the classification and restores the gates. The run report always names the classification and the reason.
+- **Local self-review and admission** — the implementing agent's own check of its change against every Behavior Contract row or review-worklist row, plus parity, defect-class closure, boundary closure, convergence, idempotency, directives, documentation, formatting, focused tests, and the XML summary and inline comments of every method whose body changed. It ends in a falsifiable **admission artifact** — qualifiers and their owners, each changed predicate with a test on both sides of its boundary, the exact `rg` result per changed policy owner, each contract or worklist row with its regression test, and each new test's invariant, falsifier, and helper. A missing row blocks admission to preflight, because it is cheap here and expensive in an audit. It is not official and needs no extra agent.
+- **Official preflight** (`/gh-preflight`) — the fresh, independent, read-only quality gate on the final tree, and the owner of the trigger list, the gate results, the retry contract, and the evidence-bundle and restart policy. Its report explicitly audits guard scope against the counterpart predicate, enumerates every owner of a changed policy, and states the falsifiable invariant of every new or materially changed test. It is **risk-triggered, not mandatory**: required when the diff changes a predicate, guard, or report condition, which tokens or trivia a rewrite writes, a code-fix registration or applicability, a diagnostic ID, severity, or message, public API, a dependency, or adds a rule; not required for a comment, documentation, Markdown, skill, command, or template diff — including inside `.cs` — proven by `scripts/verify-text-only.sh`, or for tests added to already-correct behavior. An uncertain case goes to the user rather than to a default run. It returns `PASS`, `PASS — non-blocking cleanup` (every remaining finding confined to comments or documentation, fixed by the parent without another attempt), `BLOCKED — findings`, or `BLOCKED — state mismatch`. `gh-implement` and `gh-apply-review` get one attempt plus one **preflight retry**, which is repair-delta aware and audits the repair, its moved guards, and its new boundary tests instead of re-auditing everything; a third attempt requires explicit user direction. Its `Required change` column is a suggestion the parent must re-derive, not a specification.
+- **Full validation** — the solution build plus the four test projects, run once on the audited tree. Only a diff that contains no compiled file at all skips it; a skipped audit never skips validation, because tests cost wall-clock rather than tokens and the build is the last thing that catches a malformed comment. Any change to a compiled file invalidates the build, the earlier project results, and the preflight alike, unless `scripts/verify-text-only.sh` proves the change carried no compiled behavior.
 - **CI** — triggered by the run's single non-`[skip ci]` push at the very end.
 
 Sequencing rule: merge current `origin/main` into the working branch **before** the official preflight, so the audited tree is the tree that merges. The empty CI-trigger commit afterwards changes the SHA but not the tree; `git diff --exit-code <audited-sha> HEAD` is the proof.
+
+Scope-ledger rule: both author-side workflows freeze scope. `gh-implement` records the accepted mechanism or requirement boundary, the behavior rows, the initial production owners, the intended production and test file set, and the shipped diagnostics, public APIs, and dependencies that must stay unchanged — at contract acceptance, before the first edit. A repair that touches a new behavior owner, a shared helper with other consumers, public API or dependencies, repository-wide canonical policy ownership, a materially enlarged compiled file set, or more than double the intended production paths triggers a mandatory scope checkpoint with three explicit choices: narrow or revert, approve an expanded contract, or create and link a follow-up issue.
 
 Review-repair scope rule: `gh-apply-review` records the PR's decidable defect mechanism or accepted requirement boundary and freezes it after the complete worklist is classified. A confirmed item stays in the PR only when it is the same mechanism/requirement or PR-introduced, is a bug fix rather than new behavior, and changes no shipped diagnostic, public API, or dependency. Every other confirmed item becomes an English copy-ready follow-up draft in the final author-chat response plus an ignored local recovery cache. The user approves its exact content before the GitHub MCP server creates the issue; `/gh-*` workflows never invoke `scripts/upload-issues.ps1`.
 

@@ -1,7 +1,7 @@
 ---
 name: gh-apply-review
 description: >-
-  Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Claude chat, or publish follow-up drafts the user approved in that chat. Use for "apply the review", "address the review comments", "fix the review findings", or "approve follow-up F1". Build one complete worklist before editing, freeze the PR's mechanism or requirement scope, fix confirmed same-scope and PR-introduced bugs in one repair cycle, and preserve every other confirmed item as an English copy-ready issue draft in the final chat response plus an ignored recovery cache. Require explicit approval before creating a GitHub issue; never invoke the local issue-upload script. Run a local self-review under CLAUDE.md, synchronize origin/main, use at most two official gh-preflight attempts, install the .NET 10 SDK, validate once, push the existing PR branch, and reply without resolving threads. This is the fix step between gh-review and gh-rereview and runs in a Linux Claude Code Cloud Agent through the GitHub MCP server.
+  Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Claude chat, or publish follow-up drafts the user approved in that chat. Use for "apply the review", "address the review comments", "fix the review findings", or "approve follow-up F1". Build one complete worklist before editing, freeze the PR's mechanism or requirement scope, fix confirmed same-scope and PR-introduced bugs in one repair cycle, and preserve every other confirmed item as an English copy-ready issue draft in the final chat response plus an ignored recovery cache. Require explicit approval before creating a GitHub issue; never invoke the local issue-upload script. Run a local self-review under CLAUDE.md and record its admission artifact, synchronize origin/main, spend at most two official gh-preflight attempts when the trigger list requires an audit, re-audit each repair against the guard-delta and predicate-boundary tables, prepare the toolchain through the repository scripts, validate once, push the existing PR branch, and reply without resolving threads. This is the fix step between gh-review and gh-rereview and runs in a Linux Claude Code Cloud Agent through the GitHub MCP server.
 ---
 
 # Reihitsu GitHub PR Apply Review
@@ -26,9 +26,9 @@ You are running inside a **Linux** Claude Code Cloud Agent environment. The repo
 3. State the PR's defect mechanism or accepted requirement boundary and its shipped-surface boundary, classify every item exactly once, and freeze that scope.
 4. Preserve each confirmed out-of-scope item as a reviewable follow-up draft; do not publish it yet.
 5. Implement all `fix here` items as one cohesive repair cycle.
-6. Run the **local self-review**.
+6. Run the **local self-review** and record its **admission artifact**.
 7. Synchronize with current `origin/main`.
-8. Run the **official preflight** on that exact synchronized head, inside the 1 + 1 budget.
+8. Decide from `gh-preflight`'s trigger list whether an audit is required, and run it on that exact synchronized head inside the 1 + 1 budget.
 9. Run the complete **full validation** once.
 10. Push the final non-`[skip ci]` CI trigger, reply to fixed items, and return every pending follow-up as a copy-ready chat block for user approval.
 11. On a later approval turn, publish only the approved drafts, update `Follow-up work`, and reply to their review threads without changing the audited tree or resolving threads.
@@ -59,17 +59,13 @@ GitHub platform calls go through the **GitHub MCP server** (`mcp__github__*`); i
 
 ## Build environment
 
-The sandbox does not ship the .NET SDK. Before any `dotnet` command, install the latest .NET 10 SDK (the repo targets `net10.0`, no `global.json`):
+The sandbox does not ship the .NET SDK. Prepare the toolchain through the repository script before any `dotnet` command (the repo targets `net10.0`, no `global.json`):
 
 ```bash
-dotnet --list-sdks   # probe first
-curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-bash /tmp/dotnet-install.sh --channel 10.0 --install-dir "$HOME/.dotnet"
-export PATH="$HOME/.dotnet:$PATH"
-dotnet --list-sdks
+scripts/prepare.sh
 ```
 
-Keep `$HOME/.dotnet` on `PATH` for every later `dotnet` call. If the script cannot be reached (no egress), stop and report it — a green run without the SDK is meaningless.
+It probes `dotnet --list-sdks` and installs .NET 10 into `$HOME/.dotnet` only when no `10.*` SDK is present. `scripts/build.sh`, `scripts/test.sh`, `scripts/format.sh`, and `scripts/verify-text-only.sh` resolve the SDK the same way, so use them instead of hand-written `dotnet` invocations. If the SDK cannot be installed (no egress), stop and report it — a green run without the SDK is meaningless.
 
 ## Workflow
 
@@ -120,6 +116,8 @@ Work on the PR's head branch and implement all `fix here` items together, then v
 
 Before editing each accepted finding, state its general defect class and inspect sibling syntax shapes, wrappers, nested scopes, repeated-token cases, and shared helpers that can carry the same hazard. The requested counterexample is the minimum reproduction, not the implementation boundary. Regression coverage must close the relevant defect class without expanding into unrelated cleanup.
 
+A finding's `Required change` — from a reviewer or from preflight — is a **suggestion, not a specification**. It is written from one reader's view of one symptom, and implementing it literally is how an over-broad repair creates the next round's finding. Whenever a repair moves a guard, predicate, or exemption, re-derive its scope with the guard-delta and predicate-boundary tables from `gh-rubber-duck` — against the guard *as repaired* — and add a test on **each** side of every boundary the repair moves. "No trivia at all" and "trivia on one line" are two tests; shipping only the first leaves the real boundary untested.
+
 Honor the repository workflow — the review found these problems *because* the workflow was skipped, so do not skip it again:
 
 - **Analyzer or formatter bug fix** → write the failing regression/repro test **first**, watch it fail, then fix. Analyzer tests are many small focused tests, not one large multi-case test.
@@ -128,7 +126,7 @@ Honor the repository workflow — the review found these problems *because* the 
 - **Format the changed files** through the CLI before running tests:
 
   ```bash
-  dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
+  scripts/format.sh <changed-path-1> [<changed-path-2> ...]
   ```
 
 - Run the focused tests for the touched rule or phase as you go, not the full suite.
@@ -193,14 +191,18 @@ The official preflight is a final quality gate, not a discovery loop, and only t
 - **follow-up preservation** — every pending draft has an identical final-chat copy and ignored recovery cache, with no unapproved GitHub issue or PR-body claim;
 - **counterpart parity** — formatter output is not flagged by the analyzer, analyzer-clean code is formatter-stable;
 - **defect-class closure** — sibling shapes and private copies of the changed policy carry no residual hazard;
+- **boundary closure** — every guard or predicate the repair moved has a test on each side of its new boundary;
 - **convergence** — the code fix silences its own diagnostic in one pass and raises no new RH diagnostic;
 - **idempotency** — a second formatter pass over the output is a no-op, on LF and CRLF;
 - **comments and directives** — the relevant trivia shapes survive at sensible positions, or the edit is refused;
+- **comment and documentation consistency** — for **every method whose body changed**, re-read its XML summary and inline comments and confirm they still describe the code they sit next to; a comment left describing the previous behavior is a defect in the same diff that changed it;
 - **documentation** — the rule doc under `documentation/rules/` matches the shipped behavior;
-- **changed-path formatting** — every changed C# path went through `Reihitsu.Cli`;
+- **changed-path formatting** — every changed C# path went through `scripts/format.sh`;
 - **focused tests** — the tests for the touched rule/phase pass at the current working tree.
 
 Fix what you find now. This is not an official preflight, does not consume a preflight attempt, and is not reported as one.
+
+**Admission artifact.** A narrative self-review is not checkable — "ownership looked consistent" is what precedes an audit finding three owners. Before preflight may start, record the same falsifiable artifact `gh-implement` defines, with worklist rows in place of contract rows: each requirement qualifier and its owner/predicate, each changed predicate with the test on both sides of its boundary, the exact `rg` result for every changed policy owner, each worklist row and its regression test, each new test's invariant, falsifying observation, and helper, and the comment and documentation consistency check for every changed method. A missing row blocks admission to preflight.
 
 ### 8. Synchronize with `origin/main` before the official gate
 
@@ -219,42 +221,40 @@ If `origin/main` moves again after a passing preflight, do not enter an unlimite
 
 ### 9. Official preflight gate — hard 1 + 1 budget
 
-After the accepted fixes are committed and pushed with `[skip ci]`, the local self-review is done, and `main` is synchronized, read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal, read-only gate against the current PR head. Do not post preflight findings through GitHub MCP. Run it in a fresh, independent read-only subagent when subagents are available.
+After the accepted fixes are committed and pushed with `[skip ci]`, the local self-review and its admission artifact are complete, and `main` is synchronized, read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal, read-only gate against the current PR head. Do not post preflight findings through GitHub MCP. Run it in a fresh, independent read-only subagent when subagents are available, handing it the neutral evidence bundle that skill defines — issue and PR data, base and head SHAs, merge base, changed files and diff, and your proof that the checkout matches the head — and nothing of your own reasoning.
 
-A **routine round** — no compiled file anywhere in the diff, and no accepted finding touching analyzer, formatter, code-fix, or `Reihitsu.Core` behavior — skips the official preflight and the full validation alike; the PR review is the gate for text-only changes. Record the skip and its reason in the Validation block. Every other round spends at least attempt 1.
+**First decide whether an audit is required at all**, using `gh-preflight`'s trigger list rather than the fact that a file compiles. A round whose accepted findings only touch comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — records a skip instead of spending an attempt, proven with `scripts/verify-text-only.sh --base <base-sha> --head <head-sha>` and its `TEXT-ONLY PROOF: PASS …` line. Ask the user when the round fits neither list. A skipped audit still leaves the full validation in place unless the diff contains no compiled file at all.
 
 The budget is fixed:
 
 1. **Attempt 1** runs automatically on the synchronized head.
 2. On `PASS`, continue to full validation.
-3. On `BLOCKED — findings`, merge **every** finding into **one** consolidated worklist — together with anything still open from the review worklist — and classify it against the frozen scope ledger. Do not fix before the worklist is complete, and do not run a preflight in between.
-4. Fix every `fix here` row in **one** repair cycle and preserve every `follow-up draft` row without changing the PR for it: close each in-scope finding's full defect class, format the changed paths, run the focused tests, redo the local self-review, then commit and push with `[skip ci]`.
-5. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent, read-only subagent against the exact new head.
-6. If the retry also blocks, **stop**. Report the remaining findings to the user and let them decide. Never start a third official preflight automatically.
+3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove them non-behavioral with `scripts/verify-text-only.sh --base <audited-sha> --head worktree`, and continue to full validation without spending an attempt. If the proof rejects the cleanup, treat it as a repair cycle instead.
+4. On `BLOCKED — findings`, merge **every** finding into **one** consolidated worklist — together with anything still open from the review worklist — and classify it against the frozen scope ledger. Do not fix before the worklist is complete, and do not run a preflight in between.
+5. Fix every `fix here` row in **one** repair cycle and preserve every `follow-up draft` row without changing the PR for it: close each in-scope finding's full defect class, re-derive the repair against the delta tables, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]`.
+6. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent, read-only subagent against the exact new head, carrying the repair-delta inputs: the previous report, the previously audited SHA, the repaired SHA, and the repair diff.
+7. If the retry also blocks, **stop**. Report the remaining findings to the user and let them decide. Never start a third official preflight automatically.
 
-On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head before rerunning; a state mismatch is a setup error, not a review result, so it does not consume an attempt.
+On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head before rerunning; a state mismatch is a setup error, not a review result, so it does not consume an attempt. Neither does a reviewer agent that returned no verdict — that costs a process start, and `gh-preflight`'s bounded restart policy applies: one start, one restart after a no-progress timeout, then the local read-only fallback.
 
-Classify architecturally significant, public-API-changing, dependency-changing, contested, or unrelated preflight findings against the frozen ledger. Use `needs decision` when the classification itself is ambiguous; otherwise preserve them as follow-up drafts rather than expanding the PR. Do not create the final CI-trigger commit until both preflight and full validation are green.
+Classify architecturally significant, public-API-changing, dependency-changing, contested, or unrelated preflight findings against the frozen ledger. Use `needs decision` when the classification itself is ambiguous; otherwise preserve them as follow-up drafts rather than expanding the PR. Do not create the final CI-trigger commit until both the preflight decision and full validation are settled and green.
 
 A tracked-file change made after a passing preflight means the audited tree is no longer the tree that will merge:
 
-- the change touches no compiled file → note it in the report and continue;
-- it touches compiled files and an attempt is unspent → spend the retry on the new tree;
-- it touches compiled files and the budget is exhausted → stop and report. The user decides whether to ship a tree that no audit covered; you do not decide it silently.
+- the change is proven text-only by `scripts/verify-text-only.sh` → note it and its proof line in the report and continue;
+- it touches compiled behavior and an attempt is unspent → spend the retry on the new tree;
+- it touches compiled behavior and the budget is exhausted → stop and report. The user decides whether to ship a tree that no audit covered; you do not decide it silently.
 
 ### 10. Full validation — run it once
 
-Focused tests run throughout the repair cycle. The complete suite runs **once**, with the SDK on `PATH`, after the fixes are in, `main` is synchronized, the official preflight has passed, and the worktree matches the audited tree:
+Focused tests run throughout the repair cycle. The complete suite runs **once**, after the fixes are in, `main` is synchronized, the preflight decision is settled, and the worktree matches the audited tree. Only a round whose diff contains no compiled file at all skips it; a skipped audit does not skip validation, because the build is what catches a malformed comment or a changed documentation artifact and test runtime costs wall-clock rather than tokens:
 
 ```bash
-dotnet build Reihitsu.sln -c Release --verbosity minimal
-dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --no-build --verbosity minimal
-dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --no-build --verbosity minimal
-dotnet test Reihitsu.Core.Test/Reihitsu.Core.Test.csproj -c Release --no-build --verbosity minimal
-dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --no-build --verbosity minimal
+scripts/build.sh
+scripts/test.sh --no-build
 ```
 
-`--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. Fix regressions your change caused (commit with `[skip ci]`). **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`. Never silence, `[Ignore]`, or delete a test to go green. If a failure is pre-existing on the base branch and independent of the review items, record it in the report and stop rather than build on a broken baseline.
+`scripts/test.sh` runs all four test projects in order; `--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. Fix regressions your change caused (commit with `[skip ci]`). **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`. Never silence, `[Ignore]`, or delete a test to go green. If a failure is pre-existing on the base branch and independent of the review items, record it in the report and stop rather than build on a broken baseline.
 
 If the user explicitly asks to skip repeated local validation and rely on CI, obey that instruction and report exactly which local checks ran and which did not.
 
@@ -301,11 +301,11 @@ labels: enhancement, formatter
 _None._
 
 ## Validation
-- Local self-review: every worklist row checked; parity, convergence, idempotency, directives re-checked.
+- Local self-review: every worklist row checked; parity, boundaries, convergence, idempotency, directives, comment/documentation consistency re-checked. Admission artifact complete.
 - Base sync: merged `origin/main` at `<sha>`; conflicts formatted and focused-tested.
-- Official preflight: 1 attempt used, PASS on tree `<sha>`; budget not exhausted. (State the skip and its reason here instead when the round changed no compiled file.)
+- Official preflight: required by <trigger>; 1 attempt used (1 reviewer start), PASS on tree `<sha>`; budget not exhausted. (State the skip and its `TEXT-ONLY PROOF` line here instead when the trigger list did not require an audit.)
 - Build: green.
-- Analyzer / Formatter / Core / Cli tests: green, one full run (SDK installed via dotnet-install.sh).
+- Analyzer / Formatter / Core / Cli tests: green, one full run via `scripts/test.sh`.
 
 ## Pushed
 - Branch `claude/...`: 2 fix commits (`[skip ci]`) + trigger commit `Ready for CI (#<PR>)`.
@@ -320,7 +320,7 @@ Rules for the block:
 - **Dismissed** is reserved for findings disproved, duplicated, already fixed, or no longer applicable, and always carries the evidence. Out-of-scope is not a dismissal reason.
 - Include a `preflight` source row under **Applied** or **Follow-up drafts** for each confirmed preflight finding or confirmed scope hint; these have no reviewer thread until an issue is approved and published.
 - **Needs decision** lists items you raised with the user via `AskUserQuestion` and are still waiting on (or that the user deferred). Answered decisions move into the matching table instead.
-- **Validation** states the local self-review, the base sync, how many official preflight attempts were used with each result and whether the budget was exhausted, and the single full-validation result. If validation or push failed, state the exact failure instead of claiming success.
+- **Validation** states the local self-review and its admission artifact, the base sync, the preflight decision with its trigger or proof line, how many official attempts and how many reviewer process starts were used with each result and whether the budget was exhausted, and the single full-validation result. If validation or push failed, state the exact failure instead of claiming success.
 - **Pushed** names the commits and the threads you replied on, and states the threads were left unresolved.
 - After the block, write **nothing**.
 
@@ -348,9 +348,11 @@ None of this may reduce correctness or hide a failing result.
 - **Never** drop a confirmed actionable item: fix it here or return a complete reviewable follow-up draft.
 - **Never** skip the regression-test-first / idempotency / convergence discipline in `CLAUDE.md`; the review exists because it was skipped once.
 - **Never** start a third official preflight automatically; the budget is one attempt plus one retry.
+- **Never** invoke preflight before the admission artifact is complete, and never claim a comment-only carve-out without the `scripts/verify-text-only.sh` proof line.
+- **Never** implement a `Required change` literally without re-deriving its scope against the delta tables and adding a test on each side of every boundary the repair moved.
 - **Never** split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
 - **Never** run the official preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.
-- **Never** start full validation or create the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR tree — the one exception is a round with no compiled file in the diff, which skips both and records the skip. If the budget is exhausted without a `PASS`, stop and report; that is not a licence to proceed.
+- **Never** start full validation or create the final CI-trigger commit while an audit is required and has not returned `PASS` or `PASS — non-blocking cleanup` for the current PR tree. A recorded, proven skip from the trigger list is the only way past it, and it still leaves the full validation in place unless the diff contains no compiled file at all. If the budget is exhausted without a passing result, stop and report; that is not a licence to proceed.
 - **Never** treat an earlier green project result as still valid after a compiled file changed, and never claim the audit covered the final commit when only the tree matches.
 - **Never** silence, `[Ignore]`, or delete a test to make validation green.
 - **Never** push a non-`[skip ci]` commit before validation is green — the empty trigger commit is the only exception.
