@@ -20,6 +20,66 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     #region Methods
 
     /// <summary>
+    /// Determines whether a documentation exterior follows non-whitespace source on the same line
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns><see langword="true"/> when the documentation comment starts after other source text</returns>
+    private static bool IsAfterSourceOnSameLine(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
+    {
+        var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
+        var prefix = sourceText.ToString(TextSpan.FromBounds(line.Start, documentationCommentTrivia.FullSpan.Start));
+
+        return prefix.Any(character => char.IsWhiteSpace(character) == false && character != '\uFEFF');
+    }
+
+    /// <summary>
+    /// Moves off-position single-line documentation trivia onto a line of its own before its following token
+    /// </summary>
+    /// <param name="root">Root node</param>
+    /// <param name="endOfLine">Line-ending sequence</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
+    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, string endOfLine, CancellationToken cancellationToken)
+    {
+        var sourceText = SourceText.From(root.ToFullString());
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
+                || IsAfterSourceOnSameLine(trivia, sourceText) == false)
+            {
+                continue;
+            }
+
+            var previousToken = trivia.Token.GetPreviousToken(includeZeroWidth: true);
+
+            if (previousToken.RawKind == 0)
+            {
+                continue;
+            }
+
+            var currentToken = replacements.TryGetValue(previousToken, out var replacement) ? replacement : previousToken;
+            var trailingTrivia = currentToken.TrailingTrivia;
+
+            if (trailingTrivia.Count > 0 && trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                trailingTrivia = trailingTrivia.RemoveAt(trailingTrivia.Count - 1);
+            }
+
+            trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
+            replacements[previousToken] = previousToken.WithTrailingTrivia(trailingTrivia);
+        }
+
+        return replacements.Count == 0
+                   ? root
+                   : root.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
     /// Normalizes a documentation comment if any supported XML element requires it
     /// </summary>
     /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
@@ -88,7 +148,9 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <returns>The formatted syntax node</returns>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        var sourceText = root.SyntaxTree.GetText(cancellationToken);
+        root = RelocateOffPositionDocumentationComments(root, context.EndOfLine, cancellationToken);
+
+        var sourceText = SourceText.From(root.ToFullString());
         var replacements = new Dictionary<SyntaxTrivia, SyntaxTrivia>();
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))

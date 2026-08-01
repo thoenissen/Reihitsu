@@ -162,6 +162,42 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> moves a complete trailing documentation comment above its following member
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeMovesTrailingDocumentationAboveFollowingMember()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; } /// <summary>Trailing summary.</summary>
+
+                                 public int Other { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+
+                                    /// <summary>
+                                    /// Trailing summary.
+                                    /// </summary>
+                                    public int Other { get; set; }
+                                }
+                                """;
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Trailing documentation should move intact above its following member.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> handles an empty file without throwing exceptions
     /// </summary>
     [TestMethod]
