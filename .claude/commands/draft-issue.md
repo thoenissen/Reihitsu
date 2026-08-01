@@ -1,20 +1,21 @@
 # Draft Issue
 
-Create Reihitsu issue draft markdown files under `plans/issues` that pass `scripts/upload-issues.ps1` validation and can be uploaded with the repository script.
+Create Reihitsu issue draft markdown files under `plans/issues`. This command creates drafts only. `scripts/upload-issues.ps1` is a user-owned local upload tool and must never be invoked automatically by this command or a `/gh-*` skill.
 
 ## Goal
 
 Produce Markdown issue drafts that:
 
 1. use the repository's supported templates
-2. satisfy the script's YAML front matter validation
-3. satisfy the script's required `###` heading validation
-4. can be uploaded without manual reformatting
+2. follow the YAML front matter expected by the repository uploader
+3. include the uploader's required `###` headings
+4. are ready for upload from a supported environment without manual reformatting
 
 ## File location and naming
 
 - Store drafts in `plans/issues`.
-- Use a Markdown file with a sortable numeric prefix and a short slug, for example:
+- Review follow-up caches may use a PR-specific subdirectory such as `plans/issues/pr-586/F1-accessor-list-layout.md`. The matching copy-ready block in the final author-chat response remains the review artifact; an ignored file is only a recovery cache.
+- For ordinary standalone drafts, use a Markdown file with a sortable numeric prefix and a short slug. Review follow-up caches instead use the stable `F<n>` ID from the copy-ready chat block. Examples:
   - `plans/issues/08-analyzer-feature-rh0387a-alternative-member-regions.md`
   - `plans/issues/09-analyzer-feature-require-copyright-header.md`
 - Keep filenames descriptive and stable.
@@ -126,13 +127,9 @@ Required headings:
 - Do not leave sections blank; the body should read like a ready-to-upload issue.
 - Prefer labels that already exist in the repository (missing labels are skipped during upload).
 
-## Upload workflow
+## Upload handling
 
-Validate and upload drafts with:
-
-```powershell
-.\scripts\upload-issues.ps1 -DraftDirectory plans\issues -WhatIf
-```
+Create the draft only. This command and all `/gh-*` skills must not run `scripts/upload-issues.ps1`; validation and upload through that script are separate user-owned local workflows.
 
 ## What the script checks
 

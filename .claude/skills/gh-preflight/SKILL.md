@@ -1,6 +1,6 @@
 ---
 name: gh-preflight
-description: Run a read-only, local preflight review of a Reihitsu pull request before external review or re-review in a Linux Claude Code Cloud Agent. Use for `/gh-preflight`, "preflight this PR", "review before review", or as the mandatory final quality gate inside `gh-implement` and `gh-apply-review` — invoked once their implementation, local self-review, and `origin/main` synchronization are done, and before their single full validation and CI-trigger commit. Apply the complete repository `gh-review` checklist, adversarial corpus, test expectations, counterpart tracing, and defect-class closure without posting through GitHub MCP or changing code. Report every confirmed finding in one pass, because the parent gets one consolidated repair cycle and at most one retry attempt. Return a blocking gate when any confirmed finding remains.
+description: Run a read-only, local preflight review of a Reihitsu pull request before external review or re-review in a Linux Claude Code Cloud Agent. Use for `/gh-preflight`, "preflight this PR", "review before review", or as the mandatory final quality gate inside `gh-implement` and `gh-apply-review` — invoked once their implementation, local self-review, and `origin/main` synchronization are done, and before their single full validation and CI-trigger commit. Apply the complete repository `gh-review` checklist, adversarial corpus, test expectations, counterpart tracing, defect-class closure, and an explicit three-axis audit of guard scope, policy ownership, and assertion adequacy without posting through GitHub MCP or changing code. Report every confirmed finding in one pass, because the parent gets one consolidated repair cycle and at most one retry attempt. Return a blocking gate when any confirmed finding remains.
 ---
 
 # Reihitsu GitHub PR Preflight
@@ -99,9 +99,27 @@ Read `.claude/skills/gh-review/SKILL.md` completely. Apply its complete methodol
 
 Override the review skill's GitHub-posting, existing-comment deduplication, and output rules with this skill. Review the current code independently; do not fetch prior review comments merely to learn what another reviewer found.
 
-Limit blocking findings to defects caused by the PR, missing issue requirements, incomplete tests required by the change, and pre-existing behavior that the changed code newly depends on or exposes. Record unrelated pre-existing concerns as hints rather than expanding the PR.
+Limit blocking findings to defects caused by the PR, missing issue requirements, incomplete tests required by the change, and pre-existing behavior that the changed code newly depends on or exposes. Record unrelated pre-existing concerns as hints rather than expanding the PR. Give each confirmed scope hint a defect mechanism and `new mechanism` relation so `gh-apply-review` can preserve it without treating it as a blocking repair.
 
 Complete the entire checklist and relevant adversarial corpus before returning. Report every confirmed finding in one pass; never stop after the first.
+
+## Three axes that must be answered explicitly
+
+Build the three tables in the required report before deciding the gate. Cover every predicate, guard, or policy the PR adds or changes and every test the PR adds or materially changes. Empty prose such as "looks consistent" is not evidence.
+
+### Guard scope
+
+For each changed decision, state the exact inspected span: full trivia, node interior, an explicit `TextSpan`, or another precisely named range. Name the existing counterpart predicate used for the same decision and compare their spans and boundary semantics. If no counterpart exists, say so and justify why the decision is genuinely one-sided. A mismatch is a finding even when every test passes.
+
+### Policy ownership
+
+Use `rg` to enumerate every place that now owns the changed policy, including private copies outside the diff. Record paths and symbols rather than a count alone. More than one owner is a finding unless the PR centralizes them or explicitly justifies why the owners represent different policies and proves their parity.
+
+### Assertion adequacy
+
+For every new or materially changed test, name the invariant and the observation that would falsify it. Confirm the assertion is at least as strong as the behavior the change guarantees. Balanced token counts do not prove exact output; one pass does not prove convergence; LF-only output does not prove line-ending stability; a helper that skips the second pass does not prove idempotency. A weaker assertion is a finding even when the test is green.
+
+Do not collapse these axes into the ordinary checklist. Their value is that the report makes each answer reviewable rather than leaving it implicit in the reviewer's reasoning.
 
 ## Prove defect-class closure
 
@@ -134,11 +152,13 @@ Default to static tracing. Run only targeted tests or formatter double-runs that
 
 Report every confirmed finding in the one gate report. The parent has a single repair cycle to work from it, so a finding withheld for a "next round" never gets one.
 
+`PASS` also requires a complete three-axis audit. Missing rows, unnamed owners, an unexamined changed test, or an assertion without a concrete falsifier is a blocking finding rather than an incomplete note.
+
 When invoked by `gh-implement` or `gh-apply-review`, the parent owns the budget:
 
 1. It merges all confirmed findings into one consolidated worklist and fixes every in-scope item — including the complete defect class — in a single repair cycle, without invoking preflight in between.
 2. It formats changed paths, runs focused tests, redoes its local self-review, commits with `[skip ci]`, pushes, and updates the PR body when needed.
-3. It asks the user about architecturally significant, public-API-changing, dependency-changing, contested, or out-of-scope findings.
+3. It applies its own scope policy: `gh-implement` asks before expanding the accepted issue contract, while `gh-apply-review` classifies against its frozen scope ledger and preserves confirmed out-of-scope work as an unapproved follow-up draft.
 4. It spends the **preflight retry** — one fresh, independent, read-only run against the exact new head. `BLOCKED — state mismatch` does not consume an attempt; reconcile the state and rerun.
 5. It proceeds to full validation only after `PASS`, and it stops and reports if the retry blocks. A third official attempt requires explicit user direction.
 
@@ -157,6 +177,20 @@ PASS
 ## Checklist
 <all 19 gh-review checklist items>
 
+## Three-axis audit
+
+### Guard scope
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|----------|----------------|-----------------------|-----------|---------|
+
+### Policy ownership
+| Policy | Owners found by `rg` | Justification for multiple owners | Verdict |
+|--------|----------------------|-----------------------------------|---------|
+
+### Assertion adequacy
+| Test | Invariant | Falsifying observation | Assertion/helper | Verdict |
+|------|-----------|------------------------|------------------|---------|
+
 ## Findings
 _None._
 
@@ -170,21 +204,27 @@ _None._
 For findings, set the gate to `BLOCKED — findings` and use:
 
 ```markdown
-| # | Severity | Location | Defect class | Required change |
-|---|----------|----------|--------------|-----------------|
-| 1 | high | Reihitsu.Formatter/Pipeline/Foo.cs:42 | Cross-scope label relocation | Model executable scopes and add the nested-scope regression |
+| # | Severity | Location | Defect class | Scope relation | Required change |
+|---|----------|----------|--------------|----------------|-----------------|
+| 1 | high | Reihitsu.Formatter/Pipeline/Foo.cs:42 | Cross-scope label relocation | same mechanism/requirement | Model executable scopes and add the nested-scope regression |
 ```
 
 Keep every confirmed finding in the table exactly once. Provide a concrete counterexample for each high finding. Do not add a preamble or closing text.
+
+In `Scope relation`, state `same mechanism/requirement`, `PR-introduced`, or `new mechanism`. This is evidence for the parent workflow's scope decision; preflight itself neither fixes nor drafts follow-up work. In each three-axis subsection, render an explicit `_N/A — no applicable changed …._` line when there is no row so absence is distinguishable from an omitted audit.
+
+When Hints is non-empty, use `| Location | Defect class | Scope relation | Evidence |`. Keep uncertain observations clearly marked as uncertain; use `new mechanism` for a confirmed concern that is non-blocking only because it is unrelated and pre-existing.
 
 ## Hard rules
 
 - Never edit tracked files or mutate GitHub or repository history.
 - Never use `gh` or raw unauthenticated GitHub API calls.
 - Never mark `PASS` with a confirmed finding.
+- Never mark `PASS` without explicit guard-scope, policy-ownership, and assertion-adequacy rows for every applicable changed decision and test.
 - Never review only the diff when a counterpart or pipeline neighbor is relevant.
 - Never accept a test-only or paper fix when the defect class remains open.
 - Never run the full validation suite from preflight.
 - Never hold a confirmed finding back for a later round; the parent has one consolidated repair cycle and one retry.
+- Never omit a confirmed unrelated pre-existing concern; record it once under Hints with its mechanism and scope relation.
 - Never act as the parent's discovery loop — it arrives with its local self-review done and `origin/main` merged.
 - Never create or search for follow-up issues.
