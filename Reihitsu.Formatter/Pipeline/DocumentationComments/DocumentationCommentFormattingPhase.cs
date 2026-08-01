@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.LineBreaks;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
@@ -18,6 +19,164 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether a documentation exterior follows non-whitespace source on the same line
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns><see langword="true"/> when the documentation comment starts after other source text</returns>
+    private static bool IsAfterSourceOnSameLine(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
+    {
+        var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
+        var prefix = sourceText.ToString(TextSpan.FromBounds(line.Start, documentationCommentTrivia.FullSpan.Start));
+
+        return prefix.Any(character => char.IsWhiteSpace(character) == false && character != '\uFEFF');
+    }
+
+    /// <summary>
+    /// Determines whether significant trivia owned by the following token precedes documentation on its physical line
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns><see langword="true"/> when the owning token carries same-line source before the documentation comment</returns>
+    private static bool HasOwningLeadingSourceOnSameLine(SyntaxTrivia documentationCommentTrivia, SourceText sourceText)
+    {
+        var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
+
+        foreach (var leadingTrivia in documentationCommentTrivia.Token.LeadingTrivia)
+        {
+            var overlapStart = Math.Max(line.Start, leadingTrivia.FullSpan.Start);
+            var overlapEnd = Math.Min(documentationCommentTrivia.FullSpan.Start, leadingTrivia.FullSpan.End);
+
+            if (overlapStart >= overlapEnd)
+            {
+                continue;
+            }
+
+            var overlap = sourceText.ToString(TextSpan.FromBounds(overlapStart, overlapEnd));
+
+            if (overlap.Any(character => char.IsWhiteSpace(character) == false && character != '\uFEFF'))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Inserts line breaks before documentation trivia in their owning token's leading trivia
+    /// </summary>
+    /// <param name="token">Owning token</param>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia owned by the token</param>
+    /// <param name="endOfLine">Line-ending sequence</param>
+    /// <returns>The token with the documentation comment moved onto a line of its own</returns>
+    private static SyntaxToken MoveBeforeOwningToken(SyntaxToken token, IReadOnlyCollection<SyntaxTrivia> documentationCommentTrivia, string endOfLine)
+    {
+        var leadingTrivia = token.LeadingTrivia;
+        var documentationIndices = documentationCommentTrivia.Select(trivia => leadingTrivia.IndexOf(trivia))
+                                                             .Where(index => index >= 0)
+                                                             .OrderByDescending(index => index)
+                                                             .ToList();
+
+        foreach (var originalDocumentationIndex in documentationIndices)
+        {
+            var documentationIndex = originalDocumentationIndex;
+
+            if (documentationIndex > 0 && leadingTrivia[documentationIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                leadingTrivia = leadingTrivia.RemoveAt(documentationIndex - 1);
+                documentationIndex--;
+            }
+
+            leadingTrivia = leadingTrivia.Insert(documentationIndex, SyntaxFactory.EndOfLine(endOfLine));
+        }
+
+        return token.WithLeadingTrivia(leadingTrivia);
+    }
+
+    /// <summary>
+    /// Moves off-position single-line documentation trivia onto a line of its own before its following token
+    /// </summary>
+    /// <param name="root">Root node</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="endOfLine">Line-ending sequence</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
+    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
+    {
+        var owningRelocations = new Dictionary<SyntaxToken, List<SyntaxTrivia>>();
+        var previousTokenRelocationCounts = new Dictionary<SyntaxToken, int>();
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
+                || IsAfterSourceOnSameLine(trivia, sourceText) == false)
+            {
+                continue;
+            }
+
+            var owningToken = trivia.Token;
+            var previousToken = owningToken.GetPreviousToken(includeZeroWidth: true);
+
+            while (previousToken.RawKind != 0 && previousToken.IsMissing)
+            {
+                previousToken = previousToken.GetPreviousToken(includeZeroWidth: true);
+            }
+
+            var shouldSplitOwningTrivia = HasOwningLeadingSourceOnSameLine(trivia, sourceText)
+                                          || previousToken.RawKind == 0
+                                          || TokenLocator.ContainsToken(root, previousToken) == false;
+
+            if (shouldSplitOwningTrivia)
+            {
+                if (owningRelocations.TryGetValue(owningToken, out var documentationTrivia) == false)
+                {
+                    documentationTrivia = [];
+                    owningRelocations[owningToken] = documentationTrivia;
+                }
+
+                documentationTrivia.Add(trivia);
+
+                continue;
+            }
+
+            previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
+            previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+        }
+
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var owningRelocation in owningRelocations)
+        {
+            replacements[owningRelocation.Key] = MoveBeforeOwningToken(owningRelocation.Key, owningRelocation.Value, endOfLine);
+        }
+
+        foreach (var previousTokenRelocation in previousTokenRelocationCounts)
+        {
+            var currentPreviousToken = replacements.TryGetValue(previousTokenRelocation.Key, out var replacement) ? replacement : previousTokenRelocation.Key;
+            var trailingTrivia = currentPreviousToken.TrailingTrivia;
+
+            if (trailingTrivia.Count > 0 && trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                trailingTrivia = trailingTrivia.RemoveAt(trailingTrivia.Count - 1);
+            }
+
+            for (var relocationIndex = 0; relocationIndex < previousTokenRelocation.Value; relocationIndex++)
+            {
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
+            }
+
+            replacements[previousTokenRelocation.Key] = currentPreviousToken.WithTrailingTrivia(trailingTrivia);
+        }
+
+        return replacements.Count == 0
+                   ? root
+                   : root.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
 
     /// <summary>
     /// Normalizes a documentation comment if any supported XML element requires it
@@ -88,7 +247,15 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <returns>The formatted syntax node</returns>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        var sourceText = root.SyntaxTree.GetText(cancellationToken);
+        var sourceText = root.SyntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
+        var relocatedRoot = RelocateOffPositionDocumentationComments(root, sourceText, context.EndOfLine, cancellationToken);
+
+        if (ReferenceEquals(relocatedRoot, root) == false)
+        {
+            root = relocatedRoot;
+            sourceText = SourceText.From(root.ToFullString());
+        }
+
         var replacements = new Dictionary<SyntaxTrivia, SyntaxTrivia>();
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))

@@ -22,10 +22,12 @@ internal sealed class FormattingContext
     /// </summary>
     /// <param name="endOfLine">End-of-line sequence</param>
     /// <param name="baseIndentLevel">The base indentation level for isolated node formatting</param>
-    public FormattingContext(string endOfLine, int baseIndentLevel = 0)
+    /// <param name="preserveRootDocumentationBoundary">Whether node-scoped formatting should preserve one line break before root documentation</param>
+    public FormattingContext(string endOfLine, int baseIndentLevel = 0, bool preserveRootDocumentationBoundary = false)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
+        PreserveRootDocumentationBoundary = preserveRootDocumentationBoundary;
     }
 
     #endregion // Constructor
@@ -44,6 +46,11 @@ internal sealed class FormattingContext
     /// parent context that is no longer reachable via the syntax tree
     /// </summary>
     public int BaseIndentLevel { get; }
+
+    /// <summary>
+    /// Whether node-scoped formatting should preserve one serialized line break before documentation at the formatting-root boundary
+    /// </summary>
+    public bool PreserveRootDocumentationBoundary { get; }
 
     #endregion // Properties
 }

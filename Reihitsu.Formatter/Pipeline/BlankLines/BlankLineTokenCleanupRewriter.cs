@@ -19,6 +19,11 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Whether one serialized line break before root documentation should be preserved for node-scoped formatting
+    /// </summary>
+    private readonly bool _preserveRootDocumentationBoundary;
+
     #endregion // Fields
 
     #region Constructor
@@ -26,9 +31,11 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="preserveRootDocumentationBoundary">Whether one line break before root documentation should be preserved</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineTokenCleanupRewriter(CancellationToken cancellationToken)
+    public BlankLineTokenCleanupRewriter(bool preserveRootDocumentationBoundary, CancellationToken cancellationToken)
     {
+        _preserveRootDocumentationBoundary = preserveRootDocumentationBoundary;
         _cancellationToken = cancellationToken;
     }
 
@@ -44,6 +51,35 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     private static bool HasDocumentationCommentInLeadingTrivia(SyntaxToken token)
     {
         return token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a token starts with a line break followed by a single-line documentation comment
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> when one boundary line break can be preserved before the documentation comment</returns>
+    private static bool StartsWithSingleLineDocumentationCommentAfterLineBreak(SyntaxToken token)
+    {
+        var foundLineBreak = false;
+
+        foreach (var trivia in token.LeadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                foundLineBreak = true;
+
+                continue;
+            }
+
+            return foundLineBreak && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -373,7 +409,10 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
         {
-            token = CollapseLeadingBlankLines(token, keepSingleLineBreak: false);
+            var keepDocumentationBoundary = _preserveRootDocumentationBoundary
+                                            && StartsWithSingleLineDocumentationCommentAfterLineBreak(token);
+
+            token = CollapseLeadingBlankLines(token, keepDocumentationBoundary);
         }
 
         if (previousToken.IsKind(SyntaxKind.OpenBraceToken))
