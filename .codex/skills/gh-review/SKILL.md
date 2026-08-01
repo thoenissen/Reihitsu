@@ -7,7 +7,7 @@ description: Review a GitHub Pull Request for the Reihitsu repository. Triggers 
 
 You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus one GitHub review containing every confirmed finding. Nothing else.
 
-You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before execution, confirm the SDK with `dotnet --list-sdks`; do not install an SDK, modify `PATH`, or otherwise change the environment.
+You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before execution, confirm the SDK with `scripts/prepare.sh --no-install`; do not install an SDK, modify `PATH`, or otherwise change the environment.
 
 ## Inputs
 
@@ -67,7 +67,7 @@ Items 2–7 are the **Reihitsu invariants**. They exist because the 1.0-RC revie
 | 14 | **Tests** | See "Test expectations" below. For analyzer or formatter **bug fixes** the repository requires a regression test. Analyzer tests should be many small focused tests, not one large multi-case test. |
 | 15 | **Performance** | Only obvious issues — hot-path allocations in tight loops, O(n²) over user-sized collections, unnecessary repeated IO, per-node `GetText()`/`ToString()` materialization. Do not nitpick. |
 | 16 | **Repo conventions** | Diagnostic ID in correct range (`RH0###` Analyzer, `RH1###` Performance, … `RH8###` Documentation). `helpLinkUri` matches the actual rule doc under `documentation/rules/`. Code fixes delegate final layout to `ReihitsuFormatter.FormatNodeInDocumentAsync` / `FormatNode` — but check the delegation scope is tight (formatting a whole member/type to fix one token drags unrelated edits and inherited formatter defects into the fix). Formatter still leaves syntax-invalid and generated code untouched. New analyzer rule ships a comprehensive code fix or no fix at all. |
-| 17 | **Naming & docs** | Names align with surrounding code. Public API XML docs added/updated. Rule doc under `documentation/rules/RH####.md` exists and matches the rule if a rule was added or renamed. |
+| 17 | **Naming & docs** | Names align with surrounding code. Public API XML docs added/updated. Rule doc under `documentation/rules/RH####.md` exists and matches the rule if a rule was added or renamed. For every method whose body changed, its XML summary and inline comments must still describe the code they sit next to — a comment left documenting the previous behavior is a defect in the same diff that changed it. |
 | 18 | **Scope discipline** | No out-of-scope edits. No commented-out code. No `TODO` left without an issue link. |
 | 19 | **Issue coverage** | If the PR links an issue (`Closes #N`), every requirement listed in the issue is addressed by the diff. Flag missing requirements explicitly. |
 
@@ -102,15 +102,15 @@ Missing tests from this list are findings (severity per the model below), not hi
 
 Reach for execution only when a **specific suspicion is checkable and the answer changes a finding** — a convergence question, an idempotency double-run, a suspected non-compiling rewrite. In that case:
 
-1. Run `dotnet --list-sdks` to confirm the preinstalled .NET 10 SDK. Do not install an SDK, modify `PATH`, or otherwise change the environment.
+1. Run `scripts/prepare.sh --no-install` to confirm the preinstalled .NET 10 SDK. Do not install an SDK, modify `PATH`, or otherwise change the environment.
 
 2. Run **only the targeted tests that resolve the suspicion**, not the whole suite. Use a `--filter` scoped to the affected rule(s) (examples in `AGENTS.md`), e.g.:
 
    ```shell
-   dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --filter "FullyQualifiedName~RH3204"
+   scripts/test.sh --no-install --project analyzer --filter "FullyQualifiedName~RH3204"
    ```
 
-   For formatter changes, run `dotnet run --project Reihitsu.Cli -- <path>` **twice** over a file exercising the change — the second run must report no changes.
+   For formatter changes, run `scripts/format.sh --no-install <path>` **twice** over a file exercising the change — the second run must report no changes.
 
 3. A **high**-severity finding should carry a concrete counterexample (a short code snippet plus what goes wrong) in the review comment. Constructing the counterexample is how a suspicion earns "high confidence" — do not discard invariant suspicions merely because they are not obvious from the diff.
 
