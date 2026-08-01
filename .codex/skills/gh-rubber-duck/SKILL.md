@@ -1,6 +1,6 @@
 ---
 name: gh-rubber-duck
-description: Read-only Behavior Contract analysis ("rubber duck") for a Reihitsu GitHub issue or pull request, run before any code is written. Use for `/gh-rubber-duck`, `$gh-rubber-duck`, "rubber duck issue 474", "what exactly should this issue change", "pin the expected behavior down first", and as the mandatory pre-implementation gate that `gh-implement` runs in a dedicated read-only subagent. Turns an issue plus every clarification into explicit user-visible examples, a behavior contract table, anchor and trivia rules, an analyzer/formatter/code-fix/test counterpart map, an adversarial boundary matrix, non-goals, and the decisions that must be settled before implementation starts. Challenges assumptions instead of paraphrasing the issue. Never edits files, commits, pushes, opens or updates a PR, posts comments, claims an issue, resolves threads, or runs the full validation suite.
+description: Read-only Behavior Contract analysis ("rubber duck") for a Reihitsu GitHub issue or pull request, run before any code is written. Use for `/gh-rubber-duck`, `$gh-rubber-duck`, "rubber duck issue 474", "what exactly should this issue change", "pin the expected behavior down first", and as the mandatory pre-implementation gate that `gh-implement` runs in a dedicated read-only subagent. Turns an issue plus every clarification into explicit user-visible examples, a behavior contract table, anchor and trivia rules, an analyzer/formatter/code-fix/test counterpart map, an adversarial boundary matrix, and, for bug reports, a code-derived defect-class enumeration with an executable candidate sweep. Challenges assumptions instead of paraphrasing the issue. Never edits repository files, commits, pushes, opens or updates a PR, posts comments, claims an issue, resolves threads, or runs the full validation suite.
 ---
 
 # Reihitsu Behavior Contract (Rubber Duck)
@@ -13,7 +13,7 @@ Your job is to **argue with the issue**, not to summarize it. A contract that on
 
 ## Read-only guarantees
 
-This workflow inspects and reports. It never mutates anything:
+This workflow inspects and reports. It never mutates repository or GitHub state:
 
 - No edits to repository files, including tests and documentation.
 - No commits, branches, stashes, or pushes.
@@ -23,6 +23,8 @@ This workflow inspects and reports. It never mutates anything:
 - No full solution validation (`dotnet build` of the solution, full test projects).
 
 Allowed: reading issue and PR data, `git log` / `git show` / `git diff` on existing history, reading source, tests, and documentation, and `rg` searches. Running one narrowly filtered existing test to settle a factual question about current behavior is acceptable; running the suite is not.
+
+For the required bug-report sweep, create disposable fixtures only in a temporary directory outside the repository. Exercise them through the narrowest existing public or test entry point, record the results, and remove the temporary directory afterwards. Normal build artifacts from that targeted execution are allowed. Never add a fixture or harness to the repository from this read-only workflow.
 
 Because the analysis is read-only, it is safe to run at any time, including while another agent owns the issue.
 
@@ -64,6 +66,7 @@ Read the conversation too. Clarifications the user typed in chat are part of the
 Determine and state explicitly:
 
 - **The behavioral invariant** — the one sentence that must stay true after the change, phrased so a test can falsify it.
+- **The defect mechanism** — for a bug report, one sentence whose membership is decidable for any candidate construct. Describe why the failure occurs, not the examples that happened to expose it.
 - **The source of truth** — which token, trivia, delimiter, node, or existing helper decides layout, syntax, semantics, or state. Name it.
 - **Boundary conditions** — where the invariant stops applying.
 - **Ambiguous interpretations** — every reading of the issue that a competent implementer could pick, with the behavior each one produces.
@@ -74,6 +77,20 @@ Determine and state explicitly:
 - **Non-goals** — behavior the issue does *not* ask for, so the implementer does not broaden it.
 
 For a formatter or analyzer issue, trace the counterpart behavior across every surface — analyzer, formatter phase, code fix, Fix All, shared utilities in `Reihitsu.Core`, rule documentation, and tests — and say for each whether it must change, must stay unchanged, or is not involved. "Not involved" is a finding too; it tells the implementer where not to spend time.
+
+## Defect-class enumeration and sweep
+
+This section is mandatory for every bug report. A symptom list such as "indexers and events" is not a defect class.
+
+1. State the **mechanism** in one sentence so membership can be decided without judgment, for example: "A brace is normalized on a node that does not contain the token preceding it."
+2. Locate the code that dispatches that mechanism: the fixed switch, visitor registration, rewriter list, syntax type hierarchy, or equivalent closed set.
+3. Enumerate every arm, registration, or concrete type from that code. Cite the defining path and symbol. Do not derive the candidate list from the issue text.
+4. Create one minimal disposable fixture per candidate and exercise all candidates through the narrowest existing entry point. For formatter behavior, run the formatter over the complete fixture batch, then run it a second time and compare the first- and second-pass outputs. For analyzer or code-fix behavior, use the narrowest existing harness that can analyze or fix the temporary fixture and re-analyze the result.
+5. Record whether each candidate reproduces and converges. Decide `In scope` from the mechanism, not from severity, convenience, or whether the issue named it.
+
+If the dispatch set cannot be enumerated or a candidate cannot be exercised from the inspected baseline, the sweep is incomplete. Report `BLOCKED` when evidence is unavailable, or `NEEDS DECISION` when completing the class exposes materially different intended behavior. Never paper over an untested candidate with `N/A`.
+
+For a feature request or other non-bug task, render both required defect-class sections as `_N/A — not a bug report._` so downstream consumers can distinguish an intentional omission from a malformed contract.
 
 ## Adversarial considerations
 
@@ -108,6 +125,8 @@ Decide one of:
 
 A single unresolved semantic decision is enough for `NEEDS DECISION`. Do not pick a favorite and report `READY`.
 
+For a bug report, `READY` additionally requires a complete code-derived enumeration and one recorded sweep result per candidate. A green reported example is not enough.
+
 ## Required output schema
 
 Return exactly these sections, in this order, rendering `_None._` under any that is empty. Keep it short enough to be read in one pass — no dumped source files, no verbatim reproduction of the issue.
@@ -141,6 +160,15 @@ READY
 | Case | Relevant | Expected result |
 |------|----------|-----------------|
 
+## Defect-class enumeration
+- Mechanism: …
+- Dispatch source: `<path>` — `<symbol>`
+- Candidates: …
+
+## Defect-class sweep
+| Candidate | Fixture | Reproduces | Converges | In scope | Reason if excluded |
+|-----------|---------|------------|-----------|----------|--------------------|
+
 ## Non-goals
 - <behavior intentionally outside this issue>
 
@@ -161,6 +189,8 @@ Section rules:
 - **Evidence baseline** names the commit every statement below was derived from, so a later reader can check whether the contract still applies.
 - **Behavior contract** `Owner` names the responsible surface: the analyzer, the formatter phase, the code fix, a shared helper, or the rule doc. One row per verifiable scenario; the IDs are what the implementer's regression matrix and the local self-review reference later.
 - **Adversarial matrix** carries one row per shape kept from the list above, plus `N/A` rows with their reason for the shapes that were considered and dismissed.
+- **Defect-class enumeration** names the decidable mechanism, the code location that defines the candidate set, and every candidate found there. For non-bug work, use the explicit `_N/A` text above.
+- **Defect-class sweep** contains one row per enumerated candidate. `Fixture` identifies the disposable input, `Reproduces` records the baseline failure, `Converges` records re-analysis or the formatter's second pass, and every `In scope = no` row explains why the candidate does not satisfy the mechanism. For non-bug work, use the explicit `_N/A` text above.
 - **Decisions needed** is `_None._` for `READY`. Otherwise, per decision: the competing interpretations, a concrete example of each (input and the differing output), and a recommended choice with the reason it fits the repository's existing behavior.
 - **Implementation handoff** lists the red tests that should exist before production code, matching the repository's test-first rule for analyzer and formatter bug fixes, and names focused `--filter` commands rather than the full suite. Name the existing test helper each red test should use — `VerifyFormatterFixAndIdempotency` for layout changes (second pass plus LF/CRLF), `VerifyFormatterFix` for plain analyzer/formatter parity, `VerifyFormatterStability` for code that must stay untouched, `AnalyzerTestsBase<TAnalyzer, TCodeFix>.Verify` for a code fix and its convergence, `AssertRuleResult(input, expected, endOfLine)` for formatter phases. Pointing at the wrong helper is how an invariant ends up looking covered while it is not.
 
@@ -169,7 +199,7 @@ Section rules:
 `gh-implement` reads this file in the parent agent and then runs the analysis in one fresh, read-only subagent that has no access to the parent's proposed solution. Two consequences:
 
 - Report the contract you can defend from the issue and the repository, not the one the parent seems to want. Independence is the whole point of the isolation.
-- Return the schema above verbatim. The parent turns the `Behavior contract` and `Adversarial matrix` rows directly into its regression matrix and its local self-review checklist, so unstable headings break the hand-off.
+- Return the schema above verbatim. The parent turns the `Behavior contract`, `Adversarial matrix`, and `Defect-class sweep` rows directly into its regression matrix and local self-review checklist, so unstable headings break the hand-off.
 
 When the parent later sends new evidence (a user clarification, a fact discovered mid-implementation), amend the same contract: restate the gate, mark which rows changed, and keep the unchanged rows stable so the parent can diff them.
 
@@ -179,6 +209,7 @@ The analysis is cheap only if it stays cheap:
 
 - Use `rg` to locate behavior; do not read whole projects to find one phase.
 - Batch the independent GitHub reads in one step.
+- Batch all disposable sweep fixtures into one targeted invocation per pass instead of launching one process per candidate.
 - Read a large file once and work from that content; do not re-open it per question.
 - Quote the few lines that carry the evidence, not the file.
 - Skip narration of unchanged state.
@@ -190,6 +221,7 @@ The analysis is cheap only if it stays cheap:
 - Never start implementation, and never call an implementation skill or command.
 - Never run the full validation suite; focused, filtered runs only, and only to settle a factual question.
 - Never report `READY` while a material interpretation question is open.
+- Never report `READY` for a bug report without a decidable mechanism, a code-derived complete candidate enumeration, and a completed sweep row for every candidate.
 - Never omit the schema sections; render `_None._` instead.
 - Never pad the adversarial matrix with shapes that cannot reach the changed code — mark them `N/A`.
 - English only, per `AGENTS.md`.

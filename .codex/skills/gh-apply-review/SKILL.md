@@ -1,6 +1,6 @@
 ---
 name: gh-apply-review
-description: Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Codex task after another party reviewed it. Use for requests such as "apply the review", "address the review comments", "work through the PR feedback", or "fix the review findings". Build one complete worklist from open reviewer findings, review summaries, user-authored PR hints, a pasted gh-review Copy block, chat context, and prior preflight findings before editing anything; implement the accepted items as one cohesive repair cycle under AGENTS.md; close the complete defect class; run a local self-review; synchronize origin/main; spend at most two official gh-preflight attempts; run the full validation once; push the existing PR branch; reply to addressed threads without resolving them. This is the fix step between gh-review and gh-rereview and supports Codex on Linux cloud and local Windows with the authenticated gh CLI and preinstalled .NET SDK.
+description: Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Codex task, or publish follow-up drafts the user approved in that task. Use for "apply the review", "address the review comments", "fix the review findings", or "approve follow-up F1". Build one complete worklist before editing, freeze the PR's mechanism or requirement scope, fix confirmed same-scope and PR-introduced bugs in one repair cycle, and preserve every other confirmed item as an English copy-ready issue draft in final chat plus an ignored recovery cache. Require explicit approval before `gh issue create`; never invoke the local issue-upload script. Run local self-review, synchronize origin/main, use at most two preflight attempts, validate once, push the existing branch, and reply without resolving threads. Supports Linux and Windows with authenticated `gh` and the preinstalled .NET SDK.
 ---
 
 # Reihitsu GitHub PR Apply Review
@@ -21,13 +21,15 @@ Support Linux cloud and local Windows. Use the repository checkout, authenticate
 
 1. Resolve the PR and read its current state.
 2. Build **one** complete worklist from every source, before editing anything.
-3. Classify every item exactly once: fix, skip with reason, or needs decision.
-4. Implement all `fix` items as one cohesive repair cycle.
-5. Run the **local self-review**.
-6. Synchronize with current `origin/main`.
-7. Run the **official preflight** on that exact synchronized head, inside the 1 + 1 budget.
-8. Run the complete **full validation** once.
-9. Push the final non-`[skip ci]` CI trigger, then reply to the addressed threads without resolving them.
+3. State the PR's defect mechanism or accepted requirement boundary and its shipped-surface boundary, classify every item exactly once, and freeze that scope.
+4. Preserve each confirmed out-of-scope item as a reviewable follow-up draft; do not publish it yet.
+5. Implement all `fix here` items as one cohesive repair cycle.
+6. Run the **local self-review**.
+7. Synchronize with current `origin/main`.
+8. Run the **official preflight** on that exact synchronized head, inside the 1 + 1 budget.
+9. Run the complete **full validation** once.
+10. Push the final non-`[skip ci]` CI trigger, reply to fixed items, and return every pending follow-up as a copy-ready chat block for user approval.
+11. On a later approval turn, publish only the approved drafts, update `Follow-up work`, and reply to their review threads without changing the audited tree or resolving threads.
 
 ## Resolve the PR
 
@@ -65,25 +67,39 @@ Call `gh api user --jq .login` first and compare it with the PR author so the id
 3. **User-authored PR hints** — comments the PR author's own account posted on the PR.
 4. **Pasted review blocks** — every line of a `gh-review` Copy block pasted into the task.
 5. **Conversation clarifications** — relevant guidance given in chat that never became a GitHub comment.
-6. **Prior preflight findings** — confirmed findings from an earlier official preflight in this task that are not yet fixed.
+6. **Prior preflight findings and scope hints** — confirmed findings and confirmed unrelated pre-existing concerns from an earlier official preflight in this task that are not yet fixed or preserved as follow-up drafts. Keep uncertain hints identified as uncertain; do not convert them into issues without confirmation.
 
 Direct user guidance wins when it conflicts with a reviewer finding.
 
 If there is no review and no hint, stop and report that there is nothing to apply.
 
-## Classify every item exactly once
+## Freeze scope and classify every item exactly once
+
+Before classifying findings, record the **scope ledger**:
+
+- the PR's original defect mechanism or accepted feature requirement, phrased so membership is decidable;
+- the issue requirements and shipped surfaces the PR already changes;
+- defects introduced by the current PR diff, which remain the PR's responsibility even when their mechanism differs from the original bug;
+- each worklist item's mechanism, origin, change type, shipped-surface impact, disposition, and evidence.
+
+Use the linked issue and Behavior Contract when available. Otherwise derive the original mechanism from the issue, current diff, and dispatch code. If the mechanism is materially ambiguous, use `gh-rubber-duck` or classify the item `needs decision`; do not invent a broad umbrella mechanism merely to keep work in the PR.
 
 Assign each worklist item exactly one class:
 
-- **fix**: actionable and unambiguous; implement it in this cycle.
-- **skip**: incorrect, already handled, or out of scope; record the evidence and reason.
-- **needs decision**: ambiguous, contested, architecturally significant, public-API-changing, or dependency-changing. Ask the user directly and pause that item until they decide. Do not silently choose an interpretation.
+- **fix here**: a confirmed actionable bug for which `(same mechanism/accepted requirement as the PR OR introduced by the PR diff)` is true, the change restores intended behavior rather than adding new behavior, and it changes no shipped diagnostic, public API, or dependency. Reverting an unintended PR-local surface change to the base behavior is restoration, not a new shipped change.
+- **follow-up draft**: a confirmed actionable item that fails any `fix here` condition. New behavior, a new mechanism, and diagnostic/API/dependency changes belong here even when severe.
+- **dismissed**: demonstrably incorrect, duplicate, already fixed, or no longer applicable. Out-of-scope is not a dismissal reason. Record the evidence.
+- **needs decision**: ambiguous, contested, or impossible to classify without a material user choice. Ask the user directly and pause that item until they decide. Do not silently choose an interpretation.
+
+Every confirmed actionable item is therefore either `fix here` or `follow-up draft`; it is never dropped. High severity changes follow-up priority, not PR scope.
+
+Freeze the ledger after this first complete classification. Later review or preflight evidence may add another candidate of an already accepted mechanism or identify a PR-introduced defect, but it may not admit a new pre-existing mechanism into this PR. Apply the same criterion to every later finding and preserve new mechanisms as follow-up drafts.
 
 When a review item introduces a materially ambiguous **behavior** change — a different output for the same input, an anchor moved, a rule's meaning widened — the `gh-rubber-duck` workflow is the right tool to settle it before editing. Run it or recommend it; it is read-only and costs one pass. It is optional here: only `gh-implement` runs it automatically as a mandatory gate.
 
 ## Implement as one cohesive repair cycle
 
-Implement all `fix` items together, then validate once. Keep changes limited to accepted review items. Group commits by concern and stage explicit paths only; never use `git add -A` blindly.
+Implement all `fix here` items together, then validate once. Keep changes limited to accepted review items. Group commits by concern and stage explicit paths only; never use `git add -A` blindly.
 
 Before editing each accepted finding, state its general defect class and inspect sibling syntax shapes, wrappers, nested scopes, repeated-token cases, and shared helpers that can carry the same hazard. The requested counterexample is the minimum reproduction, not the implementation boundary. Regression coverage must close the relevant defect class without expanding into unrelated cleanup.
 
@@ -99,7 +115,35 @@ Apply the repository workflow from `AGENTS.md`:
   ```
 
 - Run the focused tests for the touched rule or phase as you go, not the full suite.
-- Avoid unrelated cleanup. Keep broader concerns in the current PR worklist and report; never move them to a new issue.
+- Avoid unrelated cleanup. Preserve broader confirmed concerns through the follow-up-draft workflow below; do not edit the PR to implement them.
+
+## Preserve follow-up work for user review
+
+For each `follow-up draft` item, first search open and closed GitHub issues and the current task's existing draft IDs for a duplicate. Reuse an exact existing issue instead of creating another draft. Combine several review items only when they share one decidable mechanism and one acceptance boundary.
+
+Assign stable IDs `F1`, `F2`, and so on within the PR. Write each new draft in English using the matching template from `.codex/commands/draft-issue.md`. Include the source PR and review item, defect mechanism, scope-split reason, acceptance criteria, and non-goals in the body while retaining every required template heading.
+
+Store two identical representations before the turn ends:
+
+1. **Canonical review copy:** the complete frontmatter and body in a copy-ready fenced Markdown block under `Follow-up drafts` in the final chat response. Commentary is not sufficient because it is collapsed after the turn.
+2. **Recovery cache:** the same Markdown in `plans/issues/pr-<PR>/F<n>-<slug>.md`. `plans/` is ignored and the cache never enters the PR diff. It is redundancy for context compaction, not the source of truth and not proof that an issue exists.
+
+Never invoke `scripts/upload-issues.ps1`; it is a user-owned local upload tool. Never call `gh issue create` before the user explicitly approves the specific draft ID and content. Until then, report `awaiting approval`, do not add a fictitious issue reference to the PR body, and do not tell the reviewer the item has a durable GitHub home.
+
+Continue the in-scope repair, validation, and push while drafts await approval. Follow-up publication changes GitHub metadata but not the audited tree, so it is a later handoff rather than a reason to grow or revalidate the PR.
+
+## Publish only approved follow-ups
+
+When the user later approves, edits, combines, or rejects a draft in this author task, treat that instruction as authoritative. Use the approved chat block as the canonical content; use the ignored cache only to recover text lost to context compaction.
+
+For each approved draft:
+
+1. Search open and closed issues again for the title, mechanism, and distinctive terms. Reuse a matching issue URL when one already exists.
+2. Otherwise write the approved body, without YAML frontmatter, to a temporary file outside the repository and create the issue directly with authenticated `gh issue create --title ... --body-file ...`, applying only labels that exist.
+3. Capture the returned URL, update the PR body's `Follow-up work` section with the issue link and one-line scope rationale, and reply to the source review thread with the same link and rationale.
+4. Leave the thread unresolved for `gh-rereview`. Verify the tracked tree is unchanged; do not rerun preflight or .NET validation for metadata-only publication.
+
+If the user explicitly rejects a draft, record that decision against the draft ID. Silence, a missing local cache, or an unapproved draft never counts as rejection or publication.
 
 ## Commit and keep CI quiet
 
@@ -129,6 +173,8 @@ Do not create the trigger commit when no change was applied.
 The official preflight is a final quality gate, not a discovery loop, and only two attempts are available. Walk your own change first, locally, in this agent, without another agent and without the full suite:
 
 - **every worklist row** — for each accepted item, name the change and the test that proves it;
+- **scope ledger** — every confirmed actionable row satisfies `fix here` or has a complete follow-up draft, and no new pre-existing mechanism entered the PR after the freeze;
+- **follow-up preservation** — every pending draft has an identical final-chat copy and ignored recovery cache, with no unapproved GitHub issue or PR-body claim;
 - **counterpart parity** — formatter output is not flagged by the analyzer, analyzer-clean code is formatter-stable;
 - **defect-class closure** — sibling shapes and private copies of the changed policy carry no residual hazard;
 - **convergence** — the code fix silences its own diagnostic in one pass and raises no new RH diagnostic;
@@ -165,14 +211,14 @@ The budget is fixed:
 
 1. **Attempt 1** runs automatically on the synchronized head.
 2. On `PASS`, continue to full validation.
-3. On `BLOCKED — findings`, merge **every** finding into **one** consolidated worklist — together with anything still open from the review worklist. Do not fix before the worklist is complete, and do not run a preflight in between.
-4. Fix the complete worklist in **one** repair cycle: close each finding's full defect class, format the changed paths, run the focused tests, redo the local self-review, then commit and push with `[skip ci]`.
+3. On `BLOCKED — findings`, merge **every** finding into **one** consolidated worklist — together with anything still open from the review worklist — and classify it against the frozen scope ledger. Do not fix before the worklist is complete, and do not run a preflight in between.
+4. Fix every `fix here` row in **one** repair cycle and preserve every `follow-up draft` row without changing the PR for it: close each in-scope finding's full defect class, format the changed paths, run the focused tests, redo the local self-review, then commit and push with `[skip ci]`.
 5. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent, read-only subagent against the exact new head.
 6. If the retry also blocks, **stop**. Report the remaining findings to the user and let them decide. Never start a third official preflight automatically.
 
 On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head before rerunning; a state mismatch is a setup error, not a review result, so it does not consume an attempt.
 
-Ask the user before acting on a preflight finding that is architecturally significant, public-API-changing, dependency-changing, contested, or unrelated to the accepted review work. Do not create the final CI-trigger commit until both preflight and full validation are green.
+Classify architecturally significant, public-API-changing, dependency-changing, contested, or unrelated preflight findings against the frozen ledger. Use `needs decision` when the classification itself is ambiguous; otherwise preserve them as follow-up drafts rather than expanding the PR. Do not create the final CI-trigger commit until both preflight and full validation are green.
 
 A tracked-file change made after a passing preflight means the audited tree is no longer the tree that will merge:
 
@@ -204,29 +250,46 @@ If the user explicitly asks to skip repeated local validation and rely on CI, ob
 
 ## Reply without resolving
 
-After the commits are pushed, reply once to every addressed inline comment using the review comment's database id:
+After the commits are pushed, reply once to every fixed inline comment using the review comment's database id:
 
 ```shell
 gh api --method POST repos/{owner}/{repo}/pulls/<N>/comments \
   -F in_reply_to=<comment-id> -f body='Addressed: <change> (<sha>).'
 ```
 
-Use `gh pr comment <N> --body '<message>'` for a non-line hint. Keep replies concise and in English. Do not resolve any thread; its open state is the handshake for `gh-rereview`.
+Use `gh pr comment <N> --body '<message>'` for a non-line hint. For a follow-up item, wait until the approved issue exists, then reply with its URL and scope rationale. Keep replies concise and in English. Do not resolve any thread; its open state is the handshake for `gh-rereview`.
 
 ## Chat output
 
 After completion, write only this structure, rendering `_None._` under empty sections:
 
-```markdown
+`````markdown
 ## Applied
 | # | Source | Location | Commit | Change |
 |---|--------|----------|--------|--------|
 | 1 | reviewer | Reihitsu.Formatter/Pipeline/Foo.cs:42 | a1b2c3d | Preserve `#endif`; add a regression test |
 
-## Skipped
-| # | Source | Location | Reason |
-|---|--------|----------|--------|
-| 1 | reviewer | Reihitsu.Cli/Program.cs:120 | Pre-existing and outside this PR's scope |
+## Follow-up drafts
+| ID | Source | Location | Mechanism | Scope reason | Status | Cache |
+|----|--------|----------|-----------|--------------|--------|-------|
+| F1 | reviewer | Reihitsu.Formatter/Pipeline/Foo.cs:42 | Accessor-list layout policy | New formatter behavior | awaiting approval | `plans/issues/pr-123/F1-accessor-list-layout.md` |
+
+### F1 — Copy-ready issue draft
+
+````markdown
+---
+template: formatter_feature_request
+title: "[FORMATTER FEATURE] Example title"
+labels: enhancement, formatter
+---
+
+<complete template-compatible issue body>
+````
+
+## Dismissed
+| # | Source | Location | Reason and evidence |
+|---|--------|----------|---------------------|
+| 1 | reviewer | Reihitsu.Cli/Program.cs:120 | Already fixed at the current head; the requested guard is present at line 118 |
 
 ## Needs decision
 _None._
@@ -240,10 +303,12 @@ _None._
 
 ## Pushed
 - PR #123, branch `codex/...`: two `[skip ci]` fix commits and trigger commit `Ready for CI (#123)`.
-- Replied on threads #1 and #2; left them unresolved for `gh-rereview`.
-```
+- Replied on fixed thread #1; F1 awaits approval and has no follow-up thread reply yet. Left threads unresolved for `gh-rereview`.
+`````
 
-List every item once. Give a reason for every skipped item. Include a `preflight` source row under Applied for each confirmed preflight finding that the parent fixed; these have no reviewer thread to reply to. Move answered decisions into Applied or Skipped; list only deferred decisions under Needs decision. The Validation block must state how many official preflight attempts were used, the result of each, and whether the budget was exhausted. If validation or push failed, state the exact failure instead of claiming success. Add no preamble or closing text.
+List every item once. Every confirmed actionable item appears under Applied or Follow-up drafts; Dismissed is reserved for findings disproved, duplicated, already fixed, or no longer applicable. Include a `preflight` source row under Applied or Follow-up drafts for each confirmed preflight finding or confirmed scope hint; these have no reviewer thread until an issue is approved and published. Move answered decisions into the matching table; list only unresolved decisions under Needs decision. The Validation block must state how many official preflight attempts were used, the result of each, and whether the budget was exhausted. If validation or push failed, state the exact failure instead of claiming success. Add no preamble or closing text.
+
+For an approval-only continuation turn, return the same structure with each approved draft changed to `created: <issue-url>` or `reused: <issue-url>`, the cache path retained for traceability, the PR-body update and thread reply under Pushed, and unchanged validation explicitly carried forward because the tracked tree did not change. Omit the copy block once the issue exists.
 
 ## Execution economy
 
@@ -263,6 +328,8 @@ None of this may reduce correctness or hide a failing result.
 - Never resolve a review thread.
 - Never start editing before the complete worklist exists and every item is classified.
 - Never guess on ambiguous or significant feedback.
+- Never expand the frozen PR mechanism scope for a pre-existing defect, new behavior, diagnostic, public API, or dependency change; preserve it as a follow-up draft.
+- Never drop a confirmed actionable item: fix it here or return a complete reviewable follow-up draft.
 - Never skip the test-first, idempotency, convergence, formatting, or validation requirements in `AGENTS.md`.
 - Never start a third official preflight automatically; the budget is one attempt plus one retry.
 - Never split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
@@ -271,6 +338,6 @@ None of this may reduce correctness or hide a failing result.
 - Never treat an earlier green project result as still valid after a compiled file changed, and never claim the audit covered the final commit when only the tree matches.
 - Never install an SDK or modify `PATH`.
 - Never push a non-`[skip ci]` commit before validation is green.
-- Never stage unrelated paths, open another PR, or change the PR's draft state.
-- Never search for or create a follow-up issue. Every review item remains attached to the current PR.
+- Never stage unrelated tracked paths, open another PR, or change the PR's draft state. Ignored `plans/issues/pr-<PR>/` files are recovery caches only.
+- Never invoke `scripts/upload-issues.ps1`, publish an unapproved draft, or rely on an ignored local file as the sole copy of follow-up work.
 - Use authenticated `gh` for GitHub operations; do not use raw unauthenticated HTTP calls.
