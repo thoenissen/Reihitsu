@@ -96,7 +96,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        AnalyzeStatements(context, block.Statements, inSwitchSection: block.Parent is SwitchSectionSyntax);
+        AnalyzeStatements(context, block.Statements);
     }
 
     /// <summary>

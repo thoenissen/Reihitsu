@@ -56,12 +56,59 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
     }
 
     /// <summary>
-    /// Verifies that the formatter does not insert a blank line before a break statement inside a block that is
-    /// itself the braced body of a switch section (issue #440)
+    /// Verifies that the formatter inserts a blank line before a break statement inside a block that is itself the
+    /// braced body of a switch section
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterLeavesBreakInsideBracedSwitchSectionUntouched()
+    public async Task VerifyFormatterFixesBreakInsideBracedSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                                 {
+                                                     var value = choice;
+                                                     {|#0:break|};
+                                                 }
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int choice)
+                                     {
+                                         switch (choice)
+                                         {
+                                             case 1:
+                                                 {
+                                                     var value = choice;
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter keeps a terminal break that belongs directly to a switch section unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterLeavesDirectSwitchSectionBreakUntouched()
     {
         const string input = """
                              internal class Example
@@ -72,7 +119,38 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
                                      {
                                          case 1:
                                              {
-                                                 var value = choice;
+                                                 Consume();
+                                             }
+                                             break;
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves a break that is the first statement of a braced switch-section body
+    /// unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterLeavesFirstBreakInsideBracedSwitchSectionUntouched()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             {
                                                  break;
                                              }
                                      }

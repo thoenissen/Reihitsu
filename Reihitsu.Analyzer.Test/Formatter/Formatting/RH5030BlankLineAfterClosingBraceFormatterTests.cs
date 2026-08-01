@@ -276,12 +276,12 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the formatter does not insert a blank line before a break statement that follows a closing
-    /// brace when both are inside a single block that is itself the braced body of a switch section (issue #440)
+    /// Verifies that the formatter inserts a blank line before a break statement that follows a closing brace when
+    /// both are inside a single block that is itself the braced body of a switch section
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterDoesNotInsertBlankLineBeforeBreakInsideBracedSwitchSection()
+    public async Task VerifyFormatterInsertsBlankLineBeforeBreakInsideBracedSwitchSection()
     {
         const string input = """
                              internal class Example
@@ -292,11 +292,11 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
                                      {
                                          case 1:
                                              {
-                                                 if (GetValue())
-                                                 {
-                                                     Consume();
-                                                 }
-                                                 break;
+                                                     if (GetValue())
+                                                     {
+                                                         Consume();
+                                                     {|#0:}|}
+                                                     break;
                                              }
                                      }
                                  }
@@ -312,7 +312,119 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        await VerifyFormatterLeavesCodeUnchanged(input);
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (GetValue())
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private bool GetValue()
+                                     {
+                                         return false;
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter updates every affected braced switch-section body and remains idempotent
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesMultipleBreaksInsideBracedSwitchSections()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             {
+                                                 if (value > 0)
+                                                 {
+                                                     Consume();
+                                                 {|#0:}|}
+                                                 break;
+                                             }
+
+                                         case 2:
+                                             {
+                                                 if (value > 1)
+                                                 {
+                                                     Consume();
+                                                 {|#1:}|}
+                                                 break;
+                                             }
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (value > 0)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+
+                                             case 2:
+                                                 {
+                                                     if (value > 1)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat, 2));
     }
 
     /// <summary>

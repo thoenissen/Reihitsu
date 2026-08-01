@@ -163,7 +163,6 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        var inSwitchSection = node.Parent is SwitchSectionSyntax;
         node = (BlockSyntax)base.VisitBlock(node);
 
         if (node == null)
@@ -171,7 +170,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var result = ApplyStatementSpacing(node.Statements, inSwitchSection);
+        var result = ApplyStatementSpacing(node.Statements, inSwitchSection: false);
 
         return result.Modified
                    ? node.WithStatements(result.Statements)
