@@ -625,5 +625,117 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
                      Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifying that an auto-property carrying a comment between its accessor list and its initializer is not
+    /// flagged, because the formatter refuses to join the initializer across that comment (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInInitializerGapAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value { get; set; } // note
+                                    = 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property carrying a multi-line block comment between its accessor list and its
+    /// initializer is not flagged (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlockCommentInInitializerGapAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value { get; set; } /* note
+                                       more */ = 2;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property carrying a directive between its accessor list and its initializer is not
+    /// flagged (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveInInitializerGapAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value { get; set; }
+                                #if FEATURE
+                                #endif
+                                    = 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property whose initializer sits on its own line without intervening trivia is still
+    /// flagged, because the formatter joins the initializer in that case (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOwnLineInitializerAutoPropertyIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value { get; set; }
+                                    = 1;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that no code fix action is registered for an auto-property carrying a comment between its accessor
+    /// list and its initializer, so the code fix does not offer a no-op action (issue #604)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInInitializerGapAutoPropertyIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class RH5408
+                                   {
+                                       public int Value { get; set; } // note
+                                       = 1;
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

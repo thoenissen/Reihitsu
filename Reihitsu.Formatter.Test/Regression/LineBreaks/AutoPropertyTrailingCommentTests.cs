@@ -339,6 +339,72 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment between the accessor list and an initializer on the following line is
+    /// not crossed, so the declaration keeps its existing layout
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeOwnLineInitializerIsNotCrossed()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; } // note
+                                 = 1;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line block comment between the accessor list and the initializer is not
+    /// crossed, so the declaration keeps its existing layout
+    /// </summary>
+    [TestMethod]
+    public void BlockCommentBeforeInitializerIsNotCrossed()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; } /* note
+                                    more */ = 2;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an initializer on its own line is joined onto the property line when no trivia
+    /// sits in between, which is the boundary that keeps the initializer-gap guard from over-reaching
+    /// </summary>
+    [TestMethod]
+    public void OwnLineInitializerWithoutTriviaIsJoined()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; }
+                                 = 1;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; } = 1;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an indexer with a multi-line auto-accessor list and a trailing comment keeps its
     /// existing layout, so the property fix does not leak into the indexer path
     /// </summary>

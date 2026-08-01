@@ -139,6 +139,15 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
                 return false;
             }
 
+            // The reported span runs to the end of the declaration, so it covers the initializer as well. A comment
+            // or directive in the gap between the accessor list and the initializer lives in the closing brace's
+            // trailing trivia, which neither check above inspects. The formatter refuses to join the initializer
+            // across that trivia, so the analyzer must guard the same gap to avoid a permanent diagnostic.
+            if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(propertyDeclaration.AccessorList.CloseBraceToken, propertyDeclaration.Initializer.EqualsToken))
+            {
+                return false;
+            }
+
             if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
             {
                 return false;
