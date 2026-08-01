@@ -136,11 +136,17 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// <remarks>
     /// The initializer is a sibling that follows the accessor list and is laid out by other subphases.
     /// Collapsing the accessor list does not touch it, so a multi-line initializer must not prevent the
-    /// simple auto-property accessor list from staying single-line (see issue #311)
+    /// simple auto-property accessor list from staying single-line (see issue #311).
+    /// The comment and directive guard is interior-scoped for the same reason: the collapse rewrites only
+    /// the closing brace's leading trivia, so a comment trailing that brace sits outside the accessor list
+    /// and is never crossed. Guarding the accessor list's full span instead would count that trailing
+    /// comment and force an already-correct single-line property apart (see issue #604).
+    /// Trivia the collapse would cross is still guarded: inside the accessor list by the check below, and
+    /// in the gap between the signature and the opening brace by <see cref="LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia"/>
     /// </remarks>
     private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
     {
-        if (node?.AccessorList == null || SyntaxNodeUtilities.ContainsCommentOrDirective(node.AccessorList))
+        if (node?.AccessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node.AccessorList))
         {
             return false;
         }
@@ -192,7 +198,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses each accessor's attribute-list brackets, keyword, and semicolon onto the accessor line
+    /// Collapses each accessor's attribute-list brackets, modifiers, keyword, and semicolon onto the accessor line
     /// </summary>
     /// <param name="updatedNode">The property declaration whose accessors are collapsed</param>
     /// <returns>The property declaration with each accessor collapsed onto a single line</returns>
@@ -205,6 +211,15 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             for (var attributeListIndex = 0; attributeListIndex < accessor.AttributeLists.Count; attributeListIndex++)
             {
                 updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.AttributeLists[attributeListIndex].OpenBracketToken);
+                accessor = updatedNode.AccessorList.Accessors[accessorIndex];
+            }
+
+            // Modifiers precede the keyword, so an accessor such as "private set;" carries the line break and the
+            // indentation on its modifier rather than on its keyword. Collapsing only the keyword would leave that
+            // indentation behind as stray spacing that a second pass has to clean up.
+            for (var modifierIndex = 0; modifierIndex < accessor.Modifiers.Count; modifierIndex++)
+            {
+                updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.Modifiers[modifierIndex]);
                 accessor = updatedNode.AccessorList.Accessors[accessorIndex];
             }
 

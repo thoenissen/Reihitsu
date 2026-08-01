@@ -97,10 +97,12 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             return false;
         }
 
-        // The formatter's CanCollapseAutoPropertyToSingleLine bails out on any comment or directive in the
+        // The formatter's CanCollapseAutoPropertyToSingleLine bails out on a comment or directive inside the
         // accessor list (for example a comment between accessors), so the analyzer must guard the same shape,
-        // otherwise it flags a property the formatter never collapses, leaving a permanent diagnostic.
-        if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.AccessorList))
+        // otherwise it flags a property the formatter never collapses, leaving a permanent diagnostic. The
+        // guard is interior-scoped to match the formatter exactly: a comment trailing the closing brace sits
+        // outside the accessor list, is never crossed by the collapse, and must not suppress the diagnostic.
+        if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.AccessorList))
         {
             return false;
         }
@@ -133,6 +135,21 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
         if (propertyDeclaration.Initializer != null)
         {
             if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.Initializer))
+            {
+                return false;
+            }
+
+            // The reported span runs to the end of the declaration, so it covers the initializer as well. A comment
+            // in the gap between the accessor list and the initializer lives in the closing brace's trailing trivia,
+            // which the check above does not inspect; a directive cannot occupy trailing trivia, so it always lands
+            // in the initializer's leading trivia and is already covered. The formatter only has to join that gap
+            // when the initializer starts on a later line, and it refuses to join across such trivia, so the
+            // analyzer must guard the same gap to avoid a permanent diagnostic. Trivia in a gap that already sits
+            // on one line is never crossed and must not suppress the diagnostic.
+            var initializerGapSpan = TextSpan.FromBounds(propertyDeclaration.AccessorList.CloseBraceToken.Span.End, propertyDeclaration.Initializer.EqualsToken.SpanStart);
+
+            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializerGapSpan) == false
+                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(propertyDeclaration.AccessorList.CloseBraceToken, propertyDeclaration.Initializer.EqualsToken))
             {
                 return false;
             }
