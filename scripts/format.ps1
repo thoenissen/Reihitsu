@@ -20,7 +20,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-. (Join-Path $PSScriptRoot 'lib' 'dotnet-env.ps1')
+. (Join-Path (Join-Path $PSScriptRoot 'lib') 'dotnet-env.ps1')
 
 Initialize-ReihitsuDotnet -NoInstall:$NoInstall -Quiet
 

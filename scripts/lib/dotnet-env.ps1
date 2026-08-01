@@ -22,7 +22,7 @@ function Get-ReihitsuRepositoryRoot
     .SYNOPSIS
         Returns the absolute path of the repository root.
     #>
-    (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..' '..')).Path
+    (Resolve-Path -LiteralPath (Join-Path (Join-Path $PSScriptRoot '..') '..')).Path
 }
 
 function Test-ReihitsuDotnet

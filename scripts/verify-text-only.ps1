@@ -28,7 +28,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-. (Join-Path $PSScriptRoot 'lib' 'dotnet-env.ps1')
+. (Join-Path (Join-Path $PSScriptRoot 'lib') 'dotnet-env.ps1')
 
 try
 {
