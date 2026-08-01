@@ -1,7 +1,7 @@
 ---
 name: gh-implement
 description: >-
-  Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, claims the issue by opening a generic-placeholder draft PR, triages the run as routine or behavioral, runs the `gh-rubber-duck` Behavior Contract gate in a dedicated read-only subagent before touching any file on every behavioral run, turns the accepted contract into the regression matrix, delegates the change to the matching repository command playbook, updates the draft after focused commits, self-reviews locally, synchronizes `origin/main`, spends at most two official `gh-preflight` attempts, runs the full validation suite once, fully rewrites the PR title and description, and pushes the single CI trigger. GitHub operations use the authenticated `gh` CLI.
+  Implement a Reihitsu GitHub issue end-to-end in Codex on Linux or Windows. Trigger when the initial prompt references an issue number or URL. Use the preinstalled .NET SDK without changing the environment, claim the issue with a generic-placeholder draft PR, triage the run as routine or behavioral, and run the read-only `gh-rubber-duck` Behavior Contract before every behavioral edit. Require a code-derived defect-class enumeration and candidate sweep for bug reports, turn the accepted contract into the regression matrix, delegate to the matching repository command, self-review, synchronize `origin/main`, use at most two official `gh-preflight` attempts, run full validation once, fully rewrite the draft PR, and push one CI trigger. Use authenticated `gh` for GitHub operations.
 ---
 
 # Implement GitHub Issue
@@ -22,7 +22,7 @@ Follow this sequence. The gates exist because rework in this repository is cause
 6. Spawn exactly one fresh, read-only Rubber Duck subagent (behavioral runs).
 7. Receive and process the Behavior Contract.
 8. Resolve every `NEEDS DECISION` before editing any production or test file.
-9. Convert the accepted contract — or, on a routine run, the recorded contract note — into the implementation plan and the regression-test matrix.
+9. Convert the accepted contract — including every bug-report defect-class sweep row — or, on a routine run, the recorded contract note into the implementation plan and regression-test matrix.
 10. Add all intended regression tests before production changes.
 11. Implement, formatting changed paths and running focused tests as you go.
 12. Run the **local self-review**.
@@ -213,6 +213,7 @@ If subagents are unavailable in the current environment, perform the analysis yo
 
 **`READY`**
 
+- For a bug report, reject a malformed `READY` result that lacks a decidable `Defect-class enumeration` or a completed `Defect-class sweep` row for every code-derived candidate. Send the schema defect back to the same Rubber Duck subagent; do not begin implementation.
 - Show the user a concise version of the user-visible examples and the important invariants — enough to catch a wrong contract in one glance, not the full report.
 - Fold the contract into the implementation plan and the regression matrix.
 - Continue automatically. Do not pause for approval unless the user explicitly asked to approve before implementation. If the user has already approved these examples or said "go" after seeing them, do not ask again.
@@ -246,6 +247,7 @@ Before production code changes, turn the accepted contract — or the routine ru
 The matrix must cover, for the surfaces the contract names:
 
 - every known defect variant from the issue and the contract's adversarial matrix;
+- every candidate from the contract's defect-class enumeration, including non-reproducing candidates that prove the boundary and every reproducing in-scope candidate from the sweep;
 - stable valid examples that must **not** change (the anti-regression side);
 - misaligned or invalid examples that must change;
 - code-fix convergence (one pass silences the diagnostic and raises no new RH diagnostic);
@@ -331,6 +333,7 @@ Check, concretely:
 - **every Behavior Contract row** — for each `B<n>`, name the test or code path that satisfies it; on a routine run, walk the contract note the same way;
 - **counterpart parity** — formatter output is not flagged by the analyzer, analyzer-clean code is formatter-stable;
 - **defect-class closure** — grep for sibling shapes and private copies of the policy you changed; a guard that covers only the reported example is not closure;
+- **sweep closure** — every code-derived candidate still has the expected result after implementation, and every reproducing in-scope row maps to a regression test;
 - **convergence** — the code fix silences its own diagnostic in one pass and raises no new RH diagnostic;
 - **idempotency** — a second formatter pass over the output is a no-op, on LF and CRLF;
 - **comments and directives** — the trivia shapes the contract marked relevant survive at sensible positions, or the edit is refused;
@@ -476,7 +479,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 4. Report back in chat, stating at least:
 
    - the scope classification (routine or behavioral), which gates it kept or skipped, and why;
-   - the run metrics, so the workflow itself can be evaluated after a dozen runs: contract gate result, number of contract rows, tests added, findings on the first official preflight, whether the retry was needed;
+   - the run metrics, so the workflow itself can be evaluated after a dozen runs: contract gate result, number of contract rows, defect-class candidates and reproductions, tests added, findings on the first official preflight, whether the retry was needed;
    - a coverage table so the reader can check the change without reading the diff:
 
      | Contract row | Test | Helper |
@@ -526,6 +529,7 @@ None of this may reduce correctness or hide a failing result. When output is tri
 - **Never** post claim, PR-link, or status comments on the issue, and do not apply an `in-progress` label. Use the linked draft PR as the ownership record.
 - **Never** silence or skip a failing test to make the PR go green.
 - **Never** ship a single narrow test when the contract identifies a broader defect class.
+- **Never** accept a bug-report contract as `READY` when its code-derived enumeration or candidate sweep is missing or incomplete.
 - **Never** finish a run leaving the claim-time placeholder title or wording in place — "Complete the draft pull request" must rewrite both the title and every body section from the actual change.
 - **Never** push a commit without `[skip ci]` before validation is green — the empty trigger commit in "Complete the draft pull request" is the only exception.
 - **Never** install an SDK, modify `PATH`, or otherwise change the environment. If the preinstalled toolchain is unavailable, record the environment issue in the draft PR and stop.
@@ -545,7 +549,8 @@ End-state checklist for a finished run:
 - [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded
 - [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent and exactly one read-only Rubber Duck subagent spawned before any edit — routine run: contract note written before any edit
 - [ ] Behavior Contract accepted (`READY`, or `NEEDS DECISION` resolved by the user) and shown to the user in short form
-- [ ] Regression matrix derived from the contract or contract note; red tests added before production changes
+- [ ] Bug-report contract contains a complete code-derived defect-class enumeration and sweep; non-bug contracts mark both sections N/A
+- [ ] Regression matrix derived from the contract, including every sweep candidate, or from the routine contract note; red tests added before production changes
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`, focused tests green
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
