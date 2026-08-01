@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -26,7 +26,7 @@ internal sealed class BlankLinePhase : IFormattingPhase
         var editor = new BlankLineEditor(context);
 
         return [
-                   new BlankLineTokenCleanupRewriter(cancellationToken),
+                   new BlankLineTokenCleanupRewriter(context.PreserveRootDocumentationBoundary, cancellationToken),
                    new BlankLineTriviaBoundaryRewriter(context, editor, cancellationToken),
                    new BlankLineRegionDirectiveRewriter(context, editor, cancellationToken),
                    new BlankLineStatementSpacingRewriter(editor, cancellationToken),

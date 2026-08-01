@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Reihitsu.Formatter.Pipeline.LineEndings;
 
 /// <summary>
-/// Normalizes all end-of-line trivia in the syntax tree to the formatter context value
+/// Normalizes end-of-line trivia and documentation XML newline tokens to the formatter context value
 /// </summary>
 internal sealed class LineEndingNormalizationPhase : IFormattingPhase
 {
     #region IFormattingPhase
 
     /// <summary>
-    /// Rewrites all end-of-line trivia to <see cref="FormattingContext.EndOfLine"/>
+    /// Rewrites all end-of-line trivia and documentation XML newline tokens to <see cref="FormattingContext.EndOfLine"/>
     /// </summary>
     /// <param name="root">The root syntax node to normalize</param>
     /// <param name="context">The active formatting context</param>
@@ -21,16 +21,27 @@ internal sealed class LineEndingNormalizationPhase : IFormattingPhase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var endOfLinesToReplace = root.DescendantTrivia(descendIntoTrivia: true)
-                                      .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != context.EndOfLine)
-                                      .ToArray();
+        var documentationEndOfLinesToReplace = root.DescendantTokens(descendIntoTrivia: true)
+                                                   .Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken)
+                                                                   && token.Text != context.EndOfLine)
+                                                   .ToArray();
+        var normalizedRoot = documentationEndOfLinesToReplace.Length == 0
+                                 ? root
+                                 : root.ReplaceTokens(documentationEndOfLinesToReplace,
+                                                      (original, _) => original.CopyAnnotationsTo(SyntaxFactory.XmlTextNewLine(original.LeadingTrivia,
+                                                                                                                               context.EndOfLine,
+                                                                                                                               original.ValueText,
+                                                                                                                               original.TrailingTrivia)));
+        var endOfLinesToReplace = normalizedRoot.DescendantTrivia(descendIntoTrivia: true)
+                                                .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != context.EndOfLine)
+                                                .ToArray();
 
         if (endOfLinesToReplace.Length == 0)
         {
-            return root;
+            return normalizedRoot;
         }
 
-        return root.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(context.EndOfLine));
+        return normalizedRoot.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(context.EndOfLine));
     }
 
     #endregion // IFormattingPhase

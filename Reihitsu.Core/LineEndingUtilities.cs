@@ -42,6 +42,23 @@ public static class LineEndingUtilities
             }
         }
 
+        foreach (var token in node.DescendantTokens(descendIntoTrivia: true))
+        {
+            if (token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken) == false)
+            {
+                continue;
+            }
+
+            if (token.Text.Length >= 2)
+            {
+                carriageReturnLineFeedCount++;
+            }
+            else
+            {
+                lineFeedCount++;
+            }
+        }
+
         if (carriageReturnLineFeedCount == 0 && lineFeedCount == 0)
         {
             return Environment.NewLine;

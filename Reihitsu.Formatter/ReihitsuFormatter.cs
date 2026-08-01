@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Pipeline;
 
@@ -99,7 +100,9 @@ public static class ReihitsuFormatter
     {
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(node);
         var baseIndentLevel = indentLevel >= 0 ? indentLevel : ReihitsuFormatterHelpers.ComputeBaseIndentLevel(node);
-        var context = new FormattingContext(endOfLine, baseIndentLevel);
+        var context = new FormattingContext(endOfLine,
+                                            baseIndentLevel,
+                                            preserveRootDocumentationBoundary: node is not CompilationUnitSyntax);
 
         return FormattingPipeline.Execute(node, context, cancellationToken);
     }
@@ -138,7 +141,9 @@ public static class ReihitsuFormatter
         var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken, root);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
-        var context = new FormattingContext(endOfLine, baseIndentLevel);
+        var context = new FormattingContext(endOfLine,
+                                            baseIndentLevel,
+                                            preserveRootDocumentationBoundary: targetNode != root);
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken(), formattedTarget);
         var columnOffset = originalColumn - formattedColumn;
@@ -208,7 +213,9 @@ public static class ReihitsuFormatter
         var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalContextFirstToken, root);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
-        var context = new FormattingContext(endOfLine, baseIndentLevel);
+        var context = new FormattingContext(endOfLine,
+                                            baseIndentLevel,
+                                            preserveRootDocumentationBoundary: contextNode != root);
         var targetTokenAnnotation = new SyntaxAnnotation();
         var originalFirstToken = targetNode.GetFirstToken();
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
