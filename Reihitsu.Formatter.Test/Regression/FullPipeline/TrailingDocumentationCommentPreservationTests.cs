@@ -303,5 +303,41 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that several off-position documentation comments are relocated in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesSeveralTrailingDocumentationCommentsInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int First { get; set; } /// first note
+
+                                 public int Second { get; set; }
+
+                                 public int Third { get; set; } /// third note
+
+                                 public int Fourth { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int First { get; set; }
+
+                                    /// first note
+                                    public int Second { get; set; }
+
+                                    public int Third { get; set; }
+
+                                    /// third note
+                                    public int Fourth { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

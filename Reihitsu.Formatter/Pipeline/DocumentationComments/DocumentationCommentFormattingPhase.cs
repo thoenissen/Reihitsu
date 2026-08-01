@@ -37,12 +37,12 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// Moves off-position single-line documentation trivia onto a line of its own before its following token
     /// </summary>
     /// <param name="root">Root node</param>
+    /// <param name="sourceText">Source text</param>
     /// <param name="endOfLine">Line-ending sequence</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The root with trailing documentation comments moved before their Roslyn owner</returns>
-    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, string endOfLine, CancellationToken cancellationToken)
+    private static SyntaxNode RelocateOffPositionDocumentationComments(SyntaxNode root, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
-        var sourceText = SourceText.From(root.ToFullString());
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
@@ -148,9 +148,15 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <returns>The formatted syntax node</returns>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        root = RelocateOffPositionDocumentationComments(root, context.EndOfLine, cancellationToken);
+        var sourceText = root.SyntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
+        var relocatedRoot = RelocateOffPositionDocumentationComments(root, sourceText, context.EndOfLine, cancellationToken);
 
-        var sourceText = SourceText.From(root.ToFullString());
+        if (ReferenceEquals(relocatedRoot, root) == false)
+        {
+            root = relocatedRoot;
+            sourceText = SourceText.From(root.ToFullString());
+        }
+
         var replacements = new Dictionary<SyntaxTrivia, SyntaxTrivia>();
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
