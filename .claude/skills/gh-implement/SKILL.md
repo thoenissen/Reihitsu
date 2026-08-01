@@ -288,7 +288,7 @@ A **scope checkpoint** is mandatory when a change or repair:
 
 At that checkpoint, stop and present three explicit choices (`AskUserQuestion`): narrow or revert the change, approve an expanded contract and scope, or create and link a follow-up issue. Do not pick one silently — an expanding repair is exactly how a bounded fix turns into an unreviewed refactor.
 
-For follow-up work, use the same mechanism as `gh-apply-review` §4/§5: stable `F<n>` IDs, an English copy-ready draft written from the matching template in `.claude/commands/draft-issue.md`, the complete draft in the final chat response, and the same text cached under the ignored `plans/issues/pr-<PR>/`. Create the GitHub issue only after the user explicitly approves that draft ID and content, and never invoke `scripts/upload-issues.ps1`.
+For follow-up work, use the same mechanism as `gh-apply-review`'s follow-up preservation and publication steps: stable `F<n>` IDs, an English copy-ready draft written from the matching template in `.claude/commands/draft-issue.md`, the complete draft in the final chat response, and the same text cached under the ignored `plans/issues/pr-<PR>/`. Create the GitHub issue only after the user explicitly approves that draft ID and content, and never invoke `scripts/upload-issues.ps1`.
 
 ## Convert the contract into a regression matrix
 
@@ -438,7 +438,7 @@ If `origin/main` moves again **after** a passing preflight: do not enter an unli
 
 `gh-preflight` is the final, independent quality gate. Read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings through GitHub MCP. Run it in a fresh, independent read-only subagent when subagents are available, exactly as that skill's reviewer-isolation section requires, and hand it the same evidence bundle the Rubber Duck received.
 
-**First decide whether an audit is required at all.** That decision belongs to `gh-preflight`'s trigger list, not to this file: an audit is required when the diff changes a predicate, guard, or report condition; which tokens or trivia a rewrite writes; a code-fix registration or applicability; a diagnostic ID, severity, or message; public API; a dependency; or adds a rule. It is not required for a diff that only edits comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — or that only adds tests for behavior that is already correct. Prove the comment-only case with `scripts/verify-text-only.sh` and record the proof line; ask the user (`AskUserQuestion`) when the diff fits neither list. A skipped audit never skips the full validation.
+**First decide whether an audit is required at all.** That decision belongs to `gh-preflight`'s trigger list, not to this file: an audit is required when the diff changes a predicate, guard, or report condition; which tokens or trivia a rewrite writes; a code-fix registration or applicability; a diagnostic ID, severity, or message; public API; a dependency; a repository script, build property, ruleset, or CI workflow; or adds a rule. It is not required for a diff that only edits comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — or that only adds tests for behavior that is already correct. Prove the comment-only case with `scripts/verify-text-only.sh` and record the proof line; ask the user (`AskUserQuestion`) when the diff fits neither list. A skipped audit never skips the full validation.
 
 The budget is fixed:
 

@@ -49,7 +49,8 @@ When a parent workflow invokes this skill, return the gate result to that workfl
 - which tokens or trivia a formatter rewrite writes;
 - a code-fix registration or its applicability;
 - a diagnostic ID, severity, or message; public API; a dependency;
-- a new rule.
+- a new rule;
+- a repository script, build property, ruleset, or CI workflow the build and the workflows themselves depend on.
 
 **Not required** when the diff only:
 
