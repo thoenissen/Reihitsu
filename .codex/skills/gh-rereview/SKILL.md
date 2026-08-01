@@ -1,6 +1,6 @@
 ---
 name: gh-rereview
-description: Re-review a Reihitsu GitHub Pull Request in the reviewer's Codex task after the author addressed a previous gh-review pass. Use for requests such as "re-review PR", "rereview", "review this PR again", "re-check PR", or "the review was addressed". Reconstruct prior findings from the reviewer's GitHub comments and chat table, run the complete gh-review methodology against the current head, classify prior findings as resolved or open, detect new findings, resolve only verified threads, and report the full checklist plus prior/new finding tables. Submit every new confirmed finding in one GitHub review and never search for or create follow-up issues. Supports Codex on Linux cloud and local Windows with the authenticated gh CLI and preinstalled .NET SDK.
+description: Re-review a Reihitsu GitHub Pull Request in the reviewer's Codex task after the author addressed a previous gh-review pass. Use for requests such as "re-review PR", "rereview", "review this PR again", "re-check PR", or "the review was addressed". Reconstruct prior findings from the reviewer's GitHub comments and chat table, run the complete gh-review methodology against the current head, classify prior findings as resolved, validly moved to an explicitly linked follow-up issue, or open, detect new findings, resolve only verified threads, and report the full checklist plus prior/new finding tables. Submit every new confirmed finding in one GitHub review; never search for or create follow-up issues, but verify an exact issue URL the author linked as a scope handoff. Supports Codex on Linux cloud and local Windows with the authenticated gh CLI and preinstalled .NET SDK.
 ---
 
 # Reihitsu GitHub PR Re-Review
@@ -37,7 +37,7 @@ Use `gh api graphql` to read `reviewThreads` with each thread's `id`, `isResolve
 
 Use `gh api user --jq .login` to identify the reviewer. Reconstruct prior findings from:
 
-1. Inline review comments and general PR comments authored by that reviewer. Capture severity, file, line, thread id, comment database id, resolved state, and demanded change.
+1. Inline review comments and general PR comments authored by that reviewer. Capture severity, file, line, thread id, comment database id, resolved state, and demanded change. Also capture author replies and `Follow-up work` entries that link a concrete GitHub issue for the finding.
 2. The most recent `gh-review` or `gh-rereview` findings table for this PR still present in the task. Merge in its unposted hints; GitHub remains authoritative for posted findings.
 
 If neither source contains a prior finding, stop and tell the user to run `gh-review` first. Do not manufacture a baseline.
@@ -57,6 +57,7 @@ Review the current head exactly as `gh-review` requires:
 Match each baseline finding against current code and evidence, not the author's claim or thread state:
 
 - **resolved**: the defect and the defect class named by the finding are genuinely fixed. A moved, renamed, partially guarded, or paper-only fix is not resolved.
+- **follow-up**: the author linked an existing GitHub issue from the finding's thread or the PR's `Follow-up work`; the issue captures the same mechanism and acceptance boundary; the item is new behavior, a different pre-existing mechanism, or a diagnostic/public-API/dependency change; and the current PR did not introduce the defect. Read that exact issue URL to verify the handoff. A chat draft, ignored file path, unapproved draft ID, or generic promise is not durable follow-up evidence.
 - **open**: the finding was not addressed or the attempted fix is incomplete. State the surviving failure precisely.
 
 A deleted surrounding line counts as resolved only when the concern cannot recur in the replacement code. Reopen a prematurely resolved thread when the finding remains.
@@ -68,6 +69,7 @@ Anything in the current finding set without a baseline match is **new**. Apply `
 Reuse `gh-review`'s English-only, concise, high-confidence, deduplicated posting rules.
 
 - For a verified resolved inline finding, post a one-line confirmation reply, then resolve the GraphQL review thread.
+- For a verified follow-up handoff, post a one-line confirmation naming the linked issue and scope reason, then resolve the GraphQL review thread as triaged rather than fixed.
 - For an open finding whose author attempted a fix, reply with what still fails. Leave it open; unresolve it if necessary.
 - Submit every new confirmed finding in one GitHub review using the same `gh api` endpoint as `gh-review`: use inline comments for valid changed-line anchors and the review summary body for non-line findings.
 - Keep systemic, pre-existing, and out-of-scope findings in that review. Never search for or create a follow-up issue, and never use a separate PR comment as the destination for a new finding.
@@ -86,7 +88,7 @@ gh api graphql -f thread='<thread-id>' -f query='mutation($thread:ID!){resolveRe
 gh api graphql -f thread='<thread-id>' -f query='mutation($thread:ID!){unresolveReviewThread(input:{threadId:$thread}){thread{id isResolved}}}'
 ```
 
-Do not resolve a thread until the fix is verified against the current head.
+Do not resolve a thread until either the fix is verified against the current head or the exact linked follow-up issue and split criterion are verified. A pending draft never qualifies.
 
 ## Verification
 
@@ -130,7 +132,8 @@ Write only the following structure. Render `_None._` under empty sections and re
 | # | Severity | Location | Status | GitHub | Notes |
 |---|----------|----------|--------|--------|-------|
 | 1 | high | Reihitsu.Formatter/Pipeline/Foo.cs:42 | resolved | thread resolved | `#endif` is preserved; double-run clean |
-| 2 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | open | replied | Parsing remains in the diagnostic method |
+| 2 | medium | Reihitsu.Formatter/Pipeline/Bar.cs:88 | follow-up #612 | thread resolved | New formatter behavior captured with the same acceptance boundary |
+| 3 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | open | replied | Parsing remains in the diagnostic method |
 
 ## New findings
 | # | Severity | Location | Posted | Summary |
@@ -145,11 +148,12 @@ Write only the following structure. Render `_None._` under empty sections and re
 _None._
 ```
 
-List every baseline finding once with status `resolved` or `open`. In GitHub, record `thread resolved`, `replied`, or `—`. Every New findings row is confirmed, must be part of the submitted GitHub review, and must read `yes`; never put hints in that table. Keep table cells concise and put uncertain observations only under Hints. When Hints contains entries, append the copy-ready text block required by `gh-review`; omit it when there are no hints. Add no preamble or closing text.
+List every baseline finding once with status `resolved`, `follow-up #<N>`, or `open`. In GitHub, record `thread resolved`, `replied`, or `—`. Every New findings row is confirmed, must be part of the submitted GitHub review, and must read `yes`; never put hints in that table. Keep table cells concise and put uncertain observations only under Hints. When Hints contains entries, append the copy-ready text block required by `gh-review`; omit it when there are no hints. Add no preamble or closing text.
 
 ## Hard containment rules
 
 - Never run `gh issue create`, `gh issue list`, or any equivalent issue-search or issue-creation operation during re-review.
-- Reading an issue explicitly linked by the PR is allowed only for issue-coverage verification; do not mutate it.
-- Never move, copy, redirect, omit, or demote a confirmed finding because it is systemic, pre-existing, or broader than the diff. Keep it on the current PR.
+- Reading an issue explicitly linked by the PR or an author's finding reply is allowed for issue coverage and follow-up-handoff verification; do not mutate it and do not search for alternatives.
+- Never independently move, copy, redirect, omit, or demote a new confirmed finding because it is systemic, pre-existing, or broader than the diff. Keep it on the current PR for the author workflow to classify. Verifying an exact author-linked follow-up issue during reconciliation is not reviewer-initiated redirection.
+- Never accept a chat block, local path, draft ID, or unlinked title as a completed follow-up handoff; require an existing issue URL and verify its mechanism and scope rationale.
 - Never post a new confirmed finding outside the submitted GitHub review; use its inline comments or summary body.
