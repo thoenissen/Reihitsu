@@ -290,25 +290,13 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.AccessorList != null)
         {
-            if (LineBreakDetection.IsAutoPropertyAccessorList(node.AccessorList))
-            {
-                if (CanCollapseAutoPropertyToSingleLine(node))
-                {
-                    node = CollapseAutoPropertyAccessorList(node);
-                }
-                else
-                {
-                    node = _gapNormalizer.NormalizeGapBeforeToken(node, node.AccessorList.OpenBraceToken, blankLineCount: 0);
-                    node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.AccessorList.OpenBraceToken);
-                    node = _gapNormalizer.NormalizeGapBeforeToken(node, node.AccessorList.CloseBraceToken, blankLineCount: 0);
-                }
-            }
-            else
-            {
-                node = _gapNormalizer.NormalizeGapBeforeToken(node, node.AccessorList.OpenBraceToken, blankLineCount: 0);
-                node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.AccessorList.OpenBraceToken);
-                node = _gapNormalizer.NormalizeGapBeforeToken(node, node.AccessorList.CloseBraceToken, blankLineCount: 0);
-            }
+            // Collapsing is the only branch specific to an auto-property accessor list; every other
+            // accessor list, auto or not, gets the shared brace normalization.
+            node = LineBreakDetection.ShouldNormalizeAccessorListBraces(node.AccessorList) == false && CanCollapseAutoPropertyToSingleLine(node)
+                       ? CollapseAutoPropertyAccessorList(node)
+                       : _bracePlacer.NormalizeOwnedBraces(node,
+                                                           static property => property.AccessorList.OpenBraceToken,
+                                                           static property => property.AccessorList.CloseBraceToken);
         }
 
         return node;

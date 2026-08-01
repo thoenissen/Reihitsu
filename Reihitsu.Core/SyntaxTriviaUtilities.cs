@@ -269,6 +269,53 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the specified span contains any preprocessor directive, of any kind. A directive must
+    /// start its own line, so a rewrite that re-hosts the trivia of this span into the middle of a line cannot
+    /// keep one. Callers that only relocate a span as a whole want the narrower
+    /// <see cref="ContainsUnbalancedConditionalDirectives"/>, <see cref="ContainsUnbalancedRegionDirectives"/> or
+    /// <see cref="ContainsPositionSensitiveDirectives"/> instead
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains a directive, or when <paramref name="root"/> is
+    /// <see langword="null"/> and the span therefore cannot be inspected; otherwise, <see langword="false"/>
+    /// </returns>
+    public static bool ContainsDirectives(SyntaxNode root, TextSpan span)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        return root.DescendantTrivia(span, descendIntoTrivia: true)
+                   .Any(trivia => span.Contains(trivia.SpanStart) && trivia.IsDirective);
+    }
+
+    /// <summary>
+    /// Determines whether the specified span contains a <c>#region</c> or <c>#endregion</c> directive, balanced or
+    /// not. A rewrite whose output is reparsed as text before it has been fully laid out cannot keep a region
+    /// directive, because the region phase removes and reinserts those lines; callers that merely relocate a span
+    /// want the narrower <see cref="ContainsUnbalancedRegionDirectives"/>
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains a region directive, or when <paramref name="root"/> is
+    /// <see langword="null"/> and the span therefore cannot be inspected; otherwise, <see langword="false"/>
+    /// </returns>
+    public static bool ContainsRegionDirectives(SyntaxNode root, TextSpan span)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        return root.DescendantTrivia(span, descendIntoTrivia: true)
+                   .Any(trivia => span.Contains(trivia.SpanStart) && IsRegionDirective(trivia));
+    }
+
+    /// <summary>
     /// Determines whether the specified span contains a preprocessor directive whose effect is bound to where it
     /// sits rather than to the block around it. <c>#pragma warning</c>, <c>#nullable</c> and <c>#line</c> all
     /// apply from their own position onwards, so a rewrite that relocates the surrounding block silently changes

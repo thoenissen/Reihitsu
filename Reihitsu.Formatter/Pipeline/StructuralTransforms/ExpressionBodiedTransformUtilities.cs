@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
@@ -10,6 +12,27 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 internal static class ExpressionBodiedTransformUtilities
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether an expression-bodied member must keep its expression body because a
+    /// directive in its span would not survive the rewrite
+    /// </summary>
+    /// <param name="member">The member declaration that owns the expression body</param>
+    /// <param name="expressionBody">The expression body to inspect</param>
+    /// <param name="semicolonToken">The member's terminating semicolon</param>
+    /// <returns><see langword="true"/> if the conversion must be refused; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The decision lives in <see cref="ExpressionBodyRewriteUtilities.BlocksRewrite"/> so the
+    /// analyzers that report these members apply exactly the same rule; a drifting copy would let an
+    /// analyzer report a member whose code fix this transform then refuses to rewrite. Every
+    /// expression-bodied transform consults this guard, so the whole member family is covered at once.
+    /// </remarks>
+    internal static bool RequiresExpressionBodyPreservation(SyntaxNode member,
+                                                            ArrowExpressionClauseSyntax expressionBody,
+                                                            SyntaxToken semicolonToken)
+    {
+        return ExpressionBodyRewriteUtilities.BlocksRewrite(member, expressionBody, semicolonToken);
+    }
 
     /// <summary>
     /// Determines whether the converted body should use an expression statement

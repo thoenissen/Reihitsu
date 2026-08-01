@@ -50,6 +50,11 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
             return node;
         }
 
+        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken))
+        {
+            return node;
+        }
+
         var expression = node.ExpressionBody.Expression;
 
         var block = ExpressionBodyToBlockConverter.CreateBlock(expression,

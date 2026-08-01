@@ -45,6 +45,11 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
             return node;
         }
 
+        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken))
+        {
+            return node;
+        }
+
         var expression = node.ExpressionBody.Expression;
 
         var accessorList = ExpressionBodyToBlockConverter.CreateGetAccessorList(expression,

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
@@ -48,10 +49,19 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer : Diagnost
             return;
         }
 
-        if (constructorDeclaration.ExpressionBody is not null)
+        if (constructorDeclaration.ExpressionBody is null)
         {
-            context.ReportDiagnostic(CreateDiagnostic(constructorDeclaration.GetLocation()));
+            return;
         }
+
+        // The formatter refuses to rebuild an expression body whose span carries a directive the
+        // rewrite would relocate, so reporting here would offer a code fix that cannot converge.
+        if (ExpressionBodyRewriteUtilities.BlocksRewrite(constructorDeclaration, constructorDeclaration.ExpressionBody, constructorDeclaration.SemicolonToken))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(constructorDeclaration.GetLocation()));
     }
 
     #endregion // Methods

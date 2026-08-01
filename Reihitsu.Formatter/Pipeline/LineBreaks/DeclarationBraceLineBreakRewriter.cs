@@ -5,8 +5,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
-/// Applies Allman brace placement for declarations and member bodies, collapses parameter-list
-/// openers onto the declaration line, and places constructor initializers on their own line
+/// Applies Allman brace placement for declarations, member bodies and the accessor lists of
+/// indexer and event declarations, collapses parameter-list openers onto the declaration line, and
+/// places constructor initializers on their own line
 /// </summary>
 internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -130,25 +131,6 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes a member body's braces (open brace on its own line, first content on a new line,
-    /// and close brace on its own line)
-    /// </summary>
-    /// <typeparam name="TNode">The owning syntax node type</typeparam>
-    /// <param name="node">The node owning the body</param>
-    /// <param name="getBody">Selects the body block from the current node</param>
-    /// <returns>The node with normalized body braces</returns>
-    private TNode NormalizeBodyBraces<TNode>(TNode node,
-                                             Func<TNode, BlockSyntax> getBody)
-        where TNode : SyntaxNode
-    {
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, getBody(node).OpenBraceToken, blankLineCount: 0);
-        node = _bracePlacer.EnsureFirstContentOnNewLine(node, getBody(node).OpenBraceToken);
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, getBody(node).CloseBraceToken, blankLineCount: 0);
-
-        return node;
-    }
-
-    /// <summary>
     /// Ensures the constructor initializer (<c>: base()</c> or <c>: this()</c>) starts on a new line
     /// </summary>
     /// <param name="node">The constructor declaration node</param>
@@ -188,7 +170,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeBodyBraces(node, static constructor => constructor.Body);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static constructor => constructor.Body.OpenBraceToken, static constructor => constructor.Body.CloseBraceToken);
         }
 
         return node;
@@ -205,7 +187,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeBodyBraces(node, static method => method.Body);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static method => method.Body.OpenBraceToken, static method => method.Body.CloseBraceToken);
         }
 
         return node;
@@ -222,7 +204,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeBodyBraces(node, static conversionOperator => conversionOperator.Body);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static conversionOperator => conversionOperator.Body.OpenBraceToken, static conversionOperator => conversionOperator.Body.CloseBraceToken);
         }
 
         return node;
@@ -239,7 +221,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeBodyBraces(node, static destructor => destructor.Body);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static destructor => destructor.Body.OpenBraceToken, static destructor => destructor.Body.CloseBraceToken);
         }
 
         return node;
@@ -256,7 +238,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeBodyBraces(node, static localFunction => localFunction.Body);
+            node = _bracePlacer.NormalizeOwnedBraces(node, static localFunction => localFunction.Body.OpenBraceToken, static localFunction => localFunction.Body.CloseBraceToken);
         }
 
         return node;
@@ -325,7 +307,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
                 {
                     return operatorDeclaration.Body == null
                                ? visited
-                               : NormalizeBodyBraces(operatorDeclaration, static declaration => declaration.Body);
+                               : _bracePlacer.NormalizeOwnedBraces(operatorDeclaration, static declaration => declaration.Body.OpenBraceToken, static declaration => declaration.Body.CloseBraceToken);
                 }
 
             case ConversionOperatorDeclarationSyntax conversionOperator:
@@ -336,6 +318,20 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             case DestructorDeclarationSyntax destructor:
                 {
                     return NormalizeDestructor(destructor);
+                }
+
+            case IndexerDeclarationSyntax indexer:
+                {
+                    return LineBreakDetection.ShouldNormalizeAccessorListBraces(indexer.AccessorList)
+                               ? _bracePlacer.NormalizeOwnedBraces(indexer, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
+                               : visited;
+                }
+
+            case EventDeclarationSyntax eventDeclaration:
+                {
+                    return LineBreakDetection.ShouldNormalizeAccessorListBraces(eventDeclaration.AccessorList)
+                               ? _bracePlacer.NormalizeOwnedBraces(eventDeclaration, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
+                               : visited;
                 }
 
             case LocalFunctionStatementSyntax localFunction:
