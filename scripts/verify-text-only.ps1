@@ -11,17 +11,23 @@
     Base revision. Defaults to the merge base with origin/main.
 .PARAMETER Head
     Head revision, or "worktree" to include uncommitted changes. Defaults to HEAD.
+.PARAMETER StrictDocs
+    Also fail when public API documentation changed. Plain success does not
+    establish that, because a documentation edit is a legitimate comment-only
+    change.
 .PARAMETER NoInstall
     Fail instead of installing when the SDK is missing.
 .EXAMPLE
     .\scripts\verify-text-only.ps1
 .EXAMPLE
-    .\scripts\verify-text-only.ps1 -Base a1b2c3d -Head worktree
+    .\scripts\verify-text-only.ps1 -Base a1b2c3d -Head worktree -StrictDocs
 #>
 param(
     [string]$Base,
 
     [string]$Head,
+
+    [switch]$StrictDocs,
 
     [switch]$NoInstall
 )
@@ -36,7 +42,9 @@ try
 }
 catch
 {
-    Write-Error $_
+    # Write-Error would terminate under the Stop preference and lose the documented exit code
+    [Console]::Error.WriteLine($_.Exception.Message)
+
     exit 2
 }
 
@@ -44,16 +52,12 @@ $arguments = @()
 
 if ($Base) { $arguments += @('--base', $Base) }
 if ($Head) { $arguments += @('--head', $Head) }
+if ($StrictDocs) { $arguments += '--strict-docs' }
 
-Push-Location (Get-ReihitsuRepositoryRoot)
+$repositoryRoot = Get-ReihitsuRepositoryRoot
+$proof = Join-Path (Join-Path $repositoryRoot 'scripts') (Join-Path 'proof' 'verify-text-only.cs')
 
-try
-{
-    & dotnet run scripts/proof/verify-text-only.cs -- @arguments
+# The tool inspects the repository this script belongs to, whatever the caller's working directory is
+& dotnet run $proof -- --repository $repositoryRoot @arguments
 
-    exit $LASTEXITCODE
-}
-finally
-{
-    Pop-Location
-}
+exit $LASTEXITCODE

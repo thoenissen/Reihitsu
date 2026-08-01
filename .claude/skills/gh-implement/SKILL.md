@@ -146,13 +146,15 @@ Both gates default to **on**. The escape below exists for work that is genuinely
 - `scripts/**` and CI workflow files — these are not compiled, but they are executable behavior;
 - a mixed diff that contains any of the above next to documentation.
 
-Touching a `.cs` file is not by itself a reason to audit when only its comments changed. The veto therefore has one mechanical escape, and it is a proof rather than a judgment call:
+Touching a `.cs` file is not by itself a reason to audit when only its comments changed. The veto therefore has one mechanical escape — but it is a proof about a diff, and at triage time no diff exists yet.
+
+So the veto's escape is **claimed** here and **proven** later. At triage, state that you intend a comment-only `.cs` change and which files it will touch. Before the preflight decision, when the change is committed, run the proof against the real diff:
 
 ```bash
 scripts/verify-text-only.sh --base <base-sha> --head <head-sha>
 ```
 
-Exit code `0` proves that every changed line is comment, documentation, or layout trivia, that no token, directive, disabled-text region, or literal moved, and that both versions parse. A diff the proof accepts may still be routine even though it contains `.cs` files; record the `TEXT-ONLY PROOF: PASS …` line as the evidence. Exit code `1` restores the veto, and exit code `2` is a tool failure that proves nothing — treat it as `1`.
+Exit code `0` proves that every changed line is comment, documentation, or layout trivia, that no token, directive, disabled-text region, or literal moved, and that both versions parse; record the `TEXT-ONLY PROOF: PASS …` line as the evidence. Exit code `1` restores the veto, and exit code `2` is a tool failure that proves nothing — treat it as `1`. Running the proof on an empty diff proves nothing either: it reports `no changed files` and exits `0`, which is why the claim is not evidence until the diff exists.
 
 A rename never qualifies: it reaches `nameof`, reflection, serialization, source generators, public API, and named arguments. Everything else that is neither C# nor a known non-compiled text path stays behavioral.
 
@@ -225,7 +227,7 @@ Do **not** include your own proposed solution, suspected root cause, planned dif
 
 Use **one** Rubber Duck subagent per implementation run. When the user later clarifies the same contract, continue that same subagent with a follow-up message carrying the new evidence and ask for an amended contract — do not spawn a second one. Spawn a replacement only when the original agent is unavailable or the issue scope changes materially (a different defect, a different rule).
 
-Apply `gh-preflight`'s bounded restart policy here too: one start, at most one restart after the agent errors, exits without a contract, or goes 15 minutes without tool activity, then the local fallback below. A start that returned no contract counts as a **process start**, not as a gate result, and the final report states both.
+Apply `gh-preflight`'s bounded restart policy here too: one start, at most one restart when the agent errors, returns without a contract, or your own wait passes roughly 15 minutes, then the local fallback below. A start that returned no contract counts as a **process start**, not as a gate result, and the final report states both.
 
 If subagents are unavailable in the current environment, perform the analysis yourself by following `gh-rubber-duck` before any edit, and record the resulting contract in this chat. The gate still applies; only the isolation is lost.
 
@@ -444,7 +446,7 @@ The budget is fixed:
 
 1. **Attempt 1** runs automatically once implementation is complete, the local self-review and admission artifact are complete, `main` is synchronized, and the head is pushed.
 2. On `PASS`, continue to full validation.
-3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove they changed nothing compiled with `scripts/verify-text-only.sh --base <audited-sha> --head worktree`, and continue to full validation. This costs no attempt. If the proof rejects the cleanup, the audit no longer covers the tree — treat it as a repair cycle instead.
+3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove they changed nothing compiled *and no public API documentation* with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree`, and continue to full validation. This costs no attempt. If the proof rejects the cleanup, the audit no longer covers the tree — treat it as a repair cycle instead.
 4. On `BLOCKED — findings`, collect **every** finding into **one** consolidated worklist. Do not start fixing before the worklist is complete, and do not run a preflight in between.
 5. Fix the complete worklist in **one** repair cycle: close each finding's full defect class, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]` and update the PR body when needed.
 6. **Re-audit the repair, not just the finding.** Preflight's `Required change` column is a suggestion, not a specification — implementing it literally is what turns one finding into the next round's finding. Re-run the guard-delta and predicate-boundary tables against the guard *as repaired*, and add a test on each side of every boundary the repair moved.
@@ -622,7 +624,7 @@ End-state checklist for a finished run:
 - [ ] Issue number extracted and read via `mcp__github__issue_read`
 - [ ] Existing claim or draft PR checked; `claude/issue-<N>-<slug>` pushed with an empty claim commit
 - [ ] Generic-placeholder draft PR opened before implementation (title `Claim: issue #<N>`, every template section filled with static generic text, `Closes #<N>`) — nothing paraphrased from the issue
-- [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded — with the `TEXT-ONLY PROOF` line when a `.cs` diff was carved out
+- [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded — a claimed `.cs` carve-out proven with `TEXT-ONLY PROOF` against the real diff before the preflight decision, never against an empty one
 - [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent, evidence bundle gathered, and exactly one read-only Rubber Duck subagent spawned before any edit — routine run: contract note written before any edit
 - [ ] Behavior Contract accepted (`READY`, or `NEEDS DECISION` resolved by the user) and shown to the user in short form
 - [ ] Bug-report contract contains a complete code-derived defect-class enumeration and sweep; non-bug contracts mark both sections N/A

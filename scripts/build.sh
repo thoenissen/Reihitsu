@@ -2,6 +2,9 @@
 # Builds the Reihitsu solution in Release configuration.
 #
 #   scripts/build.sh [--no-install] [<extra dotnet build arguments>...]
+#
+# The solution is addressed by absolute path, so the caller's working directory
+# is never changed and relative arguments keep their meaning.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,6 +24,4 @@ done
 
 reihitsu_ensure_dotnet "${install_arguments[@]+"${install_arguments[@]}"}" --quiet
 
-cd "$(reihitsu_repo_root)"
-
-dotnet build Reihitsu.sln -c Release --verbosity minimal "${build_arguments[@]+"${build_arguments[@]}"}"
+dotnet build "$(reihitsu_repo_root)/Reihitsu.sln" -c Release --verbosity minimal "${build_arguments[@]+"${build_arguments[@]}"}"

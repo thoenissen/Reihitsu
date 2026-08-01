@@ -229,7 +229,7 @@ The budget is fixed:
 
 1. **Attempt 1** runs automatically on the synchronized head.
 2. On `PASS`, continue to full validation.
-3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove them non-behavioral with `scripts/verify-text-only.sh --base <audited-sha> --head worktree`, and continue to full validation without spending an attempt. If the proof rejects the cleanup, treat it as a repair cycle instead.
+3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove them non-behavioral *and free of public API documentation changes* with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree`, and continue to full validation without spending an attempt. If the proof rejects the cleanup, treat it as a repair cycle instead.
 4. On `BLOCKED — findings`, merge **every** finding into **one** consolidated worklist — together with anything still open from the review worklist — and classify it against the frozen scope ledger. Do not fix before the worklist is complete, and do not run a preflight in between.
 5. Fix every `fix here` row in **one** repair cycle and preserve every `follow-up draft` row without changing the PR for it: close each in-scope finding's full defect class, re-derive the repair against the delta tables, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]`.
 6. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent, read-only subagent against the exact new head, carrying the repair-delta inputs: the previous report, the previously audited SHA, the repaired SHA, and the repair diff.

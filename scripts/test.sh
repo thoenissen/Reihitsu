@@ -8,6 +8,9 @@
 #   --no-build                                                 reuse the previous Release build
 #   --no-install                                               fail instead of installing the SDK
 #
+# Test projects are addressed by absolute path, so the caller's working
+# directory is never changed and relative arguments keep their meaning.
+#
 # Examples:
 #   scripts/test.sh
 #   scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
@@ -26,11 +29,21 @@ test_arguments=()
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --project)
-            project="${2:-}"
+            if [ "$#" -lt 2 ]; then
+                echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, or all)." >&2
+                exit 2
+            fi
+
+            project="$2"
             shift 2
             ;;
         --filter)
-            filter="${2:-}"
+            if [ "$#" -lt 2 ]; then
+                echo "test.sh: --filter expects an expression." >&2
+                exit 2
+            fi
+
+            filter="$2"
             shift 2
             ;;
         --no-install)
@@ -66,14 +79,14 @@ esac
 
 reihitsu_ensure_dotnet "${install_arguments[@]+"${install_arguments[@]}"}" --quiet
 
-cd "$(reihitsu_repo_root)"
+repository_root="$(reihitsu_repo_root)"
 
 for test_project in "${projects[@]}"; do
     echo "==> $test_project"
 
     if [ -n "$filter" ]; then
-        dotnet test "$test_project" -c Release --verbosity minimal --filter "$filter" "${test_arguments[@]+"${test_arguments[@]}"}"
+        dotnet test "$repository_root/$test_project" -c Release --verbosity minimal --filter "$filter" "${test_arguments[@]+"${test_arguments[@]}"}"
     else
-        dotnet test "$test_project" -c Release --verbosity minimal "${test_arguments[@]+"${test_arguments[@]}"}"
+        dotnet test "$repository_root/$test_project" -c Release --verbosity minimal "${test_arguments[@]+"${test_arguments[@]}"}"
     fi
 done

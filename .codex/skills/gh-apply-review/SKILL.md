@@ -15,7 +15,7 @@ reviewer task     author task     reviewer task
 
 Own the implementation and branch, but not the verdict. Fix and reply; never resolve a review thread. Verification and resolution belong to `gh-rereview`.
 
-Support Linux cloud and local Windows. Use the repository checkout, authenticated `gh` CLI, local `git`, and preinstalled .NET SDK — confirm the toolchain with `scripts/prepare.sh --no-install` and drive every build, test, format, and proof through the matching repository script. Follow `AGENTS.md` throughout.
+Support Linux cloud and local Windows. Use the repository checkout, authenticated `gh` CLI, local `git`, and preinstalled .NET SDK — confirm the toolchain with `scripts/prepare.ps1 -NoInstall` and drive every build, test, format, and proof through the matching repository script. Follow `AGENTS.md` throughout.
 
 ## Run order
 
@@ -113,7 +113,7 @@ Apply the repository workflow from `AGENTS.md`:
 - Format all changed paths before tests:
 
   ```shell
-  scripts/format.sh --no-install <changed-path-1> [<changed-path-2> ...]
+  scripts/format.ps1 -NoInstall <changed-path-1> [<changed-path-2> ...]
   ```
 
 - Run the focused tests for the touched rule or phase as you go, not the full suite.
@@ -185,7 +185,7 @@ The official preflight is a final quality gate, not a discovery loop, and only t
 - **comments and directives** — the relevant trivia shapes survive at sensible positions, or the edit is refused;
 - **comment and documentation consistency** — for **every method whose body changed**, re-read its XML summary and inline comments and confirm they still describe the code they sit next to; a comment left describing the previous behavior is a defect in the same diff that changed it;
 - **documentation** — the rule doc under `documentation/rules/` matches the shipped behavior;
-- **changed-path formatting** — every changed C# path went through `scripts/format.sh --no-install`;
+- **changed-path formatting** — every changed C# path went through `scripts/format.ps1 -NoInstall`;
 - **focused tests** — the tests for the touched rule/phase pass at the current working tree.
 
 Fix what you find now. This is not an official preflight, does not consume a preflight attempt, and is not reported as one.
@@ -211,13 +211,13 @@ If `origin/main` moves again after a passing preflight, do not enter an unlimite
 
 After the accepted fixes are committed and pushed with `[skip ci]`, the local self-review and its admission artifact are complete, and `main` is synchronized, read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal, read-only gate against the current PR head. Do not post preflight findings to GitHub. Run it in a fresh, independent read-only subagent when subagents are available, handing it the neutral evidence bundle that skill defines — issue and PR data, base and head SHAs, merge base, changed files and diff, and your proof that the checkout matches the head — and nothing of your own reasoning.
 
-**First decide whether an audit is required at all**, using `gh-preflight`'s trigger list rather than the fact that a file compiles. A round whose accepted findings only touch comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — records a skip instead of spending an attempt, proven with `scripts/verify-text-only.sh --no-install --base <base-sha> --head <head-sha>` and its `TEXT-ONLY PROOF: PASS …` line. Ask the user when the round fits neither list. A skipped audit still leaves the full validation in place unless the diff contains no compiled file at all.
+**First decide whether an audit is required at all**, using `gh-preflight`'s trigger list rather than the fact that a file compiles. A round whose accepted findings only touch comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — records a skip instead of spending an attempt, proven with `scripts/verify-text-only.ps1 -NoInstall -Base <base-sha> -Head <head-sha>` and its `TEXT-ONLY PROOF: PASS …` line. Ask the user when the round fits neither list. A skipped audit still leaves the full validation in place unless the diff contains no compiled file at all.
 
 The budget is fixed:
 
 1. **Attempt 1** runs automatically on the synchronized head.
 2. On `PASS`, continue to full validation.
-3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove them non-behavioral with `scripts/verify-text-only.sh --no-install --base <audited-sha> --head worktree`, and continue to full validation without spending an attempt. If the proof rejects the cleanup, treat it as a repair cycle instead.
+3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove them non-behavioral *and free of public API documentation changes* with `scripts/verify-text-only.ps1 -NoInstall -StrictDocs -Base <audited-sha> -Head worktree`, and continue to full validation without spending an attempt. If the proof rejects the cleanup, treat it as a repair cycle instead.
 4. On `BLOCKED — findings`, merge **every** finding into **one** consolidated worklist — together with anything still open from the review worklist — and classify it against the frozen scope ledger. Do not fix before the worklist is complete, and do not run a preflight in between.
 5. Fix every `fix here` row in **one** repair cycle and preserve every `follow-up draft` row without changing the PR for it: close each in-scope finding's full defect class, re-derive the repair against the delta tables, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]`.
 6. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent, read-only subagent against the exact new head, carrying the repair-delta inputs: the previous report, the previously audited SHA, the repaired SHA, and the repair diff.
@@ -229,7 +229,7 @@ Classify architecturally significant, public-API-changing, dependency-changing, 
 
 A tracked-file change made after a passing preflight means the audited tree is no longer the tree that will merge:
 
-- the change is proven text-only by `scripts/verify-text-only.sh --no-install` → note it and its proof line in the report and continue;
+- the change is proven text-only by `scripts/verify-text-only.ps1 -NoInstall` → note it and its proof line in the report and continue;
 - it touches compiled behavior and an attempt is unspent → spend the retry on the new tree;
 - it touches compiled behavior and the budget is exhausted → stop and report. The user decides whether to ship a tree that no audit covered; you do not decide it silently.
 
@@ -238,11 +238,11 @@ A tracked-file change made after a passing preflight means the audited tree is n
 Focused tests run throughout the repair cycle. The complete suite runs **once**, after the fixes are in, `main` is synchronized, the preflight decision is settled, and the worktree matches the audited tree. Only a round whose diff contains no compiled file at all skips it; a skipped audit does not skip validation, because the build is what catches a malformed comment or a changed documentation artifact and test runtime costs wall-clock rather than tokens:
 
 ```shell
-scripts/build.sh --no-install
-scripts/test.sh --no-install --no-build
+scripts/build.ps1 -NoInstall
+scripts/test.ps1 -NoInstall -NoBuild
 ```
 
-Do not install an SDK or modify `PATH`. `scripts/test.sh --no-install` runs all four test projects in order; `--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All relevant tests must pass. Fix regressions caused by the review changes in focused `[skip ci]` commits. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`. Never silence, ignore, or delete a test to obtain a green run. If the SDK is absent or the base branch has an independent failure, stop and report the evidence.
+Do not install an SDK or modify `PATH`. `scripts/test.ps1 -NoInstall` runs all four test projects in order; `--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All relevant tests must pass. Fix regressions caused by the review changes in focused `[skip ci]` commits. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`. Never silence, ignore, or delete a test to obtain a green run. If the SDK is absent or the base branch has an independent failure, stop and report the evidence.
 
 If the user explicitly asks to skip repeated local validation and rely on CI, obey that instruction and report exactly which local checks ran and which did not.
 
@@ -297,7 +297,7 @@ _None._
 - Base sync: merged `origin/main` at `<sha>`; conflicts formatted and focused-tested.
 - Official preflight: required by <trigger>; 1 attempt used (1 reviewer start), PASS on tree `<sha>`; budget not exhausted. (State the skip and its `TEXT-ONLY PROOF` line here instead when the trigger list did not require an audit.)
 - Build: green.
-- Analyzer / Formatter / Core / CLI tests: green, one full run via `scripts/test.sh --no-install`.
+- Analyzer / Formatter / Core / CLI tests: green, one full run via `scripts/test.ps1 -NoInstall`.
 
 ## Pushed
 - PR #123, branch `codex/...`: two `[skip ci]` fix commits and trigger commit `Ready for CI (#123)`.
@@ -330,7 +330,7 @@ None of this may reduce correctness or hide a failing result.
 - Never drop a confirmed actionable item: fix it here or return a complete reviewable follow-up draft.
 - Never skip the test-first, idempotency, convergence, formatting, or validation requirements in `AGENTS.md`.
 - Never start a third official preflight automatically; the budget is one attempt plus one retry.
-- Never invoke preflight before the admission artifact is complete, and never claim a comment-only carve-out without the `scripts/verify-text-only.sh --no-install --no-install` proof line.
+- Never invoke preflight before the admission artifact is complete, and never claim a comment-only carve-out without the `scripts/verify-text-only.ps1 -NoInstall` proof line.
 - Never implement a `Required change` literally without re-deriving its scope against the delta tables and adding a test on each side of every boundary the repair moved.
 - Never split one preflight worklist into several fix/preflight loops, and never run a preflight after every individual fix.
 - Never run the official preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.

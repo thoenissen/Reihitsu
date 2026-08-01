@@ -2,7 +2,7 @@
 
 // Syntax-aware proof that a change carries no compiled behavior.
 //
-//   dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>]
+//   dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--strict-docs]
 //
 // The workflow skills use this instead of a line-based grep over the diff,
 // because a grep does not recognize every block-comment form and cannot
@@ -13,13 +13,24 @@
 //
 //   * the non-trivia token stream is unchanged (this also covers string and
 //     character literal contents, which are token text),
-//   * no directive, disabled-text, or skipped-token structure changed,
+//   * no directive or disabled-text structure changed,
 //   * every changed syntax element belongs to an allowed comment, documentation,
 //     or layout trivia category,
-//   * both versions parse without errors,
+//   * both versions parse without errors, which is also what rules out skipped
+//     tokens: they only ever appear alongside a parse error.
 //
-// and it reports generated XML-documentation impact separately instead of
-// folding it into the verdict.
+// Generated XML-documentation impact is reported separately instead of being
+// folded into the verdict, because a documentation edit is exactly what a
+// comment-only change is allowed to be. Pass `--strict-docs` when the caller
+// must additionally exclude public API documentation — the preflight
+// `PASS — non-blocking cleanup` result requires that, and plain exit code 0
+// does not establish it.
+//
+// Both sides are decoded identically and a leading byte order mark is stripped
+// from each. When the head is the working tree, both sides are additionally
+// compared with normalized line endings: git rewrites line endings on checkout
+// under `core.autocrlf`, so a raw worktree comparison would report every
+// multi-line literal and disabled-text region as changed on Windows.
 //
 // Exit codes: 0 proven text-only, 1 not proven, 2 tool or setup error.
 
@@ -32,6 +43,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 string? baseRevision = null;
 var headRevision = "HEAD";
+var repositoryPath = ".";
+var strictDocumentation = false;
 
 for (var index = 0; index < args.Length; index++)
 {
@@ -45,10 +58,20 @@ for (var index = 0; index < args.Length; index++)
             headRevision = args[++index];
             break;
 
+        case "--strict-docs":
+            strictDocumentation = true;
+            break;
+
+        case "--repository" when index + 1 < args.Length:
+            repositoryPath = args[++index];
+            break;
+
         case "--help":
         case "-h":
-            Console.WriteLine("usage: dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>]");
+            Console.WriteLine("usage: dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--strict-docs] [--repository <path>]");
             Console.WriteLine("       --head worktree compares the base revision against the working tree");
+            Console.WriteLine("       --strict-docs fails the proof when public API documentation changed");
+            Console.WriteLine("       --repository names the repository to inspect, defaulting to the working directory");
 
             return 0;
 
@@ -63,11 +86,11 @@ string repositoryRoot;
 
 try
 {
-    repositoryRoot = Proof.Git(".", "rev-parse", "--show-toplevel").Trim();
+    repositoryRoot = Proof.Git(repositoryPath, "rev-parse", "--show-toplevel").Trim();
 }
 catch (Exception exception)
 {
-    Console.Error.WriteLine($"verify-text-only: not inside a git repository ({exception.Message}).");
+    Console.Error.WriteLine($"verify-text-only: '{repositoryPath}' is not inside a git repository ({exception.Message}).");
 
     return 2;
 }
@@ -116,7 +139,7 @@ foreach (var changedFile in changedFiles)
 {
     try
     {
-        verdicts.Add(Proof.Verify(repositoryRoot, baseRevision, comparesWorkTree ? null : headRevision, changedFile));
+        verdicts.Add(Proof.Verify(repositoryRoot, baseRevision, comparesWorkTree ? null : headRevision, changedFile, strictDocumentation));
     }
     catch (Exception exception)
     {
@@ -141,6 +164,11 @@ var documentationSummary = documentationImpact.Count == 0
                                : documentationImpact.Any(verdict => verdict.DocumentationImpact == DocumentationImpact.PublicApi)
                                    ? $"{documentationImpact.Count} file(s), including public API documentation"
                                    : $"{documentationImpact.Count} file(s), no public API documentation";
+
+if (Proof.SkippedUntracked.Count > 0)
+{
+    Console.WriteLine($"  note: {Proof.SkippedUntracked.Count} untracked file(s) ignored — they are not part of the tree that will merge: {string.Join(", ", Proof.SkippedUntracked.Take(5))}");
+}
 
 if (behavioral > 0)
 {
@@ -209,8 +237,7 @@ internal static class Proof
         SyntaxKind.SingleLineCommentTrivia,
         SyntaxKind.MultiLineCommentTrivia,
         SyntaxKind.SingleLineDocumentationCommentTrivia,
-        SyntaxKind.MultiLineDocumentationCommentTrivia,
-        SyntaxKind.DocumentationCommentExteriorTrivia
+        SyntaxKind.MultiLineDocumentationCommentTrivia
     ];
 
     /// <summary>
@@ -226,6 +253,16 @@ internal static class Proof
     /// Paths that hold no compiled source and no build configuration
     /// </summary>
     private static readonly string[] _nonCompiledPrefixes = [".claude/", ".codex/", ".github/ISSUE_TEMPLATE/", "documentation/", "plans/"];
+
+    /// <summary>
+    /// Paths whose contents are executable behavior even though nothing there compiles
+    /// </summary>
+    private static readonly string[] _behavioralPrefixes = ["scripts/", ".github/workflows/"];
+
+    /// <summary>
+    /// Untracked files that were left out of the comparison
+    /// </summary>
+    public static readonly List<string> SkippedUntracked = [];
 
     #endregion // Fields
 
@@ -244,7 +281,8 @@ internal static class Proof
                             WorkingDirectory = workingDirectory,
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
-                            StandardOutputEncoding = Encoding.UTF8
+                            StandardOutputEncoding = Encoding.UTF8,
+                            StandardErrorEncoding = Encoding.UTF8
                         };
 
         foreach (var argument in arguments)
@@ -254,8 +292,12 @@ internal static class Proof
 
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("git could not be started");
 
-        var output = process.StandardOutput.ReadToEnd();
-        var error = process.StandardError.ReadToEnd();
+        // Read both pipes concurrently: git can fill the error pipe while this side blocks on output, and both would then wait forever
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
+
+        var output = outputTask.GetAwaiter().GetResult();
+        var error = errorTask.GetAwaiter().GetResult();
 
         process.WaitForExit();
 
@@ -320,25 +362,25 @@ internal static class Proof
         foreach (var line in Git(repositoryRoot, arguments).Split('\n', StringSplitOptions.RemoveEmptyEntries))
         {
             var parts = line.TrimEnd('\r').Split('\t');
+            var status = parts[0];
+            var isRenameOrCopy = status.StartsWith('R') || status.StartsWith('C');
 
-            if (parts.Length < 2)
+            if (parts.Length < (isRenameOrCopy ? 3 : 2))
             {
-                continue;
+                throw new InvalidOperationException($"unexpected `git diff --name-status` line: {line}");
             }
 
-            var status = parts[0];
-
-            changedFiles.Add(status.StartsWith('R') || status.StartsWith('C')
+            changedFiles.Add(isRenameOrCopy
                                  ? new ChangedFile(status[..1], parts[2], parts[1])
                                  : new ChangedFile(status[..1], parts[1], null));
         }
 
         if (headRevision is null)
         {
-            foreach (var line in Git(repositoryRoot, "ls-files", "--others", "--exclude-standard").Split('\n', StringSplitOptions.RemoveEmptyEntries))
-            {
-                changedFiles.Add(new ChangedFile("A", line.TrimEnd('\r'), null));
-            }
+            // Untracked files are not part of the tree that will merge, so a stray scratch file must not decide the verdict. Report them instead.
+            SkippedUntracked.AddRange(Git(repositoryRoot, "ls-files", "--others", "--exclude-standard")
+                                          .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                                          .Select(line => line.TrimEnd('\r')));
         }
 
         return changedFiles;
@@ -351,8 +393,9 @@ internal static class Proof
     /// <param name="baseRevision">Base revision</param>
     /// <param name="headRevision">Head revision, or <c>null</c> for the working tree</param>
     /// <param name="changedFile">Changed file to verify</param>
+    /// <param name="strictDocumentation">Whether changed public API documentation fails the proof</param>
     /// <returns>Verdict for the file</returns>
-    public static FileVerdict Verify(string repositoryRoot, string baseRevision, string? headRevision, ChangedFile changedFile)
+    public static FileVerdict Verify(string repositoryRoot, string baseRevision, string? headRevision, ChangedFile changedFile, bool strictDocumentation)
     {
         var isCSharp = changedFile.Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
 
@@ -377,12 +420,32 @@ internal static class Proof
                 return new FileVerdict(changedFile.Path, true, true, "deleted C# file", DocumentationImpact.None);
         }
 
-        var before = ReadBlob(repositoryRoot, baseRevision, changedFile.Path);
-        var after = headRevision is null
-                        ? File.ReadAllText(Path.Combine(repositoryRoot, changedFile.Path))
-                        : ReadBlob(repositoryRoot, headRevision, changedFile.Path);
+        // The working tree carries whatever line endings the checkout produced, while a blob carries what was committed, so the worktree comparison normalizes both sides
+        var normalizeLineEndings = headRevision is null;
 
-        return VerifyCSharp(changedFile.Path, before, after);
+        var before = Decode(ReadBlob(repositoryRoot, baseRevision, changedFile.Path), normalizeLineEndings);
+        var after = Decode(headRevision is null
+                               ? File.ReadAllText(Path.Combine(repositoryRoot, changedFile.Path))
+                               : ReadBlob(repositoryRoot, headRevision, changedFile.Path),
+                           normalizeLineEndings);
+
+        return VerifyCSharp(changedFile.Path, before, after, strictDocumentation);
+    }
+
+    /// <summary>
+    /// Brings both sides of a comparison into the same textual shape
+    /// </summary>
+    /// <param name="text">Content to decode</param>
+    /// <param name="normalizeLineEndings">Whether CRLF is folded to LF</param>
+    /// <returns>Content without a byte order mark, optionally with normalized line endings</returns>
+    private static string Decode(string text, bool normalizeLineEndings)
+    {
+        if (text.StartsWith('﻿'))
+        {
+            text = text[1..];
+        }
+
+        return normalizeLineEndings ? text.Replace("\r\n", "\n") : text;
     }
 
     /// <summary>
@@ -391,8 +454,9 @@ internal static class Proof
     /// <param name="path">Repository-relative path</param>
     /// <param name="before">Content at the base revision</param>
     /// <param name="after">Content at the head revision</param>
+    /// <param name="strictDocumentation">Whether changed public API documentation fails the proof</param>
     /// <returns>Verdict for the file</returns>
-    private static FileVerdict VerifyCSharp(string path, string before, string after)
+    private static FileVerdict VerifyCSharp(string path, string before, string after, bool strictDocumentation)
     {
         var beforeTree = CSharpSyntaxTree.ParseText(before);
         var afterTree = CSharpSyntaxTree.ParseText(after);
@@ -430,6 +494,11 @@ internal static class Proof
         var literalCount = beforeTokens.Count(IsLiteralToken);
         var documentationImpact = DetermineDocumentationImpact(beforeRoot, afterRoot);
         var changedCategories = DescribeChangedTriviaCategories(beforeRoot, afterRoot);
+
+        if (strictDocumentation && documentationImpact == DocumentationImpact.PublicApi)
+        {
+            return new FileVerdict(path, true, true, "public API documentation changed and --strict-docs was requested", documentationImpact);
+        }
 
         return new FileVerdict(path,
                                false,
@@ -548,8 +617,24 @@ internal static class Proof
                                                                                                    .Select(member => (Text: string.Concat(member.GetLeadingTrivia()
                                                                                                                                                 .Where(trivia => _documentationTriviaKinds.Contains(trivia.Kind()))
                                                                                                                                                 .Select(trivia => trivia.ToFullString())),
-                                                                                                                      IsPublic: member.Modifiers.Any(SyntaxKind.PublicKeyword) || member.Modifiers.Any(SyntaxKind.ProtectedKeyword)))
+                                                                                                                      IsPublic: IsPubliclyVisible(member)))
                                                                                                    .ToList();
+
+    /// <summary>
+    /// Determines whether a member reaches the generated XML documentation file
+    /// </summary>
+    /// <param name="member">Member to inspect</param>
+    /// <returns><c>true</c> for public and protected members, interface members, and enum members</returns>
+    private static bool IsPubliclyVisible(MemberDeclarationSyntax member)
+    {
+        // Interface and enum members carry no accessibility modifier of their own, yet both land in the generated documentation
+        if (member is EnumMemberDeclarationSyntax || member.Parent is InterfaceDeclarationSyntax)
+        {
+            return true;
+        }
+
+        return member.Modifiers.Any(SyntaxKind.PublicKeyword) || member.Modifiers.Any(SyntaxKind.ProtectedKeyword);
+    }
 
     /// <summary>
     /// Returns the first difference between two comparable sequences
@@ -596,8 +681,13 @@ internal static class Proof
     {
         var normalized = path.Replace('\\', '/');
 
+        // A behavioral prefix wins over the extension: scripts/README.md documents executable behavior and belongs to the surface the workflows audit
+        if (_behavioralPrefixes.Any(prefix => normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
         return normalized.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
-            || normalized.Equals(".github/PULL_REQUEST_TEMPLATE.md", StringComparison.OrdinalIgnoreCase)
             || _nonCompiledPrefixes.Any(prefix => normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 

@@ -6,7 +6,7 @@ description: >-
 
 # Implement GitHub Issue
 
-You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before builds or tests, confirm the SDK with `scripts/prepare.sh --no-install`; do not install an SDK, modify `PATH`, or otherwise change the environment. Your job is to take a single GitHub issue from unclaimed to a validated draft PR, delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
+You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before builds or tests, confirm the SDK with `scripts/prepare.ps1 -NoInstall`; do not install an SDK, modify `PATH`, or otherwise change the environment. Your job is to take a single GitHub issue from unclaimed to a validated draft PR, delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
 
 You own the environment, the issue lookup, the branch, the Behavior Contract gate, the validation, and the pull request. The delegated command owns the production change and its tests.
 
@@ -39,12 +39,12 @@ Claiming the issue (steps 1–3) happens before the triage and the contract gate
 The required .NET 10 SDK is preinstalled in every supported Codex environment. Claim the issue first; then, before doing anything that touches `dotnet`, verify the toolchain through the repository script:
 
 ```shell
-scripts/prepare.sh --no-install
+scripts/prepare.ps1 -NoInstall
 ```
 
-`--no-install` turns a missing SDK into a failure instead of an installation, so the script verifies and changes nothing. The repository targets `net10.0` and there is no `global.json`; never fall back to an older SDK, install one, or modify `PATH`.
+`-NoInstall` turns a missing SDK into a failure instead of an installation, so the script verifies and changes nothing. The repository targets `net10.0` and there is no `global.json`; never fall back to an older SDK, install one, or modify `PATH`.
 
-The other repository scripts — `scripts/build.sh`, `scripts/test.sh`, `scripts/format.sh`, `scripts/verify-text-only.sh` — take the same flag and resolve the SDK the same way. Use them instead of hand-written `dotnet` invocations; they are the single owner of these commands across `AGENTS.md`, `CLAUDE.md`, and every workflow skill. In the Linux cloud environment use the `.sh` variants; the `.ps1` variants are for local Windows.
+The other repository scripts — `scripts/build.ps1`, `scripts/test.ps1`, `scripts/format.ps1`, `scripts/verify-text-only.ps1` — take the same switch and resolve the SDK the same way. Use them instead of hand-written `dotnet` invocations; they are the single owner of these commands across `AGENTS.md`, `CLAUDE.md`, and every workflow skill. In the Linux cloud environment use the `.sh` variants; the `.ps1` variants are for local Windows.
 
 If the SDK is missing or the scripts cannot run, record the failure in the already-open draft PR's `Review notes` and stop. Do not proceed with a partial validation — a green run without the SDK is meaningless.
 
@@ -148,13 +148,15 @@ Both gates default to **on**. The escape below exists for work that is genuinely
 - `scripts/**` and CI workflow files — these are not compiled, but they are executable behavior;
 - a mixed diff that contains any of the above next to documentation.
 
-Touching a `.cs` file is not by itself a reason to audit when only its comments changed. The veto therefore has one mechanical escape, and it is a proof rather than a judgment call:
+Touching a `.cs` file is not by itself a reason to audit when only its comments changed. The veto therefore has one mechanical escape — but it is a proof about a diff, and at triage time no diff exists yet.
 
-```bash
-scripts/verify-text-only.sh --no-install --base <base-sha> --head <head-sha>
+So the veto's escape is **claimed** here and **proven** later. At triage, state that you intend a comment-only `.cs` change and which files it will touch. Before the preflight decision, when the change is committed, run the proof against the real diff:
+
+```powershell
+scripts/verify-text-only.ps1 -NoInstall -Base <base-sha> -Head <head-sha>
 ```
 
-Exit code `0` proves that every changed line is comment, documentation, or layout trivia, that no token, directive, disabled-text region, or literal moved, and that both versions parse. A diff the proof accepts may still be routine even though it contains `.cs` files; record the `TEXT-ONLY PROOF: PASS …` line as the evidence. Exit code `1` restores the veto, and exit code `2` is a tool failure that proves nothing — treat it as `1`.
+Exit code `0` proves that every changed line is comment, documentation, or layout trivia, that no token, directive, disabled-text region, or literal moved, and that both versions parse; record the `TEXT-ONLY PROOF: PASS …` line as the evidence. Exit code `1` restores the veto, and exit code `2` is a tool failure that proves nothing — treat it as `1`. Running the proof on an empty diff proves nothing either: it reports `no changed files` and exits `0`, which is why the claim is not evidence until the diff exists.
 
 A rename never qualifies: it reaches `nameof`, reflection, serialization, source generators, public API, and named arguments. Everything else that is neither C# nor a known non-compiled text path stays behavioral.
 
@@ -227,7 +229,7 @@ Do **not** include your own proposed solution, suspected root cause, planned dif
 
 Use **one** Rubber Duck subagent per implementation run. When the user later clarifies the same contract, continue that same subagent with a follow-up message carrying the new evidence and ask for an amended contract — do not spawn a second one. Spawn a replacement only when the original agent is unavailable or the issue scope changes materially (a different defect, a different rule).
 
-Apply `gh-preflight`'s bounded restart policy here too: one start, at most one restart after the agent errors, exits without a contract, or goes 15 minutes without tool activity, then the local fallback below. A start that returned no contract counts as a **process start**, not as a gate result, and the final report states both.
+Apply `gh-preflight`'s bounded restart policy here too: one start, at most one restart when the agent errors, returns without a contract, or your own wait passes roughly 15 minutes, then the local fallback below. A start that returned no contract counts as a **process start**, not as a gate result, and the final report states both.
 
 If subagents are unavailable in the current environment, perform the analysis yourself by following `gh-rubber-duck` before any edit, and record the resulting contract in this chat. The gate still applies; only the isolation is lost.
 
@@ -359,13 +361,13 @@ The branch already contains the empty claim commit, is pushed, and has an open d
 2. Format **the changed files** through the CLI before tests:
 
    ```shell
-   scripts/format.sh --no-install <changed-path-1> [<changed-path-2> ...]
+   scripts/format.ps1 -NoInstall <changed-path-1> [<changed-path-2> ...]
    ```
 
 3. Run the focused tests for the changed rule or phase — not the suite:
 
    ```shell
-   scripts/test.sh --no-install --project analyzer --filter "FullyQualifiedName~RH3204"
+   scripts/test.ps1 -NoInstall -Project analyzer -Filter "FullyQualifiedName~RH3204"
    ```
 
 4. Commit with a Conventional-Commits style subject that mentions the issue and ends with `[skip ci]` (see "Keep CI silent until everything is done"), then push it:
@@ -394,7 +396,7 @@ Check, concretely:
 - **comments and directives** — the trivia shapes the contract marked relevant survive at sensible positions, or the edit is refused;
 - **comment and documentation consistency** — for **every method whose body changed**, re-read its XML summary and its inline comments and confirm they still describe the code they sit next to. A comment that documents the previous behavior is a defect in the same diff that changed it, and it is the single most common thing an audit returns once everything else is right;
 - **documentation** — `documentation/rules/RH####.md` matches the shipped behavior when a rule changed;
-- **changed-path formatting** — every changed C# path went through `scripts/format.sh --no-install`;
+- **changed-path formatting** — every changed C# path went through `scripts/format.ps1 -NoInstall`;
 - **focused tests** — the tests for the changed rule/phase pass at the current working tree.
 
 Fix what you find now. This is not an official preflight, does not consume a preflight attempt, and is not reported as one.
@@ -429,7 +431,7 @@ The audited tree must be the tree that will merge. Synchronizing after a passing
 2. Check worktree and branch state — `git status --short` must be clean of unintended changes, and the branch must be the PR head.
 3. Merge current `origin/main` into the working branch when the branch is behind.
 4. Resolve conflicts so that **both** the branch behavior and the `main` behavior survive. A conflict resolution that drops one side is a defect, not a merge detail.
-5. Run `scripts/format.sh --no-install --no-install` over every conflict-resolved and changed C# path.
+5. Run `scripts/format.ps1 -NoInstall` over every conflict-resolved and changed C# path.
 6. Run the focused tests affected by the merge.
 7. Commit and push the synchronized head with `[skip ci]`.
 8. Take the preflight decision against that exact head.
@@ -440,13 +442,13 @@ If `origin/main` moves again **after** a passing preflight: do not enter an unli
 
 `gh-preflight` is the final, independent quality gate. Read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings to GitHub. Run it in a fresh, independent read-only subagent when subagents are available, exactly as that skill's reviewer-isolation section requires, and hand it the same evidence bundle the Rubber Duck received.
 
-**First decide whether an audit is required at all.** That decision belongs to `gh-preflight`'s trigger list, not to this file: an audit is required when the diff changes a predicate, guard, or report condition; which tokens or trivia a rewrite writes; a code-fix registration or applicability; a diagnostic ID, severity, or message; public API; a dependency; a repository script, build property, ruleset, or CI workflow; or adds a rule. It is not required for a diff that only edits comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — or that only adds tests for behavior that is already correct. Prove the comment-only case with `scripts/verify-text-only.sh --no-install` and record the proof line; ask the user when the diff fits neither list. A skipped audit never skips the full validation.
+**First decide whether an audit is required at all.** That decision belongs to `gh-preflight`'s trigger list, not to this file: an audit is required when the diff changes a predicate, guard, or report condition; which tokens or trivia a rewrite writes; a code-fix registration or applicability; a diagnostic ID, severity, or message; public API; a dependency; a repository script, build property, ruleset, or CI workflow; or adds a rule. It is not required for a diff that only edits comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — or that only adds tests for behavior that is already correct. Prove the comment-only case with `scripts/verify-text-only.ps1 -NoInstall` and record the proof line; ask the user when the diff fits neither list. A skipped audit never skips the full validation.
 
 The budget is fixed:
 
 1. **Attempt 1** runs automatically once implementation is complete, the local self-review and admission artifact are complete, `main` is synchronized, and the head is pushed.
 2. On `PASS`, continue to full validation.
-3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove they changed nothing compiled with `scripts/verify-text-only.sh --no-install --base <audited-sha> --head worktree`, and continue to full validation. This costs no attempt. If the proof rejects the cleanup, the audit no longer covers the tree — treat it as a repair cycle instead.
+3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove they changed nothing compiled *and no public API documentation* with `scripts/verify-text-only.ps1 -NoInstall -StrictDocs -Base <audited-sha> -Head worktree`, and continue to full validation. This costs no attempt. If the proof rejects the cleanup, the audit no longer covers the tree — treat it as a repair cycle instead.
 4. On `BLOCKED — findings`, collect **every** finding into **one** consolidated worklist. Do not start fixing before the worklist is complete, and do not run a preflight in between.
 5. Fix the complete worklist in **one** repair cycle: close each finding's full defect class, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]` and update the PR body when needed.
 6. **Re-audit the repair, not just the finding.** Preflight's `Required change` column is a suggestion, not a specification — implementing it literally is what turns one finding into the next round's finding. Re-run the guard-delta and predicate-boundary tables against the guard *as repaired*, and add a test on each side of every boundary the repair moved.
@@ -459,7 +461,7 @@ Classify every finding against the frozen scope ledger before fixing it, and tak
 
 A tracked-file change made after a passing preflight means the audited tree is no longer the tree that will merge:
 
-- the change is proven text-only by `scripts/verify-text-only.sh --no-install` → note it and its proof line in the report and continue;
+- the change is proven text-only by `scripts/verify-text-only.ps1 -NoInstall` → note it and its proof line in the report and continue;
 - it touches compiled behavior and an attempt is unspent → spend the retry on the new tree;
 - it touches compiled behavior and the budget is exhausted → stop and report. The user decides whether to ship a tree that no audit covered; you do not decide it silently.
 
@@ -471,12 +473,12 @@ Focused, filtered tests run throughout implementation. The complete suite runs *
 
 Only a diff that contains **no compiled file at all** skips this section — see "Scope triage". A skipped preflight does not skip validation: a comment-only change inside `.cs` still builds and runs every test project, because the build is what catches a malformed comment or a changed documentation artifact, and test runtime costs wall-clock rather than tokens.
 
-```bash
-scripts/build.sh --no-install
-scripts/test.sh --no-install --no-build
+```powershell
+scripts/build.ps1 -NoInstall
+scripts/test.ps1 -NoInstall -NoBuild
 ```
 
-`scripts/test.sh --no-install --no-install` runs all four test projects in order; `--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. If any fails:
+`scripts/test.ps1 -NoInstall` runs all four test projects in order; `--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
 2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`.
@@ -588,7 +590,7 @@ None of this may reduce correctness or hide a failing result. When output is tri
 
 - **Never** edit a production or test file on a behavioral run before the Behavior Contract gate returns `READY` (or before the user has resolved a `NEEDS DECISION`). On a routine run the recorded contract note takes its place.
 - **Never** classify a run routine to dodge the gates. The five criteria are all-or-nothing, a trip-wire voids the classification, and the report has to name the reason.
-- **Never** claim a comment-only carve-out from reading the diff. Run `scripts/verify-text-only.sh --no-install --no-install` and quote its proof line, or treat the diff as behavioral.
+- **Never** claim a comment-only carve-out from reading the diff. Run `scripts/verify-text-only.ps1 -NoInstall` and quote its proof line, or treat the diff as behavioral.
 - **Never** invoke preflight before the admission artifact is complete, and never let a missing artifact row become an audit finding.
 - **Never** implement a preflight `Required change` literally without re-deriving its scope against the delta tables — that is how one finding becomes two rounds.
 - **Never** let a repair grow past a scope-checkpoint trigger without putting the three choices to the user.
@@ -620,12 +622,12 @@ None of this may reduce correctness or hide a failing result. When output is tri
 
 End-state checklist for a finished run:
 
-- [ ] Preinstalled .NET 10 SDK confirmed with `scripts/prepare.sh --no-install`
+- [ ] Preinstalled .NET 10 SDK confirmed with `scripts/prepare.ps1 -NoInstall`
 - [ ] GitHub CLI authentication confirmed with `gh auth status`
 - [ ] Issue number extracted and read via `gh issue view`
 - [ ] Existing claim or draft PR checked; `codex/issue-<N>-<slug>` pushed with an empty claim commit
 - [ ] Generic-placeholder draft PR opened before implementation (title `Claim: issue #<N>`, every template section filled with static generic text, `Closes #<N>`) — nothing paraphrased from the issue
-- [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded — with the `TEXT-ONLY PROOF` line when a `.cs` diff was carved out
+- [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded — a claimed `.cs` carve-out proven with `TEXT-ONLY PROOF` against the real diff before the preflight decision, never against an empty one
 - [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent, evidence bundle gathered, and exactly one read-only Rubber Duck subagent spawned before any edit — routine run: contract note written before any edit
 - [ ] Behavior Contract accepted (`READY`, or `NEEDS DECISION` resolved by the user) and shown to the user in short form
 - [ ] Bug-report contract contains a complete code-derived defect-class enumeration and sweep; non-bug contracts mark both sections N/A
@@ -633,13 +635,13 @@ End-state checklist for a finished run:
 - [ ] Scope ledger frozen at contract acceptance; every later discovery classified against it
 - [ ] Regression matrix derived from the contract, including every sweep candidate and a test on both sides of every named boundary; red tests added before production changes
 - [ ] Delegated command (or inline plan) selected from the routing table
-- [ ] Change made, files formatted via `scripts/format.sh --no-install`, focused tests green
+- [ ] Change made, files formatted via `scripts/format.ps1 -NoInstall`, focused tests green
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
 - [ ] Local self-review completed against every contract row, including comment and documentation consistency for every changed method
 - [ ] Admission artifact complete — no missing row — before any audit starts
 - [ ] Current `origin/main` merged, conflicts formatted and focused-tested, synchronized head pushed with `[skip ci]`
 - [ ] Preflight decision taken from the trigger list; when required, a passing result on that exact tree within the 1 + 1 budget; when skipped, the proof line recorded
-- [ ] `scripts/build.sh --no-install` + `scripts/test.sh --no-install` green on the final tree — run once, or recorded as skipped for a diff with no compiled file
+- [ ] `scripts/build.ps1 -NoInstall` + `scripts/test.ps1 -NoInstall` green on the final tree — run once, or recorded as skipped for a diff with no compiled file
 - [ ] Trigger commit proven content-free with `git diff --exit-code <audited-sha> HEAD`
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label

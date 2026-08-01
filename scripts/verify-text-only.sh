@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Proves that a change carries no compiled behavior.
 #
-#   scripts/verify-text-only.sh [--base <rev>] [--head <rev>]
+#   scripts/verify-text-only.sh [--base <rev>] [--head <rev>] [--strict-docs]
 #
 # Defaults to the merge base with origin/main and HEAD. Use `--head worktree`
-# to include uncommitted changes.
+# to include uncommitted changes, and `--strict-docs` when public API
+# documentation must stay unchanged too — plain exit code 0 does not establish
+# that, because a documentation edit is a legitimate comment-only change.
 #
 # Exit codes: 0 proven text-only, 1 not proven, 2 tool or setup error.
 #
@@ -31,6 +33,7 @@ if ! reihitsu_ensure_dotnet "${install_arguments[@]+"${install_arguments[@]}"}" 
     exit 2
 fi
 
-cd "$(reihitsu_repo_root)"
+repository_root="$(reihitsu_repo_root)"
 
-dotnet run scripts/proof/verify-text-only.cs -- "${proof_arguments[@]+"${proof_arguments[@]}"}"
+# The tool inspects the repository this script belongs to, whatever the caller's working directory is
+dotnet run "$repository_root/scripts/proof/verify-text-only.cs" -- --repository "$repository_root" "${proof_arguments[@]+"${proof_arguments[@]}"}"

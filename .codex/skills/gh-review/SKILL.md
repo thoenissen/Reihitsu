@@ -7,7 +7,7 @@ description: Review a GitHub Pull Request for the Reihitsu repository. Triggers 
 
 You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus one GitHub review containing every confirmed finding. Nothing else.
 
-You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before execution, confirm the SDK with `scripts/prepare.sh --no-install`; do not install an SDK, modify `PATH`, or otherwise change the environment.
+You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before execution, confirm the SDK with `scripts/prepare.ps1 -NoInstall`; do not install an SDK, modify `PATH`, or otherwise change the environment.
 
 ## Inputs
 
@@ -102,15 +102,15 @@ Missing tests from this list are findings (severity per the model below), not hi
 
 Reach for execution only when a **specific suspicion is checkable and the answer changes a finding** — a convergence question, an idempotency double-run, a suspected non-compiling rewrite. In that case:
 
-1. Run `scripts/prepare.sh --no-install` to confirm the preinstalled .NET 10 SDK. Do not install an SDK, modify `PATH`, or otherwise change the environment.
+1. Run `scripts/prepare.ps1 -NoInstall` to confirm the preinstalled .NET 10 SDK. Do not install an SDK, modify `PATH`, or otherwise change the environment.
 
 2. Run **only the targeted tests that resolve the suspicion**, not the whole suite. Use a `--filter` scoped to the affected rule(s) (examples in `AGENTS.md`), e.g.:
 
    ```shell
-   scripts/test.sh --no-install --project analyzer --filter "FullyQualifiedName~RH3204"
+   scripts/test.ps1 -NoInstall -Project analyzer -Filter "FullyQualifiedName~RH3204"
    ```
 
-   For formatter changes, run `scripts/format.sh --no-install <path>` **twice** over a file exercising the change — the second run must report no changes.
+   For formatter changes, run `scripts/format.ps1 -NoInstall <path>` **twice** over a file exercising the change — the second run must report no changes.
 
 3. A **high**-severity finding should carry a concrete counterexample (a short code snippet plus what goes wrong) in the review comment. Constructing the counterexample is how a suspicion earns "high confidence" — do not discard invariant suspicions merely because they are not obvious from the diff.
 

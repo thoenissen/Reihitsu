@@ -2,8 +2,11 @@
 .SYNOPSIS
     Formats the given paths with the repository's own CLI formatter.
 .DESCRIPTION
-    Run this over every changed C# path before running tests, as CLAUDE.md and
-    AGENTS.md require.
+    Paths are resolved against the caller's working directory, not the
+    repository root, so a relative path means what it looks like it means.
+
+    Run this over every changed C# path before running tests, as AGENTS.md and
+    CLAUDE.md require.
 .PARAMETER Paths
     Files or directories to format.
 .PARAMETER NoInstall
@@ -22,20 +25,28 @@ $ErrorActionPreference = 'Stop'
 
 . (Join-Path (Join-Path $PSScriptRoot 'lib') 'dotnet-env.ps1')
 
-Initialize-ReihitsuDotnet -NoInstall:$NoInstall -Quiet
+$arguments = @()
 
-Push-Location (Get-ReihitsuRepositoryRoot)
-
-try
+foreach ($path in $Paths)
 {
-    & dotnet run --project Reihitsu.Cli -- @Paths
-
-    if ($LASTEXITCODE -ne 0)
+    if ($path.StartsWith('-'))
     {
-        exit $LASTEXITCODE
+        $arguments += $path
+    }
+    elseif (Test-Path -LiteralPath $path)
+    {
+        $arguments += (Resolve-Path -LiteralPath $path).Path
+    }
+    else
+    {
+        $arguments += $path
     }
 }
-finally
-{
-    Pop-Location
-}
+
+Initialize-ReihitsuDotnet -NoInstall:$NoInstall -Quiet
+
+$cli = Join-Path (Get-ReihitsuRepositoryRoot) 'Reihitsu.Cli'
+
+& dotnet run --project $cli -- @arguments
+
+exit $LASTEXITCODE

@@ -59,8 +59,8 @@ When a parent workflow invokes this skill, return the gate result to that workfl
 
 A carve-out inside a compiled file is a claim about syntax, so it is proven mechanically rather than argued:
 
-```bash
-scripts/verify-text-only.sh --no-install --base <base-sha> --head <head-sha>
+```powershell
+scripts/verify-text-only.ps1 -NoInstall -Base <base-sha> -Head <head-sha>
 ```
 
 Exit code `0` and its `TEXT-ONLY PROOF: PASS …` line are the evidence the parent records in place of the attempt. Exit code `1` means the diff carries compiled behavior, so the attempt is required. Exit code `2` is a tool failure that proves nothing — run the attempt. A line-based `grep` over the diff is not an acceptable substitute: it does not recognize every block-comment form and cannot tell a comment apart from a directive or from comment-looking text inside a string literal.
@@ -103,7 +103,7 @@ If subagents are unavailable, perform the audit locally from GitHub and filesyst
 An isolated reviewer that never returns a verdict must not silently consume the workflow's audit budget, and must not spin either:
 
 1. one agent start;
-2. at most one restart after a defined no-progress timeout — the agent errored, exited without a verdict, or produced no tool activity for 15 minutes;
+2. at most one restart when the agent errors, returns without a verdict, or the parent's own wait passes roughly 15 minutes without a result — report which of the three it was rather than inferring activity you cannot observe inside another agent;
 3. then the local read-only fallback above, performed by the parent.
 
 A start that produced no verdict costs a **process start**, not an official attempt. The parent reports both numbers separately.
@@ -210,7 +210,7 @@ A narrow guard for one example is not closure when sibling shapes retain the sam
 
 ## Verification
 
-Default to static tracing. Run only targeted tests or formatter double-runs that resolve a concrete suspicion. Before execution, confirm the preinstalled SDK with `scripts/prepare.sh --no-install`, then use `scripts/test.sh --no-install --project <name> --filter <expression>`. Do not install an SDK or modify `PATH`. Do not run the full solution test suite; the parent workflow owns full validation after this gate.
+Default to static tracing. Run only targeted tests or formatter double-runs that resolve a concrete suspicion. Before execution, confirm the preinstalled SDK with `scripts/prepare.ps1 -NoInstall`, then use `scripts/test.ps1 -NoInstall -Project <name> -Filter <expression>`. Do not install an SDK or modify `PATH`. Do not run the full solution test suite; the parent workflow owns full validation after this gate.
 
 ## Gate decision
 
@@ -235,7 +235,7 @@ When invoked by `gh-implement` or `gh-apply-review`, the parent owns the budget:
 3. It formats changed paths, runs focused tests, redoes its local self-review and admission artifact, commits with `[skip ci]`, pushes, and updates the PR body when needed.
 4. It applies its own scope policy: both parents classify against a frozen scope ledger, ask before expanding the accepted contract, and preserve confirmed out-of-scope work as an unapproved follow-up draft.
 5. It spends the **preflight retry** — one fresh, independent, read-only run against the exact new head, with the repair-delta inputs above. `BLOCKED — state mismatch` does not consume an attempt; neither does an agent start that returned no verdict. Reconcile and rerun.
-6. On `PASS — non-blocking cleanup` it applies the listed text fixes, proves them non-behavioral with `scripts/verify-text-only.sh --no-install --base <audited-sha> --head worktree`, and continues to full validation without another attempt. A proven text-only cleanup does not invalidate the audit; anything the proof rejects does.
+6. On `PASS — non-blocking cleanup` it applies the listed text fixes and proves them non-behavioral with `scripts/verify-text-only.ps1 -NoInstall -StrictDocs -Base <audited-sha> -Head worktree`, then continues to full validation without another attempt. `-StrictDocs` is required here rather than optional: this result excludes public API documentation, and a plain exit code 0 does not establish that, because a documentation edit is exactly what a comment-only change is otherwise allowed to be. A proven text-only cleanup does not invalidate the audit; anything the proof rejects does.
 7. It proceeds to full validation only after a passing result, and it stops and reports if the retry blocks. A third official attempt requires explicit user direction.
 
 ## Direct chat output
@@ -275,7 +275,7 @@ _None._
 - Static tracing only; no targeted execution needed.
 
 ## Gate metrics
-- Elapsed: 12 min; audit mode: full; agent starts: 1.
+- Elapsed: `<duration, or "not measured">`; audit mode: `<full | repair delta>`; agent starts: `<n>`.
 
 ## Hints
 _None._

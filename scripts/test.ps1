@@ -1,6 +1,9 @@
 <#
 .SYNOPSIS
     Runs the Reihitsu test projects in Release configuration.
+.DESCRIPTION
+    Test projects are addressed by absolute path, so the caller's working
+    directory is never changed and relative arguments keep their meaning.
 .PARAMETER Project
     Which project to run: analyzer, formatter, core, cli, architecture, or all (default).
 .PARAMETER Filter
@@ -50,28 +53,21 @@ $projects = switch ($Project)
 
 Initialize-ReihitsuDotnet -NoInstall:$NoInstall -Quiet
 
-Push-Location (Get-ReihitsuRepositoryRoot)
+$repositoryRoot = Get-ReihitsuRepositoryRoot
 
-try
+foreach ($testProject in $projects)
 {
-    foreach ($testProject in $projects)
+    Write-Host "==> $testProject"
+
+    $arguments = @((Join-Path $repositoryRoot $testProject), '-c', 'Release', '--verbosity', 'minimal')
+
+    if ($NoBuild) { $arguments += '--no-build' }
+    if ($Filter) { $arguments += @('--filter', $Filter) }
+
+    & dotnet test @arguments @TestArguments
+
+    if ($LASTEXITCODE -ne 0)
     {
-        Write-Host "==> $testProject"
-
-        $arguments = @($testProject, '-c', 'Release', '--verbosity', 'minimal')
-
-        if ($NoBuild) { $arguments += '--no-build' }
-        if ($Filter) { $arguments += @('--filter', $Filter) }
-
-        & dotnet test @arguments @TestArguments
-
-        if ($LASTEXITCODE -ne 0)
-        {
-            exit $LASTEXITCODE
-        }
+        exit $LASTEXITCODE
     }
-}
-finally
-{
-    Pop-Location
 }
