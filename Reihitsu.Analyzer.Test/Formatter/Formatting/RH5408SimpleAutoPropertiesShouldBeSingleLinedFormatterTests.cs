@@ -190,5 +190,63 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
         await VerifyFormatterStability(input);
     }
 
+    /// <summary>
+    /// Verifies that the formatter joins a terminating semicolon that sits on its own line, so the diagnostic the
+    /// analyzer reports for that shape can be cleared (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesOwnLineDeclarationSemicolonAutoProperty()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 {|#0:internal int Value { get; set; } = 1
+                                     ;|}
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter collapses the accessor list and joins the terminating semicolon in one pass, so
+    /// the two line-break subphases cooperate on the same declaration (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesMultiLineAccessorListWithOwnLineDeclarationSemicolon()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 {|#0:internal int Value
+                                 {
+                                     get;
+                                     set;
+                                 } = 1
+                                     ;|}
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
     #endregion // Tests
 }

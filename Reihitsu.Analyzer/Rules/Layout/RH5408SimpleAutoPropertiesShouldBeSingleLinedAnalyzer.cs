@@ -158,6 +158,22 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             {
                 return false;
             }
+
+            // The reported span ends at the terminating semicolon, so a semicolon broken onto its own line makes the
+            // declaration multi-line. DeclarationSemicolonLineBreakRewriter joins that gap, but it refuses to join
+            // across a comment or directive, so the analyzer must guard the same gap to avoid a permanent diagnostic.
+            // The line check keeps the guard aligned with the rewriter, which only acts on a semicolon that carries a
+            // leading line break: trivia in a gap that already sits on one line is never crossed, and such a comment
+            // is trailing trivia of the initializer value, which the initializer guard above already owns.
+            var tokenBeforeSemicolon = propertyDeclaration.SemicolonToken.GetPreviousToken();
+
+            if (propertyDeclaration.SemicolonToken.IsMissing == false
+                && tokenBeforeSemicolon.IsKind(SyntaxKind.None) == false
+                && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(tokenBeforeSemicolon.Span.End, propertyDeclaration.SemicolonToken.SpanStart)) == false
+                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeSemicolon, propertyDeclaration.SemicolonToken))
+            {
+                return false;
+            }
         }
 
         return true;

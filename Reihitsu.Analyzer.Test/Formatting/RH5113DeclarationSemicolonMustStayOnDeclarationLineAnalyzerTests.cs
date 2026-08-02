@@ -308,5 +308,59 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifying diagnostics for a property declaration with an initializer whose terminating semicolon sits on a
+    /// new line, so the rule covers the same member kinds the formatter joins (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForPropertyDeclarationWithSemicolonOnNewLine()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    internal class TestClass
+                                    {
+                                        public int Value { get; set; } = 1
+                                            {|#0:;|}
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     internal class TestClass
+                                     {
+                                         public int Value { get; set; } = 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no diagnostic is reported for an expression-bodied property whose terminating semicolon sits on a
+    /// new line, because the formatter deliberately leaves an expression body wrapped (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForExpressionBodiedPropertyWithSemicolonOnNewLine()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    internal class TestClass
+                                    {
+                                        public int Value => 1
+                                            ;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

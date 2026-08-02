@@ -108,6 +108,26 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer : Diagn
         CheckSemicolonLine(context, declaration.SemicolonToken);
     }
 
+    /// <summary>
+    /// Analyzes property declarations
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnPropertyDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        var declaration = (PropertyDeclarationSyntax)context.Node;
+
+        // Only an initializer terminates a property declaration with a semicolon that belongs to the declaration
+        // itself. The semicolon of an expression-bodied property closes the expression body instead, and that body
+        // is allowed to wrap onto its own line, so the formatter leaves it alone and flagging it would leave a
+        // permanent diagnostic.
+        if (declaration.Initializer == null)
+        {
+            return;
+        }
+
+        CheckSemicolonLine(context, declaration.SemicolonToken);
+    }
+
     #endregion // Methods
 
     #region DiagnosticAnalyzer
@@ -120,6 +140,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer : Diagn
         context.RegisterSyntaxNodeAction(OnFieldDeclaration, SyntaxKind.FieldDeclaration);
         context.RegisterSyntaxNodeAction(OnEventFieldDeclaration, SyntaxKind.EventFieldDeclaration);
         context.RegisterSyntaxNodeAction(OnDelegateDeclaration, SyntaxKind.DelegateDeclaration);
+        context.RegisterSyntaxNodeAction(OnPropertyDeclaration, SyntaxKind.PropertyDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer
