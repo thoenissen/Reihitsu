@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
+using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.HorizontalSpacing;
 

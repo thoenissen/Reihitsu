@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines;
 using Reihitsu.Formatter.Pipeline.Cleanup;
 using Reihitsu.Formatter.Pipeline.DocumentationComments;

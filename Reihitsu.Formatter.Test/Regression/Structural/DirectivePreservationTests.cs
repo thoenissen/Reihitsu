@@ -1,8 +1,9 @@
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 
 namespace Reihitsu.Formatter.Test.Regression.Structural;

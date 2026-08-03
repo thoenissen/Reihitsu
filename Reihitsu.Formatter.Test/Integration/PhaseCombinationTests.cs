@@ -1,9 +1,10 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines;
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
-using Reihitsu.Formatter.Pipeline.Indentation;
+using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms;
 

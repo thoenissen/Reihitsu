@@ -1,8 +1,9 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline;
-using Reihitsu.Formatter.Pipeline.LineBreaks;
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.LineBreaks;
 

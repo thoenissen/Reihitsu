@@ -9,8 +9,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
-using Reihitsu.Formatter;
-using Reihitsu.Formatter.Pipeline.StructuralTransforms;
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 

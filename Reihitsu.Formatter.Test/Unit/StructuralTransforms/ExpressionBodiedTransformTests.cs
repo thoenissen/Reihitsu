@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms;
 using Reihitsu.Formatter.Test.Helpers;
 

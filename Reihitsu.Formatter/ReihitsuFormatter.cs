@@ -3,7 +3,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter;
 

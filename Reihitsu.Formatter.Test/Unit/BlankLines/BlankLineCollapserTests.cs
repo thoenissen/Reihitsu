@@ -1,11 +1,10 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline.BlankLines;
+using Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
 namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 

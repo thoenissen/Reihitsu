@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Formatter.Data;
+
 namespace Reihitsu.Formatter.Pipeline.LineEndings;
 
 /// <summary>

@@ -1,7 +1,9 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.DocumentationComments;
+using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.DocumentationComments;
 

@@ -37,5 +37,10 @@ internal class Assemblies
                                                                                                       Assembly.Load("Reihitsu.Formatter"))
                                                                                       .Build();
 
+    /// <summary>
+    /// Formatter assemblies
+    /// </summary>
+    public static Architecture Formatter { get; private set; } = new ArchLoader().LoadAssemblies(Assembly.Load("Reihitsu.Formatter")).Build();
+
     #endregion // Properties
 }
