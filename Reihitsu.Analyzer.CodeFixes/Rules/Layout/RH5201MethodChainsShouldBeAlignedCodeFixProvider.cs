@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Formatter;
-using Reihitsu.Formatter.Pipeline.LineBreaks;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 

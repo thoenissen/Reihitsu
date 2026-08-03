@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli.Abstractions;
 

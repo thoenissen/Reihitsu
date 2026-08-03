@@ -1,5 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation;
 
 /// <summary>

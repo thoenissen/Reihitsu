@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 
 namespace Reihitsu.Analyzer.Test.Base;

@@ -1,5 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.UsingDirectives.Rewriter;
+
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 /// <summary>

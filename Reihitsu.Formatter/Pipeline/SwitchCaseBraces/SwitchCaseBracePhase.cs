@@ -1,5 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.SwitchCaseBraces.Rewriter;
+
 namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 
 /// <summary>

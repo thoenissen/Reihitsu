@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline.DocumentationComments;
+using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.DocumentationComments;
 

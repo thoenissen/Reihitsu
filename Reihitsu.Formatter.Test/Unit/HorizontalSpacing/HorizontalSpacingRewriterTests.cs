@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
+using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rewriter;
 
 namespace Reihitsu.Formatter.Test.Unit.HorizontalSpacing;
 

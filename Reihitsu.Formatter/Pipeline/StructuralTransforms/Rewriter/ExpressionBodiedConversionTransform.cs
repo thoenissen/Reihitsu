@@ -1,0 +1,70 @@
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
+
+namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
+
+/// <summary>
+/// Converts expression-bodied conversion operators (<c>implicit operator</c> / <c>explicit operator</c>)
+/// to block body with a <see cref="ReturnStatementSyntax"/>
+/// </summary>
+internal sealed class ExpressionBodiedConversionTransform : CSharpSyntaxRewriter
+{
+    #region Fields
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public ExpressionBodiedConversionTransform(CancellationToken cancellationToken)
+    {
+        _cancellationToken = cancellationToken;
+    }
+
+    #endregion // Constructor
+
+    #region CSharpSyntaxVisitor
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (ConversionOperatorDeclarationSyntax)base.VisitConversionOperatorDeclaration(node);
+
+        if (node?.ExpressionBody == null)
+        {
+            return node;
+        }
+
+        if (ExpressionBodiedTransformUtilities.RequiresExpressionBodyPreservation(node, node.ExpressionBody, node.SemicolonToken))
+        {
+            return node;
+        }
+
+        var expression = node.ExpressionBody.Expression;
+
+        var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
+                                                               ExpressionBodyStatementForm.ReturnStatement,
+                                                               node.ExpressionBody.ArrowToken,
+                                                               node.SemicolonToken);
+
+        return node.WithBody(block)
+                   .WithExpressionBody(null)
+                   .WithSemicolonToken(default);
+    }
+
+    #endregion // CSharpSyntaxVisitor
+}

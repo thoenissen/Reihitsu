@@ -1,5 +1,8 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 

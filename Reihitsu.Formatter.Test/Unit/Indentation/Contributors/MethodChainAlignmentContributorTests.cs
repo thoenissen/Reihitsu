@@ -2,8 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline.Indentation;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Contributors;
+using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation.Contributors;
 

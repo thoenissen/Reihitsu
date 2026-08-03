@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
 
 /// <summary>
 /// Final cleanup pass that removes non-semantic trivia noise such as trailing whitespace
 /// and end-of-file newlines.
-/// Collapsing excessive blank lines is owned solely by <see cref="BlankLines.BlankLineCollapser"/>
+/// Collapsing excessive blank lines is owned solely by <see cref="BlankLines.Rewriter.BlankLineCollapser"/>
 /// </summary>
 internal sealed class CleanupPhase : IFormattingPhase
 {

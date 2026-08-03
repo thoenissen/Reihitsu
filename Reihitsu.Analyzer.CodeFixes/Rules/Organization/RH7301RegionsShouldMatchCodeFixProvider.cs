@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 

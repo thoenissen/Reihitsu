@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Formatter;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;

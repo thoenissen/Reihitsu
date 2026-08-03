@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Pipeline.LineBreaks;
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 

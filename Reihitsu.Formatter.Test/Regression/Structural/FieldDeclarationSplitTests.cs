@@ -5,7 +5,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Regression tests for <see cref="Reihitsu.Formatter.Pipeline.StructuralTransforms.FieldDeclarationSplitTransform"/>
+/// Regression tests for <see cref="Pipeline.StructuralTransforms.Rewriter.FieldDeclarationSplitTransform"/>
 /// </summary>
 [TestClass]
 public class FieldDeclarationSplitTests : FormatterTestsBase

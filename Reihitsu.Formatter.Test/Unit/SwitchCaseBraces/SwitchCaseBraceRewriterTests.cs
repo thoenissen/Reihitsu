@@ -2,7 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
+using Reihitsu.Formatter.Pipeline.SwitchCaseBraces.Rewriter;
 
 namespace Reihitsu.Formatter.Test.Unit.SwitchCaseBraces;
 

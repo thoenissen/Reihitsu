@@ -1,9 +1,12 @@
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines;
+using Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
+using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 

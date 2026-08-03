@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 using Reihitsu.Analyzer.Rules.Clarity;
-using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Analyzer.Test.Base;
 
 namespace Reihitsu.Analyzer.Test.Design;

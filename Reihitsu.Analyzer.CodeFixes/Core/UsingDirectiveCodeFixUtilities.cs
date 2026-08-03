@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
