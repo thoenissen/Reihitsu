@@ -86,46 +86,68 @@ public static class AttributeTargetUtilities
             switch (explicitTarget)
             {
                 case "assembly":
-                    target = AttributeTargets.Assembly;
+                    {
+                        target = AttributeTargets.Assembly;
 
-                    return true;
+                        return true;
+                    }
                 case "module":
-                    target = AttributeTargets.Module;
+                    {
+                        target = AttributeTargets.Module;
 
-                    return true;
+                        return true;
+                    }
                 case "field":
-                    target = AttributeTargets.Field;
+                    {
+                        target = AttributeTargets.Field;
 
-                    return true;
+                        return true;
+                    }
                 case "event":
-                    target = AttributeTargets.Event;
+                    {
+                        target = AttributeTargets.Event;
 
-                    return true;
+                        return true;
+                    }
                 case "method":
-                    target = AttributeTargets.Method;
+                    {
+                        target = AttributeTargets.Method;
 
-                    return true;
+                        return true;
+                    }
                 case "param":
-                    target = AttributeTargets.Parameter;
+                    {
+                        target = AttributeTargets.Parameter;
 
-                    return true;
+                        return true;
+                    }
                 case "property":
-                    target = AttributeTargets.Property;
+                    {
+                        target = AttributeTargets.Property;
 
-                    return true;
+                        return true;
+                    }
                 case "return":
-                    target = AttributeTargets.ReturnValue;
+                    {
+                        target = AttributeTargets.ReturnValue;
 
-                    return true;
+                        return true;
+                    }
                 case "typevar":
-                    target = AttributeTargets.GenericParameter;
+                    {
+                        target = AttributeTargets.GenericParameter;
 
-                    return true;
+                        return true;
+                    }
                 case "type":
+                    {
+                    }
                     break;
 
                 default:
-                    return false;
+                    {
+                        return false;
+                    }
             }
         }
 
