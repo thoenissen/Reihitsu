@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -119,7 +120,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
         {
             var firstToken = memberInitializer.Left.GetFirstToken();
 
-            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, newKeywordPosition.Character + 4) == false)
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, newKeywordPosition.Character + SyntaxIndentationUtilities.IndentSize) == false)
             {
                 // Report at the offending member so multiple misaligned members do not produce duplicate
                 // diagnostics that all share the whole creation expression's span

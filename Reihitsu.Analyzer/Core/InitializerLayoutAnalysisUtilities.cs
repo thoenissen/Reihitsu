@@ -13,15 +13,6 @@ namespace Reihitsu.Analyzer.Core;
 /// </summary>
 internal static class InitializerLayoutAnalysisUtilities
 {
-    #region Constants
-
-    /// <summary>
-    /// Required indentation between a complex element's braces and its expressions
-    /// </summary>
-    private const int IndentSize = 4;
-
-    #endregion // Constants
-
     #region Methods
 
     /// <summary>
@@ -62,7 +53,7 @@ internal static class InitializerLayoutAnalysisUtilities
             if (expressionPosition.Line <= openBracePosition.Line
                 || expressionPosition.Line >= closeBracePosition.Line
                 || expressionLines.Add(expressionPosition.Line) == false
-                || IsAlignedAt(firstToken, expectedOpenBraceColumn + IndentSize) == false)
+                || IsAlignedAt(firstToken, expectedOpenBraceColumn + SyntaxIndentationUtilities.IndentSize) == false)
             {
                 return expression.GetLocation();
             }
@@ -70,7 +61,7 @@ internal static class InitializerLayoutAnalysisUtilities
             if (expression is InitializerExpressionSyntax nestedComplexElement
                 && nestedComplexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                var nestedMisalignment = FindFirstComplexElementMisalignment(nestedComplexElement, expectedOpenBraceColumn + IndentSize);
+                var nestedMisalignment = FindFirstComplexElementMisalignment(nestedComplexElement, expectedOpenBraceColumn + SyntaxIndentationUtilities.IndentSize);
 
                 if (nestedMisalignment != null)
                 {
@@ -101,7 +92,7 @@ internal static class InitializerLayoutAnalysisUtilities
 
             if (commentStartsOnTokenLine == false && token.IsKind(SyntaxKind.CloseBraceToken))
             {
-                expectedCommentColumn += IndentSize;
+                expectedCommentColumn += SyntaxIndentationUtilities.IndentSize;
             }
 
             if (commentSpan.StartLinePosition.Character != expectedCommentColumn)

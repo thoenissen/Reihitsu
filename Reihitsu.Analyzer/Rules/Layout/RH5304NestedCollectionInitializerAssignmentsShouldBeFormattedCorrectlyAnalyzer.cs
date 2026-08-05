@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -142,7 +143,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
 
         foreach (var expression in collectionInitializer.Expressions)
         {
-            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(expression.GetFirstToken(), openBracePosition.Character + 4) == false)
+            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(expression.GetFirstToken(), openBracePosition.Character + SyntaxIndentationUtilities.IndentSize) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 
@@ -151,7 +152,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
 
             if (expression is InitializerExpressionSyntax complexElement
                 && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression)
-                && InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, openBracePosition.Character + 4) != null)
+                && InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, openBracePosition.Character + SyntaxIndentationUtilities.IndentSize) != null)
             {
                 context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 
