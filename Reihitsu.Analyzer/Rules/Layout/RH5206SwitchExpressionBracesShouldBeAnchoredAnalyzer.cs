@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -82,7 +83,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAn
                                                                .GetLineSpan()
                                                                .StartLinePosition
                                                                .Character;
-        var armColumn = anchorColumn + 4;
+        var armColumn = anchorColumn + SyntaxIndentationUtilities.IndentSize;
 
         // Only arms that start their own line are anchored by the formatter; arms that share a line with a
         // previous arm are never split, so checking their column would flag shapes the formatter leaves intact.
@@ -104,7 +105,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAn
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnSwitchExpression, Microsoft.CodeAnalysis.CSharp.SyntaxKind.SwitchExpression);
+        context.RegisterSyntaxNodeAction(OnSwitchExpression, SyntaxKind.SwitchExpression);
     }
 
     #endregion // DiagnosticAnalyzer
