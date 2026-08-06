@@ -93,5 +93,51 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
                                  ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, AnalyzerResources.RH5113MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter collapses a stray property-declaration semicolon onto the declaration line
+    /// (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesPropertyDeclarationViolation()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 public int Value { get; set; } = 1
+                                     ;
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, AnalyzerResources.RH5113MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves an expression-bodied property's wrapped terminating semicolon untouched,
+    /// so the new join stays limited to declarations carrying an initializer (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsExpressionBodiedPropertySemicolon()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 public int Value => 1
+                                 ;
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
     #endregion // Tests
 }

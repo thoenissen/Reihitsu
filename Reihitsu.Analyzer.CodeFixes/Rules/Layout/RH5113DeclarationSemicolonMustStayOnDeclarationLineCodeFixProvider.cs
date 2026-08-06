@@ -43,9 +43,10 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
     /// <returns>Declaration node, or <see langword="null"/> when no supported declaration is found</returns>
     private static SyntaxNode GetDeclarationNode(SyntaxNode diagnosticNode)
     {
-        return (diagnosticNode.FirstAncestorOrSelf<FieldDeclarationSyntax>()
-                    ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<EventFieldDeclarationSyntax>())
-                   ?? diagnosticNode.FirstAncestorOrSelf<DelegateDeclarationSyntax>();
+        return ((diagnosticNode.FirstAncestorOrSelf<FieldDeclarationSyntax>()
+                     ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<EventFieldDeclarationSyntax>())
+                    ?? diagnosticNode.FirstAncestorOrSelf<DelegateDeclarationSyntax>())
+                   ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
     }
 
     /// <summary>
@@ -60,6 +61,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
                    FieldDeclarationSyntax field => field.SemicolonToken,
                    EventFieldDeclarationSyntax eventField => eventField.SemicolonToken,
                    DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.SemicolonToken,
+                   PropertyDeclarationSyntax { Initializer: not null } propertyDeclaration => propertyDeclaration.SemicolonToken,
                    _ => default,
                };
     }

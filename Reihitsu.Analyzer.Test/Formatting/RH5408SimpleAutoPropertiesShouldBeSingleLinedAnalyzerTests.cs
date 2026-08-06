@@ -797,5 +797,258 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
                      Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that an auto-property whose terminating semicolon sits on its own line is detected and fixed,
+    /// because the formatter joins that gap (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOwnLineDeclarationSemicolonAutoPropertyIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value { get; set; } = 1
+                                        ;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a get/init auto-property whose terminating semicolon sits on its own line is detected and
+    /// fixed, so the accessor kind does not change the outcome (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOwnLineDeclarationSemicolonInitAutoPropertyIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value { get; init; } = 1
+                                        ;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; init; } = 1;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property combining a multi-line accessor list with an own-line terminating semicolon
+    /// is detected and fixed in a single pass (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineAccessorListWithOwnLineDeclarationSemicolonIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = 1
+                                        ;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property whose initializer and terminating semicolon both sit on their own lines is
+    /// detected and fixed in a single pass (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOwnLineInitializerAndDeclarationSemicolonIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value { get; set; }
+                                        = 1
+                                        ;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that several auto-properties with own-line terminating semicolons in one document are all detected
+    /// and fixed together (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleOwnLineDeclarationSemicolonAutoPropertiesAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int First { get; set; } = 1
+                                        ;|}
+
+                                    {|#1:public int Second { get; set; } = 2
+                                        ;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int First { get; set; } = 1;
+
+                                     public int Second { get; set; } = 2;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that a comment in the gap between the initializer value and the terminating semicolon exempts the
+    /// auto-property, because the formatter refuses to join across that comment (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInDeclarationSemicolonGapAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value { get; set; } = 1
+                                        // note
+                                        ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a preprocessor directive in the gap between the initializer value and the terminating
+    /// semicolon exempts the auto-property, because the formatter refuses to join across that directive (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveInDeclarationSemicolonGapAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value { get; set; } = 1
+                                #if FEATURE
+                                #endif
+                                        ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a region directive around the terminating semicolon exempts the auto-property, because the
+    /// formatter refuses to join across that directive (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionAroundDeclarationSemicolonAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value { get; set; } = 1
+                                #region Terminator
+                                        ;
+                                #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a comment trailing the initializer value on its own line keeps exempting the auto-property
+    /// through the initializer guard, so the semicolon-gap guard does not claim a shape it does not own (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentBeforeDeclarationSemicolonAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value { get; set; } = 1 // note
+                                        ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered for an auto-property whose terminating semicolon is separated by a
+    /// comment, because the formatter cannot collapse that shape (issue #612)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInDeclarationSemicolonGapAutoPropertyIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class RH5408
+                                   {
+                                       public int Value { get; set; } = 1
+                                           // note
+                                           ;
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

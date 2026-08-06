@@ -8,7 +8,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
 /// Collapses a stray terminating semicolon back onto the line that ends the declaration for
-/// field, event field, and delegate declarations
+/// field, event field, delegate, and initialized property declarations
 /// </summary>
 internal sealed class DeclarationSemicolonLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -98,6 +98,29 @@ internal sealed class DeclarationSemicolonLineBreakRewriter : CSharpSyntaxRewrit
         if (node == null)
         {
             return null;
+        }
+
+        return CollapseStraySemicolon(node, node.SemicolonToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (PropertyDeclarationSyntax)base.VisitPropertyDeclaration(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        // Only an initializer terminates a property declaration with a semicolon that belongs to the declaration
+        // itself. The semicolon of an expression-bodied property closes the expression body instead, and that body
+        // is allowed to wrap onto its own line, so joining it would fight the expression-style layout rules.
+        if (node.Initializer == null)
+        {
+            return node;
         }
 
         return CollapseStraySemicolon(node, node.SemicolonToken);

@@ -119,6 +119,19 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
             {
                 return false;
             }
+
+            // A comment or directive between the initializer value and a terminating semicolon that sits on its own
+            // line makes the formatter refuse to join the semicolon, so registering the fix here would produce a
+            // no-op action. Guard the same gap, and only when the gap actually spans lines.
+            var tokenBeforeSemicolon = propertyDeclaration.SemicolonToken.GetPreviousToken();
+
+            if (propertyDeclaration.SemicolonToken.IsMissing == false
+                && tokenBeforeSemicolon.IsKind(SyntaxKind.None) == false
+                && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(tokenBeforeSemicolon.Span.End, propertyDeclaration.SemicolonToken.SpanStart)) == false
+                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeSemicolon, propertyDeclaration.SemicolonToken))
+            {
+                return false;
+            }
         }
 
         return true;
