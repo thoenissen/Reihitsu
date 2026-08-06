@@ -1,4 +1,8 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rewriter;
+using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 

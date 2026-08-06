@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
-using Reihitsu.Formatter;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -129,7 +130,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
             if (expressionLine <= openBraceLine
                 || expressionLine >= closeBraceLine
                 || expressionLines.Add(expressionLine) == false
-                || InitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + 4) == false)
+                || InitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + SyntaxIndentationUtilities.IndentSize) == false)
             {
                 // Report at the offending element so multiple misaligned elements do not produce duplicate
                 // diagnostics that all share the whole creation expression's span
@@ -141,7 +142,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
             if (expression is InitializerExpressionSyntax complexElement
                 && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                var misalignment = InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, anchorPosition.Character + 4);
+                var misalignment = InitializerLayoutAnalysisUtilities.FindFirstComplexElementMisalignment(complexElement, anchorPosition.Character + SyntaxIndentationUtilities.IndentSize);
 
                 if (misalignment != null)
                 {

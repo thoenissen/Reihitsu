@@ -1,5 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 
+using Reihitsu.Formatter.Data;
+
 namespace Reihitsu.Formatter.Pipeline;
 
 /// <summary>

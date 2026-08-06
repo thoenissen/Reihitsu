@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline.UsingDirectives;
+using Reihitsu.Formatter.Pipeline.UsingDirectives.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.UsingDirectives;
 

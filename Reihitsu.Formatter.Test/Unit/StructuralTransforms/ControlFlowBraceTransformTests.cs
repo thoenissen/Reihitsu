@@ -1,12 +1,13 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.StructuralTransforms;

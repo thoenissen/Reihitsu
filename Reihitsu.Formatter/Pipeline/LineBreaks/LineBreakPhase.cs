@@ -1,7 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline.RegionFormatting;
+using Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 
 namespace Reihitsu.Formatter.Test.Unit.RegionFormatting;
 

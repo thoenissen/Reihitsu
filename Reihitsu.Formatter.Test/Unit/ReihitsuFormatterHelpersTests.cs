@@ -3,6 +3,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Utilities;
+
 namespace Reihitsu.Formatter.Test.Unit;
 
 /// <summary>

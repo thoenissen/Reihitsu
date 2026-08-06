@@ -84,7 +84,7 @@ reihitsu_ensure_dotnet()
     local installer
     installer="$(mktemp -t dotnet-install-XXXXXX.sh)"
 
-    if ! curl -sSL https://dot.net/v1/dotnet-install.sh -o "$installer"; then
+    if ! curl -sSL --proto '=https' --proto-redir '=https' https://dot.net/v1/dotnet-install.sh -o "$installer"; then
         rm -f "$installer"
         echo "dotnet: could not download dotnet-install.sh (no network egress?)." >&2
 

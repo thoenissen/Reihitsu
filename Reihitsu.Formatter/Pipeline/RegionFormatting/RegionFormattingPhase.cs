@@ -1,5 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
+
 namespace Reihitsu.Formatter.Pipeline.RegionFormatting;
 
 /// <summary>

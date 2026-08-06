@@ -5,7 +5,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Regression tests for <see cref="Reihitsu.Formatter.Pipeline.StructuralTransforms.ControlFlowBraceTransform"/> —
+/// Regression tests for <see cref="Pipeline.StructuralTransforms.Rewriter.ControlFlowBraceTransform"/> —
 /// comments must survive when missing braces are inserted around control-flow statements
 /// </summary>
 [TestClass]

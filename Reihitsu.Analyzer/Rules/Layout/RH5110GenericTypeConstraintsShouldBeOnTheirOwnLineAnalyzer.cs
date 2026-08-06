@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -20,11 +21,6 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH5110";
-
-    /// <summary>
-    /// Indentation size for generic constraint clauses
-    /// </summary>
-    private const int IndentationSize = 4;
 
     #endregion // Constants
 
@@ -56,7 +52,7 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
         }
 
         var expectedColumn = declaration.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Character
-                             + IndentationSize;
+                             + SyntaxIndentationUtilities.IndentSize;
 
         foreach (var whereKeyword in constraintClauses.Select(constraintClause => constraintClause.WhereKeyword))
         {

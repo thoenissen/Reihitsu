@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 

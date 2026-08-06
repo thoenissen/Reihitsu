@@ -27,6 +27,7 @@
    <PropertyGroup Condition="'$(Configuration)'=='Release'">
       <DocumentationFile>bin\Release\$(MSBuildProjectName).xml</DocumentationFile>
       <CodeAnalysisRuleSet>..\Release.ruleset</CodeAnalysisRuleSet>
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
    </PropertyGroup>
 
    <ItemGroup>

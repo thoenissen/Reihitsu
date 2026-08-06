@@ -24,7 +24,7 @@ public class SelfHostingTests : FormatterTestsBase
     /// <summary>
     /// Directories to scan for C# files (relative to the solution root)
     /// </summary>
-    private static readonly string[] _sourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Analyzer.Test", "Reihitsu.Cli", "Reihitsu.Cli.Test", "Reihitsu.Formatter", "Reihitsu.Formatter.Test"];
+    private static readonly string[] _sourceDirectories = ["Reihitsu.Core", "Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Analyzer.Test", "Reihitsu.Cli", "Reihitsu.Cli.Test", "Reihitsu.Formatter", "Reihitsu.Formatter.Test"];
 
     #endregion // Constants
 
@@ -166,7 +166,7 @@ public class SelfHostingTests : FormatterTestsBase
 
             if (Directory.Exists(fullPath) == false)
             {
-                continue;
+                Assert.Fail("Required directory missing: " + fullPath);
             }
 
             foreach (var file in Directory.EnumerateFiles(fullPath, "*.cs", SearchOption.AllDirectories))

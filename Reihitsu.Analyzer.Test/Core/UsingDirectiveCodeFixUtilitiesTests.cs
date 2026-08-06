@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
-using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.Test.Core;
 

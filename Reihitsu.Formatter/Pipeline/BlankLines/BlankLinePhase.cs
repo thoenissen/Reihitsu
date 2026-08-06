@@ -3,6 +3,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
+using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
+
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>

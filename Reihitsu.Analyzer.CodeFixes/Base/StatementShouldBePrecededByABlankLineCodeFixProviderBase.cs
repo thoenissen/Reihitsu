@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
