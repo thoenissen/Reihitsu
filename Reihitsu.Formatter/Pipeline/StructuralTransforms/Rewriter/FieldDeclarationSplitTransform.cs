@@ -77,47 +77,72 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Gets the comment trivia contained in the provided trivia list
+    /// Gets the comment trivia contained in the provided trivia list, including documentation comments
     /// </summary>
     /// <param name="trivia">The trivia list</param>
     /// <returns>The comment trivia</returns>
     private static IEnumerable<SyntaxTrivia> GetComments(SyntaxTriviaList trivia)
     {
-        return trivia.Where(item => item.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                                    || item.IsKind(SyntaxKind.MultiLineCommentTrivia));
+        return trivia.Where(ReihitsuFormatterHelpers.IsCommentTrivia);
     }
 
     /// <summary>
-    /// Gets the indentation trivia for additional generated fields
+    /// Gets the contiguous whitespace trivia run that starts at the provided index
+    /// </summary>
+    /// <param name="trivia">The trivia list</param>
+    /// <param name="startIndex">The index the run starts at</param>
+    /// <returns>The whitespace trivia run, which is empty when no whitespace starts at the index</returns>
+    private static SyntaxTriviaList GetWhitespaceRun(SyntaxTriviaList trivia, int startIndex)
+    {
+        var run = new List<SyntaxTrivia>();
+        var triviaIndex = startIndex;
+
+        while (triviaIndex < trivia.Count
+               && trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            run.Add(trivia[triviaIndex]);
+
+            triviaIndex++;
+        }
+
+        return SyntaxFactory.TriviaList(run);
+    }
+
+    /// <summary>
+    /// Gets the indentation trivia for additional generated fields, which is the whitespace that begins the
+    /// physical line the field declaration starts on
     /// </summary>
     /// <param name="leadingTrivia">The original leading trivia</param>
     /// <returns>The indentation trivia</returns>
     private static SyntaxTriviaList GetMemberIndentationTrivia(SyntaxTriviaList leadingTrivia)
     {
-        var lastEndOfLineIndex = -1;
+        // The whitespace that opens the field's line is the trailing whitespace run of the leading trivia, but only
+        // when the trivia in front of that run ends the previous line. Locating it by scanning for the last
+        // top-level end-of-line trivia is wrong twice over: a single-line documentation comment terminates its line
+        // inside its own structure, so no top-level end-of-line follows it and the scan restarts at the beginning,
+        // summing the whitespace of every preceding line; and an inline comment leaves a second whitespace run on
+        // the same line, which the scan appends to the first (issue #592).
+        var runStart = leadingTrivia.Count;
 
-        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        while (runStart > 0
+               && leadingTrivia[runStart - 1].IsKind(SyntaxKind.WhitespaceTrivia))
         {
-            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                lastEndOfLineIndex = triviaIndex;
-            }
+            runStart--;
         }
 
-        // Collect the whitespace that follows the last end-of-line — the member's indentation. When the field is
-        // the first member of its type its leading trivia carries no end-of-line (the newline sits on the opening
-        // brace), so fall back to the leading whitespace of the trivia list instead of returning no indentation.
-        var trivia = new List<SyntaxTrivia>(leadingTrivia.Count - lastEndOfLineIndex - 1);
-
-        for (var triviaIndex = lastEndOfLineIndex + 1; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        // Testing the trivia text rather than its kind is deliberate: it recognizes the line break embedded in a
+        // single-line documentation comment as readily as a plain end-of-line trivia.
+        if (runStart > 0
+            && leadingTrivia[runStart - 1].ToFullString().EndsWith("\n", StringComparison.Ordinal) == false)
         {
-            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                trivia.Add(leadingTrivia[triviaIndex]);
-            }
+            // The declaration shares its line with preceding trivia, so the run found above is an inner gap rather
+            // than the line's indentation. The whitespace that opens the trivia list opens the line instead.
+            return GetWhitespaceRun(leadingTrivia, 0);
         }
 
-        return SyntaxFactory.TriviaList(trivia);
+        // When the field is the first member of its type its leading trivia carries no line break at all (the
+        // newline sits on the opening brace), which leaves the run starting at index 0 — still the right answer.
+        return GetWhitespaceRun(leadingTrivia, runStart);
     }
 
     /// <summary>
@@ -160,7 +185,16 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         {
             trivia.AddRange(indentationTrivia);
             trivia.Add(comment);
-            trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+
+            // A single-line documentation comment already terminates its line inside its own structure, so appending
+            // another end-of-line would put a blank line between the comment and the field it documents. The
+            // pipeline's blank-line phase absorbs that break, but the RH7101 code fix runs this transform on its own
+            // and would emit the detached comment verbatim. Test the trivia text rather than its kind: a delimited
+            // documentation comment (/** … */) carries no line break and still needs one appended (issue #592).
+            if (comment.ToFullString().EndsWith("\n", StringComparison.Ordinal) == false)
+            {
+                trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+            }
         }
 
         trivia.AddRange(indentationTrivia);
