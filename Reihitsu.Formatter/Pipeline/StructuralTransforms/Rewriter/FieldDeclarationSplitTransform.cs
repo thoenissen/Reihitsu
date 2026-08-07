@@ -109,6 +109,21 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the provided trivia ends the line it sits on
+    /// </summary>
+    /// <param name="trivia">The trivia to inspect</param>
+    /// <returns><see langword="true"/> if the trivia ends its line; otherwise, <see langword="false"/></returns>
+    private static bool EndsLine(SyntaxTrivia trivia)
+    {
+        // Deciding this on the trivia text rather than on its kind is what lets the line break a single-line
+        // documentation comment carries inside its own structure count just like a plain end-of-line trivia.
+        // BlankLineTriviaUtilities.EndsWithLineBreak answers a deliberately narrower question - it is scoped to
+        // directive, disabled-text and documentation trivia and reports false for a plain end-of-line - so it cannot
+        // serve the callers here, which have to treat both as ending the line.
+        return trivia.ToFullString().EndsWith("\n", StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Gets the indentation trivia for additional generated fields, which is the whitespace that begins the
     /// physical line the field declaration starts on
     /// </summary>
@@ -130,10 +145,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
             runStart--;
         }
 
-        // Testing the trivia text rather than its kind is deliberate: it recognizes the line break embedded in a
-        // single-line documentation comment as readily as a plain end-of-line trivia.
         if (runStart > 0
-            && leadingTrivia[runStart - 1].ToFullString().EndsWith("\n", StringComparison.Ordinal) == false)
+            && EndsLine(leadingTrivia[runStart - 1]) == false)
         {
             // The declaration shares its line with preceding trivia, so the run found above is an inner gap rather
             // than the line's indentation. The whitespace that opens the trivia list opens the line instead.
@@ -186,12 +199,12 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
             trivia.AddRange(indentationTrivia);
             trivia.Add(comment);
 
-            // A single-line documentation comment already terminates its line inside its own structure, so appending
-            // another end-of-line would put a blank line between the comment and the field it documents. The
-            // pipeline's blank-line phase absorbs that break, but the RH7101 code fix runs this transform on its own
-            // and would emit the detached comment verbatim. Test the trivia text rather than its kind: a delimited
-            // documentation comment (/** … */) carries no line break and still needs one appended (issue #592).
-            if (comment.ToFullString().EndsWith("\n", StringComparison.Ordinal) == false)
+            // A single-line documentation comment already terminates its line, so appending another end-of-line would
+            // put a blank line between the comment and the field it documents. The pipeline's blank-line phase
+            // absorbs that break, but the RH7101 code fix runs this transform on its own and would emit the detached
+            // comment verbatim. A delimited documentation comment (/** … */) carries no break and still needs one,
+            // which is why the question is asked of the trivia text rather than of its kind (issue #592).
+            if (EndsLine(comment) == false)
             {
                 trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
             }
