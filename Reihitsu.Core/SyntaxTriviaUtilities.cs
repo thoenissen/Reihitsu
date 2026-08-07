@@ -37,44 +37,6 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether a documentation comment owned by the specified token documents the code that follows it
-    /// </summary>
-    /// <param name="owningToken">The token whose leading trivia holds the documentation comment</param>
-    /// <returns><see langword="true"/> if the documentation comment documents what follows; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// Roslyn files a documentation comment as the leading trivia of the next token whatever that token is, so the
-    /// owning token decides whether the comment documents anything. When it opens the node it belongs to - the
-    /// <c>public</c> of a property, the identifier of a declarator - the comment documents that node. When it does
-    /// not, the comment is stranded before a <c>;</c>, <c>]</c> or <c>}</c>, where the compiler reports CS1587 and
-    /// no analyzer rule in this repository reports anything. Moving such a comment is a placement decision the
-    /// formatter cannot make, so the phases that relocate, separate, or indent documentation comments all consult
-    /// this one predicate rather than keeping their own copy (issues #591, #625)
-    /// </remarks>
-    public static bool DocumentsFollowingCode(SyntaxToken owningToken)
-    {
-        return owningToken.Parent != null
-               && owningToken.Parent.GetFirstToken() == owningToken;
-    }
-
-    /// <summary>
-    /// Determines whether a comment sits in the gap between two tokens
-    /// </summary>
-    /// <param name="left">The left token</param>
-    /// <param name="right">The right token</param>
-    /// <returns><see langword="true"/> if a comment separates the tokens; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// The gap spans the left token's trailing trivia and the right token's leading trivia, because a comment
-    /// written between two tokens lands in one or the other depending on its kind and on whether a line break
-    /// intervenes. Spacing decisions are taken per token pair, so a rule that reads only the pair would normalize
-    /// a gap whose content it never inspected - which is what silently deletes the space in <c>_a /** x */;</c>
-    /// </remarks>
-    public static bool AreSeparatedByComment(SyntaxToken left, SyntaxToken right)
-    {
-        return left.TrailingTrivia.Any(IsCommentTrivia)
-               || right.LeadingTrivia.Any(IsCommentTrivia);
-    }
-
-    /// <summary>
     /// Determines whether a trivia is an XML documentation comment, in either the single-line (<c>///</c>) or
     /// the multi-line (<c>/** */</c>) form. Analyzers and their code fixes share this predicate so both ends
     /// agree on which comments carry documentation; drifting copies let an analyzer report a shape its fix

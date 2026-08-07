@@ -780,6 +780,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 {
                                     private int _first;
                                     private int _second
+
                                     /// <summary>
                                     /// Note.
                                     /// </summary>
@@ -899,6 +900,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int _first
+
                                     /// <summary>
                                     /// First.
                                     /// </summary>

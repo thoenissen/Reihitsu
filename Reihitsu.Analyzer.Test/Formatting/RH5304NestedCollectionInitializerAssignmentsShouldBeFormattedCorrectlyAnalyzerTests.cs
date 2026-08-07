@@ -745,6 +745,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                                                       {
                                                                           existingKey,
                                                                           existingValue
+
                                                                           /// Keep close.
                                                                           /// Keep continuation.
                                                                       }

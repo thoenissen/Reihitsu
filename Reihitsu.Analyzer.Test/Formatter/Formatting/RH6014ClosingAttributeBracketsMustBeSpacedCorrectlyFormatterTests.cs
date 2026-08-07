@@ -36,5 +36,39 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
                                  Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the space in front of the closing bracket is still removed when a documentation comment sits
+    /// between it and the attribute. Roslyn files that comment as the bracket's leading trivia, which puts the space
+    /// on the far side of it from the spacing rules, so the comment-gap exemption has to trim it explicitly or the
+    /// formatter emits output this analyzer reports (issue #591)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentBeforeClosingBracketStaysAnalyzerClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    [System.Obsolete /** why */{|#0: |}]
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     [System.Obsolete /** why */]
+                                     public void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(testData,
+                                 fixedData,
+                                 Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+    }
+
     #endregion // Tests
 }

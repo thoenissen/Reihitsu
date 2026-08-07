@@ -164,6 +164,25 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
+    /// Determines whether a documentation comment owned by the specified token documents the code that follows it
+    /// </summary>
+    /// <param name="owningToken">The token whose leading trivia holds the documentation comment</param>
+    /// <returns><see langword="true"/> if the documentation comment documents what follows; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// Roslyn files a documentation comment as the leading trivia of the next token whatever that token is, so the
+    /// owning token decides whether the comment documents anything. When it opens the node it belongs to - the
+    /// <c>public</c> of a property, the identifier of a declarator - the comment documents that node. When it does
+    /// not, the comment is stranded before a <c>;</c>, <c>]</c> or <c>}</c>, where the compiler reports CS1587.
+    /// The phases that relocate or separate documentation comments share this predicate so they cannot disagree
+    /// about which comments carry documentation (issues #591, #625)
+    /// </remarks>
+    internal static bool DocumentsFollowingCode(SyntaxToken owningToken)
+    {
+        return owningToken.Parent != null
+               && owningToken.Parent.GetFirstToken() == owningToken;
+    }
+
+    /// <summary>
     /// Determines whether a trivia is a preprocessor directive or disabled (conditionally compiled out) text
     /// </summary>
     /// <param name="trivia">The trivia to check</param>

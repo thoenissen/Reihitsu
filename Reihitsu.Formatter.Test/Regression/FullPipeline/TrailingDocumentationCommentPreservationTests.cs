@@ -437,14 +437,23 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
         const string input = """
                              internal class TestClass
                              {
-                                 [System.Obsolete /** why */]
+                                 [System.Obsolete /** why */ ]
                                  public void Method()
                                  {
                                  }
                              }
                              """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    [System.Obsolete /** why */]
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
