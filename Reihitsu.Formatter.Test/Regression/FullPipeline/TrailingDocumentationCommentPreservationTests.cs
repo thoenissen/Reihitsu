@@ -326,6 +326,58 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a line comment written after a field's semicolon is untouched. It is the counterpart of
+    /// <see cref="PreservesDelimitedDocumentationAfterFieldSemicolon"/>: Roslyn files it as the semicolon's
+    /// trailing trivia rather than the closing brace's leading trivia, so no phase ever considered relocating it
+    /// </summary>
+    [TestMethod]
+    public void PreservesLineCommentAfterFieldSemicolon()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first; // Comment
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment written after a field's semicolon is untouched
+    /// </summary>
+    [TestMethod]
+    public void PreservesBlockCommentAfterFieldSemicolon()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _second; /* Comment */
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment written before a field's semicolon keeps the space in front of it. The
+    /// spacing rules decide from the token pair alone, so without the comment-gap exemption they would collapse
+    /// the gap between the declarator and the semicolon and delete that space
+    /// </summary>
+    [TestMethod]
+    public void PreservesBlockCommentBeforeFieldSemicolon()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _fourth /* Comment */;
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that a delimited documentation comment written after a field's semicolon stays on the field's line
     /// </summary>
     [TestMethod]

@@ -122,6 +122,16 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
 
             var owningToken = trivia.Token;
+
+            // Relocating the comment above its owning token is what makes it document that token. When the owner
+            // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
+            // '}' - so moving it changes the author's layout without making the comment mean anything, and the
+            // compiler reports CS1587 either way. Leave it where it was written (issues #591, #625).
+            if (SyntaxTriviaUtilities.DocumentsFollowingCode(owningToken) == false)
+            {
+                continue;
+            }
+
             var previousToken = owningToken.GetPreviousToken(includeZeroWidth: true);
 
             while (previousToken.RawKind != 0 && previousToken.IsMissing)

@@ -54,33 +54,20 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified token opens the node it belongs to
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token is the first token of its parent node</returns>
-    private static bool OpensItsNode(SyntaxToken token)
-    {
-        return token.Parent != null
-               && token.Parent.GetFirstToken() == token;
-    }
-
-    /// <summary>
     /// Determines whether the specified trivia is a comment the blank-line boundary applies to
     /// </summary>
     /// <param name="trivia">The trivia to inspect</param>
-    /// <param name="tokenOpensItsNode">Whether the owning token opens the node it belongs to</param>
+    /// <param name="documentsFollowingCode">Whether a documentation comment owned by the token documents what follows</param>
     /// <returns><see langword="true"/> if the boundary applies to the trivia</returns>
     /// <remarks>
-    /// A documentation comment in front of a token that does not open its node documents nothing. It is stranded
-    /// before a <c>;</c>, <c>]</c> or <c>}</c>, where the compiler reports CS1587, and deciding that it belongs on
-    /// its own line separated by a blank line is a placement choice the formatter cannot make. Ordinary comments
-    /// keep the boundary, because they only reach such a position when the author already put them on their own
-    /// line (issues #591, #625)
+    /// A documentation comment that documents nothing must not be separated onto its own line, because that is a
+    /// placement decision rather than spacing. Ordinary comments keep the boundary, because they only reach such a
+    /// position when the author already put them on their own line (issues #591, #625)
     /// </remarks>
-    private static bool IsBoundaryComment(SyntaxTrivia trivia, bool tokenOpensItsNode)
+    private static bool IsBoundaryComment(SyntaxTrivia trivia, bool documentsFollowingCode)
     {
         return ReihitsuFormatterHelpers.IsCommentTrivia(trivia)
-               && (tokenOpensItsNode
+               && (documentsFollowingCode
                    || SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false);
     }
 
@@ -88,11 +75,11 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// Determines whether the leading trivia of the specified token contains a comment the boundary applies to
     /// </summary>
     /// <param name="token">The token to inspect</param>
-    /// <param name="tokenOpensItsNode">Whether the token opens the node it belongs to</param>
+    /// <param name="documentsFollowingCode">Whether a documentation comment owned by the token documents what follows</param>
     /// <returns><see langword="true"/> if any such comment trivia is found in the leading trivia</returns>
-    private static bool HasCommentInLeadingTrivia(SyntaxToken token, bool tokenOpensItsNode)
+    private static bool HasCommentInLeadingTrivia(SyntaxToken token, bool documentsFollowingCode)
     {
-        return token.LeadingTrivia.Any(trivia => IsBoundaryComment(trivia, tokenOpensItsNode));
+        return token.LeadingTrivia.Any(trivia => IsBoundaryComment(trivia, documentsFollowingCode));
     }
 
     /// <summary>
@@ -119,13 +106,13 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// Finds the first comment trivia index the boundary applies to in the leading trivia list
     /// </summary>
     /// <param name="trivia">The trivia list to inspect</param>
-    /// <param name="tokenOpensItsNode">Whether the owning token opens the node it belongs to</param>
+    /// <param name="documentsFollowingCode">Whether a documentation comment owned by the token documents what follows</param>
     /// <returns>The zero-based trivia index or -1 if no such comment exists</returns>
-    private static int FindFirstCommentIndex(SyntaxTriviaList trivia, bool tokenOpensItsNode)
+    private static int FindFirstCommentIndex(SyntaxTriviaList trivia, bool documentsFollowingCode)
     {
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
-            if (IsBoundaryComment(trivia[triviaIndex], tokenOpensItsNode))
+            if (IsBoundaryComment(trivia[triviaIndex], documentsFollowingCode))
             {
                 return triviaIndex;
             }
@@ -188,16 +175,16 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
-    /// <param name="tokenOpensItsNode">Whether the token opens the node it belongs to</param>
+    /// <param name="documentsFollowingCode">Whether a documentation comment owned by the token documents what follows</param>
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
     /// mirroring the exemption RH5020 applies (issue #415)
     /// </remarks>
-    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, bool tokenOpensItsNode)
+    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, bool documentsFollowingCode)
     {
         var trivia = token.LeadingTrivia;
-        var commentIndex = FindFirstCommentIndex(trivia, tokenOpensItsNode);
+        var commentIndex = FindFirstCommentIndex(trivia, documentsFollowingCode);
 
         if (commentIndex < 0)
         {
@@ -329,12 +316,12 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousToken);
         var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken);
 
-        var tokenOpensItsNode = OpensItsNode(token);
+        var documentsFollowingCode = SyntaxTriviaUtilities.DocumentsFollowingCode(token);
 
-        if (HasCommentInLeadingTrivia(token, tokenOpensItsNode)
+        if (HasCommentInLeadingTrivia(token, documentsFollowingCode)
             && isFirstInBlock == false)
         {
-            token = EnsureBlankLineBeforeFirstComment(token, tokenOpensItsNode);
+            token = EnsureBlankLineBeforeFirstComment(token, documentsFollowingCode);
         }
 
         if (HasEndRegionDirectiveInLeadingTrivia(token)

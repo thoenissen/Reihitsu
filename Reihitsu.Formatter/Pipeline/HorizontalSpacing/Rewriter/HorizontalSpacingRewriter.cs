@@ -61,6 +61,15 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
             return token;
         }
 
+        // Spacing is decided from the token pair alone, so a comment written between the two tokens is invisible to
+        // every rule below. Normalizing the gap anyway deletes the space the author put in front of the comment -
+        // NoSpaceSpacingRule collapses `_a /** x */;` to `_a/** x */;` because it only sees `_a` and `;`. RH5113
+        // already documents this exemption from the analyzer side: the formatter does not collapse across a comment.
+        if (SyntaxTriviaUtilities.AreSeparatedByComment(token, nextToken))
+        {
+            return token;
+        }
+
         var desiredSpaces = SpacingPolicy.GetDesiredSpacesAfter(token, nextToken);
 
         if (desiredSpaces.HasValue)
