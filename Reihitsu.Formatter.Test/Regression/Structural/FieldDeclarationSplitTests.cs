@@ -734,6 +734,33 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a documentation comment written before the semicolon of a combined field declaration appears
+    /// exactly once in the split output instead of once per generated field (issue #625)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeSemicolonIsNotDuplicated()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first, _second /** Trailing note. */;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first;
+                                    /** Trailing note. */
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that static fields declared in an interface are split
     /// </summary>
     [TestMethod]
