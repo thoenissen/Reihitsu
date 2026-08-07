@@ -1,7 +1,7 @@
 ---
 name: gh-implement
 description: >-
-  Implement a Reihitsu GitHub issue end-to-end in Codex on Linux or Windows. Trigger when the initial prompt references an issue number or URL. Use the preinstalled .NET SDK without changing the environment, claim the issue with a generic-placeholder draft PR, triage the run as routine or behavioral, and run the read-only `gh-rubber-duck` Behavior Contract before every behavioral edit. Require a code-derived defect-class enumeration and candidate sweep for bug reports, turn the accepted contract into the regression matrix, delegate to the matching repository command, self-review, synchronize `origin/main`, use at most two official `gh-preflight` attempts, run full validation once, fully rewrite the draft PR, and push one CI trigger. Use authenticated `gh` for GitHub operations.
+  Implement a Reihitsu GitHub issue end-to-end in Codex on Linux or Windows. Trigger when the initial prompt references an issue number or URL. Use the preinstalled .NET SDK without changing the environment, claim the issue with a generic-placeholder draft PR, prove every bug report through a reproduction gate subagent that writes and runs the failing regression test before any analysis — a report that does not reproduce ends the run right there with that test, a `Refs`-linked PR and a question to the user, instead of paying for a contract, an implementation and an audit — triage the run as routine or behavioral, and run the read-only `gh-rubber-duck` Behavior Contract before every further behavioral edit. Require a code-derived defect-class enumeration and candidate sweep for bug reports, turn the accepted contract into the regression matrix, delegate to the matching repository command, self-review, synchronize `origin/main`, use at most two official `gh-preflight` attempts, run full validation once, fully rewrite the draft PR, and push one CI trigger. Use authenticated `gh` for GitHub operations.
 ---
 
 # Implement GitHub Issue
@@ -16,23 +16,27 @@ Follow this sequence. The gates exist because rework in this repository is cause
 
 1. Read the repository instructions (`AGENTS.md`) and the GitHub issue.
 2. Check issue ownership and open draft PRs.
-3. Claim the issue through the existing ownership workflow when it is unclaimed.
-4. Triage the run as **routine** or **behavioral**, and record which gates that decision keeps.
-5. Read `.codex/skills/gh-rubber-duck/SKILL.md` completely in this parent agent (behavioral runs).
-6. Gather the neutral **evidence bundle** and spawn exactly one fresh, read-only Rubber Duck subagent (behavioral runs).
-7. Receive and process the Behavior Contract.
-8. Resolve every `NEEDS DECISION` before editing any production or test file.
-9. Freeze the **scope ledger** from the accepted contract.
-10. Convert the accepted contract — including every defect-class sweep row and every delta-table boundary — or, on a routine run, the recorded contract note into the implementation plan and regression-test matrix.
-11. Add all intended regression tests before production changes.
-12. Implement, formatting changed paths and running focused tests as you go.
-13. Run the **local self-review** and record its **admission artifact**.
-14. Synchronize with current `origin/main`.
-15. Decide from `gh-preflight`'s trigger list whether an audit is required, and run it on that exact synchronized tree when it is.
-16. Run the complete **full validation** once.
-17. Push the final non-`[skip ci]` CI trigger and finish the PR.
+3. Claim the issue through the existing ownership workflow when it is unclaimed, then verify the toolchain.
+4. Gather the neutral **evidence bundle** once; every isolated agent in this run consumes that same bundle.
+5. On a **bug report**, run the **reproduction gate** in one subagent before any other analysis. `NOT REPRODUCED`, `NO SCENARIO`, and `BLOCKED` end the run here.
+6. Triage the run as **routine** or **behavioral**, and record which gates that decision keeps.
+7. Read `.codex/skills/gh-rubber-duck/SKILL.md` completely in this parent agent (behavioral runs).
+8. Spawn exactly one fresh, read-only Rubber Duck subagent with that bundle (behavioral runs).
+9. Receive and process the Behavior Contract.
+10. Resolve every `NEEDS DECISION` before editing any further production or test file.
+11. Freeze the **scope ledger** from the accepted contract.
+12. Convert the accepted contract — including every defect-class sweep row and every delta-table boundary — or, on a routine run, the recorded contract note into the implementation plan and regression-test matrix, with the reproduction test as its **seed**, not as its whole.
+13. Add all remaining intended regression tests before production changes.
+14. Implement, formatting changed paths and running focused tests as you go.
+15. Run the **local self-review** and record its **admission artifact**.
+16. Synchronize with current `origin/main`.
+17. Decide from `gh-preflight`'s trigger list whether an audit is required, and run it on that exact synchronized tree when it is.
+18. Run the complete **full validation** once.
+19. Push the final non-`[skip ci]` CI trigger and finish the PR.
 
-Claiming the issue (steps 1–3) happens before the triage and the contract gate so ownership is never lost while analysis runs. The toolchain preparation fits between the claim and the first `dotnet` command. Production and regression-test edits do not begin until step 8 permits them.
+Claiming the issue (steps 1–3) happens before the reproduction gate, the triage, and the contract gate so ownership is never lost while analysis runs. The toolchain verification fits between the claim and the first `dotnet` command — the reproduction gate is the first thing that needs it.
+
+Production edits do not begin until step 10 permits them. The reproduction test written in step 5 is the **single** test file allowed before the contract, and it exists precisely so that a bug report which does not reproduce never consumes a contract, an implementation, or an audit at all.
 
 ## Build environment (after the issue claim)
 
@@ -136,6 +140,126 @@ Avoid duplicate work before editing files:
 
 The linked draft PR is the ownership record. Do not post a claim comment, PR-link comment, or `in-progress` label on the issue. GitHub links the PR automatically through `Closes #<N>`.
 
+## Gather the evidence bundle once
+
+Every isolated agent in this run — the reproduction gate now, the Rubber Duck after it, the preflight at the end — consumes the same neutral **evidence bundle**, so the facts are collected once instead of being reconstructed unreliably per agent:
+
+- the issue JSON and every linked clarification;
+- the PR metadata and body, when a PR already exists;
+- the base and head SHAs, and the merge base;
+- the changed-file list and diff, when there is one;
+- your proof that the local checkout matches that head.
+
+The bundle is fact-gathering. It never carries your proposed solution, suspected root cause, planned diff, or preferred interpretation — that is what makes handing it to three different agents safe.
+
+## Reproduction gate (bug reports — before everything else)
+
+A bug report's most expensive failure mode is not a wrong fix. It is a full contract, implementation, and audit spent on a defect that the repository does not actually have, or that the reported example does not actually trigger. The reproduction gate settles that question first, with a test, for the price of one focused test run.
+
+### When it applies
+
+Run it when the issue is a **bug report**: it names an observed output and a differing expected output, carries a bug label, or routes to [`fix-formatter`](../../commands/fix-formatter.md) or [`fix-analyzer-rule`](../../commands/fix-analyzer-rule.md) in the routing table. Skip it for a new rule, new or extended formatter behavior, rule docs, resource texts, issue drafts, and every other feature request — there is nothing to reproduce, and an "expected to fail" test written from a feature request only encodes your guess at the design.
+
+The gate needs no triage decision first: a bug report is behavioral by definition (triage criterion 5), so the two never disagree.
+
+### Why it runs before the contract
+
+[`fix-formatter`](../../commands/fix-formatter.md) and [`fix-analyzer-rule`](../../commands/fix-analyzer-rule.md) already require a failing regression test before production code, and `AGENTS.md` requires it repository-wide. The gate therefore adds no work to the reproducing path — it moves work that has to happen anyway to the front and into a subagent, and it turns the reproduction into an *input* to the Behavior Contract instead of something the contract has to assume from prose. On the non-reproducing path it removes the entire remainder of the workflow.
+
+### The subagent
+
+Spawn **one** fresh subagent. It is the only writer of the reproduction test; the parent stays the only writer of commits, pushes, and GitHub state.
+
+Its prompt contains the evidence bundle, plus:
+
+- the repository root;
+- the issue's reported scenario quoted verbatim — input, expected output, observed output, and the surface it names;
+- the user's relevant clarifications from this conversation, quoted rather than summarized;
+- the "Use the existing test infrastructure" table from "Convert the contract into a regression matrix" below, so the test lands on the right helper rather than a hand-rolled one;
+- a strict instruction: it may add and run **test** files and nothing else — no production file, no commit, no push, no PR or GitHub change, no full validation;
+- the required report schema below.
+
+Do **not** hand it a suspected root cause, a candidate fix, or a guess at which guard is wrong. Its report likewise states observations only — file, test name, helper, command, expected versus actual — and never a diagnosis, because the Rubber Duck reads that report next and an analysis primed with a theory confirms it instead of challenging it.
+
+### The four outcomes
+
+**`REPRODUCED`** — the test fails, and it fails on the asserted symptom.
+
+"Fails for the right reason" is a requirement, not a formality: a compile error, a missing helper, an ambiguous overload, or an assertion tripping over unrelated layout is an agent defect, not a reproduction. The failure message must name the same expected-versus-actual difference the issue describes. When it does not, send the defect back to the same subagent once; a second miss is `BLOCKED`.
+
+Then:
+
+1. Commit the red test with `[skip ci]` and push it. A red test on the branch is safe — no CI runs until the final trigger commit, and the PR stays draft.
+2. Add the test's file, name, helper, command, and failure output to the evidence bundle as an **observed fact**.
+3. Continue with the triage and the full workflow, unchanged.
+
+The reproduction test is a **seed**, never the regression matrix. The contract's defect-class enumeration and sweep still decide the real coverage, and they may well rename, move, split, or broaden the seed — a guard that covers only the reported example is exactly what the sweep exists to catch.
+
+**`NOT REPRODUCED`** — the literal example is green, and so is every variant of the fixed fan-out below.
+
+A single green test is weak evidence of absence. By far the most common cause is that the harness normalized the scenario away, so the literal example alone never settles it. Before reporting `NOT REPRODUCED`, the subagent runs this fixed, small fan-out — no enumeration, no dispatch-code analysis, no sweep, because that is the expensive analysis this gate exists to avoid:
+
+- the reported example on **LF and CRLF**;
+- the **counterpart** of the reported surface — the formatter when the issue reports an analyzer, the analyzer when it reports formatter output;
+- the **code-fix path** when the issue mentions a fix, a "Fix All", or an IDE quick action;
+- the **nearest sibling shape** the reported example implies — the same construct one nesting level deeper, or with the trivia the example omitted.
+
+Green on all of them ends the run:
+
+1. Keep the passing test as a **characterization test** — it records what the repository does today at exactly the scenario the issue described, which is the artifact that makes the next attempt cheap. Commit and push it with `[skip ci]`.
+2. **Downgrade the issue link.** The PR body's `Linked issues` section becomes `Refs #<N>`, never `Closes #<N>`. A merge must not close a bug report nobody understood yet — this is the one place in the workflow where the `Closes` link is wrong.
+3. Skip the Rubber Duck, the delegated command, and the preflight. The diff adds tests for behavior that is already correct without touching production code, which is an explicit *not required* entry in `gh-preflight`'s trigger list; record that as the reason.
+4. Run the **full validation** once anyway — the diff contains a compiled file, and test runtime costs wall-clock rather than tokens.
+5. Rewrite the PR title and body from the actual content (a characterization test, not a fix), push the single CI-trigger commit, and keep the PR draft.
+6. Report to the user: every scenario that ran green with its helper, the exact commands, and — the part that matters — **what evidence would change the verdict**: the exact input, the line endings, the surface, and the tool version the reporter used.
+7. Ask how to proceed, with these choices: request that specific evidence from the issue author; accept the current behavior as correct and close the issue as not-reproducible; or continue into the full contract gate anyway because the user has reason to believe the harness, not the report, is wrong.
+
+**`NO SCENARIO`** — the issue carries no scenario concrete enough to write a test against.
+
+Commit nothing. Stop and ask the user for a concrete input, the expected and the observed output, and the surface. This is precisely the issue shape on which the contract gate burns the most tokens on guesswork, so asking here is the cheapest possible move — never route an underspecified bug report into the Rubber Duck to have it come back `NEEDS DECISION`.
+
+**`BLOCKED`** — the toolchain or the harness prevented an answer.
+
+Apply the same bounded restart policy as the other gates: one start, at most one restart, then report what could not be executed and what would unblock it. A blocked gate is not a `NOT REPRODUCED` and must never be reported as one.
+
+### The report schema
+
+The subagent returns exactly this, and nothing else. Unstable headings break the hand-off into the evidence bundle, and prose invites the diagnosis this gate must not carry:
+
+```markdown
+## Outcome
+
+REPRODUCED | NOT REPRODUCED | NO SCENARIO | BLOCKED
+
+## Test
+
+| Field | Value |
+|---|---|
+| File | `Reihitsu.<Project>.Test/…` |
+| Test name | `…` |
+| Helper | `…` |
+| Command | `scripts/test.ps1 -NoInstall -Project … -Filter …` |
+
+## Scenarios
+
+| # | Scenario | Line ending | Surface | Result | Observed vs expected |
+|---|---|---|---|---|---|
+
+## Raw result
+
+<the failing assertion's own output, or the passing run's summary line>
+
+## Missing evidence
+
+<what the issue would need for a decidable scenario — `_None._` when the gate answered>
+```
+
+`Scenarios` carries one row for the literal example on `REPRODUCED`, and one row per fan-out variant on `NOT REPRODUCED`. `Observed vs expected` states what the run produced against what the issue said it should produce — a fact, not a cause.
+
+### Recording it
+
+The gate result, its outcome, the scenarios that ran, and the helper each used belong in the final report. `NOT REPRODUCED` additionally reports the `Refs #<N>` downgrade and every gate it skipped with that reason.
+
 ## Scope triage — decide which gates this run needs
 
 Both gates default to **on**. The escape below exists for work that is genuinely small — not for work that merely looks small at first glance, because misjudging that is exactly the failure the gates were built to catch. Classify from evidence, not from the issue's tone or length.
@@ -176,11 +300,12 @@ Everything else is **behavioral** and runs both gates exactly as written below.
 
 | Gate | Routine run | Behavioral run |
 |---|---|---|
-| Rubber Duck subagent | Optional — replace it with a **contract note** (see below) | Mandatory |
-| Official preflight | Per `gh-preflight`'s trigger list; a proven text-only diff records the skip with its proof line | Per the same trigger list — in practice always, with the 1 + 1 budget |
+| Reproduction gate | N/A — a routine run is never a bug report | Mandatory on a bug report, N/A otherwise |
+| Rubber Duck subagent | Optional — replace it with a **contract note** (see below) | Mandatory — unless the reproduction gate ended the run |
+| Official preflight | Per `gh-preflight`'s trigger list; a proven text-only diff records the skip with its proof line | Per the same trigger list — in practice always, with the 1 + 1 budget; a `NOT REPRODUCED` run skips it as "tests for already-correct behavior" |
 | Local self-review + admission artifact | Mandatory, in its routine form (below) | Mandatory |
-| Test-first for bug fixes | N/A — a routine run changes no behavior | Mandatory |
-| Full validation | Skipped only when the diff contains **no** compiled file at all | Mandatory |
+| Test-first for bug fixes | N/A — a routine run changes no behavior | Satisfied by the reproduction gate, then extended by the contract's regression matrix |
+| Full validation | Skipped only when the diff contains **no** compiled file at all | Mandatory — including on a `NOT REPRODUCED` run |
 
 Preflight and validation are separate decisions and must not be collapsed. A comment-only change inside `.cs` can skip the audit, because the syntax-aware proof shows there is nothing to audit — but it still gets the build and all four test projects, because the build is the last thing that would catch a malformed comment or a changed documentation artifact, and test runtime costs wall-clock rather than tokens. Only a diff with no compiled file anywhere skips validation as well. Record every skip and its reason in the report.
 
@@ -199,7 +324,7 @@ From that moment the run is behavioral: the official preflight is required again
 
 ## Behavior Contract gate (behavioral runs — before any edit)
 
-The claim is in place and nothing has been edited. Before the first test or production change, obtain a **Behavior Contract** from the `gh-rubber-duck` workflow. On a routine run this section is replaced by the contract note above — until a trip-wire fires, at which point it applies in full.
+The claim is in place, and nothing has been edited beyond the reproduction gate's seed test. Before the first production change or any further test, obtain a **Behavior Contract** from the `gh-rubber-duck` workflow. On a routine run this section is replaced by the contract note above — until a trip-wire fires, at which point it applies in full. A run the reproduction gate ended never reaches this section at all.
 
 ### 1. Read the skill in this agent
 
@@ -209,13 +334,7 @@ Read `.codex/skills/gh-rubber-duck/SKILL.md` completely yourself. You need the o
 
 Run the analysis in **one fresh subagent** with no access to your reasoning. Isolation is the point: an analysis primed with your intended fix will confirm it instead of challenging it.
 
-Gather the neutral **evidence bundle** once, before spawning, and hand it over verbatim. Every isolated gate agent in this run — Rubber Duck now, preflight later — consumes the same bundle, so the facts are collected once instead of being reconstructed unreliably per agent:
-
-- the issue JSON and every linked clarification;
-- the PR metadata and body, when a PR already exists;
-- the base and head SHAs, and the merge base;
-- the changed-file list and diff, when there is one;
-- your proof that the local checkout matches that head.
+Hand over the **evidence bundle** you already gathered, verbatim. On a bug report it now also carries the reproduction gate's observed facts — the seed test's file, name, helper, command, and failure output — which is what lets the sweep start from a confirmed executable reproduction instead of from the issue's prose. Those are observations; the gate's report contains no diagnosis, and you add none.
 
 The subagent prompt must contain that bundle plus, and nothing more:
 
@@ -313,7 +432,9 @@ The matrix must cover, for the surfaces the contract names:
 - the trivia and directive cases the contract flagged as relevant (comments before the token and before both delimiters, `#if`/`#endif`/`#pragma`, disabled text);
 - LF **and** CRLF coverage whenever layout is affected.
 
-Per `AGENTS.md`, an analyzer or formatter bug must be reproduced by a failing test before production code changes. Add the intended regression tests first, watch them fail for the right reason, then implement. Analyzer tests stay many small focused tests rather than one large multi-case test.
+Per `AGENTS.md`, an analyzer or formatter bug must be reproduced by a failing test before production code changes. On a bug report the reproduction gate already committed that test — it is the matrix's **seed row**, and the contract decides what the matrix adds around it. Treat the seed as revisable: when the sweep shows it sits on the wrong helper, asserts too narrowly, or belongs on a sibling surface, move it. Shipping the seed unchanged as the whole matrix is the same defect as shipping a guard that covers only the reported example.
+
+Add the remaining intended regression tests before production code, watch them fail for the right reason, then implement. Analyzer tests stay many small focused tests rather than one large multi-case test.
 
 Track the contract row IDs (`B1`, `B2`, …) in your working plan and in the final report, never in the repository. Test names and test bodies have to stand on their own long after the contract is gone, so `KeepsSingleLineValueBesideKey` is the deliverable and `B1` is scaffolding — do not write contract IDs into test code, comments, or any tracked file.
 ### Use the existing test infrastructure
@@ -378,7 +499,7 @@ The branch already contains the empty claim commit, is pushed, and has an open d
 
 ## Update the draft after focused commits
 
-Immediately after the first focused implementation commit is pushed, update the existing draft PR's **body** with `gh pr edit`. Replace the generic placeholder wording with what the commits actually changed, retain `Closes #<N>`, and fill every template section. Update the body again whenever later commits materially change the summary, review notes, or follow-up work. Leave the placeholder **title** (`Claim: issue #<N>`) as-is for now — the mandatory full title rewrite happens once in "Complete the draft pull request", from the finished change, not incrementally. Keep the PR draft while validation is running and implementation continues.
+Immediately after the first focused implementation commit is pushed, update the existing draft PR's **body** with `gh pr edit`. Replace the generic placeholder wording with what the commits actually changed, retain `Closes #<N>` — `Refs #<N>` on a `NOT REPRODUCED` run — and fill every template section. Update the body again whenever later commits materially change the summary, review notes, or follow-up work. Leave the placeholder **title** (`Claim: issue #<N>`) as-is for now — the mandatory full title rewrite happens once in "Complete the draft pull request", from the finished change, not incrementally. Keep the PR draft while validation is running and implementation continues.
 
 ## Local self-review and the admission artifact
 
@@ -524,6 +645,8 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
    Closes #<N>
    ```
 
+   The single exception is a `NOT REPRODUCED` run, whose PR contains a characterization test and no fix. It uses `Refs #<N>` instead, so merging it does not close a bug report that was never explained.
+
    Use this final body structure:
 
    ```markdown
@@ -554,8 +677,9 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 4. Report back in chat, stating at least:
 
-   - the scope classification (routine or behavioral), which gates it kept or skipped, and why — including the preflight trigger decision and, when the audit was skipped, the `TEXT-ONLY PROOF: PASS …` line that justified it;
-   - the run metrics, so the workflow itself can be evaluated after a dozen runs, keeping these apart rather than reporting one number: **official gate verdict attempts**, **reviewer process starts**, state mismatches, tool or environment failures, and elapsed time — plus token cost per gate where the environment reports it — plus contract gate result, number of contract rows, defect-class candidates and reproductions, delta-table rows, tests added, findings on the first official preflight, and whether the retry was needed;
+   - the reproduction gate outcome (`REPRODUCED`, `NOT REPRODUCED`, `NO SCENARIO`, `BLOCKED`, or N/A for a non-bug issue), the scenarios it ran with the helper each used, and — on `NOT REPRODUCED` — the `Refs #<N>` downgrade, every gate skipped with that as the reason, and the evidence that would change the verdict;
+   - the scope classification (routine or behavioral), which gates it kept or skipped, and why — including the preflight trigger decision and, when the audit was skipped, the `TEXT-ONLY PROOF: PASS …` line or the "tests for already-correct behavior" entry that justified it;
+   - the run metrics, so the workflow itself can be evaluated after a dozen runs, keeping these apart rather than reporting one number: **official gate verdict attempts**, **reviewer process starts**, state mismatches, tool or environment failures, and elapsed time — plus token cost per gate where the environment reports it — plus the reproduction gate outcome, contract gate result, number of contract rows, defect-class candidates and reproductions, delta-table rows, tests added, findings on the first official preflight, and whether the retry was needed;
    - **scope growth**: the frozen ledger, every discovery classified against it, each scope checkpoint and the choice the user made, and how the production file set changed from the intended one across repair cycles;
    - a coverage table so the reader can check the change without reading the diff:
 
@@ -573,6 +697,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 Tokens and elapsed time are part of the deliverable. Without discipline this workflow re-reads the same files, re-runs passing tests, and prints thousands of warning lines nobody reads:
 
+- Settle a bug report's reproduction with one focused test run before spending a contract, an implementation, and an audit on it. The gate is the cheapest step in the workflow and the only one that can remove the three most expensive ones outright.
 - Use `rg` for discovery instead of opening candidate files one by one.
 - Batch independent read-only GitHub queries.
 - Read a large file once and work from that content; do not reload it per question.
@@ -588,7 +713,13 @@ None of this may reduce correctness or hide a failing result. When output is tri
 
 ## Hard rules
 
-- **Never** edit a production or test file on a behavioral run before the Behavior Contract gate returns `READY` (or before the user has resolved a `NEEDS DECISION`). On a routine run the recorded contract note takes its place.
+- **Never** edit a production or test file on a behavioral run before the Behavior Contract gate returns `READY` (or before the user has resolved a `NEEDS DECISION`). On a routine run the recorded contract note takes its place, and the reproduction gate's single seed test is the one file that legitimately precedes the contract.
+- **Never** enter the Rubber Duck, a delegated command, or an audit on a bug report before the reproduction gate returned `REPRODUCED`. That gate is the cheapest step in the workflow and it is what stops the three most expensive ones from being spent on a defect that is not there.
+- **Never** report `NOT REPRODUCED` from the literal example alone, or from a green run whose test never executed, compiled, or asserted anything. The fixed fan-out — LF and CRLF, the counterpart surface, the code-fix path, the nearest sibling shape — is the minimum, and a `BLOCKED` gate is never reported as a non-reproduction.
+- **Never** accept a red seed test as a reproduction when it fails on a compile error, a missing helper, or unrelated layout. The failure has to name the issue's own expected-versus-actual difference.
+- **Never** leave `Closes #<N>` in the PR of a `NOT REPRODUCED` run — a merge would close an unexplained bug report. Use `Refs #<N>` and say in `Review notes` that the test characterizes current behavior.
+- **Never** hand the reproduction subagent a suspected root cause or a candidate fix, and never let its report carry a diagnosis into the Rubber Duck — only observed facts.
+- **Never** ship the reproduction gate's seed test as the whole regression matrix when the contract names a broader defect class.
 - **Never** classify a run routine to dodge the gates. The five criteria are all-or-nothing, a trip-wire voids the classification, and the report has to name the reason.
 - **Never** claim a comment-only carve-out from reading the diff. Run `scripts/verify-text-only.ps1 -NoInstall` and quote its proof line, or treat the diff as behavioral.
 - **Never** invoke preflight before the admission artifact is complete, and never let a missing artifact row become an audit finding.
@@ -627,13 +758,16 @@ End-state checklist for a finished run:
 - [ ] Issue number extracted and read via `gh issue view`
 - [ ] Existing claim or draft PR checked; `codex/issue-<N>-<slug>` pushed with an empty claim commit
 - [ ] Generic-placeholder draft PR opened before implementation (title `Claim: issue #<N>`, every template section filled with static generic text, `Closes #<N>`) — nothing paraphrased from the issue
+- [ ] Evidence bundle gathered once, carrying no proposed solution or suspected cause
+- [ ] Bug report: reproduction gate run in one subagent before any other analysis, its outcome recorded, and the seed test committed with `[skip ci]` — non-bug issue: gate recorded N/A
+- [ ] `NOT REPRODUCED` run: fixed fan-out executed (LF/CRLF, counterpart surface, code-fix path, sibling shape), characterization test committed, PR linked with `Refs #<N>` and **not** `Closes #<N>`, contract and preflight skipped with that reason, full validation still run, and the user asked how to proceed
 - [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded — a claimed `.cs` carve-out proven with `TEXT-ONLY PROOF` against the real diff before the preflight decision, never against an empty one
-- [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent, evidence bundle gathered, and exactly one read-only Rubber Duck subagent spawned before any edit — routine run: contract note written before any edit
+- [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent and exactly one read-only Rubber Duck subagent spawned with that bundle before any further edit — routine run: contract note written before any edit
 - [ ] Behavior Contract accepted (`READY`, or `NEEDS DECISION` resolved by the user) and shown to the user in short form
 - [ ] Bug-report contract contains a complete code-derived defect-class enumeration and sweep; non-bug contracts mark both sections N/A
 - [ ] Guard-delta and predicate-boundary tables present with a verdict per row, or explicitly `_N/A_`
 - [ ] Scope ledger frozen at contract acceptance; every later discovery classified against it
-- [ ] Regression matrix derived from the contract, including every sweep candidate and a test on both sides of every named boundary; red tests added before production changes
+- [ ] Regression matrix derived from the contract with the reproduction seed as one row rather than the whole, including every sweep candidate and a test on both sides of every named boundary; red tests added before production changes
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `scripts/format.ps1 -NoInstall`, focused tests green
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
@@ -645,4 +779,4 @@ End-state checklist for a finished run:
 - [ ] Trigger commit proven content-free with `git diff --exit-code <audited-sha> HEAD`
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label
-- [ ] Final report states the scope classification with its reason, the contract gate result, official attempts and reviewer process starts separately, scope growth across repair cycles, and whether the budget was exhausted
+- [ ] Final report states the reproduction gate outcome, the scope classification with its reason, the contract gate result, official attempts and reviewer process starts separately, scope growth across repair cycles, and whether the budget was exhausted
