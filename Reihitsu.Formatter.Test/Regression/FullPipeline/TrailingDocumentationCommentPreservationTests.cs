@@ -308,7 +308,9 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that documentation with no following declaration is preserved before its owning closing token
+    /// Verifies that documentation with no following declaration stays on the line the author wrote it on. It
+    /// documents nothing - the closing brace does not open the type declaration - so relocating it would be a
+    /// placement decision the formatter cannot make (issues #591, #625)
     /// </summary>
     [TestMethod]
     public void PreservesTrailingDocumentationWithoutFollowingMember()
@@ -319,16 +321,97 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
                                  public int Value { get; set; } /// trailing note
                              }
                              """;
-        const string expected = """
-                                internal class TestClass
-                                {
-                                    public int Value { get; set; }
 
-                                    /// trailing note
-                                }
-                                """;
+        AssertRuleResult(input);
+    }
 
-        AssertRuleResult(input, expected);
+    /// <summary>
+    /// Verifies that a delimited documentation comment written after a field's semicolon stays on the field's line
+    /// </summary>
+    [TestMethod]
+    public void PreservesDelimitedDocumentationAfterFieldSemicolon()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _third; /** Comment */
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a single line documentation comment written after a field's semicolon stays on the field's line
+    /// </summary>
+    [TestMethod]
+    public void PreservesSingleLineDocumentationAfterFieldSemicolon()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _fifth; /// Comment
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment written before a single field's semicolon stays in place.
+    /// No split is involved here, which is what makes the split field's output identical to the declaration the
+    /// author would have written by hand (issue #625)
+    /// </summary>
+    [TestMethod]
+    public void PreservesDelimitedDocumentationBeforeSingleFieldSemicolon()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _only /** note */;
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment inside an attribute list stays where it is. The closing bracket does
+    /// not open the attribute list, so the comment documents nothing and must not be relocated (issue #591)
+    /// </summary>
+    [TestMethod]
+    public void PreservesDocumentationInsideAttributeList()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 [System.Obsolete /** why */]
+                                 public void Method()
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary comment before a closing brace is handled exactly as before. The exemption is
+    /// scoped to documentation comments, which are the ones the compiler rejects in a position that documents
+    /// nothing, so an ordinary comment in the same slot must be unaffected by it
+    /// </summary>
+    [TestMethod]
+    public void KeepsOrdinaryCommentHandlingAtBlockEnd()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; }
+                                 // trailing note
+                             }
+                             """;
+
+        AssertRuleResult(input);
     }
 
     /// <summary>

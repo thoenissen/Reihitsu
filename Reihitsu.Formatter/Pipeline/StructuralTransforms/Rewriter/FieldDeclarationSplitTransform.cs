@@ -159,7 +159,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Builds the trailing trivia for a split field, re-attaching comments that followed the declarator or its separator
+    /// Builds the trailing trivia for a split field, re-attaching comments that followed the declarator's separator
     /// </summary>
     /// <param name="comments">The comments to re-attach</param>
     /// <param name="suffixTrivia">The trivia appended after the comments</param>
@@ -258,7 +258,13 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
             for (var variableIndex = 0; variableIndex < variables.Count; variableIndex++)
             {
                 var variable = variables[variableIndex];
-                var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(variable.WithoutTrivia())));
+
+                // Only the declarator's leading trivia is dropped, because the generated field rebuilds it below.
+                // Its trailing trivia is what the author wrote between the declarator and its terminator, so it
+                // stays on the declarator - carrying it over to the semicolon instead would move an ordinary
+                // comment into a leading position the blank-line phase separates onto its own line (issue #625).
+                var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(variable.WithoutTrivia()
+                                                                                                                                                            .WithTrailingTrivia(variable.GetTrailingTrivia()))));
 
                 if (variableIndex == 0)
                 {
@@ -269,21 +275,29 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
                     updatedField = updatedField.WithLeadingTrivia(BuildLeadingTrivia(indentationTrivia, variable.GetLeadingTrivia()));
                 }
 
+                // The terminator the author wrote for this declarator becomes the generated field's semicolon: the
+                // separator for every declarator but the last, and the declaration's own semicolon for the last.
+                // Everything written between the declarator and that terminator therefore stays in front of the
+                // generated semicolon, and everything written after it stays behind it. Reusing the declaration's
+                // semicolon token through WithDeclaration above would otherwise copy its leading trivia onto every
+                // generated field, and the separator's leading trivia would be discarded with the separator
+                // (issues #624, #625).
+                var terminator = variableIndex == variables.Count - 1
+                                     ? fieldDeclaration.SemicolonToken
+                                     : variables.GetSeparator(variableIndex);
+
                 if (variableIndex == variables.Count - 1)
                 {
-                    var trailingComments = GetComments(variable.GetTrailingTrivia()).ToList();
-
-                    updatedField = updatedField.WithTrailingTrivia(BuildTrailingTrivia(trailingComments, fieldDeclaration.GetTrailingTrivia()));
+                    updatedField = updatedField.WithTrailingTrivia(fieldDeclaration.GetTrailingTrivia());
                 }
                 else
                 {
-                    var trailingComments = new List<SyntaxTrivia>();
-
-                    trailingComments.AddRange(GetComments(variable.GetTrailingTrivia()));
-                    trailingComments.AddRange(GetComments(variables.GetSeparator(variableIndex).TrailingTrivia));
+                    var trailingComments = GetComments(terminator.TrailingTrivia).ToList();
 
                     updatedField = updatedField.WithTrailingTrivia(BuildTrailingTrivia(trailingComments, lineBreakTrivia));
                 }
+
+                updatedField = updatedField.WithSemicolonToken(updatedField.SemicolonToken.WithLeadingTrivia(terminator.LeadingTrivia));
 
                 updatedMembers.Add(updatedField);
             }

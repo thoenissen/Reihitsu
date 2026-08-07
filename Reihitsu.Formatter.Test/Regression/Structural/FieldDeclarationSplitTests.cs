@@ -534,11 +534,12 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line comment written before the separator stays a trailing comment on the first generated
-    /// field. It lands in the declarator's trailing trivia, which the widened comment predicate must leave alone
+    /// Verifies that a block comment written before the separator stays before the semicolon the separator becomes.
+    /// The separator terminates the first declarator exactly as the semicolon terminates the last, so the split
+    /// preserves the comment's position instead of relocating it across the generated semicolon (issue #625)
     /// </summary>
     [TestMethod]
-    public void LineCommentBeforeSeparatorStaysTrailingOnFirstField()
+    public void BlockCommentBeforeSeparatorStaysBeforeTheGeneratedSemicolon()
     {
         // Arrange
         const string input = """
@@ -551,7 +552,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
         const string expected = """
                                 internal class TestClass
                                 {
-                                    private int _first; /* first */
+                                    private int _first /* first */;
                                     private int _second;
                                 }
                                 """;
@@ -735,7 +736,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment written before the semicolon of a combined field declaration appears
-    /// exactly once in the split output instead of once per generated field (issue #625)
+    /// exactly once in the split output, in the position the author wrote it (issue #625)
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeSemicolonIsNotDuplicated()
@@ -751,8 +752,269 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int _first;
-                                    /** Trailing note. */
+                                    private int _second /** Trailing note. */;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single line documentation comment written before the semicolon appears exactly once
+    /// </summary>
+    [TestMethod]
+    public void SingleLineDocumentationCommentBeforeSemicolonIsNotDuplicated()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first, _second
+                                 /// <summary>Note.</summary>
+                                 ;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first;
+                                    private int _second
+                                    /// <summary>
+                                    /// Note.
+                                    /// </summary>
+                                    ;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line comment written on its own line before the semicolon appears exactly once. Roslyn files
+    /// it in the semicolon's leading trivia once a line break separates it from the declarator, which is the same
+    /// slot the documentation comment of <see cref="DocumentationCommentBeforeSemicolonIsNotDuplicated"/> lands in
+    /// </summary>
+    [TestMethod]
+    public void OwnLineCommentBeforeSemicolonIsNotDuplicated()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first, _second
+                                 // note
+                                 ;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first;
+                                    private int _second
+
+                                    // note
+                                    ;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment written on its own line before the semicolon appears exactly once
+    /// </summary>
+    [TestMethod]
+    public void OwnLineBlockCommentBeforeSemicolonIsNotDuplicated()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first, _second
+                                 /* note */
+                                 ;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first;
+                                    private int _second
+
+                                    /* note */
+                                    ;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment written before the separator is preserved on the field the author
+    /// wrote it on, instead of being dropped with the separator's leading trivia (issue #624)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeSeparatorIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first /** First field. */,
+                                             _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first /** First field. */;
                                     private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single line documentation comment written before the separator is preserved (issue #624)
+    /// </summary>
+    [TestMethod]
+    public void SingleLineDocumentationCommentBeforeSeparatorIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first
+                                 /// <summary>First.</summary>
+                                 , _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first
+                                    /// <summary>
+                                    /// First.
+                                    /// </summary>
+                                    ;
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that every declarator keeps its own comment before its own generated semicolon when three
+    /// declarators each carry one, which is the boundary between the last declarator and the ones before it
+    /// </summary>
+    [TestMethod]
+    public void CommentsBeforeEveryTerminatorStayOnTheirOwnGeneratedField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first /* a */, _second /* b */, _third /* c */;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first /* a */;
+                                    private int _second /* b */;
+                                    private int _third /* c */;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the separator and a comment after it are split around the generated
+    /// semicolon rather than both landing on the same side of it
+    /// </summary>
+    [TestMethod]
+    public void CommentsAroundTheSeparatorAreSplitAroundTheGeneratedSemicolon()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first /* before */, // after
+                                             _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first /* before */; // after
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a declarator comment and a separator comment written on the same declarator keep their source
+    /// order. Roslyn files the block comment in the declarator's trailing trivia and the documentation comment in
+    /// the separator's leading trivia, so the two halves have to be concatenated in that order
+    /// </summary>
+    [TestMethod]
+    public void DeclaratorAndSeparatorCommentsKeepTheirSourceOrder()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _first /* x */ /** y */, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _first /* x */ /** y */;
+                                    private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first declarator is still dropped. It sits in the first
+    /// declarator's leading trivia, which has no terminator in front of it, so the terminator rule does not reach
+    /// it. This records the remaining gap deliberately rather than widening the split silently
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstDeclaratorIsStillDropped()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+                                    _first;
+                                    private int
+                                    _second;
                                 }
                                 """;
 

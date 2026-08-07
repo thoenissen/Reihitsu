@@ -124,6 +124,59 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoN
     }
 
     /// <summary>
+    /// Verifies that a documentation comment written before the semicolon appears exactly once and keeps its
+    /// position. The fix applies the split transform without running the formatting pipeline, so this output is
+    /// what the user sees (issue #625)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentBeforeSemicolonIsNotDuplicated()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstField, {|#0:secondField|} /** Trailing note. */;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstField;
+                                     private int secondField /** Trailing note. */;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment written before the separator is preserved rather than dropped on the
+    /// code fix surface, where no later phase runs to recover it (issue #624)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentBeforeSeparatorIsPreserved()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstField /** First field. */, {|#0:secondField|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstField /** First field. */;
+                                     private int secondField;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the fix indents every generated field at the member level when the declaration is documented.
     /// The fix applies the split transform without running the formatting pipeline, so no later indentation phase
     /// repairs the anchor and this output is what the user sees (issue #592)
