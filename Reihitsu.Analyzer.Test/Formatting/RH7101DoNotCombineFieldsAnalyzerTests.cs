@@ -124,6 +124,161 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoN
     }
 
     /// <summary>
+    /// Verifies that the fix indents every generated field at the member level when the declaration is documented.
+    /// The fix applies the split transform without running the formatting pipeline, so no later indentation phase
+    /// repairs the anchor and this output is what the user sees (issue #592)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedCombinedFieldsAreFixedAtMemberIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Two fields.
+                                    /// </summary>
+                                    private int firstField, {|#0:secondField|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Two fields.
+                                     /// </summary>
+                                     private int firstField;
+                                     private int secondField;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix anchors the generated fields on the line the field declaration starts on rather than on
+    /// the documentation comment, which may be indented differently (issue #592)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMisalignedDocumentationCommentFixUsesFieldLineIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                  /// <summary>
+                                  /// Two fields.
+                                  /// </summary>
+                                    private int firstField, {|#0:secondField|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                   /// <summary>
+                                   /// Two fields.
+                                   /// </summary>
+                                     private int firstField;
+                                     private int secondField;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix still finds the field's own indentation when the documentation comment starts on the
+    /// opening brace line, so the generated field does not fall back to column zero (issue #592)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentOnOpeningBraceLineFixUsesFieldLineIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                { /// <summary>
+                                  /// Two fields.
+                                  /// </summary>
+                                    private int firstField, {|#0:secondField|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 { /// <summary>
+                                   /// Two fields.
+                                   /// </summary>
+                                     private int firstField;
+                                     private int secondField;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment re-attached to a generated field is not followed by a blank
+    /// line. This form carries its own line break, so the split must not append a second one. The formatting
+    /// pipeline's blank-line phase absorbs the stray break, which is why only the code fix can observe it (issue #592)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleLineDocumentationCommentBeforeDeclaratorGetsNoBlankLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstField,
+                                                /// <summary>Second field.</summary>
+                                                {|#0:secondField|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstField;
+                                     /// <summary>Second field.</summary>
+                                     private int secondField;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment re-attached to a generated field keeps a line break after it.
+    /// Unlike a single-line documentation comment it carries none of its own, so this is the side of the boundary
+    /// that a guard written against the trivia kind instead of the trivia text would break (issue #592)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineDocumentationCommentBeforeDeclaratorKeepsItsLineBreak()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstField,
+                                                /** Second field. */
+                                                {|#0:secondField|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstField;
+                                     /** Second field. */
+                                     private int secondField;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the fix is not offered when the combined field carries a preprocessor directive, because the
     /// split transform leaves directive-bearing fields intact and the fix would otherwise be a no-op (issue #456)
     /// </summary>
