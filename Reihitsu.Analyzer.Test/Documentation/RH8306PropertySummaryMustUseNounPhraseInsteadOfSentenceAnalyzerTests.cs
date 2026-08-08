@@ -379,6 +379,27 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
     }
 
     /// <summary>
+    /// Verifies that a sentence-like summary nested in remarks is ignored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSentenceSummaryNestedInRemarks()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    internal class TestClass
+                                    {
+                                        /// <remarks><summary>Gets the value.</summary></remarks>
+                                        internal string TestProperty { get; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

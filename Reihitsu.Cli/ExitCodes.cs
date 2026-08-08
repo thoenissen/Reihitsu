@@ -13,7 +13,7 @@ internal static class ExitCodes
     public const int Success = 0;
 
     /// <summary>
-    /// Exit code indicating that one or more files need formatting (--check mode)
+    /// Exit code indicating that one or more files need formatting (--check or --dry-run mode)
     /// </summary>
     public const int FormattingNeeded = 1;
 

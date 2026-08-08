@@ -240,6 +240,38 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
+    /// Verifies that member names in a following ordinal-distinct root cannot create a cross-group diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task OrdinalDistinctRootGroupsDoNotProduceCrossGroupDiagnostics()
+    {
+        const string testCode = """
+                                using SYSTEM.Alpha;
+                                using SYSTEM.Zulu;
+
+                                using system.Bravo;
+
+                                namespace SYSTEM.Alpha
+                                {
+                                    public class Placeholder;
+                                }
+
+                                namespace SYSTEM.Zulu
+                                {
+                                    public class Placeholder;
+                                }
+
+                                namespace system.Bravo
+                                {
+                                    public class Placeholder;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies that the shared using-ordering code fix does not format the following type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

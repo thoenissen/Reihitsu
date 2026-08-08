@@ -307,6 +307,10 @@ internal static class DocumentationAnalysisUtilities
     /// <param name="semanticModel">Semantic model</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> if the declaration is documented sufficiently</returns>
+    /// <remarks>
+    /// Top-level summary and inheritdoc tags qualify directly. Semantic expansion is considered when a model is
+    /// available
+    /// </remarks>
     internal static bool HasRequiredDocumentation(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
@@ -316,14 +320,19 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, SummaryTagName))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
         {
             return true;
+        }
+
+        if (semanticModel == null)
+        {
+            return false;
         }
 
         var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, semanticModel, cancellationToken);
@@ -348,6 +357,10 @@ internal static class DocumentationAnalysisUtilities
     /// <param name="semanticModel">Semantic model</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> if the declaration is documented sufficiently</returns>
+    /// <remarks>
+    /// Top-level summary and inheritdoc tags qualify directly. Semantic expansion is considered when a model is
+    /// available
+    /// </remarks>
     internal static bool HasRequiredDocumentation(EnumMemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
@@ -357,14 +370,19 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, SummaryTagName))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
         {
             return true;
+        }
+
+        if (semanticModel == null)
+        {
+            return false;
         }
 
         var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, semanticModel, cancellationToken);

@@ -60,7 +60,7 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Analyze a single using directive group
+    /// Analyze regular using directives within one global/local classification set, comparing only full root groups
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="usingDirectives">Using directives</param>
@@ -68,20 +68,21 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// <param name="usingDirectiveGroup">Group to analyze</param>
     private void AnalyzeGroup(SyntaxNodeAnalysisContext context, SyntaxList<UsingDirectiveSyntax> usingDirectives, bool isGlobalSet, UsingDirectiveOrderingGroup usingDirectiveGroup)
     {
-        string previousSortKey = null;
+        UsingDirectiveSyntax previousUsingDirective = null;
 
         foreach (var usingDirective in usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
                                                       .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == usingDirectiveGroup))
         {
             var currentSortKey = UsingDirectiveOrderingUtilities.GetSortKey(usingDirective);
 
-            if (previousSortKey != null
-                && UsingDirectiveOrderingUtilities.CompareSortKeys(currentSortKey, previousSortKey) < 0)
+            if (previousUsingDirective != null
+                && UsingDirectiveOrderingUtilities.AreInSameGroup(previousUsingDirective, usingDirective)
+                && UsingDirectiveOrderingUtilities.CompareSortKeys(currentSortKey, UsingDirectiveOrderingUtilities.GetSortKey(previousUsingDirective)) < 0)
             {
                 context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
             }
 
-            previousSortKey = currentSortKey;
+            previousUsingDirective = usingDirective;
         }
     }
 

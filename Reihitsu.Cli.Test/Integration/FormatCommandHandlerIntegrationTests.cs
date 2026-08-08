@@ -336,7 +336,8 @@ public class FormatCommandHandlerIntegrationTests
     }
 
     /// <summary>
-    /// Tests that files in bin/ and obj/ directories are not touched
+    /// Tests that a recursive parent target processes an ordinary sibling without touching or reporting files in
+    /// bin/ and obj/ directories
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
     [TestMethod]
@@ -345,23 +346,28 @@ public class FormatCommandHandlerIntegrationTests
         // Arrange
         using (var tempDir = new TemporaryDirectoryFixture())
         {
-            var normalPath = tempDir.CreateFile("src\\Test.cs", ValidInputTestData);
-            var binPath = tempDir.CreateFile("bin\\Debug\\Test.cs", ValidInputTestData);
-            var objPath = tempDir.CreateFile("obj\\Debug\\Test.cs", ValidInputTestData);
+            var normalPath = tempDir.CreateFile(Path.Combine("src", "Test.cs"), ValidInputTestData);
+            var binPath = tempDir.CreateFile(Path.Combine("bin", "Debug", "Test.cs"), ValidInputTestData);
+            var objPath = tempDir.CreateFile(Path.Combine("obj", "Debug", "Test.cs"), ValidInputTestData);
 
-            var handler = CreateHandler([tempDir.Path]);
+            var handler = CreateHandler([tempDir.Path], out var console);
 
             // Act
-            await handler.ExecuteAsync(TestContext.CancellationToken);
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
             var normalContent = await File.ReadAllTextAsync(normalPath, TestContext.CancellationToken);
             var binContent = await File.ReadAllTextAsync(binPath, TestContext.CancellationToken);
             var objContent = await File.ReadAllTextAsync(objPath, TestContext.CancellationToken);
+            var output = string.Join(Environment.NewLine, console.StandardOutput);
 
+            Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.AreEqual(ValidInputResultData, normalContent);
             Assert.AreEqual(ValidInputTestData, binContent);
             Assert.AreEqual(ValidInputTestData, objContent);
+            Assert.Contains(normalPath, output);
+            Assert.DoesNotContain(binPath, output);
+            Assert.DoesNotContain(objPath, output);
         }
     }
 

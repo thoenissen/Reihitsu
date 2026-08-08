@@ -16,7 +16,7 @@ internal static class Program
     /// Main entry point
     /// </summary>
     /// <param name="args">Command-line arguments</param>
-    /// <returns>Exit code: 0 = success, 1 = formatting needed (--check), 2 = error</returns>
+    /// <returns>Exit code: 0 = success, 1 = formatting needed (--check/--dry-run), 2 = error</returns>
     public static async Task<int> Main(string[] args)
     {
         var result = ParseArguments(args);
@@ -199,7 +199,7 @@ internal static class Program
         writer.WriteLine();
         writer.WriteLine("Options:");
         writer.WriteLine("  --check      Check if files are formatted (exit code 1 if not); don't write changes");
-        writer.WriteLine("  --dry-run    Show what would change without applying (cannot be combined with --check)");
+        writer.WriteLine("  --dry-run    Show what would change without applying (exit code 1 if changes would be made; cannot be combined with --check)");
         writer.WriteLine("  --verbose    Show detailed output for each file");
         writer.WriteLine($"  --force      Skip the confirmation prompt shown when more than {FormatCommandHandler.LargeRunConfirmationThreshold} files would be formatted");
         writer.WriteLine("  --utf8-bom   Write processed files as UTF-8 with a byte order mark");

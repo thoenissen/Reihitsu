@@ -66,7 +66,7 @@ public class CliEndToEndTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the --help flag prints usage information and returns success
+    /// Verifies that the --help flag prints usage information, documents dry-run exit behavior, and returns success
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
@@ -85,6 +85,7 @@ public class CliEndToEndTests
         // Assert
         Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.Contains("reihitsu-format", output);
+        Assert.Contains("exit code 1 if changes would be made", output);
         Assert.Contains("--utf8-bom", output);
     }
 
@@ -284,6 +285,34 @@ public class CliEndToEndTests
                                            .ConfigureAwait(false);
 
             Assert.AreNotEqual(NeedsFormattingSource, updatedContent);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that dry-run mode on already formatted files returns success without producing a diff
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainDryRunModeOnFormattedFilesReturnsSuccess()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
+
+            // Act
+            int exitCode;
+            string output;
+
+            using (var capture = new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--dry-run", tempDir.Path]);
+                output = capture.StandardOutput;
+            }
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.DoesNotContain("@@", output);
         }
     }
 
@@ -572,6 +601,172 @@ public class CliEndToEndTests
     }
 
     /// <summary>
+    /// Verifies that explicitly targeted bin and obj directories are processed for every supported path spelling
+    /// </summary>
+    /// <param name="directoryName">The build-output directory name</param>
+    /// <param name="targetSpelling">The path spelling to pass to the CLI</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [DataRow("bin", "relative")]
+    [DataRow("bin", "dot-relative")]
+    [DataRow("bin", "absolute")]
+    [DataRow("obj", "relative")]
+    [DataRow("obj", "dot-relative")]
+    [DataRow("obj", "absolute")]
+    public async Task MainExplicitBuildOutputDirectoryTargetFormatsFile(string directoryName, string targetSpelling)
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile(Path.Combine(directoryName, "Unformatted.cs"), NeedsFormattingSource);
+            var targetPath = CreateTargetPath(tempDir.Path, directoryName, targetSpelling);
+            var previousDirectory = Directory.GetCurrentDirectory();
+
+            try
+            {
+                Directory.SetCurrentDirectory(tempDir.Path);
+
+                // Act
+                int exitCode;
+
+                using (new ConsoleCapture())
+                {
+                    exitCode = await Program.Main([targetPath]);
+                }
+
+                // Assert
+                var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
+
+                Assert.AreEqual(ExitCodes.Success, exitCode);
+                Assert.AreNotEqual(NeedsFormattingSource, actualContent);
+            }
+            finally
+            {
+                Directory.SetCurrentDirectory(previousDirectory);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies that explicitly targeted files inside bin and obj directories are processed for every supported path
+    /// spelling
+    /// </summary>
+    /// <param name="directoryName">The build-output directory name</param>
+    /// <param name="targetSpelling">The path spelling to pass to the CLI</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [DataRow("bin", "relative")]
+    [DataRow("bin", "dot-relative")]
+    [DataRow("bin", "absolute")]
+    [DataRow("obj", "relative")]
+    [DataRow("obj", "dot-relative")]
+    [DataRow("obj", "absolute")]
+    public async Task MainExplicitBuildOutputFileTargetFormatsFile(string directoryName, string targetSpelling)
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var relativeFilePath = Path.Combine(directoryName, "Unformatted.cs");
+            var filePath = tempDir.CreateFile(relativeFilePath, NeedsFormattingSource);
+            var targetPath = CreateTargetPath(tempDir.Path, relativeFilePath, targetSpelling);
+            var previousDirectory = Directory.GetCurrentDirectory();
+
+            try
+            {
+                Directory.SetCurrentDirectory(tempDir.Path);
+
+                // Act
+                int exitCode;
+
+                using (new ConsoleCapture())
+                {
+                    exitCode = await Program.Main([targetPath]);
+                }
+
+                // Assert
+                var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
+
+                Assert.AreEqual(ExitCodes.Success, exitCode);
+                Assert.AreNotEqual(NeedsFormattingSource, actualContent);
+            }
+            finally
+            {
+                Directory.SetCurrentDirectory(previousDirectory);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies that recursive discovery formats directories whose names merely contain bin or obj
+    /// </summary>
+    /// <param name="directoryName">The ordinary directory name to discover</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [DataRow("binary")]
+    [DataRow("objects")]
+    public async Task MainRecursiveTargetFormatsDirectoriesThatOnlyContainBuildOutputNames(string directoryName)
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile(Path.Combine(directoryName, "Unformatted.cs"), NeedsFormattingSource);
+
+            // Act
+            int exitCode;
+
+            using (new ConsoleCapture())
+            {
+                exitCode = await Program.Main([tempDir.Path]);
+            }
+
+            // Assert
+            var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreNotEqual(NeedsFormattingSource, actualContent);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that recursive discovery applies the platform's path casing rules to bin and obj segments
+    /// </summary>
+    /// <param name="directoryName">The uppercase build-output directory name</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [DataRow("BIN")]
+    [DataRow("OBJ")]
+    public async Task MainRecursiveTargetUsesPlatformCasingForBuildOutputDirectories(string directoryName)
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile(Path.Combine(directoryName, "Unformatted.cs"), NeedsFormattingSource);
+
+            // Act
+            int exitCode;
+
+            using (new ConsoleCapture())
+            {
+                exitCode = await Program.Main([tempDir.Path]);
+            }
+
+            // Assert
+            var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.AreEqual(NeedsFormattingSource, actualContent);
+            }
+            else
+            {
+                Assert.AreNotEqual(NeedsFormattingSource, actualContent);
+            }
+        }
+    }
+
+    /// <summary>
     /// Verifies that multiple paths are all processed and included in the summary
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
@@ -601,6 +796,24 @@ public class CliEndToEndTests
             Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
             Assert.Contains("2", output);
         }
+    }
+
+    /// <summary>
+    /// Creates an explicit target path using the requested spelling
+    /// </summary>
+    /// <param name="rootPath">The absolute root path</param>
+    /// <param name="relativePath">The path relative to <paramref name="rootPath"/></param>
+    /// <param name="targetSpelling">The requested path spelling</param>
+    /// <returns>The target path to pass to the CLI</returns>
+    private static string CreateTargetPath(string rootPath, string relativePath, string targetSpelling)
+    {
+        return targetSpelling switch
+               {
+                   "relative" => relativePath,
+                   "dot-relative" => $".{Path.DirectorySeparatorChar}{relativePath}",
+                   "absolute" => Path.Combine(rootPath, relativePath),
+                   _ => throw new ArgumentOutOfRangeException(nameof(targetSpelling), targetSpelling, "Unsupported target spelling."),
+               };
     }
 
     #endregion // Methods
