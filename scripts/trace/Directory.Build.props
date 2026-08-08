@@ -1,0 +1,9 @@
+<Project>
+   <!--
+      Stops the MSBuild property search from reaching the repository root.
+
+      The trace runner is a standalone file-based app: it is not part of Reihitsu.sln,
+      is never packed, and must not inherit the solution's versioning, ruleset, or
+      self-hosting analyzer references.
+   -->
+</Project>
