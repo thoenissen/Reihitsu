@@ -191,7 +191,9 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Applies indentation entries for region-related directive trivia
+    /// Applies indentation entries for region-related directive trivia. A directive inside a branch the
+    /// compiler skipped is left where the author wrote it: the code around it is untouched disabled
+    /// text, so re-indenting the directive alone would half-format a region nobody compiles (issue #434)
     /// </summary>
     /// <param name="token">The token whose leading trivia is inspected</param>
     /// <param name="parent">The syntax node that owns the token</param>
@@ -200,7 +202,8 @@ internal static class LayoutComputer
     /// <param name="baseColumn">The base indentation column</param>
     private static void SetDirectiveIndentation(SyntaxToken token, SyntaxNode parent, int indentLevel, LayoutModel model, int baseColumn)
     {
-        foreach (var directiveTrivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsRegionDirective))
+        foreach (var directiveTrivia in token.LeadingTrivia.Where(static trivia => SyntaxTriviaUtilities.IsRegionDirective(trivia)
+                                                                                   && SyntaxTriviaUtilities.IsInactiveDirective(trivia) == false))
         {
             var directiveIndent = SyntaxIndentationUtilities.GetTriviaIndentLevel(parent, directiveTrivia, indentLevel);
 
