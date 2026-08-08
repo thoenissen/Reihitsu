@@ -1469,9 +1469,10 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that whitespace-only trivia before the first declarator is unchanged by the split. This is the other
-    /// side of the boundary from a comment in the same slot: without a comment there is nothing to preserve, so the
-    /// output must stay what it was before the slot was read at all (issue #636)
+    /// Verifies that the pipeline output for a first declarator whose slot holds no comment is unchanged by the
+    /// split. The indentation phase re-anchors the declarator either way, so this asserts that reading the slot
+    /// caused no regression here rather than pinning the boundary itself - that side is only observable on the code
+    /// fix surface, where no later phase runs (issue #636)
     /// </summary>
     [TestMethod]
     public void WhitespaceOnlyTriviaBeforeFirstDeclaratorIsUnchanged()

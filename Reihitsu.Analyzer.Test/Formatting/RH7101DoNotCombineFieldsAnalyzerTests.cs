@@ -392,6 +392,36 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoN
     }
 
     /// <summary>
+    /// Verifies that the fix keeps the first declarator's indentation when its slot holds no comment at all. This is
+    /// the other side of the boundary from a preserved comment, and the code fix is the only surface that can tell
+    /// the two apart, because no later phase re-anchors the declarator here (issue #636)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixKeepsTheIndentationOfAFirstDeclaratorWithoutAComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int
+                                    firstField, {|#0:secondField|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int
+                                     firstField;
+                                     private int
+                                 secondField;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the fix is not offered when the combined field carries a preprocessor directive, because the
     /// split transform leaves directive-bearing fields intact and the fix would otherwise be a no-op (issue #456)
     /// </summary>
