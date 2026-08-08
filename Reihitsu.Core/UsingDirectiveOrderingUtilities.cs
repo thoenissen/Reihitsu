@@ -134,14 +134,15 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Determines whether two using directives belong to the same group (same using type and root namespace)
+    /// Determines whether two using directives belong to the same group (same global status, using type and root namespace)
     /// </summary>
     /// <param name="left">Left using directive</param>
     /// <param name="right">Right using directive</param>
     /// <returns><see langword="true"/> if both directives belong to the same group</returns>
     public static bool AreInSameGroup(UsingDirectiveSyntax left, UsingDirectiveSyntax right)
     {
-        return GetUsingTypeOrder(left) == GetUsingTypeOrder(right)
+        return IsGlobalUsing(left) == IsGlobalUsing(right)
+               && GetUsingTypeOrder(left) == GetUsingTypeOrder(right)
                && string.Equals(GetRootNamespace(left), GetRootNamespace(right), StringComparison.Ordinal);
     }
 
@@ -157,8 +158,10 @@ public static class UsingDirectiveOrderingUtilities
                                                                               UsingDirective = usingDirective,
                                                                               DirectiveIndex = directiveIndex,
                                                                           })
-                              .OrderBy(obj => GetUsingTypeOrder(obj.UsingDirective))
+                              .OrderBy(obj => IsGlobalUsing(obj.UsingDirective) ? 0 : 1)
+                              .ThenBy(obj => GetUsingTypeOrder(obj.UsingDirective))
                               .ThenBy(obj => GetNamespaceGroupOrderKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
+                              .ThenBy(obj => GetRootNamespace(obj.UsingDirective), StringComparer.Ordinal)
                               .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
                               .ThenBy(obj => obj.DirectiveIndex)
                               .Select(obj => obj.UsingDirective)
@@ -220,18 +223,8 @@ public static class UsingDirectiveOrderingUtilities
     {
         var orderedGlobalUsings = OrderSubset(usingDirectives.Where(IsGlobalUsing).ToList());
         var orderedLocalUsings = OrderSubset(usingDirectives.Where(obj => IsGlobalUsing(obj) == false).ToList());
-        var reorderedUsings = new List<UsingDirectiveSyntax>(usingDirectives.Count);
-        var globalUsingIndex = 0;
-        var localUsingIndex = 0;
 
-        foreach (var usingDirective in usingDirectives)
-        {
-            reorderedUsings.Add(IsGlobalUsing(usingDirective)
-                                    ? orderedGlobalUsings[globalUsingIndex++]
-                                    : orderedLocalUsings[localUsingIndex++]);
-        }
-
-        return SyntaxFactory.List(reorderedUsings);
+        return SyntaxFactory.List(orderedGlobalUsings.Concat(orderedLocalUsings));
     }
 
     /// <summary>

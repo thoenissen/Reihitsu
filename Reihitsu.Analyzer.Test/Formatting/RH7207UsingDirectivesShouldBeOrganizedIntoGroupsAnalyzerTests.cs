@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -386,6 +387,65 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix moves a case-variant global using ahead of a local exact-System using and separates the sections
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixPlacesGlobalSectionBeforeLocalExactSystemSection()
+    {
+        const string testCode = """
+                                using {|#0:System.Text|};
+                                global using SYSTEM.Text;
+
+                                namespace SYSTEM.Text
+                                {
+                                    public class Placeholder;
+                                }
+                                """;
+        const string fixedCode = """
+                                 global using SYSTEM.Text;
+
+                                 using System.Text;
+
+                                 namespace SYSTEM.Text
+                                 {
+                                     public class Placeholder;
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test => test.CompilerDiagnostics = CompilerDiagnostics.None,
+                     Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that global status alone creates a group boundary for otherwise matching regular System roots
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixSeparatesGlobalAndLocalDirectivesWithSameRoot()
+    {
+        const string testCode = """
+                                global using {|#0:System.Collections|};
+                                using System.Text;
+
+                                public class TestClass;
+                                """;
+        const string fixedCode = """
+                                 global using System.Collections;
+
+                                 using System.Text;
+
+                                 public class TestClass;
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
     }
 
     /// <summary>

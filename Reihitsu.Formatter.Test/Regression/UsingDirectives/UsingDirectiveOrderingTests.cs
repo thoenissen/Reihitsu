@@ -70,6 +70,48 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that every global using type precedes local usings while ordinal root groups stay contiguous
+    /// </summary>
+    [TestMethod]
+    public void GlobalSectionPrecedesLocalSectionAndKeepsOrdinalRootsContiguous()
+    {
+        // Arrange
+        const string input = """
+                             using System.Text;
+                             global using System.Collections;
+                             global using SYSTEM.Zulu; // Keep with SYSTEM
+                             global using system.Bravo;
+                             global using SYSTEM.Alpha;
+                             global using static Delta.Helper;
+                             global using Alias = Echo.Type;
+                             using SYSTEM.Bravo;
+
+                             class C;
+                             """;
+        const string expected = """
+                                global using System.Collections;
+
+                                global using SYSTEM.Alpha;
+                                global using SYSTEM.Zulu; // Keep with SYSTEM
+
+                                global using system.Bravo;
+
+                                global using static Delta.Helper;
+
+                                global using Alias = Echo.Type;
+
+                                using System.Text;
+
+                                using SYSTEM.Bravo;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a using block with a nullable directive on a later directive is not reordered
     /// </summary>
     [TestMethod]

@@ -28,7 +28,7 @@ public class UsingDirectiveOrderingUtilitiesTests
     /// <summary>
     /// Expected reordered compilation-unit usings
     /// </summary>
-    private static readonly string[] _compilationUnitReorderedOrder = ["using System;", "global using A;", "using Zeta;", "global using B;", "using static System.Math;", "using Alias = Example.Tools;"];
+    private static readonly string[] _compilationUnitReorderedOrder = ["global using A;", "global using B;", "using System;", "using Zeta;", "using static System.Math;", "using Alias = Example.Tools;"];
 
     /// <summary>
     /// Expected reordered namespace usings
@@ -191,6 +191,71 @@ public class UsingDirectiveOrderingUtilitiesTests
         Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[2], usingDirectives[3]));
         Assert.AreEqual("SYSTEM", UsingDirectiveOrderingUtilities.GetNamespaceGroupOrderKey(usingDirectives[1]));
         Assert.AreEqual("system", UsingDirectiveOrderingUtilities.GetNamespaceGroupOrderKey(usingDirectives[3]));
+    }
+
+    /// <summary>
+    /// Verifies that global directives form the leading section and that local exact-System priority cannot outrank it
+    /// </summary>
+    [TestMethod]
+    public void ComputeCanonicalOrderPlacesEveryGlobalUsingBeforeEveryLocalUsing()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using System.Text;
+                                                                        global using Alias = Beta.Type;
+                                                                        global using static Alpha.Helper;
+                                                                        global using SYSTEM.Text;
+                                                                        global using System.Collections;
+                                                                        """)
+                                                  .Usings;
+
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
+
+        CollectionAssert.AreEqual(new[]
+                                  {
+                                      "global using System.Collections;",
+                                      "global using SYSTEM.Text;",
+                                      "global using static Alpha.Helper;",
+                                      "global using Alias = Beta.Type;",
+                                      "using System.Text;"
+                                  },
+                                  canonical.Select(obj => obj.ToString()).ToArray());
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[0], usingDirectives[4]));
+    }
+
+    /// <summary>
+    /// Verifies that ordinal-distinct roots remain contiguous before member names are considered for every using type
+    /// </summary>
+    [TestMethod]
+    public void ComputeCanonicalOrderKeepsOrdinalRootGroupsContiguousForEveryUsingType()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using SYSTEM.Zulu;
+                                                                        using system.Bravo;
+                                                                        using SYSTEM.Alpha;
+                                                                        using static SYSTEM.Zulu;
+                                                                        using static system.Bravo;
+                                                                        using static SYSTEM.Alpha;
+                                                                        using ZuluAlias = SYSTEM.Zulu;
+                                                                        using BravoAlias = system.Bravo;
+                                                                        using AlphaAlias = SYSTEM.Alpha;
+                                                                        """)
+                                                  .Usings;
+
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
+
+        CollectionAssert.AreEqual(new[]
+                                  {
+                                      "using SYSTEM.Alpha;",
+                                      "using SYSTEM.Zulu;",
+                                      "using system.Bravo;",
+                                      "using static SYSTEM.Alpha;",
+                                      "using static SYSTEM.Zulu;",
+                                      "using static system.Bravo;",
+                                      "using AlphaAlias = SYSTEM.Alpha;",
+                                      "using ZuluAlias = SYSTEM.Zulu;",
+                                      "using BravoAlias = system.Bravo;"
+                                  },
+                                  canonical.Select(obj => obj.ToString()).ToArray());
     }
 
     /// <summary>
