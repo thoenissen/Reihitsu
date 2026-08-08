@@ -55,7 +55,7 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer : Diagnos
             return;
         }
 
-        var returnsNode = DirectDocumentationSyntaxChecker.GetFirstTagIncludingNested(documentationComment, "returns");
+        var returnsNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "returns");
 
         if (returnsNode == null
             || DocumentationAnalysisUtilities.IsEmpty(returnsNode) == false)

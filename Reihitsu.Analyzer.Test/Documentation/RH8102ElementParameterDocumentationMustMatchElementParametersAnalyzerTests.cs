@@ -40,6 +40,29 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     }
 
     /// <summary>
+    /// Verifies that parameter tags nested in remarks are ignored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForParameterDocumentationNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// <remarks><param name="missingValue">Nested parameter.</param></remarks>
+                                  internal void TestMethod(int firstValue)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -65,6 +65,25 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies that inheritdoc nested in remarks is ignored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForInheritdocNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <remarks><inheritdoc/></remarks>
+                              internal class TestClass
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

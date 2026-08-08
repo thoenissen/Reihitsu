@@ -77,6 +77,26 @@ public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzerTests : Analy
     }
 
     /// <summary>
+    /// Verifies that a nested summary does not satisfy an extension declaration's documentation requirement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForSummaryNestedInRemarks()
+    {
+        const string source = """
+                              public static class Extensions
+                              {
+                                  /// <remarks><summary>Nested summary.</summary></remarks>
+                                  {|#0:extension|}(string value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8031MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

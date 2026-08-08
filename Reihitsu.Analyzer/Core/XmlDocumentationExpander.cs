@@ -44,7 +44,7 @@ internal static class XmlDocumentationExpander
     }
 
     /// <summary>
-    /// Determines whether the documentation contains a tag, considering expanded include XML
+    /// Determines whether the documentation contains a top-level tag, considering expanded include XML
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="expandedDocumentation">Expanded documentation</param>
@@ -52,7 +52,7 @@ internal static class XmlDocumentationExpander
     /// <returns><see langword="true"/> if the tag exists</returns>
     internal static bool HasTag(DocumentationCommentTriviaSyntax documentationComment, XElement expandedDocumentation, string tagName)
     {
-        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, tagName))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, tagName))
         {
             return true;
         }
