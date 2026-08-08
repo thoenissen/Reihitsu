@@ -1025,6 +1025,32 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment written before the first declarator survives the split. Only the survival of the
+    /// comment text is asserted, because the position it should end up in is still open (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstDeclaratorSurvivesTheSplit()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /* c */ _first, _second;
+                             }
+                             """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Act
+            var actual = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine);
+
+            // Assert
+            Assert.Contains("/* c */", actual, $"The comment before the first declarator must survive the split under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that static fields declared in an interface are split
     /// </summary>
     [TestMethod]

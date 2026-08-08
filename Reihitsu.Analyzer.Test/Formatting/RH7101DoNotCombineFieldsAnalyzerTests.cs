@@ -332,6 +332,27 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoN
     }
 
     /// <summary>
+    /// Verifies that a comment written before the first declarator survives the fix. Only the survival of the comment
+    /// text is asserted, because the position it should end up in is still open (issue #636)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeFirstDeclaratorSurvivesTheFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int
+                                    /* c */ firstField, secondField;
+                                }
+                                """;
+
+        var actual = await ApplyCodeFixAsync(testData);
+
+        Assert.Contains("/* c */", actual, "The comment before the first declarator must survive the fix.");
+    }
+
+    /// <summary>
     /// Verifies that the fix is not offered when the combined field carries a preprocessor directive, because the
     /// split transform leaves directive-bearing fields intact and the fix would otherwise be a no-op (issue #456)
     /// </summary>
