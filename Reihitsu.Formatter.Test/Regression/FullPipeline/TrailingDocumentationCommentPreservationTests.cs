@@ -394,6 +394,35 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment written after a field's semicolon, with another field
+    /// following it, reaches its final layout in the first pass. The comment documents the following field, so
+    /// relocating it above that field is correct, but the relocation and the blank-line separation must not be
+    /// spread across two passes (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesDelimitedDocumentationAfterFieldSemicolonAboveFollowingMemberInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /** doc */
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x;
+
+                                    /** doc */
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a single line documentation comment written after a field's semicolon stays on the field's line
     /// </summary>
     [TestMethod]
