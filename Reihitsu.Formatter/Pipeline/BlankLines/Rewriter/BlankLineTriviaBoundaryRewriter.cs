@@ -73,7 +73,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <remarks>
     /// Such a comment sits behind a <c>;</c>, <c>]</c> or <c>}</c> on a line the author already filled, so breaking
     /// it onto its own line and separating it with a blank line is a placement decision rather than spacing - the
-    /// same single insert produces both, which is why the boundary is skipped rather than adjusted. The exemption
+    /// boundary insert produces both, which is why the boundary is skipped rather than adjusted. The exemption
     /// deliberately stops at the line boundary: a documentation comment the author put on its own line still gets
     /// its blank line, which is what keeps the formatter in step with RH8303 (issues #591, #625)
     /// </remarks>
@@ -92,13 +92,28 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             return false;
         }
 
+        return SharesLineWithPreviousToken(token.LeadingTrivia[commentIndex], previousToken);
+    }
+
+    /// <summary>
+    /// Determines whether the specified comment begins on the line the preceding token ends on
+    /// </summary>
+    /// <param name="comment">The comment trivia to inspect</param>
+    /// <param name="previousToken">The token preceding the comment</param>
+    /// <returns><see langword="true"/> if the comment shares the preceding token's line</returns>
+    /// <remarks>
+    /// The two positions are compared as rendered line numbers rather than by counting the end-of-line trivia
+    /// between them, because a multi-line comment sitting in the gap adds lines without adding such trivia
+    /// </remarks>
+    private static bool SharesLineWithPreviousToken(SyntaxTrivia comment, SyntaxToken previousToken)
+    {
         if (previousToken.RawKind == 0)
         {
             return false;
         }
 
         return previousToken.GetLocation().GetLineSpan().EndLinePosition.Line
-               == token.LeadingTrivia[commentIndex].GetLocation().GetLineSpan().StartLinePosition.Line;
+               == comment.GetLocation().GetLineSpan().StartLinePosition.Line;
     }
 
     /// <summary>
@@ -196,7 +211,23 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
-    /// mirroring the exemption RH5020 applies (issue #415)
+    /// mirroring the exemption RH5020 applies (issue #415).
+    /// <para>
+    /// How many line breaks the boundary is short of depends on where the comment starts. A documentation comment
+    /// the author wrote behind code is filed as the following token's leading trivia while still sitting on the
+    /// preceding token's line, so it needs two: one to end that line and one for the blank line. Every other
+    /// comment needs only the blank line. Emitting one break in both cases left the first case finished a pass
+    /// later, which made the formatter report a file it had just written (issue #637)
+    /// </para>
+    /// <para>
+    /// The count is decided from the two rendered line numbers rather than from
+    /// <see cref="TokenGapAnalysis.RequiredLineBreakCountForBlankLine"/>, which measures the trivia kept in front
+    /// of the insert point. The two disagree on one shape: a multi-line comment in the gap that ends on the
+    /// documentation comment's own line leaves no terminal line break, so the range measure asks for two breaks
+    /// while the line numbers ask for one. The line numbers decide here because the already-satisfied check above
+    /// is measured the same way, and switching to the range measure would put a blank line into a shape that is a
+    /// fixed point today - that gap is a defect of its own rather than part of this one
+    /// </para>
     /// </remarks>
     private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
     {
@@ -213,11 +244,11 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        var previousTokenLine = token.GetPreviousToken();
+        var previousToken = token.GetPreviousToken();
 
-        if (previousTokenLine != default && previousTokenLine.IsKind(SyntaxKind.None) == false)
+        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
         {
-            var previousLine = previousTokenLine.GetLocation().GetLineSpan().EndLinePosition.Line;
+            var previousLine = previousToken.GetLocation().GetLineSpan().EndLinePosition.Line;
             var commentLine = trivia[commentIndex].GetLocation().GetLineSpan().StartLinePosition.Line;
             var blankLineCountByLine = commentLine - previousLine - 1;
 
@@ -244,14 +275,19 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             indentationTrivia.Add(trivia[triviaIndex]);
         }
 
-        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (lineStartIndex - gapStartIndex) + indentationTrivia.Count + 1);
+        var lineBreakCount = SharesLineWithPreviousToken(trivia[commentIndex], previousToken) ? 2 : 1;
+        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (lineStartIndex - gapStartIndex) + indentationTrivia.Count + lineBreakCount);
 
         for (var triviaIndex = 0; triviaIndex < gapStartIndex; triviaIndex++)
         {
             newTrivia.Add(trivia[triviaIndex]);
         }
 
-        newTrivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+        for (var lineBreakIndex = 0; lineBreakIndex < lineBreakCount; lineBreakIndex++)
+        {
+            newTrivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+        }
+
         newTrivia.AddRange(indentationTrivia);
 
         for (var triviaIndex = commentIndex; triviaIndex < trivia.Count; triviaIndex++)
