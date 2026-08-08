@@ -263,8 +263,9 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
                 // The first declarator is carried over unchanged: the generated field's own leading trivia comes from
                 // the declaration rather than from BuildLeadingTrivia, so nothing would read the first declarator's
                 // leading trivia and a comment written between the type and the declarator would be deleted outright
-                // (issue #636). Keeping the declarator node itself, rather than stripping it and re-attaching the
-                // trivia, is also what keeps its trailing trivia from being attached twice.
+                // (issue #636). Keeping the declarator node itself is the narrowest way to preserve that slot: the
+                // alternative of stripping it and re-attaching the trivia to the generated field would collide with
+                // the field's own leading trivia, which the branch below sets.
                 // A declarator's trailing trivia is what the author wrote between the declarator and its terminator,
                 // so it stays on the declarator - carrying it over to the semicolon instead would move an ordinary
                 // comment into a leading position the blank-line phase separates onto its own line (issue #625).
