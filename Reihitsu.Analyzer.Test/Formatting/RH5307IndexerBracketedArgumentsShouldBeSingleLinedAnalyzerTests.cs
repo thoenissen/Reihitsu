@@ -50,6 +50,62 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : A
     }
 
     /// <summary>
+    /// Verifies that a comment written behind the closing bracket does not suppress the diagnostic or
+    /// the code fix. The comment sits outside the interior the fix rewrites, so it is not a join
+    /// barrier (issue #610)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForMultilineIndexerArgumentsWithTrailingComment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static int Method(int[] values)
+                                    {
+                                        return {|#0:values[
+                                            0]|} /* note */ + 2;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static int Method(int[] values)
+                                     {
+                                         return values[0] /* note */ + 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment written between the brackets still suppresses the diagnostic, because
+    /// the collapse would have to cross it (issue #610)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForIndexerArgumentsWithInteriorComment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static int Method(int[] values)
+                                    {
+                                        return values[ /* note */
+                                                      0] + 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that single-line indexer bracketed arguments remain valid
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

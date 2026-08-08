@@ -50,9 +50,14 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
     /// </summary>
     /// <param name="bracketedArgumentList">Bracketed argument list</param>
     /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The interior-scoped check mirrors the analyzer, so the fix stays offered for exactly the
+    /// diagnostics the analyzer reports. The rewrite only joins the gaps between the brackets, which
+    /// leaves a comment behind the closing bracket untouched (see issue #610)
+    /// </remarks>
     private static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
     {
-        return SyntaxNodeUtilities.ContainsCommentOrDirective(bracketedArgumentList) == false
+        return SyntaxNodeUtilities.InteriorContainsCommentOrDirective(bracketedArgumentList) == false
                && SyntaxNodeUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);
     }
 

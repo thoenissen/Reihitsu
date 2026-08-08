@@ -198,6 +198,14 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="node">The bracketed argument list node</param>
     /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The interior-scoped check is deliberate. The collapse only rewrites the gaps between the
+    /// brackets - opening bracket to first argument, the separators, and last argument to closing
+    /// bracket - so a comment trailing the closing bracket is never crossed and must not force the
+    /// list apart. RH5307 applies the same interior-scoped guard in its analyzer and its code fix, so
+    /// all three surfaces agree on the decision (see issue #610, and issue #604 for the auto-property
+    /// counterpart)
+    /// </remarks>
     private static bool CanSafelyCollapseBracketedArguments(BracketedArgumentListSyntax node)
     {
         if (node.Parent is not ElementAccessExpressionSyntax and not ImplicitElementAccessSyntax)
@@ -205,7 +213,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (SyntaxNodeUtilities.ContainsCommentOrDirective(node))
+        if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node))
         {
             return false;
         }
