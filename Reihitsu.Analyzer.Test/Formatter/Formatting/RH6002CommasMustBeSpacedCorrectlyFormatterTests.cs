@@ -102,5 +102,24 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                  Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a comment in front of an argument comma leaves the formatter output analyzer-clean. The
+    /// horizontal spacing rewriter exempts the gap in front of such a comment from normalization, so the exemption
+    /// must not be wide enough to leave a space this analyzer reports (issues #591, #625)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeCommaStaysAnalyzerClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value = System.Math.Max(1 /* c */, 2);
+                                }
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
     #endregion // Tests
 }

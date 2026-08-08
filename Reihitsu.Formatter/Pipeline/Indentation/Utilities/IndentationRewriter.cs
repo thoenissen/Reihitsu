@@ -57,7 +57,14 @@ internal static class IndentationRewriter
             return rewritten;
         }
 
-        return rewritten.WithLeadingTrivia(RebuildLeadingTrivia(rewritten.LeadingTrivia, tokenLine, model));
+        // The token opens its own line, but its leading trivia need not: a comment the previous line ends with is
+        // filed here, and indenting it as though it began the line inserts indentation in the middle of that line
+        // (issue #625). The previous token's trailing trivia is what says which of the two cases this is.
+        var previousToken = original.GetPreviousToken();
+        var startsAtLineStart = previousToken.RawKind == 0
+                                || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+
+        return rewritten.WithLeadingTrivia(RebuildLeadingTrivia(rewritten.LeadingTrivia, tokenLine, model, startsAtLineStart));
     }
 
     /// <summary>
@@ -67,14 +74,15 @@ internal static class IndentationRewriter
     /// <param name="trivia">The original leading trivia list</param>
     /// <param name="tokenLine">The 0-based line number of the token</param>
     /// <param name="model">The layout model</param>
+    /// <param name="startsAtLineStart">Whether the leading trivia begins at the start of its line</param>
     /// <returns>The rebuilt trivia list</returns>
-    private static SyntaxTriviaList RebuildLeadingTrivia(SyntaxTriviaList trivia, int tokenLine, LayoutModel model)
+    private static SyntaxTriviaList RebuildLeadingTrivia(SyntaxTriviaList trivia, int tokenLine, LayoutModel model, bool startsAtLineStart)
     {
         var eolCount = CountLineBreaks(trivia);
 
         var currentLine = tokenLine - eolCount;
         var result = new List<SyntaxTrivia>();
-        var atLineStart = true;
+        var atLineStart = startsAtLineStart;
 
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {

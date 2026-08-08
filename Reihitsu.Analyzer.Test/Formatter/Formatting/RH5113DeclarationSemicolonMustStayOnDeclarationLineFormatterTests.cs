@@ -139,5 +139,28 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
         await VerifyFormatterStability(input);
     }
 
+    /// <summary>
+    /// Verifies that splitting a combined field whose separator the author put on the next line leaves the
+    /// generated semicolon on that next line, and that the result stays analyzer-clean. The separator terminates
+    /// its declarator exactly as the semicolon terminates the last one, so preserving the author's line break is
+    /// the split doing nothing rather than the formatter choosing a layout; this analyzer exempts the shape
+    /// because a comment sits in the gap (issue #625)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySplitFieldWithLineBrokenSeparatorStaysAnalyzerClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _a // c
+                                    ;
+                                    private int _b;
+                                }
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
     #endregion // Tests
 }

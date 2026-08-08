@@ -10,6 +10,7 @@ using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.DocumentationComments.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
@@ -122,6 +123,16 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
 
             var owningToken = trivia.Token;
+
+            // Relocating the comment above its owning token is what makes it document that token. When the owner
+            // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
+            // '}' - so moving it changes the author's layout without making the comment mean anything, and the
+            // compiler reports CS1587 either way. Leave it where it was written (issues #591, #625).
+            if (ReihitsuFormatterHelpers.DocumentsFollowingCode(owningToken) == false)
+            {
+                continue;
+            }
+
             var previousToken = owningToken.GetPreviousToken(includeZeroWidth: true);
 
             while (previousToken.RawKind != 0 && previousToken.IsMissing)

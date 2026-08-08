@@ -64,6 +64,44 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the specified token's leading trivia opens with a documentation comment that documents
+    /// nothing and shares its line with the code in front of it
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <param name="previousToken">The token preceding it</param>
+    /// <returns><see langword="true"/> if the boundary must not be enforced for the token</returns>
+    /// <remarks>
+    /// Such a comment sits behind a <c>;</c>, <c>]</c> or <c>}</c> on a line the author already filled, so breaking
+    /// it onto its own line and separating it with a blank line is a placement decision rather than spacing - the
+    /// same single insert produces both, which is why the boundary is skipped rather than adjusted. The exemption
+    /// deliberately stops at the line boundary: a documentation comment the author put on its own line still gets
+    /// its blank line, which is what keeps the formatter in step with RH8303 (issues #591, #625)
+    /// </remarks>
+    private static bool IsStrandedInlineDocumentation(SyntaxToken token, SyntaxToken previousToken)
+    {
+        if (ReihitsuFormatterHelpers.DocumentsFollowingCode(token))
+        {
+            return false;
+        }
+
+        var commentIndex = FindFirstCommentIndex(token.LeadingTrivia);
+
+        if (commentIndex < 0
+            || SyntaxTriviaUtilities.IsDocumentationCommentTrivia(token.LeadingTrivia[commentIndex]) == false)
+        {
+            return false;
+        }
+
+        if (previousToken.RawKind == 0)
+        {
+            return false;
+        }
+
+        return previousToken.GetLocation().GetLineSpan().EndLinePosition.Line
+               == token.LeadingTrivia[commentIndex].GetLocation().GetLineSpan().StartLinePosition.Line;
+    }
+
+    /// <summary>
     /// Determines whether the leading trivia of the specified token contains an end region directive
     /// </summary>
     /// <param name="token">The token to inspect</param>
@@ -296,7 +334,8 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken);
 
         if (HasCommentInLeadingTrivia(token)
-            && isFirstInBlock == false)
+            && isFirstInBlock == false
+            && IsStrandedInlineDocumentation(token, previousToken) == false)
         {
             token = EnsureBlankLineBeforeFirstComment(token);
         }
