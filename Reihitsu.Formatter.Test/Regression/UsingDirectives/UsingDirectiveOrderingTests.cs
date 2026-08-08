@@ -39,6 +39,37 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an exact System child is ordered before a separately grouped global-qualified case variant while its comment stays attached
+    /// </summary>
+    [TestMethod]
+    public void GlobalQualifiedCaseVariantIsSeparatedFromExactSystemGroup()
+    {
+        // Arrange
+        const string input = """
+                             using global::SYSTEM.Text; // Keep with the case variant
+                             using System.Text;
+
+                             namespace SYSTEM.Text
+                             {
+                                 internal class Placeholder;
+                             }
+                             """;
+        const string expected = """
+                                using System.Text;
+
+                                using global::SYSTEM.Text; // Keep with the case variant
+
+                                namespace SYSTEM.Text
+                                {
+                                    internal class Placeholder;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a using block with a nullable directive on a later directive is not reordered
     /// </summary>
     [TestMethod]

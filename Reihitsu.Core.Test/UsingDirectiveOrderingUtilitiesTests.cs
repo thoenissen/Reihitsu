@@ -109,6 +109,91 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that only the exact System root receives priority and shares a group with its child namespaces
+    /// </summary>
+    [TestMethod]
+    public void ExactSystemRootOrdersFirstAndGroupsOnlyWithItsChildren()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using SYSTEM;
+                                                                        using System.Text;
+                                                                        using System;
+                                                                        """)
+                                                  .Usings;
+
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
+        var exactSystem = usingDirectives.Single(usingDirective => usingDirective.Name.ToString() == "System");
+        var systemChild = usingDirectives.Single(usingDirective => usingDirective.Name.ToString() == "System.Text");
+        var caseVariant = usingDirectives.Single(usingDirective => usingDirective.Name.ToString() == "SYSTEM");
+
+        CollectionAssert.AreEqual(new[] { "using System;", "using System.Text;", "using SYSTEM;" },
+                                  canonical.Select(obj => obj.ToString()).ToArray());
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(exactSystem));
+        Assert.AreEqual(UsingDirectiveOrderingGroup.SystemNamespace, UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(exactSystem));
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.AreInSameGroup(exactSystem, systemChild));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(exactSystem, caseVariant));
+        Assert.AreEqual(string.Empty, UsingDirectiveOrderingUtilities.GetNamespaceGroupOrderKey(exactSystem));
+        Assert.AreEqual("SYSTEM", UsingDirectiveOrderingUtilities.GetNamespaceGroupOrderKey(caseVariant));
+    }
+
+    /// <summary>
+    /// Verifies that every non-exact casing of the System root is classified as an ordinary namespace
+    /// </summary>
+    [TestMethod]
+    public void EveryNonExactSystemCasingIsClassifiedAsAnOrdinaryNamespace()
+    {
+        const string root = "system";
+
+        for (var casingMask = 0; casingMask < 1 << root.Length; casingMask++)
+        {
+            var rootNamespace = new string(root.Select((character, index) => (casingMask & (1 << index)) == 0
+                                                                                 ? character
+                                                                                 : char.ToUpperInvariant(character))
+                                               .ToArray());
+
+            if (rootNamespace == "System")
+            {
+                continue;
+            }
+
+            var usingDirective = CoreSyntaxTestHelper.ParseCompilationUnit($"using {rootNamespace};")
+                                                     .Usings
+                                                     .Single();
+
+            Assert.IsFalse(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(usingDirective), rootNamespace);
+            Assert.AreEqual(UsingDirectiveOrderingGroup.OtherNamespace,
+                            UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective),
+                            rootNamespace);
+            Assert.AreEqual(rootNamespace, UsingDirectiveOrderingUtilities.GetRootNamespace(usingDirective), rootNamespace);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that child and global-qualified namespaces use the same ordinal System-root boundary
+    /// </summary>
+    [TestMethod]
+    public void ChildAndGlobalQualifiedNamespacesHonorExactSystemRootBoundary()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using System.Text;
+                                                                        using SYSTEM.Text;
+                                                                        using global::System.Collections;
+                                                                        using global::system.Collections;
+                                                                        """)
+                                                  .Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(usingDirectives[0]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(usingDirectives[1]));
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(usingDirectives[2]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(usingDirectives[3]));
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[0], usingDirectives[2]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[0], usingDirectives[1]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[2], usingDirectives[3]));
+        Assert.AreEqual("SYSTEM", UsingDirectiveOrderingUtilities.GetNamespaceGroupOrderKey(usingDirectives[1]));
+        Assert.AreEqual("system", UsingDirectiveOrderingUtilities.GetNamespaceGroupOrderKey(usingDirectives[3]));
+    }
+
+    /// <summary>
     /// Verifies that aliases are grouped by the root namespace of their target
     /// </summary>
     [TestMethod]

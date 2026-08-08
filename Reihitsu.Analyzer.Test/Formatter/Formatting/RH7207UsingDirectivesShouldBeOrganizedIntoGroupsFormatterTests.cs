@@ -82,5 +82,37 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
                                  Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter separates a global-qualified case variant from the exact System group without detaching its comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task GlobalQualifiedCaseVariantMatchesAnalyzerGroupingAndIsIdempotent()
+    {
+        const string input = """
+                             using {|#0:global::SYSTEM.Text|}; // Keep with the case variant
+                             using System.Text;
+
+                             namespace SYSTEM.Text
+                             {
+                                 internal class Placeholder;
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Text;
+
+                                 using global::SYSTEM.Text; // Keep with the case variant
+
+                                 namespace SYSTEM.Text
+                                 {
+                                     internal class Placeholder;
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+    }
+
     #endregion // Tests
 }
