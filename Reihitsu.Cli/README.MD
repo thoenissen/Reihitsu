@@ -25,7 +25,7 @@ reihitsu-format [options] [<paths>...]
 | Option      | Description                                                        |
 |-------------|--------------------------------------------------------------------|
 | `--check`   | Check if files are formatted correctly. Does not write changes. Returns exit code `1` if formatting is needed. |
-| `--dry-run` | Show what would change without applying any modifications.         |
+| `--dry-run` | Show what would change without applying any modifications. Returns exit code `1` if changes would be made. |
 | `--verbose` | Show detailed output for each file.                                |
 | `--force`   | Skip the confirmation prompt that is shown when a run would format more than 25 files. Required for large runs when standard input is not interactive (e.g. CI). |
 | `--utf8-bom` | Normalize processed files to UTF-8 with a byte order mark. Encoding-only changes are reported in `--check` and `--dry-run` modes. |
@@ -36,7 +36,7 @@ reihitsu-format [options] [<paths>...]
 | Code | Meaning                                        |
 |------|------------------------------------------------|
 | `0`  | Success — all files are formatted correctly.   |
-| `1`  | Formatting needed (when using `--check`).      |
+| `1`  | Formatting needed (when using `--check` or `--dry-run`). |
 | `2`  | Error occurred.                                |
 
 ## Examples

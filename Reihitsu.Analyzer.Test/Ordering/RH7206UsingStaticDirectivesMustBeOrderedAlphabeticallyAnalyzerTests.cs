@@ -45,6 +45,34 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
     }
 
     /// <summary>
+    /// Verifies that static imports in ordinal-distinct roots are not compared across their group boundary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task OrdinalDistinctStaticRootGroupsDoNotProduceCrossGroupDiagnostics()
+    {
+        const string testCode = """
+                                using static SYSTEM.Alpha;
+                                using static SYSTEM.Zulu;
+
+                                using static system.Bravo;
+
+                                namespace SYSTEM
+                                {
+                                    public class Alpha;
+                                    public class Zulu;
+                                }
+
+                                namespace system
+                                {
+                                    public class Bravo;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

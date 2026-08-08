@@ -62,6 +62,190 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     }
 
     /// <summary>
+    /// Verifies that a case-variant root namespace remains an ordinary namespace and does not prevent the code fix from moving System first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CaseVariantSystemRootDoesNotDisagreeWithCanonicalOrdering()
+    {
+        const string testCode = """
+                                using SYSTEM;
+                                using {|#0:System|};
+
+                                namespace SYSTEM
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using SYSTEM;
+
+                                 namespace SYSTEM
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that global-qualified case variants remain ordinary global usings when the exact System group moves first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task GlobalQualifiedCaseVariantConvergesBehindExactSystemGlobalUsing()
+    {
+        const string testCode = """
+                                global using global::SYSTEM.Text;
+                                global using {|#0:System.Text|};
+
+                                namespace SYSTEM.Text
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 global using System.Text;
+
+                                 global using global::SYSTEM.Text;
+
+                                 namespace SYSTEM.Text
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix converges across compilation-unit and block-namespace using scopes in one Fix All iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CaseVariantSystemRootsAcrossScopesConvergeInOneFixAllIteration()
+    {
+        const string testCode = """
+                                using system;
+                                using {|#0:System|};
+
+                                namespace Example
+                                {
+                                    using SYSTEM.Text;
+                                    using {|#1:System.Text|};
+
+                                    public class TestClass
+                                    {
+                                    }
+                                }
+
+                                namespace system
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                namespace SYSTEM.Text
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using system;
+
+                                 namespace Example
+                                 {
+                                     using System.Text;
+
+                                     using SYSTEM.Text;
+
+                                     public class TestClass
+                                     {
+                                     }
+                                 }
+
+                                 namespace system
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 namespace SYSTEM.Text
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that System ordering remains registered for using directives inside a file-scoped namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FileScopedNamespaceSystemUsingIsReportedAndFixed()
+    {
+        const string testCode = """
+                                namespace Example;
+
+                                using Microsoft.Win32;
+                                using {|#0:System|};
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Example;
+
+                                 using System;
+
+                                 using Microsoft.Win32;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no code fix is offered when the using directives cannot be safely reordered because a preprocessor directive is present
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
