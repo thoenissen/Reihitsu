@@ -7,10 +7,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 
 /// <summary>
-/// The naming half of the region phase. It pairs each <c>#region</c> with its <c>#endregion</c>,
-/// capitalizes the region description and synchronizes the <c>#endregion</c> comment, applying the
-/// changes through trivia replacement. Removing regions nested inside element bodies belongs to
-/// <see cref="NestedRegionRemovalStep"/>
+/// The region phase's naming step. It pairs each <c>#region</c> with its <c>#endregion</c>, capitalizes
+/// the region description and synchronizes the <c>#endregion</c> comment through trivia replacement
+/// without changing directive placement
 /// </summary>
 /// <remarks>
 /// Unlike the layout steps around it, this one deliberately reaches directives inside a branch the

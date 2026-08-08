@@ -254,8 +254,8 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region directive before the expression is refused. Converting it glued the
-    /// directive onto the declaration line, and the region phase then removed that whole line
+    /// Verifies that a region directive before the expression is refused. Converting it would glue
+    /// the directive onto the declaration line instead of preserving its required standalone line
     /// </summary>
     [TestMethod]
     public void MethodWithRegionDirectiveBeforeExpressionIsNotConverted()
@@ -347,9 +347,9 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region pair following the expression is refused. The region phase reparses
-    /// changed text, so converting re-lexed the generated statement before the spacing phase had run
-    /// and produced <c>return1</c>, dropping both directives and corrupting sibling members
+    /// Verifies that a region pair following the expression is refused. The rewrite cannot safely
+    /// re-host a directive pair between the expression and its terminating semicolon without changing
+    /// directive placement and token boundaries
     /// </summary>
     [TestMethod]
     public void MethodWithRegionAfterExpressionIsNotConverted()

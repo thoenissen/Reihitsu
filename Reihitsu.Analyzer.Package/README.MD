@@ -256,7 +256,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7207](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7207.md)| Using directives should be organized into groups.| ✔| ✔| ✔|
 | [RH7301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7301.md)| #region and #endregion descriptions should match.| ✔| ✔| ✔|
 | [RH7302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7302.md)| #region description should start with an uppercase letter.| ✔| ✔| ✔|
-| [RH7303](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7303.md)| Do not place regions within elements.| ✔| ✔| ✔|
+| [RH7303](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7303.md)| Do not place regions within elements.| ✔| ✔| ❌|
 | [RH7304](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7304.md)| Region directives must use consistent indentation with containing code.| ✔| ✔| ✔|
 | [RH7305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7305.md)| Types should be organized with regions.| ✔| ❌| ❌|
 | [RH7305A](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7305A.md)| Types with multiple member kinds should be organized with regions.| ✔| ❌| ❌|

@@ -55,6 +55,58 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> preserves an unmatched opening region directive
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeWithUnmatchedRegionReturnsOriginalTree()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 #region Members
+
+                                 void M()
+                                 {
+                                 }
+                             }
+                             """;
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreSame(tree, result, "Syntax-invalid source with an unmatched region should remain unchanged.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> preserves an unmatched closing region directive
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeWithUnmatchedEndregionReturnsOriginalTree()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                 }
+
+                                 #endregion
+                             }
+                             """;
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreSame(tree, result, "Syntax-invalid source with an unmatched endregion should remain unchanged.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> returns the original tree when the source contains a single-line auto-generated marker
     /// </summary>
     [TestMethod]
@@ -346,6 +398,63 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
         // Assert
         Assert.AreNotEqual(methodNode.ToFullString(), actual, "FormatNode should have modified the method node.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> preserves and formats regions inside a detached node
+    /// </summary>
+    [TestMethod]
+    public void FormatNodePreservesRegionsInsideDetachedNode()
+    {
+        // Arrange
+        const string inputWithLf = """
+                                   void M()
+                                   {
+                                   #region inner
+                                       var value=1;
+                                   #endregion
+                                   }
+                                   """;
+        const string expectedWithLf = """
+                                      void M()
+                                      {
+                                          #region Inner
+
+                                          var value = 1;
+
+                                          #endregion // Inner
+                                      }
+                                      """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var input = NormalizeLineEndings(inputWithLf, endOfLine);
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+            var detachedMethod = SyntaxFactory.ParseMemberDeclaration(input);
+
+            Assert.IsNotNull(detachedMethod, "Expected the fixture to parse as a method declaration.");
+            Assert.IsNull(detachedMethod.Parent, "Test setup must use a detached node.");
+
+            // Act
+            var firstResult = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken);
+            var firstPass = firstResult.ToFullString();
+
+            // Assert
+            Assert.AreEqual(expected,
+                            firstPass,
+                            $"Detached-node formatting should retain both directives under {DescribeLineEnding(endOfLine)} line endings.");
+            AssertUsesLineEnding(firstPass, endOfLine);
+
+            var reparsedMethod = SyntaxFactory.ParseMemberDeclaration(firstPass);
+
+            Assert.IsNotNull(reparsedMethod, "Expected the first-pass output to parse as a method declaration.");
+
+            var secondResult = ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken);
+
+            Assert.AreEqual(firstPass,
+                            secondResult.ToFullString(),
+                            $"Detached-node formatting should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+        }
     }
 
     /// <summary>
@@ -644,6 +753,80 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
             // Assert
             Assert.AreEqual(expected, resultText, "Only blank-line changes within the namespace should be applied.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> preserves and formats regions inside the target root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncPreservesRegionsInsideTargetRoot()
+    {
+        // Arrange
+        const string inputWithLf = """
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                   #region inner
+                                           var value=1;
+                                   #endregion
+                                       }
+                                   }
+                                   """;
+        const string expectedWithLf = """
+                                      class C
+                                      {
+                                          void M()
+                                          {
+                                              #region Inner
+
+                                              var value = 1;
+
+                                              #endregion // Inner
+                                          }
+                                      }
+                                      """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var input = NormalizeLineEndings(inputWithLf, endOfLine);
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(input));
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+
+                Assert.IsNotNull(root, "Expected a syntax root in the test document.");
+
+                // Act
+                var firstResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
+                                                                                    root,
+                                                                                    TestContext.CancellationToken);
+                var firstPass = (await firstResult.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                // Assert
+                Assert.AreEqual(expected,
+                                firstPass,
+                                $"Targeted formatting should retain both directives under {DescribeLineEnding(endOfLine)} line endings.");
+                AssertUsesLineEnding(firstPass, endOfLine);
+
+                var firstRoot = await firstResult.GetSyntaxRootAsync(TestContext.CancellationToken);
+
+                Assert.IsNotNull(firstRoot, "Expected a syntax root after the first formatting pass.");
+
+                var secondResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(firstResult,
+                                                                                     firstRoot,
+                                                                                     TestContext.CancellationToken);
+                var secondPass = (await secondResult.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                Assert.AreEqual(firstPass,
+                                secondPass,
+                                $"Targeted formatting should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+            }
         }
     }
 

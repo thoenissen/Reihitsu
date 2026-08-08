@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -147,6 +149,124 @@ public class FormattingPipelineTests
         // Assert - second pass must produce identical output, ignoring trailing newline
         // differences introduced by the cleanup phase
         Assert.AreEqual(canonical.TrimEnd('\n'), actual.TrimEnd('\n'), "Formatted code should not change when formatted again.");
+    }
+
+    /// <summary>
+    /// Verifies that observing the pipeline reports every phase in runtime order without changing the final output
+    /// </summary>
+    [TestMethod]
+    public void ExecuteObserverReportsAllPhasesInOrderWithoutChangingOutput()
+    {
+        // Arrange
+        var input = "internal class Sample{public int Value=>1;}";
+        var context = new FormattingContext("\n");
+        var unobservedTree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var observedTree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var observedPhases = new List<string>();
+        var expectedPhases = new[]
+                             {
+                                 "StructuralTransformPhase",
+                                 "RegionFormattingPhase",
+                                 "DocumentationCommentFormattingPhase",
+                                 "UsingDirectiveOrderingPhase",
+                                 "BlankLinePhase",
+                                 "LineBreakPhase",
+                                 "SwitchCaseBracePhase",
+                                 "HorizontalSpacingPhase",
+                                 "IndentationPhase",
+                                 "RawStringAlignmentPhase",
+                                 "CleanupPhase",
+                                 "LineEndingNormalizationPhase"
+                             };
+
+        // Act
+        var unobserved = FormattingPipeline.Execute(unobservedTree.GetRoot(TestContext.CancellationToken),
+                                                    context,
+                                                    TestContext.CancellationToken);
+        var observed = FormattingPipeline.Execute(observedTree.GetRoot(TestContext.CancellationToken),
+                                                  context,
+                                                  (phaseName, before, after) =>
+                                                  {
+                                                      observedPhases.Add(phaseName);
+                                                      Assert.IsNotNull(before);
+                                                      Assert.IsNotNull(after);
+                                                  },
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        CollectionAssert.AreEqual(expectedPhases, observedPhases);
+        Assert.AreEqual(unobserved.ToFullString(), observed.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that an observed phase failure is wrapped with the failing phase name and original exception
+    /// </summary>
+    [TestMethod]
+    public void ExecutePhasesObservedFailureAddsPhaseContext()
+    {
+        // Arrange
+        var expected = new NotSupportedException("phase failure");
+        var tree = CSharpSyntaxTree.ParseText("internal class Sample;", cancellationToken: TestContext.CancellationToken);
+        var phases = new IFormattingPhase[] { new ThrowingPhase(expected) };
+
+        // Act
+        var actual = Assert.ThrowsExactly<InvalidOperationException>(() => FormattingPipeline.ExecutePhases(tree.GetRoot(TestContext.CancellationToken),
+                                                                                                            new FormattingContext("\n"),
+                                                                                                            phases,
+                                                                                                            (_, _, _) =>
+                                                                                                            {
+                                                                                                            },
+                                                                                                            TestContext.CancellationToken));
+
+        // Assert
+        Assert.Contains(nameof(ThrowingPhase), actual.Message);
+        Assert.AreSame(expected, actual.InnerException);
+    }
+
+    /// <summary>
+    /// Verifies that cancellation raised inside an observed phase keeps its original exception type and identity
+    /// </summary>
+    [TestMethod]
+    public void ExecutePhasesObservedCancellationIsNotWrapped()
+    {
+        // Arrange
+        var expected = new OperationCanceledException("phase cancellation");
+        var tree = CSharpSyntaxTree.ParseText("internal class Sample;", cancellationToken: TestContext.CancellationToken);
+        var phases = new IFormattingPhase[] { new ThrowingPhase(expected) };
+
+        // Act
+        var actual = Assert.ThrowsExactly<OperationCanceledException>(() => FormattingPipeline.ExecutePhases(tree.GetRoot(TestContext.CancellationToken),
+                                                                                                             new FormattingContext("\n"),
+                                                                                                             phases,
+                                                                                                             (_, _, _) =>
+                                                                                                             {
+                                                                                                             },
+                                                                                                             TestContext.CancellationToken));
+
+        // Assert
+        Assert.AreSame(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the unobserved phase path preserves the original phase exception
+    /// </summary>
+    [TestMethod]
+    public void ExecutePhasesUnobservedFailureIsNotWrapped()
+    {
+        // Arrange
+        var expected = new NotSupportedException("phase failure");
+        var tree = CSharpSyntaxTree.ParseText("internal class Sample;", cancellationToken: TestContext.CancellationToken);
+        var phases = new IFormattingPhase[] { new ThrowingPhase(expected) };
+
+        // Act
+        var actual = Assert.ThrowsExactly<NotSupportedException>(() => FormattingPipeline.ExecutePhases(tree.GetRoot(TestContext.CancellationToken),
+                                                                                                        new FormattingContext("\n"),
+                                                                                                        phases,
+                                                                                                        phaseObserver: null,
+                                                                                                        TestContext.CancellationToken));
+
+        // Assert
+        Assert.AreSame(expected, actual);
     }
 
     /// <summary>
