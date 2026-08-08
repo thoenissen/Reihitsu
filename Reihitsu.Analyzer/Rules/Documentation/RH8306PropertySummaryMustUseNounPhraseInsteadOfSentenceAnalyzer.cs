@@ -182,7 +182,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
         var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(propertyDeclaration);
 
         if (documentationComment == null
-            || DirectDocumentationSyntaxChecker.GetFirstTagIncludingNested(documentationComment, "summary") is not XmlElementSyntax summaryElement)
+            || DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "summary") is not XmlElementSyntax summaryElement)
         {
             return;
         }

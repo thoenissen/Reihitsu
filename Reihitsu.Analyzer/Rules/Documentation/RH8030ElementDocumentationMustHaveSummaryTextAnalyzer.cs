@@ -65,7 +65,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticA
             return;
         }
 
-        var summaryNode = DirectDocumentationSyntaxChecker.GetFirstTagIncludingNested(documentationComment, "summary");
+        var summaryNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "summary");
 
         if (summaryNode == null)
         {

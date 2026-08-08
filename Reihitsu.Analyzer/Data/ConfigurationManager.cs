@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 
@@ -44,9 +45,12 @@ internal static class ConfigurationManager
     /// </summary>
     /// <param name="additionalFiles">Additional files</param>
     /// <returns>Configuration load result</returns>
+    /// <remarks>
+    /// The first additional file whose final path segment equals <c>reihitsu.json</c>, case-insensitively, is loaded
+    /// </remarks>
     public static ConfigurationLoadResult GetConfiguration(ImmutableArray<AdditionalText> additionalFiles)
     {
-        var file = additionalFiles.FirstOrDefault(currentFile => currentFile.Path.EndsWith(ConfigurationFileName, StringComparison.OrdinalIgnoreCase));
+        var file = additionalFiles.FirstOrDefault(currentFile => string.Equals(Path.GetFileName(currentFile.Path), ConfigurationFileName, StringComparison.OrdinalIgnoreCase));
 
         if (file == null)
         {

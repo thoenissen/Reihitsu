@@ -42,15 +42,14 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
-    /// Gets the first XML node with the specified tag name, falling back to nested nodes when the documentation
-    /// comment has no top-level match
+    /// Gets the first top-level XML node with the specified tag name
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
     /// <returns>The matching node, when present</returns>
-    internal static XmlNodeSyntax GetFirstTagIncludingNested(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    internal static XmlNodeSyntax GetFirstDirectTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
     {
-        return GetTagsIncludingNested(documentationComment, tagName).FirstOrDefault();
+        return GetDirectTags(documentationComment, tagName).FirstOrDefault();
     }
 
     /// <summary>
@@ -60,7 +59,7 @@ internal static class DirectDocumentationSyntaxChecker
     /// <param name="tagName">Tag name</param>
     /// <returns>The matching node, when present</returns>
     /// <remarks>
-    /// This searches the same nodes as <see cref="GetFirstTagIncludingNested"/> but skips anything inside a
+    /// This searches the nodes returned by <see cref="GetTagsIncludingNested"/> but skips anything inside a
     /// <c>&lt;code&gt;</c> or <c>&lt;example&gt;</c> sample, where a tag illustrates usage instead of documenting
     /// the member. Rules which remove the tag they find must use this overload, otherwise the fix deletes sample
     /// text. Tags nested in prose such as <c>&lt;summary&gt;</c> or <c>&lt;remarks&gt;</c> are still returned —
@@ -80,19 +79,16 @@ internal static class DirectDocumentationSyntaxChecker
     /// <returns>Matching nodes</returns>
     internal static ImmutableArray<XmlNodeSyntax> GetTagsIncludingNested(DocumentationCommentTriviaSyntax documentationComment, string tagName)
     {
-        if (documentationComment == null)
-        {
-            return [];
-        }
-
-        var directNodes = documentationComment.Content
-                                              .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
-                                              .Where(obj => string.Equals(XmlDocumentationElementOrderingUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
-                                              .ToImmutableArray();
+        var directNodes = GetDirectTags(documentationComment, tagName);
 
         if (directNodes.Length > 0)
         {
             return directNodes;
+        }
+
+        if (documentationComment == null)
+        {
+            return [];
         }
 
         return documentationComment.DescendantNodes()
@@ -103,14 +99,33 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
-    /// Determines whether the documentation contains the tag, at top level or nested
+    /// Gets the top-level XML nodes with the specified tag name in source order
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
-    /// <returns><see langword="true"/> if the tag exists</returns>
-    internal static bool HasTagIncludingNested(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    /// <returns>Matching top-level nodes</returns>
+    internal static ImmutableArray<XmlNodeSyntax> GetDirectTags(DocumentationCommentTriviaSyntax documentationComment, string tagName)
     {
-        return GetTagsIncludingNested(documentationComment, tagName).Length > 0;
+        if (documentationComment == null)
+        {
+            return [];
+        }
+
+        return documentationComment.Content
+                                   .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
+                                   .Where(obj => string.Equals(XmlDocumentationElementOrderingUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
+                                   .ToImmutableArray();
+    }
+
+    /// <summary>
+    /// Determines whether the documentation contains a top-level tag
+    /// </summary>
+    /// <param name="documentationComment">Documentation comment</param>
+    /// <param name="tagName">Tag name</param>
+    /// <returns><see langword="true"/> if the top-level tag exists</returns>
+    internal static bool HasDirectTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    {
+        return GetDirectTags(documentationComment, tagName).Length > 0;
     }
 
     /// <summary>

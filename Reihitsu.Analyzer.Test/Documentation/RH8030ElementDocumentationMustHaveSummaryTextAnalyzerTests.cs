@@ -74,6 +74,25 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies that an empty summary nested in remarks is ignored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForEmptySummaryNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <remarks><summary></summary></remarks>
+                              internal partial class TestClass
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

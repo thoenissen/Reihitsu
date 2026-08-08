@@ -40,6 +40,30 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
     }
 
     /// <summary>
+    /// Verifies that an empty returns tag nested in remarks is ignored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForEmptyReturnsNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Gets the value.</summary>
+                                  /// <remarks><returns></returns></remarks>
+                                  internal int GetValue()
+                                  {
+                                      return 1;
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

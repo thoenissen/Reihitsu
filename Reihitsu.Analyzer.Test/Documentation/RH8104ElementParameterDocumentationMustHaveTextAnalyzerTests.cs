@@ -39,6 +39,53 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that empty parameter tags nested in remarks are ignored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForEmptyParameterNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// <remarks><param name="firstValue"></param></remarks>
+                                  internal void TestMethod(int firstValue)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that direct parameter tags are analyzed without also analyzing nested matches
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyDirectEmptyParameterIsReportedBesideNestedMatch()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// <remarks><param name="nestedValue"></param></remarks>
+                                  /// {|#0:<param name="firstValue"></param>|}
+                                  internal void TestMethod(int firstValue)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

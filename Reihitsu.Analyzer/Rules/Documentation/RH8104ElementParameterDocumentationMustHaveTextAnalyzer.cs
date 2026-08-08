@@ -55,7 +55,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzer : Diagnosti
             return;
         }
 
-        foreach (var paramNode in DirectDocumentationSyntaxChecker.GetTagsIncludingNested(documentationComment, "param")
+        foreach (var paramNode in DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "param")
                                                                   .Where(paramNode => DocumentationAnalysisUtilities.IsEmpty(paramNode)))
         {
             context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));

@@ -59,7 +59,7 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
             return;
         }
 
-        var typeParameterNodes = DirectDocumentationSyntaxChecker.GetTagsIncludingNested(documentationComment, "typeparam");
+        var typeParameterNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "typeparam");
 
         if (typeParameterNodes.IsDefaultOrEmpty)
         {

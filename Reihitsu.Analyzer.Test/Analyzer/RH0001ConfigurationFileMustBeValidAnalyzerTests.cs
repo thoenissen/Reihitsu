@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -51,6 +52,96 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      });
+    }
+
+    /// <summary>
+    /// Verifies that similarly named files are ignored and the exact configuration file is loaded
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SimilarFileNameIsIgnoredAndExactConfigurationFileIsLoaded()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalFiles.Add(("myreihitsu.json", "{}"));
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", string.Empty));
+                     },
+                     InvalidConfiguration("The configuration file must not be empty or whitespace-only.", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifies that configuration file matching is case-insensitive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UppercaseConfigurationFileNameIsLoaded()
+    {
+        const string configurationPath = "REIHITSU.JSON";
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add((configurationPath, string.Empty)),
+                     InvalidConfiguration(configurationPath, "The configuration file must not be empty or whitespace-only.", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifies that an exact configuration file in a subdirectory is loaded
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ConfigurationFileInSubdirectoryIsLoaded()
+    {
+        var configurationPath = Path.Combine("settings", "reihitsu.json");
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add((configurationPath, string.Empty)),
+                     InvalidConfiguration(configurationPath, "The configuration file must not be empty or whitespace-only.", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a prefixed configuration lookalike is ignored when no exact file exists
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MyReihitsuConfigurationLookalikeIsIgnored()
+    {
+        await Verify(TestCode, test => test.TestState.AdditionalFiles.Add(("myreihitsu.json", string.Empty)));
+    }
+
+    /// <summary>
+    /// Verifies that a hyphen-prefixed configuration lookalike is ignored when no exact file exists
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TeamReihitsuConfigurationLookalikeIsIgnored()
+    {
+        await Verify(TestCode, test => test.TestState.AdditionalFiles.Add(("team-reihitsu.json", string.Empty)));
+    }
+
+    /// <summary>
+    /// Verifies that a backup file is ignored when no exact configuration file exists
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ConfigurationBackupFileIsIgnored()
+    {
+        await Verify(TestCode, test => test.TestState.AdditionalFiles.Add(("reihitsu.json.bak", string.Empty)));
+    }
+
+    /// <summary>
+    /// Verifies that the first exact configuration file wins over a later lookalike
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ExactConfigurationFileBeforeLookalikeIsLoaded()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", string.Empty));
+                         test.TestState.AdditionalFiles.Add(("myreihitsu.json", "{}"));
+                     },
+                     InvalidConfiguration("The configuration file must not be empty or whitespace-only.", 1, 1));
     }
 
     /// <summary>
@@ -474,7 +565,20 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// <returns>Diagnostic</returns>
     private static DiagnosticResult InvalidConfiguration(string message, int line, int column)
     {
-        return Diagnostic(RH0001ConfigurationFileMustBeValidAnalyzer.DiagnosticId).WithLocation("reihitsu.json", line, column)
+        return InvalidConfiguration("reihitsu.json", message, line, column);
+    }
+
+    /// <summary>
+    /// Invalid configuration diagnostic
+    /// </summary>
+    /// <param name="configurationPath">Configuration path</param>
+    /// <param name="message">Message</param>
+    /// <param name="line">Line</param>
+    /// <param name="column">Column</param>
+    /// <returns>Diagnostic</returns>
+    private static DiagnosticResult InvalidConfiguration(string configurationPath, string message, int line, int column)
+    {
+        return Diagnostic(RH0001ConfigurationFileMustBeValidAnalyzer.DiagnosticId).WithLocation(configurationPath, line, column)
                                                                                   .WithMessage(string.Format(AnalyzerResources.RH0001MessageFormat, message));
     }
 

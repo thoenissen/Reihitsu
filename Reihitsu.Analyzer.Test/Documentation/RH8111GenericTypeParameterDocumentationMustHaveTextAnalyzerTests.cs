@@ -36,6 +36,26 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that empty type parameter tags nested in remarks are ignored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForEmptyTypeParameterNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a generic type.</summary>
+                              /// <remarks><typeparam name="T"></typeparam></remarks>
+                              internal class Repository<T>
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

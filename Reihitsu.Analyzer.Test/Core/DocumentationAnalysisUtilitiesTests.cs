@@ -40,6 +40,50 @@ public class DocumentationAnalysisUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a summary nested inside another documentation element does not document the member
+    /// </summary>
+    [TestMethod]
+    public void HasRequiredDocumentationReturnsFalseForMemberWithNestedSummaryWithoutSemanticModel()
+    {
+        const string source = """
+                              class Sample
+                              {
+                                  /// <remarks><summary>Nested summary</summary></remarks>
+                                  public void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var declaration = GetSingleMethodDeclaration(source);
+        var hasRequiredDocumentation = DocumentationAnalysisUtilities.HasRequiredDocumentation(declaration, semanticModel: null, CancellationToken.None);
+
+        Assert.IsFalse(hasRequiredDocumentation);
+    }
+
+    /// <summary>
+    /// Verifies that inheritdoc nested inside another documentation element does not document a member
+    /// </summary>
+    [TestMethod]
+    public void HasRequiredDocumentationReturnsFalseForMemberWithNestedInheritdocWithoutSemanticModel()
+    {
+        const string source = """
+                              class Sample
+                              {
+                                  /// <remarks><inheritdoc/></remarks>
+                                  public void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var declaration = GetSingleMethodDeclaration(source);
+        var hasRequiredDocumentation = DocumentationAnalysisUtilities.HasRequiredDocumentation(declaration, semanticModel: null, CancellationToken.None);
+
+        Assert.IsFalse(hasRequiredDocumentation);
+    }
+
+    /// <summary>
     /// Verifies that direct inheritdoc tags are accepted without expanded XML parsing for members
     /// </summary>
     [TestMethod]
@@ -99,6 +143,46 @@ public class DocumentationAnalysisUtilitiesTests
         var hasRequiredDocumentation = DocumentationAnalysisUtilities.HasRequiredDocumentation(declaration, semanticModel: null, CancellationToken.None);
 
         Assert.IsTrue(hasRequiredDocumentation);
+    }
+
+    /// <summary>
+    /// Verifies that a summary nested inside another documentation element does not document an enum member
+    /// </summary>
+    [TestMethod]
+    public void HasRequiredDocumentationReturnsFalseForEnumMemberWithNestedSummaryWithoutSemanticModel()
+    {
+        const string source = """
+                              enum Sample
+                              {
+                                  /// <remarks><summary>Nested summary</summary></remarks>
+                                  FirstValue
+                              }
+                              """;
+
+        var declaration = GetSingleEnumMemberDeclaration(source);
+        var hasRequiredDocumentation = DocumentationAnalysisUtilities.HasRequiredDocumentation(declaration, semanticModel: null, CancellationToken.None);
+
+        Assert.IsFalse(hasRequiredDocumentation);
+    }
+
+    /// <summary>
+    /// Verifies that inheritdoc nested inside another documentation element does not document an enum member
+    /// </summary>
+    [TestMethod]
+    public void HasRequiredDocumentationReturnsFalseForEnumMemberWithNestedInheritdocWithoutSemanticModel()
+    {
+        const string source = """
+                              enum Sample
+                              {
+                                  /// <remarks><inheritdoc/></remarks>
+                                  FirstValue
+                              }
+                              """;
+
+        var declaration = GetSingleEnumMemberDeclaration(source);
+        var hasRequiredDocumentation = DocumentationAnalysisUtilities.HasRequiredDocumentation(declaration, semanticModel: null, CancellationToken.None);
+
+        Assert.IsFalse(hasRequiredDocumentation);
     }
 
     #endregion // Tests
