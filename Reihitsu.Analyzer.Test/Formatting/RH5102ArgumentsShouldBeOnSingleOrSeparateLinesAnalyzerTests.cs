@@ -221,5 +221,111 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Analy
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that an argument list carrying a comment after its closing parenthesis is reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y, int z) => x + y + z;
+
+                                    private static int Use()
+                                    {
+                                        return Add{|#0:(1, 2,
+                                                   3)|} /* note */ + 4;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an argument list carrying a comment after its closing parenthesis is offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Add(int x, int y, int z) => x + y + z;
+
+                                       private static int Use()
+                                       {
+                                           return Add(1, 2,
+                                                      3) /* note */ + 4;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying the control case: the identical input without the trailing comment is reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y, int z) => x + y + z;
+
+                                    private static int Use()
+                                    {
+                                        return Add{|#0:(1, 2,
+                                                   3)|} + 4;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the control case: the identical input without the trailing comment is offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Add(int x, int y, int z) => x + y + z;
+
+                                       private static int Use()
+                                       {
+                                           return Add(1, 2,
+                                                      3) + 4;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
     #endregion // Tests
 }

@@ -260,5 +260,103 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
         Assert.AreNotEqual(codeFixData, fixedCode);
     }
 
+    /// <summary>
+    /// Verifying that a parameter list carrying a comment after its closing parenthesis is reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third) /* note */
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a parameter list carrying a comment after its closing parenthesis is offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first, int second,
+                                                   int third) /* note */
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying the control case: the identical input without the trailing comment is reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the control case: the identical input without the trailing comment is offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first, int second,
+                                                   int third)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
     #endregion // Tests
 }
