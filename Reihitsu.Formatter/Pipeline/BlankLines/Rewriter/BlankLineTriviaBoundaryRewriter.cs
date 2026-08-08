@@ -215,9 +215,18 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <para>
     /// How many line breaks the boundary is short of depends on where the comment starts. A documentation comment
     /// the author wrote behind code is filed as the following token's leading trivia while still sitting on the
-    /// preceding token's line, so it needs two: one to end that line and one for the blank line. A comment that
-    /// already starts its own line needs only the blank line. Emitting one break in both cases left the first case
-    /// finished a pass later, which made the formatter report a file it had just written (issue #637)
+    /// preceding token's line, so it needs two: one to end that line and one for the blank line. Every other
+    /// comment needs only the blank line. Emitting one break in both cases left the first case finished a pass
+    /// later, which made the formatter report a file it had just written (issue #637)
+    /// </para>
+    /// <para>
+    /// The count is decided from the two rendered line numbers rather than from
+    /// <see cref="TokenGapAnalysis.RequiredLineBreakCountForBlankLine"/>, which measures the trivia kept in front
+    /// of the insert point. The two disagree on one shape: a multi-line comment in the gap that ends on the
+    /// documentation comment's own line leaves no terminal line break, so the range measure asks for two breaks
+    /// while the line numbers ask for one. The line numbers decide here because the already-satisfied check above
+    /// is measured the same way, and switching to the range measure would put a blank line into a shape that is a
+    /// fixed point today - that gap is a defect of its own rather than part of this one
     /// </para>
     /// </remarks>
     private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)

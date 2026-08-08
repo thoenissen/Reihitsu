@@ -594,6 +594,39 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment preceded by a multi-line block comment that ends on the
+    /// comment's own line receives a single line break and no blank line. This is the one shape on which the
+    /// rendered-line measure the boundary uses and the range measure in
+    /// <see cref="Reihitsu.Core.TokenGapAnalysis.RequiredLineBreakCountForBlankLine"/> disagree, so the output is
+    /// pinned here: the blank line the rule asks for is missing, the file is still a fixed point, and the layout
+    /// is the same one the formatter produced before the one-pass separation existed. Closing that gap means
+    /// changing a stable file and belongs to its own issue (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesDelimitedDocumentationBelowMultilineBlockCommentEndingOnItsLine()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /* a
+                                                    b */ /** doc */
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x; /* a
+                                                       b */
+                                    /** doc */
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an own-line banner comment followed by delimited documentation is left alone. Splitting the
     /// pair is the single line documentation behavior, and reaching it from here would mean widening the relocation
     /// filter instead of settling the boundary (issue #637)
