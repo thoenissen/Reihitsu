@@ -664,6 +664,39 @@ public class SyntaxTriviaUtilitiesTests
         Assert.AreEqual(token, result);
     }
 
+    /// <summary>
+    /// Verifies that a region directive inside a branch that was not taken is reported as inactive
+    /// </summary>
+    [TestMethod]
+    public void IsInactiveDirectiveReturnsTrueForDirectiveInSkippedBranch()
+    {
+        var trivia = GetFirstTrivia("class C\n{\n#if false\n    #region Test\n    #endregion // Test\n#endif\n}", SyntaxKind.RegionDirectiveTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsInactiveDirective(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that a region directive outside any conditional branch is not reported as inactive
+    /// </summary>
+    [TestMethod]
+    public void IsInactiveDirectiveReturnsFalseForUnconditionalDirective()
+    {
+        var trivia = GetFirstTrivia("class C\n{\n    #region Test\n    #endregion // Test\n}", SyntaxKind.RegionDirectiveTrivia);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsInactiveDirective(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that trivia without a directive structure is not reported as inactive
+    /// </summary>
+    [TestMethod]
+    public void IsInactiveDirectiveReturnsFalseForComment()
+    {
+        var trivia = GetFirstTrivia("class C\n{\n    // note\n}", SyntaxKind.SingleLineCommentTrivia);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsInactiveDirective(trivia));
+    }
+
     #endregion // Tests
 
     #region Methods

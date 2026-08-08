@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 using Reihitsu.Analyzer.Rules.Spacing;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Verifiers;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -323,5 +324,231 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a space in front of a conditional access operator is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalAccessLeadingSpaceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string value)
+                                    {
+                                        _ = value {|#0:?|}.Length;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(string value)
+                                     {
+                                         _ = value?.Length;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a spaced conditional access reports its question mark and its dot separately, and that
+    /// applying both fixes tightens the whole operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySpacedConditionalAccessReportsBothSymbolsAndIsFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string value)
+                                    {
+                                        _ = value {|#0:?|}{|#1:.|} Length;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(string value)
+                                     {
+                                         _ = value?.Length;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a space in front of a conditional element access is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalElementAccessLeadingSpaceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int[] values)
+                                    {
+                                        _ = values {|#0:?|}[0];
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int[] values)
+                                     {
+                                         _ = values?[0];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that spaces around a pointer member access are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPointerMemberAccessSpacesAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal unsafe class TestClass
+                                {
+                                    private struct Data
+                                    {
+                                        public int Value;
+                                    }
+
+                                    private int Method(Data* pointer)
+                                    {
+                                        return pointer {|#0:->|} Value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal unsafe class TestClass
+                                 {
+                                     private struct Data
+                                     {
+                                         public int Value;
+                                     }
+
+                                     private int Method(Data* pointer)
+                                     {
+                                         return pointer->Value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, AllowUnsafe, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tight conditional access does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTightConditionalAccessDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string value, int[] values)
+                                    {
+                                        _ = value?.Length;
+                                        _ = values?[0];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the question mark of a conditional expression does not produce diagnostics, although it
+    /// carries the same token kind as the conditional access operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTernaryQuestionMarkDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool flag)
+                                    {
+                                        _ = flag ? 1 : 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the question mark of a nullable type does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNullableTypeQuestionMarkDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int? value = null;
+
+                                        _ = value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional access chain broken across lines does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLineBrokenConditionalAccessDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string value)
+                                    {
+                                        _ = value
+                                            ?.Trim()
+                                            ?.Length;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Enables unsafe code for the verifier so sources using pointer types compile
+    /// </summary>
+    /// <param name="test">Test</param>
+    private static void AllowUnsafe(CSharpCodeFixVerifierTest<RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer, RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider> test)
+    {
+        test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
+    }
+
+    #endregion // Methods
 }

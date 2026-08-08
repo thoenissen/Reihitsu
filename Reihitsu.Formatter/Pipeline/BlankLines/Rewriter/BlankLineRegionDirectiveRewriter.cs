@@ -55,18 +55,32 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the leading trivia of the specified token contains a region or end-region directive
+    /// Determines whether the trivia is a region or end-region directive the compiler kept. A directive
+    /// inside a branch that was not taken sits between disabled-text trivia, so a line break inserted
+    /// next to it merges into that text where the blank-line queries cannot find it again and the next
+    /// run inserts another one (issue #434)
     /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if any region directive trivia is found in the leading trivia</returns>
-    private static bool HasRegionDirectiveInLeadingTrivia(SyntaxToken token)
+    /// <param name="trivia">The trivia to inspect</param>
+    /// <returns><see langword="true"/> if the trivia is an active region directive</returns>
+    private static bool IsActiveRegionDirective(SyntaxTrivia trivia)
     {
-        return token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsRegionDirective);
+        return SyntaxTriviaUtilities.IsRegionDirective(trivia)
+               && SyntaxTriviaUtilities.IsInactiveDirective(trivia) == false;
     }
 
     /// <summary>
-    /// Ensures a blank line follows every region directive in the leading trivia, except an <c>#endregion</c> directive
-    /// that directly precedes the closing brace or the end of the file
+    /// Determines whether the leading trivia of the specified token contains an active region or end-region directive
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if any active region directive trivia is found in the leading trivia</returns>
+    private static bool HasRegionDirectiveInLeadingTrivia(SyntaxToken token)
+    {
+        return token.LeadingTrivia.Any(IsActiveRegionDirective);
+    }
+
+    /// <summary>
+    /// Ensures a blank line follows every active region directive in the leading trivia, except an <c>#endregion</c>
+    /// directive that directly precedes the closing brace or the end of the file
     /// </summary>
     /// <param name="token">The token whose leading trivia should be normalized</param>
     /// <returns>The token with the required blank lines inserted after its region directives</returns>
@@ -78,7 +92,7 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
 
         for (var triviaIndex = trivia.Count - 1; triviaIndex >= 0; triviaIndex--)
         {
-            if (SyntaxTriviaUtilities.IsRegionDirective(trivia[triviaIndex]) == false)
+            if (IsActiveRegionDirective(trivia[triviaIndex]) == false)
             {
                 continue;
             }

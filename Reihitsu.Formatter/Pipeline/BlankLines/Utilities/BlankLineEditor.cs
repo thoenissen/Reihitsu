@@ -220,7 +220,9 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first directive of the specified kind in the token's leading trivia
+    /// Ensures a blank line exists before the first directive of the specified kind in the token's leading
+    /// trivia. Directives inside a branch the compiler skipped are passed over, so the first match is the
+    /// first directive that is actually part of the build
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
     /// <param name="directiveKind">Kind of the directive that requires a preceding blank line</param>
@@ -247,7 +249,11 @@ internal sealed class BlankLineEditor
 
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
-            if (trivia[triviaIndex].IsKind(directiveKind))
+            // A directive inside a branch the compiler skipped is surrounded by disabled text, so the inserted
+            // line break merges into that text and HasBlankLineImmediatelyBeforeIndex can never see it again -
+            // the next run inserts another one (issue #434)
+            if (trivia[triviaIndex].IsKind(directiveKind)
+                && SyntaxTriviaUtilities.IsInactiveDirective(trivia[triviaIndex]) == false)
             {
                 directiveIndex = triviaIndex;
 

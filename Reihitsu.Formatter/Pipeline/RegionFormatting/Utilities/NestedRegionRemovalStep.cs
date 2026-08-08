@@ -19,7 +19,9 @@ internal static class NestedRegionRemovalStep
     #region Methods
 
     /// <summary>
-    /// Removes region directives placed within element bodies
+    /// Removes region directives placed within element bodies. A region inside a branch the compiler
+    /// skipped is left in place, because deleting its line would remove source the formatter otherwise
+    /// leaves untouched
     /// </summary>
     /// <param name="root">The syntax root</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -34,7 +36,10 @@ internal static class NestedRegionRemovalStep
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false)
+            // Removing a region the compiler skipped would delete a line of code the formatter is otherwise
+            // leaving alone, and the surrounding disabled text keeps no record of what was there (issue #434)
+            if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
+                || SyntaxTriviaUtilities.IsInactiveDirective(trivia))
             {
                 continue;
             }
