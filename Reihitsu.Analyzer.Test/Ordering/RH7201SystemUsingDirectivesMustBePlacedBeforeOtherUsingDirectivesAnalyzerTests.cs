@@ -62,6 +62,48 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     }
 
     /// <summary>
+    /// Verifies that a case-variant root namespace remains an ordinary namespace and does not prevent the code fix from moving System first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CaseVariantSystemRootDoesNotDisagreeWithCanonicalOrdering()
+    {
+        const string testCode = """
+                                using SYSTEM;
+                                using {|#0:System|};
+
+                                namespace SYSTEM
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using SYSTEM;
+
+                                 namespace SYSTEM
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no code fix is offered when the using directives cannot be safely reordered because a preprocessor directive is present
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
