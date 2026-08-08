@@ -11,17 +11,18 @@ namespace Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 
 /// <summary>
 /// The removal half of the region phase. It strips <c>#region</c> and <c>#endregion</c> directives
-/// that sit inside an element body, reparsing the changed text to rebuild the tree. Naming and
-/// endregion synchronization belong to <see cref="RegionNamingRewriter"/>
+/// that sit inside an element body, except direct accessor-list pairs that act as layout barriers,
+/// reparsing the changed text to rebuild the tree. Naming and endregion synchronization belong to
+/// <see cref="RegionNamingRewriter"/>
 /// </summary>
 internal static class NestedRegionRemovalStep
 {
     #region Methods
 
     /// <summary>
-    /// Removes region directives placed within element bodies. A region inside a branch the compiler
-    /// skipped is left in place, because deleting its line would remove source the formatter otherwise
-    /// leaves untouched
+    /// Removes region directives placed within element bodies, except direct pairs inside the same
+    /// accessor list. A region inside a branch the compiler skipped is left in place, because deleting
+    /// its line would remove source the formatter otherwise leaves untouched
     /// </summary>
     /// <param name="root">The syntax root</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -92,6 +93,67 @@ internal static class NestedRegionRemovalStep
     }
 
     /// <summary>
+    /// Determines whether both directives in an active region pair sit directly inside the same
+    /// accessor list
+    /// </summary>
+    /// <param name="regionTrivia">The opening region directive</param>
+    /// <param name="endRegionTrivia">The closing region directive</param>
+    /// <returns><see langword="true"/> when the pair must be preserved as accessor-list layout</returns>
+    private static bool IsProtectedAccessorListPair(SyntaxTrivia regionTrivia, SyntaxTrivia endRegionTrivia)
+    {
+        if (SyntaxTriviaUtilities.IsInactiveDirective(regionTrivia)
+            || SyntaxTriviaUtilities.IsInactiveDirective(endRegionTrivia))
+        {
+            return false;
+        }
+
+        if (GetNearestElementBody(regionTrivia) is not AccessorListSyntax accessorList
+            || GetNearestElementBody(endRegionTrivia) is not AccessorListSyntax endAccessorList
+            || accessorList.Span != endAccessorList.Span)
+        {
+            return false;
+        }
+
+        return accessorList.Span.Contains(regionTrivia.Span)
+               && accessorList.Span.Contains(endRegionTrivia.Span);
+    }
+
+    /// <summary>
+    /// Gets the nearest ancestor that makes a directive part of an element body
+    /// </summary>
+    /// <param name="directiveTrivia">The directive to classify</param>
+    /// <returns>The nearest element-body ancestor, or <see langword="null"/> when none exists</returns>
+    private static SyntaxNode GetNearestElementBody(SyntaxTrivia directiveTrivia)
+    {
+        var currentNode = directiveTrivia.Token.Parent;
+
+        while (currentNode != null)
+        {
+            switch (currentNode)
+            {
+                case BlockSyntax:
+                case AccessorListSyntax:
+                case AnonymousFunctionExpressionSyntax:
+                case LocalFunctionStatementSyntax:
+                case StatementSyntax:
+                    return currentNode;
+
+                case TypeDeclarationSyntax:
+                case NamespaceDeclarationSyntax:
+                case FileScopedNamespaceDeclarationSyntax:
+                case CompilationUnitSyntax:
+                    return null;
+
+                default:
+                    currentNode = currentNode.Parent;
+                    break;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Determines whether a <c>#region</c> directive and its matching <c>#endregion</c> may both be removed
     /// </summary>
     /// <param name="regionTrivia">The <c>#region</c> directive trivia</param>
@@ -99,12 +161,13 @@ internal static class NestedRegionRemovalStep
     /// <param name="endRegionTrivia">The matching <c>#endregion</c> directive trivia when the pair is removable</param>
     /// <returns><see langword="true"/> if both halves of the pair may be removed; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// One qualifying half is enough, and then both are removed. A pair that straddles an
-    /// element-body boundary — the <c>#region</c> inside a body and its <c>#endregion</c> outside, or
-    /// the reverse — must not lose only its qualifying half, because the orphaned directive turns
-    /// source that compiles into source that does not (CS1028). Removing the pair as a unit also
-    /// matches <c>RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider</c>, which deletes both halves
-    /// once either one is reported, so the formatter and the code fix agree on the same input.
+    /// Except for a pair placed directly inside one accessor list, one qualifying half is enough,
+    /// and then both are removed. A pair that straddles an element-body boundary — the
+    /// <c>#region</c> inside a body and its <c>#endregion</c> outside, or the reverse — must not lose
+    /// only its qualifying half, because the orphaned directive turns source that compiles into
+    /// source that does not (CS1028). Removing the pair as a unit also matches
+    /// <c>RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider</c>, which deletes both halves once
+    /// either one is reported, so the formatter and the code fix agree on the same input.
     /// </remarks>
     private static bool TryGetRemovableRegionPair(SyntaxTrivia regionTrivia,
                                                   CancellationToken cancellationToken,
@@ -135,6 +198,11 @@ internal static class NestedRegionRemovalStep
 
         if (RegionDirectiveUtilities.IsWithinElementBody(regionTrivia) == false
             && RegionDirectiveUtilities.IsWithinElementBody(candidate) == false)
+        {
+            return false;
+        }
+
+        if (IsProtectedAccessorListPair(regionTrivia, candidate))
         {
             return false;
         }

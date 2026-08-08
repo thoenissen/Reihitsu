@@ -223,8 +223,8 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a directive inside the accessor list still prevents the single-line collapse.
-    /// The test deliberately uses <c>#if</c> rather than <c>#region</c>, because the region phase
-    /// removes region directives from an accessor list before the line-break phase runs
+    /// The test deliberately uses <c>#if</c> rather than <c>#region</c>, because region directives
+    /// receive their own normalization before the line-break phase runs
     /// </summary>
     [TestMethod]
     public void DirectiveInsideAccessorListStillSplitsTheProperty()

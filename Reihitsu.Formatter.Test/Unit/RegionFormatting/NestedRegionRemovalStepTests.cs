@@ -59,6 +59,113 @@ public class NestedRegionRemovalStepTests
     }
 
     /// <summary>
+    /// Verifies that an empty region directly inside a block is removed
+    /// </summary>
+    [TestMethod]
+    public void RemovesEmptyRegionDirectlyInsideBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     #region Inner
+                                     #endregion
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = Remove(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a region around a lambda expression is removed
+    /// </summary>
+    [TestMethod]
+    public void RemovesRegionInsideLambdaExpression()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     System.Func<int> f = () =>
+                                     #region Inner
+                                     1
+                                     #endregion
+                                     ;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        System.Func<int> f = () =>
+                                        1
+                                        ;
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = Remove(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a region around a local function is removed
+    /// </summary>
+    [TestMethod]
+    public void RemovesRegionAroundLocalFunction()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     #region Inner
+                                     int Local() => 1;
+                                     #endregion
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int Local() => 1;
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = Remove(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that a region directive at member level is left untouched
     /// </summary>
     [TestMethod]
