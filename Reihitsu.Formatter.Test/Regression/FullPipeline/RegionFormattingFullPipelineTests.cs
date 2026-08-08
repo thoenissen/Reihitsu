@@ -378,10 +378,10 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region inside an accessor body is still removed
+    /// Verifies that a region inside an accessor body is preserved and formatted
     /// </summary>
     [TestMethod]
-    public void RegionInsideAccessorBodyIsRemoved()
+    public void RegionInsideAccessorBodyIsPreservedAndFormatted()
     {
         // Arrange
         const string input = """
@@ -405,8 +405,175 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
                                     {
                                         get
                                         {
+                                            #region Inner
+
+                                            return 1;
+
+                                            #endregion // Inner
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region around a statement in a method body is preserved and formatted
+    /// </summary>
+    [TestMethod]
+    public void RegionAroundStatementIsPreservedAndFormatted()
+    {
+        // Arrange
+        const string input = """
+                             internal class T
+                             {
+                                 public void M()
+                                 {
+                             #region statement
+                                     var value=1;
+                             #endregion
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class T
+                                {
+                                    public void M()
+                                    {
+                                        #region Statement
+
+                                        var value = 1;
+
+                                        #endregion // Statement
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an empty region directly inside a block is preserved and formatted
+    /// </summary>
+    [TestMethod]
+    public void EmptyRegionInsideBlockIsPreservedAndFormatted()
+    {
+        // Arrange
+        const string input = """
+                             internal class T
+                             {
+                                 public void M()
+                                 {
+                             #region empty
+                             #endregion
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class T
+                                {
+                                    public void M()
+                                    {
+
+                                        #region Empty
+
+                                        #endregion // Empty
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region inside an anonymous function expression is preserved and formatted
+    /// </summary>
+    [TestMethod]
+    public void RegionInsideAnonymousFunctionIsPreservedAndFormatted()
+    {
+        // Arrange
+        const string input = """
+                             internal class T
+                             {
+                                 public int M()
+                                 {
+                                     System.Func<int> value = () =>
+                             #region inner
+                                     1
+                             #endregion
+                                     ;
+
+                                     return value();
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class T
+                                {
+                                    public int M()
+                                    {
+                                        System.Func<int> value = () =>
+
+                                        #region Inner
+
+                                        1
+
+                                        #endregion // Inner
+
+                                        ;
+
+                                        return value();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region around a local function is preserved and formatted
+    /// </summary>
+    [TestMethod]
+    public void RegionAroundLocalFunctionIsPreservedAndFormatted()
+    {
+        // Arrange
+        const string input = """
+                             internal class T
+                             {
+                                 public int M()
+                                 {
+                             #region local
+                                     int Local()
+                                     {
+                                         return 1;
+                                     }
+                             #endregion
+
+                                     return Local();
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class T
+                                {
+                                    public int M()
+                                    {
+                                        #region Local
+
+                                        int Local()
+                                        {
                                             return 1;
                                         }
+
+
+                                        #endregion // Local
+
+                                        return Local();
                                     }
                                 }
                                 """;

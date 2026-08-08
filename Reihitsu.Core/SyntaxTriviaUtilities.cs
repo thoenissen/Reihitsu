@@ -311,9 +311,9 @@ public static class SyntaxTriviaUtilities
 
     /// <summary>
     /// Determines whether the specified span contains a <c>#region</c> or <c>#endregion</c> directive, balanced or
-    /// not. A rewrite whose output is reparsed as text before it has been fully laid out cannot keep a region
-    /// directive, because the region phase removes and reinserts those lines; callers that merely relocate a span
-    /// want the narrower <see cref="ContainsUnbalancedRegionDirectives"/>
+    /// not. Rewrites that reconstruct source from token spans must guard these directives because moving or dropping
+    /// either endpoint changes directive structure; callers that merely relocate a span want the narrower
+    /// <see cref="ContainsUnbalancedRegionDirectives"/>
     /// </summary>
     /// <param name="root">Syntax node containing the span</param>
     /// <param name="span">Span to inspect</param>

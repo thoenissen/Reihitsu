@@ -27,11 +27,11 @@ public static class ExpressionBodyRewriteUtilities
     /// legally sit because it must start its own line; that produces source which no longer parses.
     /// A conditional group whose partner lies outside the rebuilt span is split by the rewrite,
     /// orphaning the half that stays behind. Any region directive in or immediately before the
-    /// rebuilt span blocks it as well, balanced or not, because the region phase reparses changed
-    /// text right after the structural transforms and therefore re-lexes the rewritten member before
-    /// horizontal spacing has run over it. An ordinary conditional or position sensitive directive
-    /// between the expression and the semicolon is none of these: it travels inside the generated
-    /// statement and keeps both its position relative to the surrounding code and its own line.
+    /// rebuilt span blocks it as well, balanced or not, because the rewrite cannot safely reconstruct
+    /// that span while guaranteeing that both user-authored endpoints keep their placement and token
+    /// boundaries. An ordinary conditional or position sensitive directive between the expression
+    /// and the semicolon is none of these: it travels inside the generated statement and keeps both
+    /// its position relative to the surrounding code and its own line.
     /// </remarks>
     public static bool BlocksRewrite(SyntaxNode member,
                                      ArrowExpressionClauseSyntax expressionBody,
@@ -59,9 +59,9 @@ public static class ExpressionBodyRewriteUtilities
             return true;
         }
 
-        // The region phase reparses changed text, so it re-lexes the rewritten member before the
-        // spacing phase has run over it. Refuse every region directive that reaches the rewrite,
-        // including one opened in the arrow's own leading trivia, which sits outside the span above.
+        // Refuse every region directive that reaches the reconstructed span so both endpoints keep
+        // their placement and token boundaries, including one opened in the arrow's own leading
+        // trivia, which sits outside the span above.
         var regionSpan = TextSpan.FromBounds(expressionBody.ArrowToken.FullSpan.Start, rewrittenSpan.End);
 
         return SyntaxTriviaUtilities.ContainsRegionDirectives(member, regionSpan);
