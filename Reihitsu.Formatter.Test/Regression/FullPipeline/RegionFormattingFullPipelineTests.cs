@@ -89,5 +89,29 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
         AssertRuleResult(TestData, ResultData);
     }
 
+    /// <summary>
+    /// Verifies that region directives inside a property accessor list are preserved
+    /// </summary>
+    [TestMethod]
+    public void RegionInsidePropertyAccessorListIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class T
+                             {
+                                 public int V
+                                 {
+                                     #region R
+                                     get;
+                                     #endregion
+                                     set;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }
