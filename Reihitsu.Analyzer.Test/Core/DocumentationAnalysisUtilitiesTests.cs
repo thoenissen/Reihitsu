@@ -40,6 +40,28 @@ public class DocumentationAnalysisUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a summary nested inside another documentation element does not document the member
+    /// </summary>
+    [TestMethod]
+    public void HasRequiredDocumentationReturnsFalseForMemberWithNestedSummaryWithoutSemanticModel()
+    {
+        const string source = """
+                              class Sample
+                              {
+                                  /// <remarks><summary>Nested summary</summary></remarks>
+                                  public void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var declaration = GetSingleMethodDeclaration(source);
+        var hasRequiredDocumentation = DocumentationAnalysisUtilities.HasRequiredDocumentation(declaration, semanticModel: null, CancellationToken.None);
+
+        Assert.IsFalse(hasRequiredDocumentation);
+    }
+
+    /// <summary>
     /// Verifies that direct inheritdoc tags are accepted without expanded XML parsing for members
     /// </summary>
     [TestMethod]

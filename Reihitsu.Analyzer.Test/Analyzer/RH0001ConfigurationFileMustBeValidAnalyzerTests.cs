@@ -54,6 +54,22 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that similarly named files are ignored and the exact configuration file is loaded
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SimilarFileNameIsIgnoredAndExactConfigurationFileIsLoaded()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalFiles.Add(("myreihitsu.json", "{}"));
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", string.Empty));
+                     },
+                     InvalidConfiguration("The configuration file must not be empty or whitespace-only.", 1, 1));
+    }
+
+    /// <summary>
     /// Empty configuration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
