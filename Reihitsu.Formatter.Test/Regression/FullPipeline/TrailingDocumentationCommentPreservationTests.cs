@@ -394,6 +394,289 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment written after a field's semicolon, with another field
+    /// following it, reaches its final layout in the first pass. The comment documents the following field, so
+    /// relocating it above that field is correct, but the relocation and the blank-line separation must not be
+    /// spread across two passes (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesDelimitedDocumentationAfterFieldSemicolonAboveFollowingMemberInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /** doc */
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x;
+
+                                    /** doc */
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the same one-pass separation applies to a delimited documentation comment written after a
+    /// property's closing brace. The owning token differs from the field case, so it proves the behavior follows
+    /// from the trivia position rather than from the preceding member's kind (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesDelimitedDocumentationAfterPropertyAboveFollowingMemberInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { get; set; } /** doc */
+                                 public int Other { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+
+                                    /** doc */
+                                    public int Other { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the interior lines of a multi-line delimited documentation comment are carried along unchanged
+    /// while the comment itself is separated in one pass. Only the boundary in front of the comment moves, so the
+    /// text the author wrote inside it is not re-laid-out (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesMultilineDelimitedDocumentationAboveFollowingMemberInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /** first
+                                                   * second */
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x;
+
+                                    /** first
+                                                      * second */
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that documentation already written above the following member is kept below the relocated comment
+    /// and that the whole layout is still reached in one pass (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesDelimitedDocumentationAboveAlreadyDocumentedFollowingMemberInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /** doc */
+                                 /// <summary>Other.</summary>
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x;
+
+                                    /** doc */
+                                    /// <summary>
+                                    /// Other.
+                                    /// </summary>
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that several delimited documentation comments converge together rather than one per pass. Each one
+    /// owns its own boundary, so a fix that only settled the first would still need a pass per comment (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesSeveralDelimitedDocumentationCommentsInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _a; /** first */
+                                 private int _b; /** second */
+                                 private int _c;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _a;
+
+                                    /** first */
+                                    private int _b;
+
+                                    /** second */
+                                    private int _c;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment the author already put on its own line receives exactly one
+    /// line break. This is the other side of the boundary the one-pass separation turns on: the comment does not
+    /// share the preceding token's line, so only the blank line is missing (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void SeparatesOwnLineDelimitedDocumentationWithASingleLineBreak()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x;
+                                 /** doc */
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x;
+
+                                    /** doc */
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment preceded by a multi-line block comment in the gap is left
+    /// alone. The boundary is measured on rendered lines, so the block comment's own lines already satisfy it;
+    /// counting end-of-line trivia instead would insert a blank line here and change a file that is stable today
+    /// (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void PreservesDelimitedDocumentationAfterMultilineBlockCommentInGap()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /* a
+                                                    b */
+                                 /** doc */
+                                 private int _y;
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment preceded by a multi-line block comment that ends on the
+    /// comment's own line receives a single line break and no blank line. This is the one shape on which the
+    /// rendered-line measure the boundary uses and the range measure in
+    /// <see cref="Reihitsu.Core.TokenGapAnalysis.RequiredLineBreakCountForBlankLine"/> disagree, so the output is
+    /// pinned here: the blank line the rule asks for is missing, the file is still a fixed point, and the layout
+    /// is the same one the formatter produced before the one-pass separation existed. Closing that gap means
+    /// changing a stable file and belongs to its own issue (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesDelimitedDocumentationBelowMultilineBlockCommentEndingOnItsLine()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /* a
+                                                    b */ /** doc */
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x; /* a
+                                                       b */
+                                    /** doc */
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an own-line banner comment followed by delimited documentation is left alone. Splitting the
+    /// pair is the single line documentation behavior, and reaching it from here would mean widening the relocation
+    /// filter instead of settling the boundary (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void PreservesOwnLineBannerAndDelimitedDocumentationPair()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x;
+
+                                 /* banner */ /** doc */
+                                 private int _y;
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a single line documentation comment written after a field's semicolon, with another field
+    /// following it, still reaches its final layout in one pass. It travels the relocation path in the
+    /// documentation-comment phase rather than the boundary path, so it proves that path was left untouched
+    /// (issue #637)
+    /// </summary>
+    [TestMethod]
+    public void MovesSingleLineDocumentationAfterFieldSemicolonAboveFollowingMemberInOnePass()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int _x; /// note
+                                 private int _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x;
+
+                                    /// note
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a single line documentation comment written after a field's semicolon stays on the field's line
     /// </summary>
     [TestMethod]
