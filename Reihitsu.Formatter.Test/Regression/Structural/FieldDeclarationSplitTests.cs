@@ -995,12 +995,12 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment written before the first declarator is still dropped. It sits in the first
-    /// declarator's leading trivia, which has no terminator in front of it, so the terminator rule does not reach
-    /// it. This records the remaining gap deliberately rather than widening the split silently
+    /// Verifies that a comment written before the first declarator is preserved where the author wrote it. It sits
+    /// in the first declarator's leading trivia, which the split used to strip without any call site reading it
+    /// (issue #636)
     /// </summary>
     [TestMethod]
-    public void CommentBeforeFirstDeclaratorIsStillDropped()
+    public void CommentBeforeFirstDeclaratorIsPreserved()
     {
         // Arrange
         const string input = """
@@ -1008,6 +1008,480 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                              {
                                  private int
                                  /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /* c */ _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line comment written before the first declarator is preserved. It ends its own line, so the
+    /// declarator stays on the following line rather than being commented out (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void LineCommentBeforeFirstDeclaratorIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 // c
+                                 _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    // c
+                                    _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single line documentation comment written before the first declarator is preserved and
+    /// normalized to its multi line form (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void SingleLineDocumentationCommentBeforeFirstDeclaratorIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /// <summary>First.</summary>
+                                 _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /// <summary>
+                                    /// First.
+                                    /// </summary>
+                                    _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment written before the first declarator is preserved. It carries
+    /// no line break of its own, so the declarator stays on its line (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void DelimitedDocumentationCommentBeforeFirstDeclaratorIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /** c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /** c */ _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that two comments written before the first declarator are both preserved in their source order
+    /// (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void TwoCommentsBeforeFirstDeclaratorArePreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /* a */ /* b */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /* a */ /* b */ _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first of three declarators lands on the first generated field only
+    /// (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstOfThreeDeclaratorsLandsOnTheFirstFieldOnly()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /* c */ _first, _second, _third;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /* c */ _first;
+                                    private int
+                                    _second;
+                                    private int
+                                    _third;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the field's own documentation comment and a comment written before the first declarator are
+    /// both preserved, in their own slots, and that neither is duplicated (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void FieldDocumentationAndCommentBeforeFirstDeclaratorAreBothPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 /// <summary>
+                                 /// Fields.
+                                 /// </summary>
+                                 private int
+                                 /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Fields.
+                                    /// </summary>
+                                    private int
+
+                                    /* c */ _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the attribute list is still duplicated onto every generated field while a comment written
+    /// before the first declarator lands on the first field only (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void AttributeListAndCommentBeforeFirstDeclaratorAreBothPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 [System.Obsolete]
+                                 private int
+                                 /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    [System.Obsolete]
+                                    private int
+
+                                    /* c */ _first;
+                                    [System.Obsolete]
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first declarator is preserved when the declarators carry
+    /// initializers (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstDeclaratorWithInitializersIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /* c */ _first = 1, _second = 2;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /* c */ _first = 1;
+                                    private int
+                                    _second = 2;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first declarator and a comment written after its separator are
+    /// both preserved on the first generated field, on either side of the generated semicolon (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentsBeforeAndAfterTheFirstDeclaratorAreBothPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 /* a */ _first, // b
+                                         _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /* a */ _first; // b
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first declarator of a struct field is preserved (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstDeclaratorInStructIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal struct TestStruct
+                             {
+                                 private int
+                                 /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal struct TestStruct
+                                {
+                                    private int
+
+                                    /* c */ _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first declarator of a record struct field is preserved (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstDeclaratorInRecordStructIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal record struct TestRecord
+                             {
+                                 private int
+                                 /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal record struct TestRecord
+                                {
+                                    private int
+
+                                    /* c */ _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first declarator of a static interface field is preserved
+    /// (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstDeclaratorInInterfaceIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal interface ITestInterface
+                             {
+                                 static int
+                                 /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal interface ITestInterface
+                                {
+                                    static int
+
+                                    /* c */ _first;
+                                    static int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written before the first declarator of a nested type's field is preserved at the
+    /// nested indentation (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeFirstDeclaratorInNestedTypeIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private class Inner
+                                 {
+                                     private int
+                                     /* c */ _first, _second;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private class Inner
+                                    {
+                                        private int
+
+                                        /* c */ _first;
+                                        private int
+                                        _second;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a misindented comment before the first declarator is re-anchored to the member indentation.
+    /// The split preserves the author's whitespace and the indentation phase owns the column, so the output does not
+    /// depend on the column the comment was written at (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void MisindentedCommentBeforeFirstDeclaratorIsNormalizedToMemberIndentation()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                             /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+
+                                    /* c */ _first;
+                                    private int
+                                    _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace-only trivia before the first declarator is unchanged by the split. This is the other
+    /// side of the boundary from a comment in the same slot: without a comment there is nothing to preserve, so the
+    /// output must stay what it was before the slot was read at all (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void WhitespaceOnlyTriviaBeforeFirstDeclaratorIsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                 _first, _second;
                              }
                              """;
         const string expected = """
@@ -1025,29 +1499,97 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment written before the first declarator survives the split. Only the survival of the
-    /// comment text is asserted, because the position it should end up in is still open (issue #636)
+    /// Verifies that a comment written on the type's own line is still duplicated onto every generated field. It is
+    /// trailing trivia of the type token rather than leading trivia of the declarator, so it is a different slot and
+    /// this fix must not reach it (issue #636)
     /// </summary>
     [TestMethod]
-    public void CommentBeforeFirstDeclaratorSurvivesTheSplit()
+    public void CommentOnTheTypeLineIsStillDuplicatedOntoEveryField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int /* c */ _first, _second;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int /* c */ _first;
+                                    private int /* c */ _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive written before the first declarator still leaves the field declaration intact. The
+    /// directive guard inspects the whole declaration, so it covers the newly read slot as well (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBeforeFirstDeclaratorLeavesTheFieldIntact()
     {
         // Arrange
         const string input = """
                              internal class TestClass
                              {
                                  private int
-                                 /* c */ _first, _second;
+                             #if DEBUG
+                                 /* c */
+                             #endif
+                                 _first, _second;
                              }
                              """;
 
-        foreach (var endOfLine in _lineEndings)
-        {
-            // Act
-            var actual = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine);
+        // Act & Assert
+        AssertRuleResult(input);
+    }
 
-            // Assert
-            Assert.Contains("/* c */", actual, $"The comment before the first declarator must survive the split under {DescribeLineEnding(endOfLine)} line endings.");
-        }
+    /// <summary>
+    /// Verifies that disabled text written before the first declarator still leaves the field declaration intact
+    /// (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void DisabledTextBeforeFirstDeclaratorLeavesTheFieldIntact()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                             #if false
+                                 /* c */
+                             #endif
+                                 _first, _second;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the declarator of a single declarator field is untouched. The split does not
+    /// run at all, so the slot is never rebuilt (issue #636)
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeDeclaratorOfSingleDeclaratorFieldIsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+
+                                 /* c */ _first;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
