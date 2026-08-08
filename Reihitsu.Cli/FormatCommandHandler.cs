@@ -210,16 +210,29 @@ internal sealed class FormatCommandHandler
     }
 
     /// <summary>
-    /// Determines whether the specified file path is within a build output directory (bin/ or obj/)
+    /// Determines whether a recursively discovered file is within a build output directory below the explicit
+    /// directory target
     /// </summary>
     /// <param name="filePath">The file path to check</param>
+    /// <param name="selectionRoot">The explicitly selected directory path</param>
+    /// <param name="pathComparer">The platform-specific path comparer</param>
     /// <returns><see langword="true"/> if the file is in a build output directory; otherwise, <see langword="false"/></returns>
-    private static bool IsInBuildOutputDirectory(string filePath)
+    private static bool IsInBuildOutputDirectory(string filePath, string selectionRoot, StringComparer pathComparer)
     {
-        var normalizedPath = filePath.Replace('\\', '/');
+        var relativePath = Path.GetRelativePath(selectionRoot, filePath);
+        var segments = relativePath.Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries);
 
-        return normalizedPath.Contains("/bin/", StringComparison.OrdinalIgnoreCase)
-               || normalizedPath.Contains("/obj/", StringComparison.OrdinalIgnoreCase);
+        // The final segment is the file name. Only recursively discovered directory segments are exclusions; the
+        // explicitly selected root is absent from the relative path and therefore always remains eligible.
+        for (var index = 0; index < segments.Length - 1; index++)
+        {
+            if (pathComparer.Equals(segments[index], "bin") || pathComparer.Equals(segments[index], "obj"))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -466,12 +479,17 @@ internal sealed class FormatCommandHandler
             }
             else if (_fileSystem.DirectoryExists(path))
             {
-                var directoryFiles = _fileSystem.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories)
-                                                .Where(file => IsInBuildOutputDirectory(file) == false);
+                var selectionRoot = _fileSystem.GetFullPath(path);
+                var directoryFiles = _fileSystem.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories);
 
                 foreach (var directoryFile in directoryFiles)
                 {
-                    AddFile(_fileSystem.GetFullPath(directoryFile), files, seen);
+                    var fullPath = _fileSystem.GetFullPath(directoryFile);
+
+                    if (IsInBuildOutputDirectory(fullPath, selectionRoot, comparer) == false)
+                    {
+                        AddFile(fullPath, files, seen);
+                    }
                 }
             }
         }

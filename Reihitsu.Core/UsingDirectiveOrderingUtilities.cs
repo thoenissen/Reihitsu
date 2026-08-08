@@ -128,7 +128,7 @@ public static class UsingDirectiveOrderingUtilities
     {
         var rootNamespace = GetRootNamespace(usingDirective);
 
-        return string.Equals(rootNamespace, "System", StringComparison.OrdinalIgnoreCase)
+        return string.Equals(rootNamespace, "System", StringComparison.Ordinal)
                    ? string.Empty
                    : rootNamespace;
     }
@@ -142,7 +142,7 @@ public static class UsingDirectiveOrderingUtilities
     public static bool AreInSameGroup(UsingDirectiveSyntax left, UsingDirectiveSyntax right)
     {
         return GetUsingTypeOrder(left) == GetUsingTypeOrder(right)
-               && string.Equals(GetRootNamespace(left), GetRootNamespace(right), StringComparison.OrdinalIgnoreCase);
+               && string.Equals(GetRootNamespace(left), GetRootNamespace(right), StringComparison.Ordinal);
     }
 
     /// <summary>
