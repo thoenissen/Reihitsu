@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Cli.Abstractions;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli;
 
@@ -167,7 +168,7 @@ internal sealed class FormatCommandHandler
 
         foreach (var filePath in files)
         {
-            if (IsGeneratedFile(filePath))
+            if (GeneratedFileUtilities.IsGeneratedFile(filePath))
             {
                 skippedGenerated++;
 
@@ -222,28 +223,6 @@ internal sealed class FormatCommandHandler
     }
 
     /// <summary>
-    /// Determines whether the specified file is a generated file that should be skipped
-    /// </summary>
-    /// <param name="filePath">The file path to check</param>
-    /// <returns><see langword="true"/> if the file is a generated file; otherwise, <see langword="false"/></returns>
-    private static bool IsGeneratedFile(string filePath)
-    {
-        return filePath.EndsWith(".Designer.cs", StringComparison.OrdinalIgnoreCase)
-               || filePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase)
-               || filePath.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Determines whether the specified syntax tree contains syntax errors
-    /// </summary>
-    /// <param name="syntaxTree">The syntax tree to check</param>
-    /// <returns><see langword="true"/> if the syntax tree has errors; otherwise, <see langword="false"/></returns>
-    private static bool HasSyntaxErrors(SyntaxTree syntaxTree)
-    {
-        return syntaxTree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-    }
-
-    /// <summary>
     /// Determines whether an encoding represents UTF-8 with a byte order mark
     /// </summary>
     /// <param name="encoding">The encoding to inspect</param>
@@ -282,7 +261,7 @@ internal sealed class FormatCommandHandler
             var originalContent = fileRead.Content;
             var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, path: filePath, cancellationToken: cancellationToken);
 
-            if (HasSyntaxErrors(syntaxTree))
+            if (ReihitsuFormatterHelpers.HasSyntaxErrors(syntaxTree))
             {
                 if (_verbose)
                 {
@@ -418,7 +397,7 @@ internal sealed class FormatCommandHandler
             return null;
         }
 
-        var candidateFiles = files.Where(filePath => IsGeneratedFile(filePath) == false).ToArray();
+        var candidateFiles = files.Where(filePath => GeneratedFileUtilities.IsGeneratedFile(filePath) == false).ToArray();
 
         if (candidateFiles.Length <= LargeRunConfirmationThreshold)
         {

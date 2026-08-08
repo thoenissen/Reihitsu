@@ -14,6 +14,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 | `build.sh` / `build.ps1` | `dotnet build Reihitsu.sln -c Release` |
 | `test.sh` / `test.ps1` | Run one or all test projects, with an optional focused filter |
 | `format.sh` / `format.ps1` | Format the given paths through `Reihitsu.Cli` |
+| `trace.sh` / `trace.ps1` | Trace source changes at each top-level formatter phase without modifying the input |
 | `verify-text-only.sh` / `verify-text-only.ps1` | Prove that a change carries no compiled behavior |
 | `clean-bin-obj.ps1` | Remove all `bin` and `obj` directories |
 | `install-cli.ps1` | Install or update the locally built `Reihitsu.Cli` global tool |
@@ -26,6 +27,7 @@ scripts/prepare.sh
 scripts/build.sh
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
 scripts/format.sh Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
+scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 ```
 
@@ -34,8 +36,19 @@ scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 .\scripts\build.ps1
 .\scripts\test.ps1 -Project analyzer -Filter "FullyQualifiedName~RH3204"
 .\scripts\format.ps1 Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs
+.\scripts\trace.ps1 samples\Example.cs -Passes 3 -NoInstall
 .\scripts\verify-text-only.ps1 -Base a1b2c3d -Head worktree
 ```
+
+## Formatter pipeline trace
+
+`trace.sh <file> [--passes N] [--no-install]` and `trace.ps1 <file> [-Passes N] [-NoInstall]` run one C# file through the twelve top-level `IFormattingPhase` boundaries. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
+
+The trace defaults to at most three passes and requires a positive pass count. It prints a pass/phase header only when that phase changes serialized source. Line-content changes get a unified diff; when a change only normalizes line-ending separators, the shared diff generator has no line hunk, so the trace prints before/after CRLF, LF, and CR counts instead. It preserves the input's detected LF or CRLF convention and stops early after the first complete pass that makes no change. Syntax-invalid and generated inputs are reported as legitimate skips.
+
+Exit codes are `0` when formatting stabilizes or the input is legitimately skipped, `1` when the source is still changing after the requested pass count, and `2` for invalid arguments, missing files, unavailable tooling, or execution failures. Execution errors identify the active pass and, when available, the active phase.
+
+The implementation lives in `trace/trace.cs` as a [.NET 10 file-based app](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps) with a repository-only project reference to `Reihitsu.Cli`. Like the text-only proof app, it is outside `Reihitsu.sln`; its local `Directory.Build.props` isolates it from solution packaging and analyzer settings.
 
 ## The text-only proof
 
