@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Core;
+
 namespace Reihitsu.Analyzer.Test.Core;
 
 /// <summary>
