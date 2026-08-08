@@ -11,10 +11,8 @@ namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 
 /// <summary>
 /// Tests for <see cref="BlankLinePhase"/> — blank lines required before <c>#region</c> and <c>#endregion</c>
-/// directives that directly follow a switch-label colon. Exercised at the phase level rather than through the
-/// full pipeline because <see cref="Formatter.Pipeline.RegionFormatting.Utilities.NestedRegionRemovalStep"/>
-/// unconditionally strips region directives nested inside a switch statement, which would otherwise remove the
-/// directives under test before blank-line formatting ever runs
+/// directives that directly follow a switch-label colon. Phase-level fixtures isolate this layout policy from
+/// region naming and the other formatter phases
 /// </summary>
 [TestClass]
 public class BlankLineRegionDirectivePhaseTests : FormatterTestsBase

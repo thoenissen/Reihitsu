@@ -6,9 +6,8 @@ using Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 namespace Reihitsu.Formatter.Pipeline.RegionFormatting;
 
 /// <summary>
-/// Region formatting — capitalizes region descriptions and synchronizes endregion comments
-/// (<see cref="RegionNamingRewriter"/>), then removes regions nested inside element bodies
-/// (<see cref="NestedRegionRemovalStep"/>)
+/// Region formatting — capitalizes region descriptions and synchronizes endregion comments through
+/// <see cref="RegionNamingRewriter"/> without changing directive placement
 /// </summary>
 internal sealed class RegionFormattingPhase : IFormattingPhase
 {
@@ -23,9 +22,7 @@ internal sealed class RegionFormattingPhase : IFormattingPhase
     /// <returns>The formatted syntax node</returns>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        root = RegionNamingRewriter.Rewrite(root, cancellationToken);
-
-        return NestedRegionRemovalStep.Remove(root, cancellationToken);
+        return RegionNamingRewriter.Rewrite(root, cancellationToken);
     }
 
     #endregion // IFormattingPhase

@@ -113,8 +113,8 @@ public class DisabledRegionLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region inside a method body in disabled code is not removed, although the
-    /// same region in active code would be
+    /// Verifies that a region inside a method body in disabled code is preserved without active-code
+    /// layout changes
     /// </summary>
     [TestMethod]
     public void RegionInsideDisabledMethodBodyIsNotRemoved()

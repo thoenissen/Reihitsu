@@ -6,8 +6,8 @@ using Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 namespace Reihitsu.Formatter.Test.Unit.RegionFormatting;
 
 /// <summary>
-/// Tests for <see cref="RegionNamingRewriter"/>, the naming half of the region phase. These pin the
-/// capitalization and endregion synchronization independently of the nested-region removal
+/// Tests for <see cref="RegionNamingRewriter"/>. These pin region-name capitalization and endregion
+/// synchronization independently of the other formatter phases
 /// </summary>
 [TestClass]
 public class RegionNamingRewriterTests

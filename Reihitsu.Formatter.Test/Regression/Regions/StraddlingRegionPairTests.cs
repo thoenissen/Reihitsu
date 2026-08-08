@@ -5,11 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Regions;
 
 /// <summary>
-/// Regression tests for a region pair that straddles an element-body boundary: one directive sits
-/// inside a body while its match does not. Removing only the half that sits inside the body left
-/// the other half orphaned, so formatting turned source that parsed cleanly into source that no
-/// longer compiles (CS1028). The pair is removed as a unit instead, which also matches what
-/// <c>RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider</c> does for the same input
+/// Regression tests for region pairs that straddle element-body boundaries. The formatter keeps
+/// both endpoints so a formatting pass never orphans a directive or deletes user-authored regions
 /// </summary>
 [TestClass]
 public class StraddlingRegionPairTests : FormatterTestsBase
@@ -18,10 +15,10 @@ public class StraddlingRegionPairTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a region opened between an indexer declaration and its accessor list is
-    /// removed together with its matching closing directive
+    /// preserved together with its matching closing directive
     /// </summary>
     [TestMethod]
-    public void RegionStraddlingAnAccessorListIsRemovedAsAPair()
+    public void RegionStraddlingAnAccessorListIsPreservedAsAPair()
     {
         // Arrange
         const string input = """
@@ -45,12 +42,17 @@ public class StraddlingRegionPairTests : FormatterTestsBase
                                     #region Members
 
                                     public int this[int index]
+
+                                    #region Inner
+
                                     {
                                         get
                                         {
                                             return 0;
                                         }
                                     }
+
+                                    #endregion // Inner
 
                                     #endregion // Members
                                 }
@@ -61,11 +63,11 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region opened between a method declaration and its body is removed together
+    /// Verifies that a region opened between a method declaration and its body is preserved together
     /// with its matching closing directive
     /// </summary>
     [TestMethod]
-    public void RegionStraddlingAMethodBodyIsRemovedAsAPair()
+    public void RegionStraddlingAMethodBodyIsPreservedAsAPair()
     {
         // Arrange
         const string input = """
@@ -89,9 +91,14 @@ public class StraddlingRegionPairTests : FormatterTestsBase
                                     #region Members
 
                                     public int M()
+
+                                    #region Inner
+
                                     {
                                         return 0;
                                     }
+
+                                    #endregion // Inner
 
                                     #endregion // Members
                                 }
@@ -102,11 +109,11 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region whose closing directive sits inside a method body is removed together
-    /// with its opening directive, so no directive the analyzer reports survives formatting
+    /// Verifies that a region whose closing directive sits inside a method body remains paired with
+    /// its opening directive
     /// </summary>
     [TestMethod]
-    public void RegionClosingInsideAMethodBodyIsRemovedAsAPair()
+    public void RegionClosingInsideAMethodBodyIsPreservedAsAPair()
     {
         // Arrange
         const string input = """
@@ -123,8 +130,11 @@ public class StraddlingRegionPairTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
+                                    #region Members
+
                                     public void M()
                                     {
+                                        #endregion // Members
                                     }
                                 }
                                 """;
@@ -134,10 +144,10 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region fully contained in a method body is still removed
+    /// Verifies that a region fully contained in a method body is preserved and formatted
     /// </summary>
     [TestMethod]
-    public void RegionFullyInsideAMethodBodyIsStillRemoved()
+    public void RegionFullyInsideAMethodBodyIsPreservedAndFormatted()
     {
         // Arrange
         const string input = """
@@ -156,7 +166,11 @@ public class StraddlingRegionPairTests : FormatterTestsBase
                                 {
                                     public void M()
                                     {
+                                        #region Inner
+
                                         var value = 1;
+
+                                        #endregion // Inner
                                     }
                                 }
                                 """;
