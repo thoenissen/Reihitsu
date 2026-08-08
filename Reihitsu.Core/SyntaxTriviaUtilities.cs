@@ -4,6 +4,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
@@ -71,6 +72,22 @@ public static class SyntaxTriviaUtilities
     {
         return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
                || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia is a preprocessor directive that the compiler excluded from the
+    /// build, because it sits inside a branch that was not taken. Roslyn still parses such a directive
+    /// into the tree — unlike the code around it, which collapses into a single disabled-text trivia —
+    /// so a rewriter that walks directives reaches it unless it asks. Its surroundings are untouched
+    /// disabled text, and any line break inserted next to it merges into that text where the
+    /// "is there already a blank line" queries cannot see it, so layout edits repeat on every run
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a directive inside an inactive branch; otherwise, <see langword="false"/></returns>
+    public static bool IsInactiveDirective(SyntaxTrivia trivia)
+    {
+        return trivia.HasStructure
+               && trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: false };
     }
 
     /// <summary>

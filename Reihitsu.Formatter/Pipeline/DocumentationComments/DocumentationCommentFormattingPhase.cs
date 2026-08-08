@@ -17,10 +17,22 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 /// <summary>
 /// Normalizes XML documentation comments to repository-specific layout rules. Element-level layout
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
-/// elements, splices in their normalized text and fixes the <c>///</c> line prefixes
+/// elements, splices in their normalized text — repeating until no candidate is left, because only
+/// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes
 /// </summary>
 internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 {
+    #region Constants
+
+    /// <summary>
+    /// Upper bound on the rebuild rounds a single comment may take. Each round resolves one nesting
+    /// level, so real documentation finishes in one or two; the bound only guards against a rebuild
+    /// that would otherwise keep reporting the same element as a candidate
+    /// </summary>
+    private const int MaximumNormalizationRounds = 16;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -192,6 +204,124 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
+    /// Rebuilds the outermost normalization candidates of a documentation comment. A candidate nested
+    /// inside another candidate is skipped, because rebuilding the outer element already replaces the
+    /// text the inner one occupies and both replacements would overwrite each other
+    /// </summary>
+    /// <param name="commentText">Text of the documentation comment</param>
+    /// <param name="commentSpan">Span the comment text occupies in <paramref name="sourceText"/></param>
+    /// <param name="documentationComment">Structured documentation comment</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The rebuilt comment text, or <see langword="null"/> if no element required rebuilding</returns>
+    private static string NormalizeOutermostElements(string commentText, TextSpan commentSpan, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    {
+        var candidates = documentationComment.DescendantNodes()
+                                             .OfType<XmlElementSyntax>()
+                                             .Where(obj => DocCommentElementNormalizer.RequiresNormalization(obj, sourceText))
+                                             .ToList();
+
+        if (candidates.Count == 0)
+        {
+            return null;
+        }
+
+        var candidateSet = new HashSet<XmlElementSyntax>(candidates);
+        var topLevelCandidates = candidates.Where(obj => obj.Ancestors().OfType<XmlElementSyntax>().Any(candidateSet.Contains) == false)
+                                           .OrderByDescending(obj => obj.Span.Start)
+                                           .ToList();
+        var normalizedCommentText = commentText;
+
+        foreach (var element in topLevelCandidates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var replacementText = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+            var relativeStart = element.Span.Start - commentSpan.Start;
+            var relativeEnd = element.Span.End - commentSpan.Start;
+
+            normalizedCommentText = $"{normalizedCommentText.Substring(0, relativeStart)}{replacementText}{normalizedCommentText.Substring(relativeEnd)}";
+        }
+
+        return normalizedCommentText;
+    }
+
+    /// <summary>
+    /// Attempts to read the rebuilt comment text back into a structured documentation comment, so the
+    /// next round measures the elements against the text that was just written rather than the original
+    /// </summary>
+    /// <param name="commentText">Rebuilt comment text</param>
+    /// <param name="commentTrivia">Parsed documentation comment trivia</param>
+    /// <param name="documentationComment">Structured documentation comment</param>
+    /// <returns><see langword="true"/> when the text parses back into a single documentation comment covering all of it</returns>
+    private static bool TryReadBackDocumentationComment(string commentText, out SyntaxTrivia commentTrivia, out DocumentationCommentTriviaSyntax documentationComment)
+    {
+        var parsedTrivia = SyntaxFactory.ParseLeadingTrivia(commentText);
+
+        if (parsedTrivia.Count > 0
+            && parsedTrivia[0].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+            && parsedTrivia[0].GetStructure() is DocumentationCommentTriviaSyntax structure
+            && parsedTrivia[0].FullSpan == new TextSpan(0, commentText.Length))
+        {
+            commentTrivia = parsedTrivia[0];
+            documentationComment = structure;
+
+            return true;
+        }
+
+        commentTrivia = default;
+        documentationComment = null;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Rebuilds normalization candidates until none is left. Only the outermost candidates can be
+    /// rebuilt in one round, so a <c>&lt;code&gt;</c> that needs alignment inside a <c>&lt;remarks&gt;</c>
+    /// that needs alignment used to be reached by the next pipeline run instead, which broke the
+    /// two-run convergence invariant (issue #434). A round that changes nothing ends the loop, so the
+    /// cost is one extra parse per nesting level and none at all for the common single-candidate comment
+    /// </summary>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="documentationComment">Structured documentation comment</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The rebuilt comment text, or <see langword="null"/> if no element required rebuilding</returns>
+    private static string NormalizeElementsUntilStable(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
+    {
+        var currentComment = documentationComment;
+        var currentSourceText = sourceText;
+        var currentSpan = documentationCommentTrivia.FullSpan;
+        var currentText = sourceText.ToString(currentSpan);
+        string normalizedCommentText = null;
+
+        for (var round = 0; round < MaximumNormalizationRounds; round++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var roundText = NormalizeOutermostElements(currentText, currentSpan, currentComment, currentSourceText, cancellationToken);
+
+            if (roundText == null)
+            {
+                break;
+            }
+
+            normalizedCommentText = roundText;
+
+            if (TryReadBackDocumentationComment(roundText, out var roundTrivia, out currentComment) == false)
+            {
+                break;
+            }
+
+            currentSourceText = SourceText.From(roundText);
+            currentSpan = roundTrivia.FullSpan;
+            currentText = roundText;
+        }
+
+        return normalizedCommentText;
+    }
+
+    /// <summary>
     /// Normalizes a documentation comment if any supported XML element requires it
     /// </summary>
     /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
@@ -201,32 +331,9 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <returns>The normalized comment text, or <see langword="null"/> if no change is required</returns>
     private static string NormalizeDocumentationComment(SyntaxTrivia documentationCommentTrivia, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, CancellationToken cancellationToken)
     {
-        var candidates = documentationComment.DescendantNodes()
-                                             .OfType<XmlElementSyntax>()
-                                             .Where(obj => DocCommentElementNormalizer.RequiresNormalization(obj, sourceText))
-                                             .ToList();
-        var normalizedCommentText = sourceText.ToString(documentationCommentTrivia.FullSpan);
-        var changed = false;
-
-        if (candidates.Count > 0)
-        {
-            var candidateSet = new HashSet<XmlElementSyntax>(candidates);
-            var topLevelCandidates = candidates.Where(obj => obj.Ancestors().OfType<XmlElementSyntax>().Any(candidateSet.Contains) == false)
-                                               .OrderByDescending(obj => obj.Span.Start)
-                                               .ToList();
-
-            foreach (var element in topLevelCandidates)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var replacementText = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
-                var relativeStart = element.Span.Start - documentationCommentTrivia.FullSpan.Start;
-                var relativeEnd = element.Span.End - documentationCommentTrivia.FullSpan.Start;
-
-                normalizedCommentText = $"{normalizedCommentText.Substring(0, relativeStart)}{replacementText}{normalizedCommentText.Substring(relativeEnd)}";
-                changed = true;
-            }
-        }
+        var rebuiltCommentText = NormalizeElementsUntilStable(documentationCommentTrivia, documentationComment, sourceText, cancellationToken);
+        var normalizedCommentText = rebuiltCommentText ?? sourceText.ToString(documentationCommentTrivia.FullSpan);
+        var changed = rebuiltCommentText != null;
 
         // The match timeout is a safety net against pathological input, not a performance budget. This prefix
         // pattern is anchored on /// and cannot backtrack catastrophically, so the value is deliberately generous:

@@ -52,8 +52,10 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : Com
 
         if (hasLeadingSpace && hasTrailingSpace)
         {
+            // The flagged symbol is a dot, the question mark of a conditional access or a pointer arrow, so
+            // the replacement has to carry the token's own text rather than a hard-coded "."
             guardSpan = replacementSpan = TextSpan.FromBounds(previousToken.Span.End, nextToken.SpanStart);
-            replacementText = ".";
+            replacementText = token.Text;
         }
         else if (hasLeadingSpace)
         {

@@ -274,7 +274,13 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
-            if (trivia[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            // The leading-trivia counterpart in BlankLineEditor.EnsureBlankLineBeforeFirstDirective passes over
+            // directives inside a branch the compiler skipped, because the line break it inserts merges into the
+            // surrounding disabled text and is inserted again on the next run. Disabled text attaches as leading
+            // trivia of the following token, so no fixture reaches this list with such a directive - the guard is
+            // here so the two copies of the policy cannot drift apart (issue #434)
+            if (trivia[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+                && SyntaxTriviaUtilities.IsInactiveDirective(trivia[triviaIndex]) == false)
             {
                 directiveIndex = triviaIndex;
 

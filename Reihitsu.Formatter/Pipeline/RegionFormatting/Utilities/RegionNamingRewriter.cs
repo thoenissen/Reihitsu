@@ -12,6 +12,12 @@ namespace Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 /// changes through trivia replacement. Removing regions nested inside element bodies belongs to
 /// <see cref="NestedRegionRemovalStep"/>
 /// </summary>
+/// <remarks>
+/// Unlike the layout steps around it, this one deliberately reaches directives inside a branch the
+/// compiler skipped. RH7301 and RH7302 report those directives, so refusing to name them would leave
+/// a diagnostic the formatter declines to fix. The layout steps have no such counterpart — the
+/// blank-line rules stay silent inside disabled code — which is why they skip it instead (issue #434)
+/// </remarks>
 internal static class RegionNamingRewriter
 {
     #region Methods
