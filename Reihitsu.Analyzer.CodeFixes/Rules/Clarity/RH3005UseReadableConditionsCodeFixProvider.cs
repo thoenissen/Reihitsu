@@ -174,7 +174,7 @@ public class RH3005UseReadableConditionsCodeFixProvider : CodeFixProvider
                 var binaryExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<BinaryExpressionSyntax>().FirstOrDefault();
 
                 if (binaryExpression != null
-                    && SyntaxNodeUtilities.ContainsCommentOrDirective(binaryExpression) == false
+                    && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(binaryExpression) == false
                     && IsSwapSemanticsPreserving(semanticModel, binaryExpression, context.CancellationToken))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3005Title,
