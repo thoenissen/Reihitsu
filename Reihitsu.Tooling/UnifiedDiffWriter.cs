@@ -7,6 +7,21 @@ namespace Reihitsu.Tooling;
 /// </summary>
 public static class UnifiedDiffWriter
 {
+    #region Constants
+
+    /// <summary>
+    /// The marker emitted after a line that is the last line of a file lacking a trailing newline
+    /// </summary>
+    private const string NoNewlineMarker = "\\ No newline at end of file";
+
+    /// <summary>
+    /// Internal sentinel appended to an unterminated last line so it differs from an otherwise identical terminated
+    /// line during comparison; it is stripped before output and replaced by <see cref="NoNewlineMarker"/>
+    /// </summary>
+    private const string NoNewlineSentinel = "￼NO-NEWLINE-AT-END-OF-FILE￼";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -24,8 +39,8 @@ public static class UnifiedDiffWriter
             return string.Empty;
         }
 
-        var beforeLines = FixtureLineEndings.SplitLines(before);
-        var afterLines = FixtureLineEndings.SplitLines(after);
+        var beforeLines = ToDiffLines(before);
+        var afterLines = ToDiffLines(after);
         var builder = new StringBuilder();
 
         builder.Append("--- a/").Append(path).Append('\n');
@@ -34,10 +49,56 @@ public static class UnifiedDiffWriter
 
         foreach (var (kind, line) in Compare(beforeLines, afterLines))
         {
-            builder.Append(kind).Append(line).Append('\n');
+            AppendLine(builder, kind, line);
         }
 
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Splits content into diff lines, encoding the trailing-newline state into the last line
+    /// </summary>
+    /// <param name="content">Content to split</param>
+    /// <returns>The diff lines, with an unterminated last line carrying the no-newline sentinel</returns>
+    private static List<string> ToDiffLines(string content)
+    {
+        var lines = FixtureLineEndings.SplitLines(content);
+
+        if (lines.Count > 0 && EndsWithLineBreak(content) == false)
+        {
+            lines[^1] += NoNewlineSentinel;
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// Appends a diff line, replacing the internal no-newline sentinel with the standard marker
+    /// </summary>
+    /// <param name="builder">Builder receiving the line</param>
+    /// <param name="kind">Unified-diff line prefix</param>
+    /// <param name="line">Line text, possibly carrying the no-newline sentinel</param>
+    private static void AppendLine(StringBuilder builder, char kind, string line)
+    {
+        if (line.EndsWith(NoNewlineSentinel, StringComparison.Ordinal))
+        {
+            builder.Append(kind).Append(line[..^NoNewlineSentinel.Length]).Append('\n');
+            builder.Append(NoNewlineMarker).Append('\n');
+        }
+        else
+        {
+            builder.Append(kind).Append(line).Append('\n');
+        }
+    }
+
+    /// <summary>
+    /// Determines whether content ends with a line break
+    /// </summary>
+    /// <param name="content">Content to inspect</param>
+    /// <returns><see langword="true"/> when the content ends with a line break; otherwise, <see langword="false"/></returns>
+    private static bool EndsWithLineBreak(string content)
+    {
+        return content.Length > 0 && (content[^1] == '\n' || content[^1] == '\r');
     }
 
     /// <summary>

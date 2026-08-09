@@ -28,5 +28,7 @@
       <ProjectReference Include="..\Reihitsu.Core\Reihitsu.Core.csproj" />
       <ProjectReference Include="..\Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj" />
       <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
+      <ProjectReference Include="..\Reihitsu.Tooling.Test\Reihitsu.Tooling.Test.csproj" />
+      <ProjectReference Include="..\Reihitsu.Tooling\Reihitsu.Tooling.csproj" />
    </ItemGroup>
 </Project>

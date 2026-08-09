@@ -20,7 +20,7 @@ scripts/test.sh --no-build
 
 `scripts/prepare.sh` is a no-op when a `10.*` SDK is already present. `--no-build` is valid only because the
 Release build immediately above covered this exact tree — if your prompt says a file changed since, drop it.
-`scripts/test.sh` runs all four test projects in order; all four must pass. Never substitute a hand-written
+`scripts/test.sh` runs all test projects in order; every test project must pass. Never substitute a hand-written
 `dotnet` invocation, and never narrow the run with `--filter`.
 
 ## What you never do

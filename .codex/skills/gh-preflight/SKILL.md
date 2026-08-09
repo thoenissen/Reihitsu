@@ -69,7 +69,7 @@ A rename is **not** a carve-out. Renaming reaches `nameof`, reflection, serializ
 
 **Uncertain → ask the user.** When a diff fits neither list cleanly, ask the user and let them decide. Preflight is the single most expensive step in the workflow and is not spent on a guess — in either direction.
 
-Skipping preflight never implies skipping the full validation. A diff that contains any compiled file still gets the build and all four test projects; only a diff with no compiled file at all skips validation too. Test runtime costs wall-clock and almost no tokens, so it is never the thing to economize.
+Skipping preflight never implies skipping the full validation. A diff that contains any compiled file still gets the build and all test projects; only a diff with no compiled file at all skips validation too. Test runtime costs wall-clock and almost no tokens, so it is never the thing to economize.
 
 ## Calling conditions
 

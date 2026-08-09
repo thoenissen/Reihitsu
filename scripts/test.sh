@@ -70,7 +70,9 @@ case "$project" in
         projects=("Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj"
                   "Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj"
                   "Reihitsu.Core.Test/Reihitsu.Core.Test.csproj"
-                  "Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj")
+                  "Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj"
+                  "Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj"
+                  "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj")
         ;;
     *)
         echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, tooling, or all)." >&2

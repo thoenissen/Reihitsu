@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Tooling.Enumerations;
+using Reihitsu.Tooling.Test.Helpers;
 
 namespace Reihitsu.Tooling.Test.Unit;
 
@@ -99,6 +100,112 @@ public sealed class FixtureRunnerTests
         // Assert
         Assert.IsTrue(unparseable);
         Assert.IsFalse(parseable);
+    }
+
+    /// <summary>
+    /// Verifies that a code action producing invalid source is classified as an invalid result after one iteration
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsInvalidResult()
+    {
+        // Arrange
+        var target = CreateTarget(new TextReportingFakeAnalyzer(_ => true),
+                                  new SourceTransformingFakeCodeFix(_ => "internal class Sample\n{\n"));
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.LineFeed,
+                                                  10,
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.InvalidResult, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a code action returning identical source is classified separately from iteration-cap exhaustion
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsNoProgress()
+    {
+        // Arrange
+        var target = CreateTarget(new TextReportingFakeAnalyzer(_ => true),
+                                  new SourceTransformingFakeCodeFix(source => source));
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.LineFeed,
+                                                  10,
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.NoProgress, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a converged fix retaining a separator from the wrong arm records line-ending drift
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsLineEndingDrift()
+    {
+        // Arrange
+        var target = CreateTarget(new TextReportingFakeAnalyzer(source => source.Contains("_field", StringComparison.Ordinal) == false),
+                                  new SourceTransformingFakeCodeFix(source => source.Replace("}\r\n",
+                                                                                             "    private int _field;\n}\r\n",
+                                                                                             StringComparison.Ordinal)));
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.CarriageReturnLineFeed,
+                                                  10,
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.IsFalse(result.PreservedLineEnding);
+        Assert.Contains("_field;\n}", result.FinalSource);
+    }
+
+    /// <summary>
+    /// Verifies that Roslyn's analyzer-failure diagnostic is classified before the target diagnostic is filtered
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsAnalyzerFailure()
+    {
+        // Arrange
+        var target = CreateTarget(new ThrowingFakeAnalyzer(), new FirstFakeCodeFix());
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.LineFeed,
+                                                  10,
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.AnalyzerFailure, result.Outcome);
+        Assert.AreEqual(0, result.Iterations);
+    }
+
+    /// <summary>
+    /// Builds a direct fixture target from deterministic test doubles
+    /// </summary>
+    /// <param name="analyzer">Analyzer to execute</param>
+    /// <param name="codeFix">Code fix to execute</param>
+    /// <returns>The fixture target</returns>
+    private static CodeFixTarget CreateTarget(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer,
+                                              Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFix)
+    {
+        return new CodeFixTarget(FakeDiagnostic.Id, [analyzer], codeFix);
     }
 
     /// <summary>
