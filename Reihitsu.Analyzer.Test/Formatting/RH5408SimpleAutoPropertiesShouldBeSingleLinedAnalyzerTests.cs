@@ -1050,5 +1050,312 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a comment between the initializer value and a semicolon on the same line no longer exempts the
+    /// property. The collapse never joins across that gap, and the formatter already reformats the shape (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBetweenInitializerValueAndSemicolonIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = 1 /* note */;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; set; } = 1 /* note */;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the documentation comment of a property carrying a trailing initializer comment survives the
+    /// collapse (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedPropertyWithTrailingInitializerCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    /// <summary>The value.</summary>
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = 1 /* note */;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     /// <summary>
+                                     /// The value.
+                                     /// </summary>
+                                     public int Value { get; set; } = 1 /* note */;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the documentation comment of a property without a trailing initializer comment is expanded the
+    /// same way. This control pins the expansion as pre-existing behavior of the documentation phase rather than a
+    /// side effect of the guard narrowing in issue #650
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedPropertyWithoutTrailingInitializerCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    /// <summary>The value.</summary>
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = 1;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     /// <summary>
+                                     /// The value.
+                                     /// </summary>
+                                     public int Value { get; set; } = 1;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an init accessor with a trailing initializer comment is collapsed (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInitPropertyWithTrailingInitializerCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        init;
+                                    } = 1 /* note */;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; init; } = 1 /* note */;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an accessor modifier is preserved when a property with a trailing initializer comment is
+    /// collapsed (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAccessorModifierWithTrailingInitializerCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        get;
+                                        private set;
+                                    } = 1 /* note */;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH5408
+                                 {
+                                     public int Value { get; private set; } = 1 /* note */;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a single-line generic initializer value with a trailing comment is collapsed (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyGenericInitializerWithTrailingCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class RH5408
+                                {
+                                    {|#0:public Dictionary<int, string> Value
+                                    {
+                                        get;
+                                        set;
+                                    } = new Dictionary<int, string>() /* note */;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class RH5408
+                                 {
+                                     public Dictionary<int, string> Value { get; set; } = new Dictionary<int, string>() /* note */;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a comment before the initializer equals token still exempts the property. The gap guard between
+    /// the accessor list and the initializer is, after issue #650, the only owner of that region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeInitializerEqualsIsNotReported()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        get;
+                                        set;
+                                    }
+                                        /* note */ = 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a directive before the initializer equals token still exempts the property. The gap guard
+    /// between the accessor list and the initializer is, after issue #650, the only owner of that region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveBeforeInitializerEqualsIsNotReported()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        get;
+                                        set;
+                                    }
+                                #if FEATURE
+                                #endif
+                                        = 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a line comment between the initializer value and the semicolon still exempts the property. Such
+    /// a comment runs to the end of the line, so the gap spans lines and its own guard owns it (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLineCommentBetweenInitializerValueAndSemicolonIsNotReported()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = 1 // note
+                                        ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a comment between the equals token and the initializer value still exempts the property. The
+    /// collapse would be safe there, but the interior guard is the only owner of that gap, so the shape is left to
+    /// manual correction (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBetweenEqualsAndInitializerValueIsNotReported()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = /* note */ 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a multi-line initializer value with a trailing comment still exempts the property (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineInitializerValueWithTrailingCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = 1
+                                        + 2 /* note */;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

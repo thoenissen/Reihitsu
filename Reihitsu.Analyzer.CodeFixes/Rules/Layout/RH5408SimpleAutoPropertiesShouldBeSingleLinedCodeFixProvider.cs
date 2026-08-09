@@ -99,7 +99,10 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
 
         if (propertyDeclaration.Initializer != null)
         {
-            if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.Initializer))
+            // Only the initializer's own span is inspected, matching the analyzer's predicate exactly. The two must
+            // stay identical: a shape the analyzer reports and this predicate rejects is a diagnostic with no
+            // available action, which is the failure mode the gap guards below were introduced to avoid.
+            if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.Initializer))
             {
                 return false;
             }

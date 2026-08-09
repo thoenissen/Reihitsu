@@ -134,7 +134,13 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
 
         if (propertyDeclaration.Initializer != null)
         {
-            if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.Initializer))
+            // Only the initializer's own span is inspected. Its full span additionally covers the leading trivia of
+            // the equals token and the trailing trivia of the value's last token, and neither region is crossed in
+            // every case: the two gap guards below own them wherever the collapse actually has to join across them,
+            // and where they do not fire nothing is joined at all. Both of those guards carry a line-span
+            // precondition and are, after this narrowing, the only owners of their region — weakening either one
+            // silently uncovers it.
+            if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.Initializer))
             {
                 return false;
             }
@@ -163,8 +169,9 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             // declaration multi-line. DeclarationSemicolonLineBreakRewriter joins that gap, but it refuses to join
             // across a comment or directive, so the analyzer must guard the same gap to avoid a permanent diagnostic.
             // The line check keeps the guard aligned with the rewriter, which only acts on a semicolon that carries a
-            // leading line break: trivia in a gap that already sits on one line is never crossed, and such a comment
-            // is trailing trivia of the initializer value, which the initializer guard above already owns.
+            // leading line break: trivia in a gap that already sits on one line is never crossed. Such a comment is
+            // trailing trivia of the initializer value, which the interior guard above deliberately no longer owns,
+            // so this guard is its only owner once the gap spans lines.
             var tokenBeforeSemicolon = propertyDeclaration.SemicolonToken.GetPreviousToken();
 
             if (propertyDeclaration.SemicolonToken.IsMissing == false
