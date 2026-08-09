@@ -63,6 +63,19 @@ The repository defines custom Claude slash commands under `.claude/commands`:
 
 Use the command that matches the task so the repository-specific workflow and checklist are applied from the start.
 
+## Agent definitions
+
+The `gh-*` workflows spawn their gates as subagents defined under `.claude/agents/`. Those files are the single owner of each stage's model tier, effort level, and tool restrictions:
+
+| Agent | Stage | Model / effort |
+|---|---|---|
+| `reihitsu-reproduction` | Reproduction gate, and its escalated confirmation | `sonnet` / `high` |
+| `reihitsu-rubber-duck` | Behavior Contract gate | `opus` / `xhigh` |
+| `reihitsu-preflight` | Official preflight, attempt 1 and the retry | `opus` / `xhigh` |
+| `reihitsu-validate` | Full validation | `haiku` / `low` |
+
+Spawn a gate by its `subagent_type` and pass no model argument, so re-tuning a stage stays a one-line frontmatter change rather than an edit spread across three skill files. The one deliberate override is the reproduction gate's escalated confirmation, which re-runs the same agent type at `opus` because `NOT REPRODUCED` is the only gate verdict that ends a run and cannot be falsified by a later stage. The orchestrator is the session agent and is not configured here. `.claude/agents/README.md` records the reasoning and what was deliberately left unconfigured.
+
 ## Issue intake — question the report
 
 Issues here are filed under the maintainer's GitHub account, but many of them are generated — drafted by an agent from a source audit rather than observed by a person running the tool. The account name is not evidence that a human confirmed the behavior. Treat every issue as a hypothesis to be checked, never as a specification to be executed, and apply that regardless of who filed it:

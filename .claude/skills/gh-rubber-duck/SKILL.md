@@ -236,7 +236,7 @@ Section rules:
 
 ## When `gh-implement` invokes this skill
 
-`gh-implement` reads this file in the parent agent and then runs the analysis in one fresh, read-only subagent that has no access to the parent's proposed solution. Three consequences:
+`gh-implement` reads this file in the parent agent and then runs the analysis in one fresh, read-only subagent of type `reihitsu-rubber-duck` — defined in `.claude/agents/`, which owns its model tier and effort level — with no access to the parent's proposed solution. Three consequences:
 
 - Report the contract you can defend from the issue and the repository, not the one the parent seems to want. Independence is the whole point of the isolation.
 - Return the schema above verbatim. The parent turns the `Behavior contract`, `Adversarial matrix`, `Guard-delta table`, `Predicate-boundary table`, and `Defect-class sweep` rows directly into its regression matrix and local self-review checklist, so unstable headings break the hand-off.
