@@ -93,5 +93,58 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBa
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies that the complete shared statement-parent family reports populated single-line bodies
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAdditionalStatementParentsAreDetected()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    unsafe void Method((int, int)[] values, IDisposable disposable, int[] buffer)
+                                    {
+                                        foreach (var (first, second) in values) {|#0:{|} return; }
+                                        using (disposable) {|#1:{|} return; }
+                                        lock (this) {|#2:{|} return; }
+                                        fixed (int* item = buffer) {|#3:{|} return; }
+                                        do {|#4:{|} return; } while (false);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject),
+                     Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies that empty covered bodies and populated catch bodies remain outside RH5403
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEmptyCoveredBodyAndCatchAreExcluded()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        do { } while (false);
+
+                                        try
+                                        {
+                                        }
+                                        catch { return; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

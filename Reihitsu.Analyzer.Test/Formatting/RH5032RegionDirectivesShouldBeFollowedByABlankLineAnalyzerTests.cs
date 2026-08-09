@@ -147,5 +147,55 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an active region, unlike an end-region, requires a blank line before a closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionBeforeClosingBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    {|#0:#region Empty|}
+                                }
+
+                                #endregion
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     #region Empty
+
+                                 }
+
+                                 #endregion
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an end-region at end of file remains exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEndRegionAtEndOfFileIsExempt()
+    {
+        const string testData = """
+                                #region Content
+
+                                internal class TestClass
+                                {
+                                }
+
+                                #endregion
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

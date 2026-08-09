@@ -125,5 +125,31 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                                Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter and analyzer agree on an enum-member value split after the equals sign
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesEnumMemberValueSplitAfterEquals()
+    {
+        const string input = """
+                             internal enum Values
+                             {
+                                 {|#0:First =
+                                     1|}
+                             }
+                             """;
+        const string fixedData = """
+                                 internal enum Values
+                                 {
+                                     First = 1
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
     #endregion // Tests
 }

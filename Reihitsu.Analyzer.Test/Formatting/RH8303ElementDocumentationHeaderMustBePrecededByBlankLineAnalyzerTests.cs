@@ -345,5 +345,79 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies that delimited XML documentation headers are detected and fixed without an RH5020 overlap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationHeaderIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void First()
+                                    {
+                                    }
+                                    {|#0:/**|} <summary>Second.</summary> */
+                                    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void First()
+                                     {
+                                     }
+
+                                     /** <summary>Second.</summary> */
+                                     void Second()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that mixed consecutive documentation forms produce one diagnostic for the block boundary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedDocumentationFormsProduceOneDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void First()
+                                    {
+                                    }
+                                    {|#0:///|} <summary>First part.</summary>
+                                    /** <remarks>Continuation.</remarks> */
+                                    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void First()
+                                     {
+                                     }
+
+                                     /// <summary>First part.</summary>
+                                     /** <remarks>Continuation.</remarks> */
+                                     void Second()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
     #endregion // Tests
 }

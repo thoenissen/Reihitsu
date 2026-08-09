@@ -46,11 +46,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBa
 
         foreach (var block in root.DescendantNodes().OfType<BlockSyntax>())
         {
-            if (block.Parent is not IfStatementSyntax
-                && block.Parent is not ElseClauseSyntax
-                && block.Parent is not WhileStatementSyntax
-                && block.Parent is not ForStatementSyntax
-                && block.Parent is not ForEachStatementSyntax)
+            if (StatementBlockParentPolicy.IsCovered(block) == false)
             {
                 continue;
             }

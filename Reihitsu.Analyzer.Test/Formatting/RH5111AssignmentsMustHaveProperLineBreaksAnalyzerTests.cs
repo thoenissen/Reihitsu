@@ -1104,5 +1104,72 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
         await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that parameter defaults and enum-member equals values are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyParameterAndEnumEqualsValuesAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal enum Values
+                                {
+                                    {|#0:First =
+                                        1|}
+                                }
+
+                                internal class TestClass
+                                {
+                                    void Method({|#1:int value =
+                                        1|})
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal enum Values
+                                 {
+                                     First = 1
+                                 }
+
+                                 internal class TestClass
+                                 {
+                                     void Method(int value = 1)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that protected trivia still allows the diagnostic while withholding an unsafe action
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentedParameterDefaultIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method({|#0:int value = // keep
+                                        1|})
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<ParameterSyntax>().Single().GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

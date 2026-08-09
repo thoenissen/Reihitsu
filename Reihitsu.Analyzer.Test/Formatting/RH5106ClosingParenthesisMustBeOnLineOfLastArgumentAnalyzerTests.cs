@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -198,6 +199,91 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : A
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that parameter-list closers are checked for the remaining direct parent shapes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRemainingDirectParameterListParentsAreDetected()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Primary(int value
+                                {|#0:)|}
+                                {
+                                    ~Primary(
+                                    {|#1:)|}
+                                    {
+                                    }
+
+                                    void Method()
+                                    {
+                                        void Local(int item
+                                        {|#7:)|}
+                                        {
+                                        }
+
+                                        Func<int, int> parenthesized = (int item
+                                        {|#2:)|} => item;
+                                        Func<int, int> anonymous = delegate(int item
+                                        {|#3:)|} { return item; };
+                                    }
+
+                                    public static Primary operator +(Primary left, Primary right
+                                    {|#8:)|} => left;
+
+                                    public static implicit operator int(Primary value
+                                    {|#9:)|} => 0;
+                                }
+
+                                internal struct Value(int value
+                                {|#4:)|}
+                                {
+                                }
+
+                                internal interface Contract(int value
+                                {|#5:)|}
+                                {
+                                }
+
+                                extension(string value
+                                {|#6:)|}
+                                {
+                                }
+
+                                internal delegate void Handler(int value
+                                {|#10:)|};
+
+                                internal record Item(int value
+                                {|#11:)|};
+
+                                internal record struct Pair(int value
+                                {|#12:)|};
+                                """;
+
+        await Verify(testData,
+                     test => test.CompilerDiagnostics = CompilerDiagnostics.None,
+                     Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat, 13));
+    }
+
+    /// <summary>
+    /// Verifies that malformed parameter lists do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMalformedSyntaxIsIgnored()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    void Broken(
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

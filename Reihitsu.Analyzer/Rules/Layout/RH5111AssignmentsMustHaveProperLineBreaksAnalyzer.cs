@@ -98,6 +98,30 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
     }
 
     /// <summary>
+    /// Analyzes a parameter default value
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnParameter(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is ParameterSyntax { Default: { } defaultValue } parameter)
+        {
+            CheckAssignment(context, parameter.Identifier, defaultValue.EqualsToken, defaultValue.Value, parameter.GetLocation(), skipValuePlacementCheck: false);
+        }
+    }
+
+    /// <summary>
+    /// Analyzes an enum-member equals value
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnEnumMemberDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is EnumMemberDeclarationSyntax { EqualsValue: { } equalsValue } enumMember)
+        {
+            CheckAssignment(context, enumMember.Identifier, equalsValue.EqualsToken, equalsValue.Value, enumMember.GetLocation(), skipValuePlacementCheck: false);
+        }
+    }
+
+    /// <summary>
     /// Checks if an assignment has proper line breaks
     /// </summary>
     /// <param name="context">Analysis context</param>
@@ -144,6 +168,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
         context.RegisterSyntaxNodeAction(OnSimpleAssignmentExpression, SyntaxKind.SimpleAssignmentExpression);
         context.RegisterSyntaxNodeAction(OnVariableDeclaration, SyntaxKind.VariableDeclaration);
         context.RegisterSyntaxNodeAction(OnPropertyDeclaration, SyntaxKind.PropertyDeclaration);
+        context.RegisterSyntaxNodeAction(OnParameter, SyntaxKind.Parameter);
+        context.RegisterSyntaxNodeAction(OnEnumMemberDeclaration, SyntaxKind.EnumMemberDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

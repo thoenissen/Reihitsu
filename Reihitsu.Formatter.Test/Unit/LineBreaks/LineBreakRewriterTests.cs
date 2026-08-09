@@ -143,6 +143,160 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies previous-token trailing line-break ownership for type, extension, and anonymous-method parameter lists
+    /// under LF and CRLF, including second-pass stability
+    /// </summary>
+    [TestMethod]
+    public void CollapsesSourceDerivedParameterListOpeningGapsAndIsIdempotent()
+    {
+        const string source = """
+                              class ClassExample
+                              (int value)
+                              {
+                              }
+
+                              struct StructExample
+                              (int value)
+                              {
+                              }
+
+                              interface InterfaceExample
+                              (int value)
+                              {
+                              }
+
+                              static class Extensions
+                              {
+                                  extension
+                                  (string value)
+                                  {
+                                  }
+                              }
+
+                              class AnonymousMethodExample
+                              {
+                                  System.Func<int, int> Transform = delegate
+                                  (int value)
+                                  {
+                                      return value;
+                                  };
+                              }
+                              """;
+
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            var input = source.Replace("\r\n", "\n").Replace("\n", endOfLine);
+            var formatted = ExecuteLineBreakPhase(input, endOfLine);
+            var reformatted = ExecuteLineBreakPhase(formatted, endOfLine);
+
+            Assert.Contains("class ClassExample(int value)", formatted);
+            Assert.Contains("struct StructExample(int value)", formatted);
+            Assert.Contains("interface InterfaceExample(int value)", formatted);
+            Assert.Contains("extension(string value)", formatted);
+            Assert.Contains("delegate(int value)", formatted);
+            Assert.AreEqual(formatted, reformatted, "The opening-gap rewrite must be stable on a second pass.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies closing-parenthesis parity for every direct parameter-list parent under LF and CRLF, including
+    /// second-pass stability
+    /// </summary>
+    [TestMethod]
+    public void CollapsesParameterListClosingGapsForEveryDirectParentAndIsIdempotent()
+    {
+        const string source = """
+                              delegate void Handler(int value
+                              );
+
+                              record RecordExample(int value
+                              );
+
+                              record struct RecordStructExample(int value
+                              );
+
+                              class ClassExample(int value
+                              )
+                              {
+                                  ClassExample(int value, bool enabled
+                                  )
+                                  {
+                                  }
+
+                                  ~ClassExample(
+                                  )
+                                  {
+                                  }
+
+                                  void Method(int value
+                                  )
+                                  {
+                                      void Local(int item
+                                      )
+                                      {
+                                      }
+
+                                      System.Func<int, int> parenthesized = (int item
+                                      ) => item;
+                                      System.Func<int, int> anonymous = delegate(int item
+                                      )
+                                      {
+                                          return item;
+                                      };
+                                  }
+
+                                  public static ClassExample operator +(ClassExample left, ClassExample right
+                                  ) => left;
+
+                                  public static implicit operator int(ClassExample value
+                                  ) => 0;
+                              }
+
+                              struct StructExample(int value
+                              )
+                              {
+                              }
+
+                              interface InterfaceExample(int value
+                              )
+                              {
+                              }
+
+                              static class Extensions
+                              {
+                                  extension(string value
+                                  )
+                                  {
+                                  }
+                              }
+                              """;
+
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            var input = source.Replace("\r\n", "\n").Replace("\n", endOfLine);
+            var formatted = ExecuteLineBreakPhase(input, endOfLine);
+            var reformatted = ExecuteLineBreakPhase(formatted, endOfLine);
+
+            Assert.Contains("Handler(int value)", formatted);
+            Assert.Contains("RecordExample(int value)", formatted);
+            Assert.Contains("RecordStructExample(int value)", formatted);
+            Assert.Contains("class ClassExample(int value)", formatted);
+            Assert.Contains("ClassExample(int value, bool enabled)", formatted);
+            Assert.Contains("~ClassExample()", formatted);
+            Assert.Contains("Method(int value)", formatted);
+            Assert.Contains("Local(int item)", formatted);
+            Assert.Contains("(int item) => item", formatted);
+            Assert.Contains("delegate(int item)", formatted);
+            Assert.Contains("operator +(ClassExample left, ClassExample right)", formatted);
+            Assert.Contains("operator int(ClassExample value)", formatted);
+            Assert.Contains("struct StructExample(int value)", formatted);
+            Assert.Contains("interface InterfaceExample(int value)", formatted);
+            Assert.Contains("extension(string value)", formatted);
+            Assert.AreEqual(formatted, reformatted, "The closing-gap rewrite must be stable on a second pass.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that K&amp;R-style braces on a destructor are moved to their own line (Allman style)
     /// </summary>
     [TestMethod]

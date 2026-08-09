@@ -9,10 +9,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH5020CommentsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer, RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5020CommentsShouldBePrecededByABlankLineAnalyzer, RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -56,7 +56,7 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
     }
 
     /// <summary>
@@ -332,7 +332,133 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that four-slash ordinary comments are covered by RH5020
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFourSlashCommentIsDetectedAndFixed()
+    {
+        const string testCode = """
+                                internal class RH5020
+                                {
+                                    void Execute()
+                                    {
+                                        var value = 0;
+                                        {|#0://// Ordinary comment|}
+                                        value++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5020
+                                 {
+                                     void Execute()
+                                     {
+                                         var value = 0;
+
+                                         //// Ordinary comment
+                                         value++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that own-line block comments are covered while inline block comments remain outside the rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOwnLineBlockCommentIsDetectedButInlineCommentIsExcluded()
+    {
+        const string testCode = """
+                                internal class RH5020
+                                {
+                                    void Execute()
+                                    {
+                                        var value = 0; /* inline */
+                                        {|#0:/* own line */|}
+                                        value++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5020
+                                 {
+                                     void Execute()
+                                     {
+                                         var value = 0; /* inline */
+
+                                         /* own line */
+                                         value++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a mixed consecutive ordinary-comment block is owned by its first comment only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedConsecutiveCommentsProduceOneDiagnostic()
+    {
+        const string testCode = """
+                                internal class RH5020
+                                {
+                                    void Execute()
+                                    {
+                                        var value = 0;
+                                        {|#0://// first|}
+                                        /* continuation */
+                                        value++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5020
+                                 {
+                                     void Execute()
+                                     {
+                                         var value = 0;
+
+                                         //// first
+                                         /* continuation */
+                                         value++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the accurate primary names own the exports while the former public names remain obsolete
+    /// compatibility shims
+    /// </summary>
+    [TestMethod]
+    public void VerifyPrimaryExportsAndCompatibilityShimsAreUnique()
+    {
+        var compatibilityAnalyzer = typeof(RH5020CommentsShouldBePrecededByABlankLineAnalyzer).Assembly.GetType("Reihitsu.Analyzer.Rules.Layout.RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer",
+                                                                                                                throwOnError: true) ?? throw new System.InvalidOperationException("The RH5020 analyzer compatibility shim is missing.");
+        var compatibilityProvider = typeof(RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider).Assembly.GetType("Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider",
+                                                                                                                       throwOnError: true) ?? throw new System.InvalidOperationException("The RH5020 code-fix compatibility shim is missing.");
+
+        Assert.IsTrue(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(System.ObsoleteAttribute), inherit: false));
+        Assert.IsTrue(System.Attribute.IsDefined(compatibilityProvider, typeof(System.ObsoleteAttribute), inherit: false));
+        Assert.AreEqual(1,
+                        System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5020CommentsShouldBePrecededByABlankLineAnalyzer), typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false))
+                        + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false)));
+        Assert.AreEqual(1,
+                        System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider), typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false))
+                        + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityProvider, typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false)));
     }
 
     #endregion // Tests
