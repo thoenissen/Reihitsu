@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
@@ -35,6 +36,22 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider : Cod
         return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, argumentList, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Determines whether a comment or a directive sits in the region the rewrite actually writes. That region runs
+    /// from the argument list's full span start to the end of its own span, which releases the trailing side and
+    /// keeps the leading one: <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> restores the last token's
+    /// trailing trivia unconditionally, so a comment written behind the closing parenthesis is never crossed and
+    /// must not withhold the fix, while it restores the first token's leading trivia only when that token does not
+    /// start a line, so a comment written before the opening parenthesis can still be rewritten and stays guarded
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="argumentList">Argument list to inspect</param>
+    /// <returns><see langword="true"/> if the rewritten region carries a comment or directive; otherwise <see langword="false"/></returns>
+    private static bool CarriesCommentOrDirectiveInRewrittenRegion(SyntaxNode root, ArgumentListSyntax argumentList)
+    {
+        return SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, TextSpan.FromBounds(argumentList.FullSpan.Start, argumentList.Span.End));
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -60,7 +77,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider : Cod
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 var argumentList = node as ArgumentListSyntax ?? node.FirstAncestorOrSelf<ArgumentListSyntax>();
 
-                if (argumentList != null && SyntaxNodeUtilities.ContainsCommentOrDirective(argumentList) == false)
+                if (argumentList != null && CarriesCommentOrDirectiveInRewrittenRegion(root, argumentList) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5102Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, argumentList, cancellationToken),

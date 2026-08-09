@@ -70,6 +70,21 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
         return document.WithText(sourceText.Replace(parameterList.Span, replacement));
     }
 
+    /// <summary>
+    /// Determines whether a comment or a directive sits in the region the rewrite actually writes. The replacement
+    /// above rebuilds exactly <see cref="ParameterListSyntax"/>'s own span, so trivia trailing the closing
+    /// parenthesis is never crossed and must not withhold the fix. The inspected region keeps the leading side
+    /// anyway, so this predicate covers the same region as its RH5101 and RH5102 counterparts and the three read
+    /// alike; the replacement could not reach a comment written before the opening parenthesis either way
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="parameterList">Parameter list to inspect</param>
+    /// <returns><see langword="true"/> if the rewritten region carries a comment or directive; otherwise <see langword="false"/></returns>
+    private static bool CarriesCommentOrDirectiveInRewrittenRegion(SyntaxNode root, ParameterListSyntax parameterList)
+    {
+        return SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, TextSpan.FromBounds(parameterList.FullSpan.Start, parameterList.Span.End));
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -98,7 +113,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
             var parameterList = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
 
             if (parameterList == null
-                || SyntaxNodeUtilities.ContainsCommentOrDirective(parameterList))
+                || CarriesCommentOrDirectiveInRewrittenRegion(root, parameterList))
             {
                 continue;
             }
