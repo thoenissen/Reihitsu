@@ -68,14 +68,16 @@ Each arm prints a header, an optional line-ending note, and the unified diff fro
 | `fixed (N action(s), M iteration(s))` | The fix was applied until the diagnostic stopped being reported. `N` above one means the provider offered several actions and the first was taken |
 | `no-diagnostic` | The analyzer never reported — the fixture does not reproduce |
 | `no-fix-offered` | Reported, but the provider registered no action. A **supported end state**, per the code-fix coverage policy in `CLAUDE.md`, not a failure |
-| `not-converged (M iteration(s))` | Still reported at the iteration cap, or an action that changed nothing |
+| `not-converged (M iteration(s))` | Still reported when the iteration cap was reached |
+| `no-progress (M iteration(s))` | An action was applied but changed nothing, so the diagnostic can never clear. Reported apart from the cap because an ineffective fix is a defect in the rule and a cap is not |
+| `analyzer-failure` | An analyzer threw. Roslyn reports this as `AD0001` rather than as a failure, so the runner surfaces it explicitly — filtering it away would make a crashed analyzer read as "does not reproduce" |
 | `parse-error` | The fixture itself does not parse |
 | `invalid-result (M iteration(s))` | The applied fix produced source that no longer parses |
 | `[line-ending-drift]` | Suffix on any status whose result stopped using the arm's line ending exclusively — what a fix inserting `Environment.NewLine` instead of the document's own separator looks like |
 
 Convergence is decided by **the diagnostic disappearing**, not by two consecutive passes producing the same text. A fixture carrying the same diagnostic in several places legitimately changes on every iteration while still converging, and a text-equality definition would misreport exactly that case.
 
-Exit codes are `0` when every fixture reached a supported end state, `1` when a fixture never stopped reporting the diagnostic, and `2` when the command could not run — bad arguments, an unresolvable ID, a missing or fixture-less directory, an unparseable fixture, or a fix producing unparseable source. `no-diagnostic` and `no-fix-offered` deliberately stay at `0`: every negative sweep row depends on "ran, found nothing" being distinguishable from "could not run".
+Exit codes are `0` when every fixture reached a supported end state, `1` when a fixture never stopped reporting the diagnostic (`not-converged` or `no-progress`), and `2` when the command could not run — bad arguments, an unresolvable ID, a missing or fixture-less directory, an unparseable fixture, a fix producing unparseable source, or an analyzer that threw. `no-diagnostic` and `no-fix-offered` deliberately stay at `0`: every negative sweep row depends on "ran, found nothing" being distinguishable from "could not run".
 
 The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API. Following the `architecture` precedent, `tooling` is not part of the default `all` run; CI covers it anyway, because CI tests the whole solution.
 

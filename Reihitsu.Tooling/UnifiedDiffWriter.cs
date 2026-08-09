@@ -24,8 +24,8 @@ public static class UnifiedDiffWriter
             return string.Empty;
         }
 
-        var beforeLines = LineEndingUtilities.SplitLines(before);
-        var afterLines = LineEndingUtilities.SplitLines(after);
+        var beforeLines = FixtureLineEndings.SplitLines(before);
+        var afterLines = FixtureLineEndings.SplitLines(after);
         var builder = new StringBuilder();
 
         builder.Append("--- a/").Append(path).Append('\n');

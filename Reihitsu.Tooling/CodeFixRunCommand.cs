@@ -93,7 +93,7 @@ public static class CodeFixRunCommand
                 var displayPath = Path.GetRelativePath(fullDirectory, fixture).Replace('\\', '/');
                 var source = await File.ReadAllTextAsync(fixture, cancellationToken).ConfigureAwait(false);
 
-                foreach (var lineEnding in new[] { LineEndingUtilities.LineFeed, LineEndingUtilities.CarriageReturnLineFeed })
+                foreach (var lineEnding in new[] { FixtureLineEndings.LineFeed, FixtureLineEndings.CarriageReturnLineFeed })
                 {
                     var result = await FixtureRunner.RunAsync(target, source, lineEnding, maximumIterations, cancellationToken).ConfigureAwait(false);
 
@@ -113,6 +113,8 @@ public static class CodeFixRunCommand
                                       $"{counters.GetValueOrDefault(FixtureOutcome.NoFixOffered)} no-fix-offered",
                                       $"{counters.GetValueOrDefault(FixtureOutcome.NoDiagnostic)} no-diagnostic",
                                       $"{counters.GetValueOrDefault(FixtureOutcome.NotConverged)} not-converged",
+                                      $"{counters.GetValueOrDefault(FixtureOutcome.NoProgress)} no-progress",
+                                      $"{counters.GetValueOrDefault(FixtureOutcome.AnalyzerFailure)} analyzer-failure",
                                       $"{counters.GetValueOrDefault(FixtureOutcome.ParseError)} parse-error",
                                       $"{counters.GetValueOrDefault(FixtureOutcome.InvalidResult)} invalid-result",
                                       $"{lineEndingDrifts} line-ending-drift");
@@ -120,13 +122,17 @@ public static class CodeFixRunCommand
             output.WriteLine();
             output.WriteLine($"CODE-FIX RUN: {fixtures.Count} fixture(s) x 2 endings — {summary}");
 
+            // An analyzer that threw observed nothing about the rule, so it is a failure to run rather than a
+            // fixture result — reporting it as anything else would let a crash read as "does not reproduce".
             if (counters.GetValueOrDefault(FixtureOutcome.ParseError) > 0
-                || counters.GetValueOrDefault(FixtureOutcome.InvalidResult) > 0)
+                || counters.GetValueOrDefault(FixtureOutcome.InvalidResult) > 0
+                || counters.GetValueOrDefault(FixtureOutcome.AnalyzerFailure) > 0)
             {
                 return ExitCodes.Error;
             }
 
             return counters.GetValueOrDefault(FixtureOutcome.NotConverged) > 0
+                   || counters.GetValueOrDefault(FixtureOutcome.NoProgress) > 0
                        ? ExitCodes.NotConverged
                        : ExitCodes.Success;
         }
@@ -155,11 +161,11 @@ public static class CodeFixRunCommand
     {
         var drift = result.PreservedLineEnding ? string.Empty : " [line-ending-drift]";
 
-        output.WriteLine($"== {displayPath} [{LineEndingUtilities.GetName(lineEnding)}] == {DescribeOutcome(result)}{drift}");
+        output.WriteLine($"== {displayPath} [{FixtureLineEndings.GetName(lineEnding)}] == {DescribeOutcome(result)}{drift}");
 
         if (result.PreservedLineEnding == false)
         {
-            output.WriteLine($"Line endings: {LineEndingUtilities.Describe(result.FinalSource)}");
+            output.WriteLine($"Line endings: {FixtureLineEndings.Describe(result.FinalSource)}");
         }
 
         var diff = UnifiedDiffWriter.Generate(displayPath, result.OriginalSource, result.FinalSource);
@@ -183,6 +189,8 @@ public static class CodeFixRunCommand
                    FixtureOutcome.NoFixOffered => "no-fix-offered",
                    FixtureOutcome.Fixed => $"fixed ({result.RegisteredActions} action(s), {result.Iterations} iteration(s))",
                    FixtureOutcome.NotConverged => $"not-converged ({result.Iterations} iteration(s))",
+                   FixtureOutcome.NoProgress => $"no-progress ({result.Iterations} iteration(s))",
+                   FixtureOutcome.AnalyzerFailure => "analyzer-failure",
                    FixtureOutcome.ParseError => "parse-error",
                    FixtureOutcome.InvalidResult => $"invalid-result ({result.Iterations} iteration(s))",
                    _ => result.Outcome.ToString()

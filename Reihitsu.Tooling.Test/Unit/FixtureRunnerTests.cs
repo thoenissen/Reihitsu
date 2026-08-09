@@ -51,7 +51,7 @@ public sealed class FixtureRunnerTests
         // Act
         var result = await FixtureRunner.RunAsync(target,
                                                   CombinedFieldSource,
-                                                  LineEndingUtilities.LineFeed,
+                                                  FixtureLineEndings.LineFeed,
                                                   10,
                                                   TestContext.CancellationToken);
 
@@ -75,7 +75,7 @@ public sealed class FixtureRunnerTests
         // Act
         var result = await FixtureRunner.RunAsync(target,
                                                   CombinedFieldSource,
-                                                  LineEndingUtilities.CarriageReturnLineFeed,
+                                                  FixtureLineEndings.CarriageReturnLineFeed,
                                                   10,
                                                   TestContext.CancellationToken);
 

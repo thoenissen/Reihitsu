@@ -27,6 +27,19 @@ public enum FixtureOutcome
     NotConverged,
 
     /// <summary>
+    /// A code action was applied but changed nothing, so the diagnostic can never clear. This is reported apart
+    /// from the iteration cap because an ineffective fix and a fix that merely needs more passes are different
+    /// defects, and only the first is a bug in the rule under test
+    /// </summary>
+    NoProgress,
+
+    /// <summary>
+    /// An analyzer threw while analyzing the fixture, so nothing was observed about the rule. Roslyn reports this
+    /// as AD0001 rather than as a failure, which would otherwise be indistinguishable from "does not reproduce"
+    /// </summary>
+    AnalyzerFailure,
+
+    /// <summary>
     /// The fixture itself does not parse, so nothing could be analyzed
     /// </summary>
     ParseError,

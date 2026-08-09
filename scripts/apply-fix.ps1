@@ -75,7 +75,7 @@ catch
 $repositoryRoot = Get-ReihitsuRepositoryRoot
 $runnerApp = Join-Path (Join-Path (Join-Path $repositoryRoot 'scripts') 'apply-fix') 'apply-fix.cs'
 
-& dotnet run $runnerApp --verbosity quiet --property NoWarn=RH0002 -- @runnerArguments
+& dotnet run $runnerApp --verbosity quiet --property Configuration=Debug --property NoWarn=RH0002 -- @runnerArguments
 
 $runnerExitCode = $LASTEXITCODE
 

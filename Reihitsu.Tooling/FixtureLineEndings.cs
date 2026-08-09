@@ -5,7 +5,7 @@ namespace Reihitsu.Tooling;
 /// <summary>
 /// Normalizes and describes the line endings of fixture source text
 /// </summary>
-public static class LineEndingUtilities
+public static class FixtureLineEndings
 {
     #region Constants
 

@@ -16,6 +16,15 @@ namespace Reihitsu.Tooling;
 /// </summary>
 public static class FixtureRunner
 {
+    #region Constants
+
+    /// <summary>
+    /// The diagnostic ID Roslyn reports when an analyzer throws instead of completing
+    /// </summary>
+    private const string AnalyzerFailureDiagnosticId = "AD0001";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -36,7 +45,7 @@ public static class FixtureRunner
                                                         int maximumIterations,
                                                         CancellationToken cancellationToken = default)
     {
-        var normalized = LineEndingUtilities.Normalize(source, lineEnding);
+        var normalized = FixtureLineEndings.Normalize(source, lineEnding);
 
         if (HasSyntaxErrors(normalized, cancellationToken))
         {
@@ -55,7 +64,16 @@ public static class FixtureRunner
             {
                 var (document, documentId) = CreateDocument(workspace, current);
 
-                var diagnostics = await AnalyzeAsync(document, target, cancellationToken).ConfigureAwait(false);
+                var reported = await AnalyzeAsync(document, target, cancellationToken).ConfigureAwait(false);
+
+                if (reported.Any(diagnostic => diagnostic.Id == AnalyzerFailureDiagnosticId))
+                {
+                    return Create(FixtureOutcome.AnalyzerFailure, iterations, registeredActions, normalized, current, lineEnding);
+                }
+
+                var diagnostics = reported.Where(diagnostic => diagnostic.Id == target.DiagnosticId)
+                                          .OrderBy(diagnostic => diagnostic.Location.SourceSpan.Start)
+                                          .ToImmutableArray();
 
                 if (diagnostics.IsEmpty)
                 {
@@ -90,8 +108,9 @@ public static class FixtureRunner
 
                 if (string.Equals(applied, current, StringComparison.Ordinal))
                 {
-                    // The action produced no textual change, so another iteration would repeat it forever
-                    return Create(FixtureOutcome.NotConverged, iterations, registeredActions, normalized, current, lineEnding);
+                    // The action produced no textual change, so another iteration would repeat it forever. This is
+                    // reported apart from the cap: an ineffective fix is a defect in the rule, a cap is not.
+                    return Create(FixtureOutcome.NoProgress, iterations, registeredActions, normalized, current, lineEnding);
                 }
 
                 current = applied;
@@ -141,16 +160,18 @@ public static class FixtureRunner
                                     registeredActions,
                                     originalSource,
                                     finalSource,
-                                    LineEndingUtilities.UsesOnly(finalSource, lineEnding));
+                                    FixtureLineEndings.UsesOnly(finalSource, lineEnding));
     }
 
     /// <summary>
-    /// Runs the target's analyzers over the document and returns the diagnostics carrying the resolved ID
+    /// Runs the target's analyzers over the document and returns every diagnostic they produced, unfiltered.
+    /// Filtering to the resolved ID is the caller's job, because Roslyn reports an analyzer that threw as an
+    /// AD0001 diagnostic — dropping it here would make a crashed analyzer look like a fixture that reports nothing
     /// </summary>
     /// <param name="document">Document to analyze</param>
     /// <param name="target">Analyzer and code fix provider the diagnostic ID resolved to</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The reported diagnostics, in source order</returns>
+    /// <returns>Every diagnostic the analyzers reported</returns>
     private static async Task<ImmutableArray<Diagnostic>> AnalyzeAsync(Document document, CodeFixTarget target, CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false)
@@ -159,9 +180,7 @@ public static class FixtureRunner
                                            .GetAnalyzerDiagnosticsAsync(cancellationToken)
                                            .ConfigureAwait(false);
 
-        return diagnostics.Where(diagnostic => diagnostic.Id == target.DiagnosticId)
-                          .OrderBy(diagnostic => diagnostic.Location.SourceSpan.Start)
-                          .ToImmutableArray();
+        return diagnostics;
     }
 
     /// <summary>

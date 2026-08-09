@@ -25,15 +25,7 @@ runner_arguments=()
 for argument in "$@"; do
     case "$argument" in
         --no-install) install_arguments+=("$argument") ;;
-        -*) runner_arguments+=("$argument") ;;
-        *)
-            # Absolute paths survive the repository-root invocation below
-            if [ -e "$argument" ]; then
-                runner_arguments+=("$(cd "$(dirname "$argument")" && pwd)/$(basename "$argument")")
-            else
-                runner_arguments+=("$argument")
-            fi
-            ;;
+        *) runner_arguments+=("$argument") ;;
     esac
 done
 
@@ -45,7 +37,7 @@ runner_app="$(reihitsu_repo_root)/scripts/apply-fix/apply-fix.cs"
 
 runner_exit_code=0
 
-dotnet run "$runner_app" --verbosity quiet --property NoWarn=RH0002 -- "${runner_arguments[@]+"${runner_arguments[@]}"}" || runner_exit_code=$?
+dotnet run "$runner_app" --verbosity quiet --property Configuration=Debug --property NoWarn=RH0002 -- "${runner_arguments[@]+"${runner_arguments[@]}"}" || runner_exit_code=$?
 
 case "$runner_exit_code" in
     0) exit 0 ;;
