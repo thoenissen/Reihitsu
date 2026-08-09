@@ -60,7 +60,11 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider : Cod
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 var argumentList = node as ArgumentListSyntax ?? node.FirstAncestorOrSelf<ArgumentListSyntax>();
 
-                if (argumentList != null && SyntaxNodeUtilities.ContainsCommentOrDirective(argumentList) == false)
+                // The trailing side is released because the shared formatter restores the last token's trailing
+                // trivia unconditionally, so a comment behind the closing parenthesis is never crossed. The leading
+                // side stays guarded because that same entry point restores the first token's leading trivia only
+                // when the token does not start a line.
+                if (argumentList != null && SyntaxNodeUtilities.LeadingAndInteriorContainsCommentOrDirective(argumentList) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5102Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, argumentList, cancellationToken),

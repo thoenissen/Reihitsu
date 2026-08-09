@@ -603,6 +603,61 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
         Assert.Contains("return count > 0;", fixedCode);
     }
 
+    /// <summary>
+    /// Verifying that a comment written before the comparison does not withhold the code fix. The swap transplants
+    /// the comparison's own outer trivia onto the replacement, so that comment is never crossed (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeTheComparisonIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   public class Test
+                                   {
+                                       public bool Run(int count)
+                                       {
+                                           return
+                                               /* note */ 0 < count;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3005UseReadableConditionsAnalyzer.DiagnosticId,
+                                                   FirstComparisonOperatorLocation);
+
+        Assert.IsNotEmpty(actions);
+
+        var fixedCode = await ApplyCodeFixAsync(codeFixData);
+
+        Assert.Contains("/* note */ count > 0;", fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying that a comment written inside the comparison still withholds the code fix, because the swap would
+    /// relocate it relative to the operands (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInsideTheComparisonWithholdsTheCodeFix()
+    {
+        const string codeFixData = """
+                                   public class Test
+                                   {
+                                       public bool Run(int count)
+                                       {
+                                           return 0 < /* note */ count;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3005UseReadableConditionsAnalyzer.DiagnosticId,
+                                                   FirstComparisonOperatorLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region Methods

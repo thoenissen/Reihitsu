@@ -39,10 +39,19 @@ Focused runs:
 ```
 
 - Do not consider a change complete until all relevant unit tests pass.
-- For new analyzer rules, only implement a code fix when it can be delivered comprehensively. If only light or partial support is possible, omit the code fix.
 - For analyzer bug fixes, reproduce the bug in a unit test before changing production code.
 - For formatter bug fixes, add a regression test first before implementing the fix.
 - For analyzer tests, prefer many small, focused tests over one large test with many cases.
+
+## Code-fix coverage
+
+A code fix is never required to correct every case its diagnostic reports. Some inputs can only be corrected by hand, and reporting the diagnostic while offering no action is a complete, intended outcome for them — not a defect, and not by itself a reason to raise a report's severity.
+
+- A reported diagnostic with no available fix is a supported end state. "The diagnostic has no fix here" is an observation that still has to be argued on its merits; it is never a defect on its own.
+- For new analyzer rules, only implement a code fix when it can be delivered comprehensively. If only light or partial support is possible, omit the code fix.
+- Prefer no fix over an unsafe one. A rewrite that would drop, reorder, or relocate user-authored comments, directives, disabled text, or literals must withhold itself for that input.
+- None of this licenses an imprecise guard. A fix that refuses inputs it could rewrite safely is still worth narrowing, but the defect there is the guard's scope — how much safe ground it gives away — and not the bare fact that a diagnostic went unfixed.
+- When a rule's fix deliberately leaves a class of inputs to manual correction, record that in `documentation/rules/RH####.md` so the gap reads as a decision rather than an oversight.
 
 ## Codex command playbooks
 
@@ -65,6 +74,16 @@ The repository defines Codex-oriented command playbooks under `.codex/commands`:
 | `/gh-rereview` | Re-review a pull request after findings were addressed |
 
 Use the command playbook that matches the task so the repository-specific workflow and checklist are applied from the start.
+
+## Issue intake — question the report
+
+Issues here are filed under the maintainer's GitHub account, but many of them are generated — drafted by an agent from a source audit rather than observed by a person running the tool. The account name is not evidence that a human confirmed the behavior. Treat every issue as a hypothesis to be checked, never as a specification to be executed, and apply that regardless of who filed it:
+
+- Verify the premise before implementing it. The reproduction gate confirms a bug report's reported behavior; a report that says it was derived from reading code rather than from running it has confirmed nothing yet, however precise its file-and-line references look.
+- Check the reasoning, not only the example. A report can reproduce and still be wrong about why it matters, how far it generalizes, or how severe it is. Its severity argument is a claim like any other and gets tested like one.
+- Reject a framing the repository's own policy contradicts. A report that treats a diagnostic without a fix as a defect in itself is arguing against `Code-fix coverage` above, and that argument does not become correct by being written in an issue.
+- Fix the defect that exists, not the one the issue asserts. Where the analysis and the report disagree, implement the analysis and state plainly in the pull request how the shipped change differs from what was requested.
+- Say so when a report turns out to be wrong, overstated, or already-correct behavior. Downgrading, narrowing, or closing it is a legitimate result of a run — that is what the `NOT REPRODUCED` path is for.
 
 ## GitHub workflow stages
 

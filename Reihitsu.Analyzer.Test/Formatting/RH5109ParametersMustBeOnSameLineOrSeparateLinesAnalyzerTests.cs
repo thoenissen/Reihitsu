@@ -260,5 +260,197 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
         Assert.AreNotEqual(codeFixData, fixedCode);
     }
 
+    /// <summary>
+    /// Verifying that a parameter list carrying a comment after its closing parenthesis is reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third) /* note */
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a parameter list carrying a comment after its closing parenthesis is offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first, int second,
+                                                   int third) /* note */
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying the control case: the identical input without the trailing comment is reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the control case: the identical input without the trailing comment is offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first, int second,
+                                                   int third)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment after the closing parenthesis is fixed and the comment stays where it was written
+    /// (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third) /* note */
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method(int first,
+                                                  int second,
+                                                  int third) /* note */
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a comment written before the opening parenthesis still withholds the code fix. The replacement
+    /// could not reach that region, but the guard covers it so the predicate reads identically across RH5101, RH5102
+    /// and RH5109 (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeTheOpeningParenthesisWithholdsTheCodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method
+                                           /* note */ (int first, int second,
+                                                       int third)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment written directly against the closing parenthesis, without a separating space, is
+    /// offered a code fix like the space-separated shape (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentAdjacentToTheClosingParenthesisIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first, int second,
+                                                   int third)/* note */
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
     #endregion // Tests
 }

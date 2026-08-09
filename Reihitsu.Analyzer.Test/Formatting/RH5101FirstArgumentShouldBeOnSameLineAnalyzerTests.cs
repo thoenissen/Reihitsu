@@ -253,5 +253,231 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that the argument list of the issue's literal example, which carries a comment after the closing
+    /// parenthesis, is reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y) => x + y;
+
+                                    private static int Use()
+                                    {
+                                        return Add(
+                                            {|#0:1|},
+                                            2) /* note */ + 3;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the argument list of the issue's literal example, which carries a comment after the closing
+    /// parenthesis, is offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Add(int x, int y) => x + y;
+
+                                       private static int Use()
+                                       {
+                                           return Add(
+                                               1,
+                                               2) /* note */ + 3;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying the control case of the issue's literal example: the identical input without the trailing comment is
+    /// reported (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y) => x + y;
+
+                                    private static int Use()
+                                    {
+                                        return Add(
+                                            {|#0:1|},
+                                            2) + 3;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the control case of the issue's literal example: the identical input without the trailing comment is
+    /// offered a code fix (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWithoutTrailingCommentIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Add(int x, int y) => x + y;
+
+                                       private static int Use()
+                                       {
+                                           return Add(
+                                               1,
+                                               2) + 3;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment after the closing parenthesis is fixed and the comment stays where it was written
+    /// (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommentAfterClosingParenthesisIsFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y) => x + y;
+
+                                    private static int Use()
+                                    {
+                                        return Add(
+                                            {|#0:1|},
+                                            2) /* note */ + 3;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      private static int Add(int x, int y) => x + y;
+
+                                      private static int Use()
+                                      {
+                                          return Add(1,
+                                                     2) /* note */ + 3;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a comment written before the opening parenthesis still withholds the code fix. The rewrite is
+    /// delegated to the shared formatter, which restores the first token's leading trivia only when that token does
+    /// not start a line, so this region is not released together with the trailing one (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeTheOpeningParenthesisWithholdsTheCodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Add(int x, int y) => x + y;
+
+                                       private static int Use()
+                                       {
+                                           return Add
+                                               /* note */ (
+                                               1,
+                                               2) + 3;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment written directly against the closing parenthesis, without a separating space, is
+    /// offered a code fix like the space-separated shape (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentAdjacentToTheClosingParenthesisIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Add(int x, int y) => x + y;
+
+                                       private static int Use()
+                                       {
+                                           return Add(
+                                               1,
+                                               2)/* note */ + 3;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
     #endregion // Tests
 }

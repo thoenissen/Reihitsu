@@ -211,6 +211,45 @@ public class SyntaxNodeUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the leading-and-interior predicate ignores a comment trailing the node, so a rewrite that
+    /// reproduces everything after the node verbatim is not withheld by it
+    /// </summary>
+    [TestMethod]
+    public void LeadingAndInteriorContainsCommentOrDirectiveIgnoresTrailingComment()
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.LeadingAndInteriorContainsCommentOrDirective(GetArgumentList("""
+                                                                                                            Method("first",
+                                                                                                                   "second") /* note */;
+                                                                                                        """)));
+    }
+
+    /// <summary>
+    /// Verifies that the leading-and-interior predicate still reports a comment in the node's leading trivia, which
+    /// is the region such a rewrite can still reach
+    /// </summary>
+    [TestMethod]
+    public void LeadingAndInteriorContainsCommentOrDirectiveReportsLeadingComment()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.LeadingAndInteriorContainsCommentOrDirective(GetArgumentList("""
+                                                                                                           Method
+                                                                                                               /* note */ ("first",
+                                                                                                                           "second");
+                                                                                                       """)));
+    }
+
+    /// <summary>
+    /// Verifies that the leading-and-interior predicate still reports a comment inside the node's own span
+    /// </summary>
+    [TestMethod]
+    public void LeadingAndInteriorContainsCommentOrDirectiveReportsInteriorComment()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.LeadingAndInteriorContainsCommentOrDirective(GetArgumentList("""
+                                                                                                           Method("first", /* note */
+                                                                                                                  "second");
+                                                                                                       """)));
+    }
+
+    /// <summary>
     /// Verifies that the group predicate ignores a comment in front of the first sibling, so a documented
     /// member is not treated differently from an undocumented one
     /// </summary>

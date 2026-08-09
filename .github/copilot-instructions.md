@@ -31,10 +31,19 @@ dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
 ```
 
 - Do not consider a change complete until all relevant unit tests pass.
-- For new analyzer rules, only implement a code fix when it can be delivered comprehensively. If only light or partial support is possible, omit the code fix.
 - For analyzer bug fixes, reproduce the bug in a unit test before changing production code.
 - For formatter bug fixes, add a regression test first before implementing the fix.
 - For analyzer tests, prefer many small, focused tests over one large test with many cases.
+
+## Code-fix coverage
+
+A code fix is never required to correct every case its diagnostic reports. Some inputs can only be corrected by hand, and reporting the diagnostic while offering no action is a complete, intended outcome for them — not a defect, and not by itself a reason to raise a report's severity.
+
+- A reported diagnostic with no available fix is a supported end state. "The diagnostic has no fix here" is an observation that still has to be argued on its merits; it is never a defect on its own.
+- For new analyzer rules, only implement a code fix when it can be delivered comprehensively. If only light or partial support is possible, omit the code fix.
+- Prefer no fix over an unsafe one. A rewrite that would drop, reorder, or relocate user-authored comments, directives, disabled text, or literals must withhold itself for that input.
+- None of this licenses an imprecise guard. A fix that refuses inputs it could rewrite safely is still worth narrowing, but the defect there is the guard's scope — how much safe ground it gives away — and not the bare fact that a diagnostic went unfixed.
+- When a rule's fix deliberately leaves a class of inputs to manual correction, record that in `documentation/rules/RH####.md` so the gap reads as a decision rather than an oversight.
 
 ## Custom agents
 

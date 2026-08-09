@@ -119,6 +119,22 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
+    /// Determines whether a node's own span or its leading trivia contains a comment or a preprocessor directive,
+    /// ignoring only the trailing trivia. This is the predicate for a rewrite that reproduces everything after the
+    /// node verbatim but can still rewrite what precedes it — delegating the layout of a parenthesized list to
+    /// <c>ReihitsuFormatter.FormatNodeInDocumentAsync</c> is the case that needs it, because that entry point
+    /// restores the last token's trailing trivia unconditionally but the first token's leading trivia only when
+    /// that token does not start a line. <see cref="InteriorContainsCommentOrDirective"/> is the symmetric form,
+    /// for a rewrite that transplants the trivia on both sides
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if the node's span or leading trivia contains a comment or directive; otherwise <see langword="false"/></returns>
+    public static bool LeadingAndInteriorContainsCommentOrDirective(SyntaxNode node)
+    {
+        return SpanContainsCommentOrDirective(node, TextSpan.FromBounds(node.FullSpan.Start, node.Span.End));
+    }
+
+    /// <summary>
     /// Determines whether the region covered by a group of sibling nodes — including the gaps between them —
     /// contains a comment or a preprocessor directive. A rewrite that folds the siblings into one must refuse
     /// when trivia sits between them, because the fold would consume it, while the leading documentation

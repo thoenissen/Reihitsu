@@ -379,5 +379,68 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a comment written before the parenthesized expression does not withhold the code fix. The
+    /// rewrite transplants the node's own outer trivia onto the replacement, so that comment is never crossed
+    /// (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeTheParenthesesIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Method(int y)
+                                       {
+                                           return
+                                               /* note */ (y);
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ParenthesizedExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+
+        var fixedCode = await ApplyCodeFixAsync(codeFixData);
+
+        Assert.Contains("/* note */ y;", fixedCode);
+        Assert.DoesNotContain("(y)", fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying that a comment written inside the parentheses still withholds the code fix, because removing them
+    /// would discard it (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInsideTheParenthesesWithholdsTheCodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       private static int Method(int y)
+                                       {
+                                           return (/* note */ y);
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ParenthesizedExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }
