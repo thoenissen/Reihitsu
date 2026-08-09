@@ -77,7 +77,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : Diagno
             return;
         }
 
-        foreach (var parameterList in root.DescendantNodes().OfType<ParameterListSyntax>().Where(ParameterListParentPolicy.IsCovered))
+        foreach (var parameterList in root.DescendantNodes().OfType<ParameterListSyntax>().Where(ParameterListParentPolicy.IsClosingParenthesisCovered))
         {
             AnalyzeParameterList(context, parameterList);
         }

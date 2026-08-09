@@ -76,7 +76,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
         foreach (var parameterList in context.Tree.GetRoot(context.CancellationToken)
                                                   .DescendantNodes()
                                                   .OfType<ParameterListSyntax>()
-                                                  .Where(ParameterListParentPolicy.IsCovered))
+                                                  .Where(ParameterListParentPolicy.IsOpeningParenthesisCovered))
         {
             CheckParameterList(context, parameterList);
         }

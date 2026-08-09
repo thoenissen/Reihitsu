@@ -352,7 +352,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that every remaining syntax-valid direct parameter-list parent is covered
+    /// Verifies that every remaining syntax-valid direct parameter-list parent with an intrinsic opening anchor is covered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -372,31 +372,61 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
                                     void Method()
                                     {
                                         Func<int, int> parenthesized =
-                                        {|#2:(|}int item) => item;
+                                        (int item) => item;
                                         Func<int, int> anonymous = delegate
-                                        {|#3:(|}int item) { return item; };
+                                        {|#2:(|}int item) { return item; };
                                     }
                                 }
 
                                 internal struct Value
-                                {|#4:(|}int value)
+                                {|#3:(|}int value)
                                 {
                                 }
 
                                 internal interface Contract
-                                {|#5:(|}int value)
+                                {|#4:(|}int value)
                                 {
                                 }
 
                                 extension
-                                {|#6:(|}string value)
+                                {|#5:(|}string value)
                                 {
                                 }
                                 """;
 
         await Verify(testData,
                      test => test.CompilerDiagnostics = CompilerDiagnostics.None,
-                     Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat, 7));
+                     Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat, 6));
+    }
+
+    /// <summary>
+    /// Verifies that parenthesized lambdas are ignored because their opening parenthesis belongs to the expression and
+    /// has no declaration-internal anchor
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyParenthesizedLambdasAreIgnored()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Example
+                                {
+                                    void Method()
+                                    {
+                                        Func<int, int> inline = (int item) => item;
+
+                                        Accept("callback",
+                                               (int item) => item);
+                                    }
+
+                                    void Accept(string name, Func<int, int> callback)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     /// <summary>

@@ -10,11 +10,21 @@ internal static class ParameterListParentPolicy
     #region Methods
 
     /// <summary>
-    /// Determines whether the parameter list belongs directly to a syntax shape normalized by the formatter
+    /// Determines whether the parameter list has an opening parenthesis with an intrinsic declaration anchor
     /// </summary>
     /// <param name="parameterList">Parameter list to inspect</param>
-    /// <returns><see langword="true"/> when the direct parent is covered; otherwise, <see langword="false"/></returns>
-    internal static bool IsCovered(ParameterListSyntax parameterList)
+    /// <returns><see langword="true"/> when the opening parenthesis is covered; otherwise, <see langword="false"/></returns>
+    internal static bool IsOpeningParenthesisCovered(ParameterListSyntax parameterList)
+    {
+        return parameterList.Parent is not ParenthesizedLambdaExpressionSyntax && IsClosingParenthesisCovered(parameterList);
+    }
+
+    /// <summary>
+    /// Determines whether the parameter list belongs directly to a syntax shape whose closing parenthesis is normalized by the formatter
+    /// </summary>
+    /// <param name="parameterList">Parameter list to inspect</param>
+    /// <returns><see langword="true"/> when the closing parenthesis is covered; otherwise, <see langword="false"/></returns>
+    internal static bool IsClosingParenthesisCovered(ParameterListSyntax parameterList)
     {
         return parameterList.Parent is MethodDeclarationSyntax
                                     or ConstructorDeclarationSyntax
