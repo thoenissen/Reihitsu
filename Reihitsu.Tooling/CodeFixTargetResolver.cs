@@ -27,14 +27,38 @@ public static class CodeFixTargetResolver
     /// <returns><see langword="true"/> when exactly one code fix provider owns the ID; otherwise, <see langword="false"/></returns>
     public static bool TryResolve(string diagnosticId, out CodeFixTarget target, out string error)
     {
+        return TryResolve(diagnosticId,
+                          CreateInstances<DiagnosticAnalyzer>(typeof(RH7101DoNotCombineFieldsAnalyzer).Assembly),
+                          CreateInstances<CodeFixProvider>(typeof(RH7101DoNotCombineFieldsCodeFixProvider).Assembly),
+                          out target,
+                          out error);
+    }
+
+    /// <summary>
+    /// Resolves the diagnostic ID against explicit candidate sets. The shipped assemblies declare at most one
+    /// provider per ID today, so this overload is what makes the zero-candidate and ambiguous-candidate
+    /// classifications observable rather than merely written down
+    /// </summary>
+    /// <param name="diagnosticId">Diagnostic ID to resolve</param>
+    /// <param name="candidateAnalyzers">Analyzers to consider</param>
+    /// <param name="candidateProviders">Code fix providers to consider</param>
+    /// <param name="target">The resolved target when resolution succeeds</param>
+    /// <param name="error">The reason resolution failed, naming every candidate that was considered</param>
+    /// <returns><see langword="true"/> when exactly one code fix provider owns the ID; otherwise, <see langword="false"/></returns>
+    public static bool TryResolve(string diagnosticId,
+                                  IEnumerable<DiagnosticAnalyzer> candidateAnalyzers,
+                                  IEnumerable<CodeFixProvider> candidateProviders,
+                                  out CodeFixTarget target,
+                                  out string error)
+    {
         target = null;
         error = null;
 
-        var analyzers = CreateInstances<DiagnosticAnalyzer>(typeof(RH7101DoNotCombineFieldsAnalyzer).Assembly).Where(analyzer => analyzer.SupportedDiagnostics.Any(descriptor => descriptor.Id == diagnosticId))
-                                                                                                              .ToImmutableArray();
+        var analyzers = candidateAnalyzers.Where(analyzer => analyzer.SupportedDiagnostics.Any(descriptor => descriptor.Id == diagnosticId))
+                                          .ToImmutableArray();
 
-        var providers = CreateInstances<CodeFixProvider>(typeof(RH7101DoNotCombineFieldsCodeFixProvider).Assembly).Where(provider => provider.FixableDiagnosticIds.Contains(diagnosticId))
-                                                                                                                  .ToList();
+        var providers = candidateProviders.Where(provider => provider.FixableDiagnosticIds.Contains(diagnosticId))
+                                          .ToList();
 
         if (analyzers.Length == 0)
         {
