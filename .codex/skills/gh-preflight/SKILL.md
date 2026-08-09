@@ -82,7 +82,10 @@ Once the trigger list says an audit is required, a parent should invoke it only 
 
 ## Reviewer isolation and the evidence bundle
 
-When `gh-implement` or `gh-apply-review` invokes preflight and a subagent facility is available, run the audit in exactly one fresh read-only subagent with no author transcript. The parent remains the only writer and consumes the subagent's gate report.
+When `gh-implement` or `gh-apply-review` invokes preflight and a subagent facility is available, run the audit
+in exactly one fresh `reihitsu-preflight` custom agent with no inherited turns or author transcript. Its model, reasoning effort,
+and instructions come from `.codex/agents/reihitsu-preflight.toml`; pass no overrides. The parent remains the
+only writer and consumes the subagent's gate report.
 
 The subagent receives the repository root, this skill path, and one **immutable evidence bundle** the parent gathered once:
 
@@ -94,7 +97,9 @@ The subagent receives the repository root, this skill path, and one **immutable 
 
 That bundle is neutral fact-gathering. It contains no author conclusion, no suspected finding, and no intended fix, so consuming it preserves independence while removing the unreliable GitHub reconstruction each isolated agent would otherwise repeat. If the bundle disagrees with the repository — a head SHA that is not the checkout, a diff that does not match — return `BLOCKED — state mismatch` rather than auditing a tree nobody is reviewing.
 
-The retry attempt gets its own fresh subagent on the exact new head — never a continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be independent — plus the repair-delta inputs below.
+The retry attempt gets its own fresh `reihitsu-preflight` custom agent on the exact new head — never a
+continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be
+independent — plus the repair-delta inputs below.
 
 If subagents are unavailable, perform the audit locally from GitHub and filesystem evidence. A direct `/gh-preflight` invocation already acts as the reviewer and does not need another agent.
 

@@ -1,7 +1,7 @@
 ---
 name: gh-implement
 description: >-
-  Implement a Reihitsu GitHub issue end-to-end in Codex on Linux or Windows. Trigger when the initial prompt references an issue number or URL. Use the preinstalled .NET SDK without changing the environment, claim the issue with a generic-placeholder draft PR, prove every bug report through a reproduction gate subagent that writes and runs the failing regression test before any analysis — a report that does not reproduce ends the run right there with that test, a `Refs`-linked PR and a question to the user, instead of paying for a contract, an implementation and an audit — triage the run as routine or behavioral, and run the read-only `gh-rubber-duck` Behavior Contract before every further behavioral edit. Require a code-derived defect-class enumeration and candidate sweep for bug reports, turn the accepted contract into the regression matrix, delegate to the matching repository command, self-review, synchronize `origin/main`, use at most two official `gh-preflight` attempts, run full validation once, fully rewrite the draft PR, and push one CI trigger. Use authenticated `gh` for GitHub operations.
+  Implement a Reihitsu GitHub issue end-to-end in Codex on Linux or Windows. Trigger when the initial prompt references an issue number or URL. Use the preinstalled .NET SDK without changing the environment, claim the issue with a generic-placeholder draft PR, prove every bug report through a tiered reproduction-gate custom agent that writes and runs the failing regression test before any analysis — a report that does not reproduce is confirmed once at the higher tier and then ends the run with that test, a `Refs`-linked PR, and a question to the user instead of paying for a contract, implementation, and audit — triage the run as routine or behavioral, and run the read-only `gh-rubber-duck` Behavior Contract before every further behavioral edit. Require a code-derived defect-class enumeration and candidate sweep for bug reports, turn the accepted contract into the regression matrix, delegate to the matching repository command, self-review, synchronize `origin/main`, use at most two official `gh-preflight` attempts, run full validation once in its custom agent, fully rewrite the draft PR, and push one CI trigger. Use authenticated `gh` for GitHub operations.
 ---
 
 # Implement GitHub Issue
@@ -18,10 +18,10 @@ Follow this sequence. The gates exist because rework in this repository is cause
 2. Check issue ownership and open draft PRs.
 3. Claim the issue through the existing ownership workflow when it is unclaimed, then verify the toolchain.
 4. Gather the neutral **evidence bundle** once; every isolated agent in this run consumes that same bundle.
-5. On a **bug report**, run the **reproduction gate** in one subagent before any other analysis. `NOT REPRODUCED`, `NO SCENARIO`, and `BLOCKED` end the run here.
+5. On a **bug report**, run the **reproduction gate** in one `reihitsu-reproduction` subagent before any other analysis. `NO SCENARIO` and `BLOCKED` end the run here, and so does a `NOT REPRODUCED` once the escalated confirmation agrees.
 6. Triage the run as **routine** or **behavioral**, and record which gates that decision keeps.
 7. Read `.codex/skills/gh-rubber-duck/SKILL.md` completely in this parent agent (behavioral runs).
-8. Spawn exactly one fresh, read-only Rubber Duck subagent with that bundle (behavioral runs).
+8. Spawn exactly one fresh, read-only `reihitsu-rubber-duck` subagent with that bundle (behavioral runs).
 9. Receive and process the Behavior Contract.
 10. Resolve every `NEEDS DECISION` before editing any further production or test file.
 11. Freeze the **scope ledger** from the accepted contract.
@@ -30,8 +30,8 @@ Follow this sequence. The gates exist because rework in this repository is cause
 14. Implement, formatting changed paths and running focused tests as you go.
 15. Run the **local self-review** and record its **admission artifact**.
 16. Synchronize with current `origin/main`.
-17. Decide from `gh-preflight`'s trigger list whether an audit is required, and run it on that exact synchronized tree when it is.
-18. Run the complete **full validation** once.
+17. Decide from `gh-preflight`'s trigger list whether an audit is required, and run it in a `reihitsu-preflight` subagent on that exact synchronized tree when it is.
+18. Run the complete **full validation** once, in a `reihitsu-validate` subagent.
 19. Push the final non-`[skip ci]` CI trigger and finish the PR.
 
 Claiming the issue (steps 1–3) happens before the reproduction gate, the triage, and the contract gate so ownership is never lost while analysis runs. The toolchain verification fits between the claim and the first `dotnet` command — the reproduction gate is the first thing that needs it.
@@ -69,6 +69,25 @@ gh auth status
 | Update the draft pull request | `gh pr edit <PR> --body "<body>"` (add `--title "<title>"` for the final rewrite) |
 
 Batch independent read-only queries in one step rather than issuing them one at a time.
+
+## Subagent tiers live in `.codex/agents/`
+
+Every gate below is spawned by its custom agent name, never by an ad-hoc prompt with a model argument:
+
+| Stage | Custom agent |
+|---|---|
+| Reproduction gate, and its escalated confirmation | `reihitsu-reproduction` |
+| Behavior Contract gate | `reihitsu-rubber-duck` |
+| Official preflight, attempt 1 and retry | `reihitsu-preflight` |
+| Full validation | `reihitsu-validate` |
+
+The model, reasoning effort, instructions, and tool restrictions come from the corresponding TOML file under
+`.codex/agents/`, which is their single owner; `.codex/agents/README.md` records the current assignment and
+reasoning. Do not pass `model` or `reasoning_effort` when spawning a normal gate. The one exception is the
+escalated reproduction confirmation, which deliberately overrides both upward.
+
+Do not re-tune a stage in this skill. Change its custom agent file so the assignment stays inspectable in one
+place. The orchestrator remains the session agent and owns the `Never` rules, scope ledger, and audit budget.
 
 ## Keep CI silent until everything is done
 
@@ -168,7 +187,10 @@ The gate needs no triage decision first: a bug report is behavioral by definitio
 
 ### The subagent
 
-Spawn **one** fresh subagent. It is the only writer of the reproduction test; the parent stays the only writer of commits, pushes, and GitHub state.
+Spawn **one** fresh custom agent named `reihitsu-reproduction` with no inherited conversation turns. Its
+normal model and reasoning effort come from `.codex/agents/reihitsu-reproduction.toml`; pass no overrides. It
+is the only writer of the reproduction test, while the parent stays the only writer of commits, pushes, and
+GitHub state.
 
 Its prompt contains the evidence bundle, plus:
 
@@ -195,7 +217,8 @@ Then:
 
 The reproduction test is a **seed**, never the regression matrix. The contract's defect-class enumeration and sweep still decide the real coverage, and they may well rename, move, split, or broaden the seed — a guard that covers only the reported example is exactly what the sweep exists to catch.
 
-**`NOT REPRODUCED`** — the literal example is green, and so is every variant of the fixed fan-out below.
+**`NOT REPRODUCED`** — the literal example is green, every variant of the fixed fan-out below is green, **and
+the escalated confirmation agrees**.
 
 A single green test is weak evidence of absence. By far the most common cause is that the harness normalized the scenario away, so the literal example alone never settles it. Before reporting `NOT REPRODUCED`, the subagent runs this fixed, small fan-out — no enumeration, no dispatch-code analysis, no sweep, because that is the expensive analysis this gate exists to avoid:
 
@@ -204,7 +227,22 @@ A single green test is weak evidence of absence. By far the most common cause is
 - the **code-fix path** when the issue mentions a fix, a "Fix All", or an IDE quick action;
 - the **nearest sibling shape** the reported example implies — the same construct one nesting level deeper, or with the trivia the example omitted.
 
-Green on all of them ends the run:
+Green on all of them is not yet the verdict. The other outcomes are cheap to reverse: `REPRODUCED` is tested
+by every later stage and `BLOCKED` costs one restart. `NOT REPRODUCED` ends the run, downgrades the issue
+link, and hands the user a question, so a wrong negative is expensive and quiet. Escalate it exactly once
+before acting:
+
+1. Start one fresh `reihitsu-reproduction` custom agent with no inherited turns and explicit
+   `model: gpt-5.6-sol` and `reasoning_effort: xhigh` overrides. In runtimes that expose `fork_turns`, set it
+   to `none`; a full-history fork cannot carry a model override.
+2. Hand it the same evidence bundle plus the first run's complete report: test file and name, helper,
+   commands, scenarios, and raw results. Ask it to audit those facts against the repository and return its
+   own verdict rather than agree with the first run.
+3. The escalated verdict decides. This costs a second **process start**, never a second official gate result.
+
+If the environment cannot override a custom agent for one spawn, perform the confirmation in the parent
+instead of acting on an unconfirmed negative. An escalated `REPRODUCED`, `NO SCENARIO`, or `BLOCKED` replaces
+the first verdict and follows that outcome's path. A confirmed `NOT REPRODUCED` ends the run:
 
 1. Keep the passing test as a **characterization test** — it records what the repository does today at exactly the scenario the issue described, which is the artifact that makes the next attempt cheap. Commit and push it with `[skip ci]`.
 2. **Downgrade the issue link.** The PR body's `Linked issues` section becomes `Refs #<N>`, never `Closes #<N>`. A merge must not close a bug report nobody understood yet — this is the one place in the workflow where the `Closes` link is wrong.
@@ -258,7 +296,9 @@ REPRODUCED | NOT REPRODUCED | NO SCENARIO | BLOCKED
 
 ### Recording it
 
-The gate result, its outcome, the scenarios that ran, and the helper each used belong in the final report. `NOT REPRODUCED` additionally reports the `Refs #<N>` downgrade and every gate it skipped with that reason.
+The gate result, its outcome, the scenarios that ran, and the helper each used belong in the final report.
+`NOT REPRODUCED` additionally records both process starts, both model/effort pairs, the escalated verdict, the
+`Refs #<N>` downgrade, and every gate skipped with that reason.
 
 ## Scope triage — decide which gates this run needs
 
@@ -332,7 +372,10 @@ Read `.codex/skills/gh-rubber-duck/SKILL.md` completely yourself. You need the o
 
 ### 2. Spawn exactly one read-only Rubber Duck subagent
 
-Run the analysis in **one fresh subagent** with no access to your reasoning. Isolation is the point: an analysis primed with your intended fix will confirm it instead of challenging it.
+Run the analysis in **one fresh `reihitsu-rubber-duck` custom agent** with no inherited conversation turns
+and no access to your reasoning.
+Isolation is the point: an analysis primed with your intended fix will confirm it instead of challenging it.
+Its model and reasoning effort come from `.codex/agents/reihitsu-rubber-duck.toml`; pass no overrides.
 
 Hand over the **evidence bundle** you already gathered, verbatim. On a bug report it now also carries the reproduction gate's observed facts — the seed test's file, name, helper, command, and failure output — which is what lets the sweep start from a confirmed executable reproduction instead of from the issue's prose. Those are observations; the gate's report contains no diagnosis, and you add none.
 
@@ -561,7 +604,13 @@ If `origin/main` moves again **after** a passing preflight: do not enter an unli
 
 ## Official preflight gate — risk-triggered, hard 1 + 1 budget
 
-`gh-preflight` is the final, independent quality gate. Read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings to GitHub. Run it in a fresh, independent read-only subagent when subagents are available, exactly as that skill's reviewer-isolation section requires, and hand it the same evidence bundle the Rubber Duck received.
+`gh-preflight` is the final, independent quality gate. Read `.codex/skills/gh-preflight/SKILL.md` completely
+and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings to
+GitHub. Run it in a fresh, independent `reihitsu-preflight` custom agent with no inherited conversation turns
+when subagents are available,
+exactly as that skill's reviewer-isolation section requires, and hand it the same evidence bundle the Rubber
+Duck received. Its model and reasoning effort come from `.codex/agents/reihitsu-preflight.toml`; pass no
+overrides, and give the retry its own fresh instance rather than continuing attempt 1.
 
 **First decide whether an audit is required at all.** That decision belongs to `gh-preflight`'s trigger list, not to this file: an audit is required when the diff changes a predicate, guard, or report condition; which tokens or trivia a rewrite writes; a code-fix registration or applicability; a diagnostic ID, severity, or message; public API; a dependency; a repository script, build property, ruleset, or CI workflow; or adds a rule. It is not required for a diff that only edits comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — or that only adds tests for behavior that is already correct. Prove the comment-only case with `scripts/verify-text-only.ps1 -NoInstall` and record the proof line; ask the user when the diff fits neither list. A skipped audit never skips the full validation.
 
@@ -573,7 +622,9 @@ The budget is fixed:
 4. On `BLOCKED — findings`, collect **every** finding into **one** consolidated worklist. Do not start fixing before the worklist is complete, and do not run a preflight in between.
 5. Fix the complete worklist in **one** repair cycle: close each finding's full defect class, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]` and update the PR body when needed.
 6. **Re-audit the repair, not just the finding.** Preflight's `Required change` column is a suggestion, not a specification — implementing it literally is what turns one finding into the next round's finding. Re-run the guard-delta and predicate-boundary tables against the guard *as repaired*, and add a test on each side of every boundary the repair moved.
-7. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent, read-only subagent against the exact new head, carrying the repair-delta inputs that skill defines: the previous report, the previously audited SHA, the repaired SHA, and the repair diff.
+7. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent
+   `reihitsu-preflight` custom agent against the exact new head, carrying the repair-delta inputs that skill
+   defines: the previous report, the previously audited SHA, the repaired SHA, and the repair diff.
 8. If the retry also blocks, **stop**. Report the remaining findings to the user and let them decide. Never start a third official preflight automatically.
 
 On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head and rerun; a state mismatch is a setup error, not a review result, so it does not consume an attempt. Neither does a reviewer agent that returned no verdict — that costs a process start, and the bounded restart policy applies.
@@ -599,7 +650,15 @@ scripts/build.ps1 -NoInstall
 scripts/test.ps1 -NoInstall -NoBuild
 ```
 
-`scripts/test.ps1 -NoInstall` runs all four test projects in order; `--no-build` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. If any fails:
+Run these commands through one fresh `reihitsu-validate` custom agent with no inherited conversation turns
+when subagents are available. Pass the exact tree to validate and whether any file changed since the Release
+build. It returns pass/fail per step, failing
+assertions, and the raw-log path, which keeps thousands of output lines out of the orchestrator context. Its
+model, effort, and edit-denial hook come from `.codex/agents/reihitsu-validate.toml`; pass no overrides. It
+fixes and diagnoses nothing. Without subagents, run the commands in the parent and capture their output to a
+temporary file instead of the transcript.
+
+`scripts/test.ps1 -NoInstall` runs all four test projects in order; `-NoBuild` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
 2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`.
@@ -679,7 +738,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
    - the reproduction gate outcome (`REPRODUCED`, `NOT REPRODUCED`, `NO SCENARIO`, `BLOCKED`, or N/A for a non-bug issue), the scenarios it ran with the helper each used, and — on `NOT REPRODUCED` — the `Refs #<N>` downgrade, every gate skipped with that as the reason, and the evidence that would change the verdict;
    - the scope classification (routine or behavioral), which gates it kept or skipped, and why — including the preflight trigger decision and, when the audit was skipped, the `TEXT-ONLY PROOF: PASS …` line or the "tests for already-correct behavior" entry that justified it;
-   - the run metrics, so the workflow itself can be evaluated after a dozen runs, keeping these apart rather than reporting one number: **official gate verdict attempts**, **reviewer process starts**, state mismatches, tool or environment failures, and elapsed time — plus token cost per gate where the environment reports it — plus the reproduction gate outcome, contract gate result, number of contract rows, defect-class candidates and reproductions, delta-table rows, tests added, findings on the first official preflight, and whether the retry was needed;
+   - the run metrics, so the workflow itself can be evaluated after a dozen runs, keeping these apart rather than reporting one number: **official gate verdict attempts**, **reviewer process starts**, state mismatches, tool or environment failures, and elapsed time — plus token cost per gate where the environment reports it, **and the effective model and reasoning effort of every gate** — plus the reproduction gate outcome, whether it was escalated and what the escalation returned, contract gate result, number of contract rows, defect-class candidates and reproductions, delta-table rows, tests added, findings on the first official preflight, and whether the retry was needed;
    - **scope growth**: the frozen ledger, every discovery classified against it, each scope checkpoint and the choice the user made, and how the production file set changed from the intended one across repair cycles;
    - a coverage table so the reader can check the change without reading the diff:
 
@@ -716,6 +775,9 @@ None of this may reduce correctness or hide a failing result. When output is tri
 - **Never** edit a production or test file on a behavioral run before the Behavior Contract gate returns `READY` (or before the user has resolved a `NEEDS DECISION`). On a routine run the recorded contract note takes its place, and the reproduction gate's single seed test is the one file that legitimately precedes the contract.
 - **Never** enter the Rubber Duck, a delegated command, or an audit on a bug report before the reproduction gate returned `REPRODUCED`. That gate is the cheapest step in the workflow and it is what stops the three most expensive ones from being spent on a defect that is not there.
 - **Never** report `NOT REPRODUCED` from the literal example alone, or from a green run whose test never executed, compiled, or asserted anything. The fixed fan-out — LF and CRLF, the counterpart surface, the code-fix path, the nearest sibling shape — is the minimum, and a `BLOCKED` gate is never reported as a non-reproduction.
+- **Never** act on `NOT REPRODUCED` — end the run, downgrade the link, or ask the user — before the single escalated confirmation agrees. The other outcomes are reversible by the stages that follow; this one is not.
+- **Never** spawn a normal gate with an ad-hoc prompt or inline model/effort values instead of its custom agent from `.codex/agents/`. The escalated reproduction confirmation is the one deliberate override, and it only moves the tier upward.
+- **Never** let the validation agent edit, commit, diagnose, or repair. It runs the canonical scripts and reports; every decision stays with the parent.
 - **Never** accept a red seed test as a reproduction when it fails on a compile error, a missing helper, or unrelated layout. The failure has to name the issue's own expected-versus-actual difference.
 - **Never** leave `Closes #<N>` in the PR of a `NOT REPRODUCED` run — a merge would close an unexplained bug report. Use `Refs #<N>` and say in `Review notes` that the test characterizes current behavior.
 - **Never** hand the reproduction subagent a suspected root cause or a candidate fix, and never let its report carry a diagnosis into the Rubber Duck — only observed facts.
@@ -759,10 +821,10 @@ End-state checklist for a finished run:
 - [ ] Existing claim or draft PR checked; `codex/issue-<N>-<slug>` pushed with an empty claim commit
 - [ ] Generic-placeholder draft PR opened before implementation (title `Claim: issue #<N>`, every template section filled with static generic text, `Closes #<N>`) — nothing paraphrased from the issue
 - [ ] Evidence bundle gathered once, carrying no proposed solution or suspected cause
-- [ ] Bug report: reproduction gate run in one subagent before any other analysis, its outcome recorded, and the seed test committed with `[skip ci]` — non-bug issue: gate recorded N/A
-- [ ] `NOT REPRODUCED` run: fixed fan-out executed (LF/CRLF, counterpart surface, code-fix path, sibling shape), characterization test committed, PR linked with `Refs #<N>` and **not** `Closes #<N>`, contract and preflight skipped with that reason, full validation still run, and the user asked how to proceed
+- [ ] Bug report: reproduction gate run in one `reihitsu-reproduction` custom agent before any other analysis, its outcome recorded, and the seed test committed with `[skip ci]` — non-bug issue: gate recorded N/A
+- [ ] `NOT REPRODUCED` run: fixed fan-out executed (LF/CRLF, counterpart surface, code-fix path, sibling shape), the verdict confirmed by the single escalated run, characterization test committed, PR linked with `Refs #<N>` and **not** `Closes #<N>`, contract and preflight skipped with that reason, full validation still run, and the user asked how to proceed
 - [ ] Run triaged routine or behavioral against the five criteria, and the decision recorded — a claimed `.cs` carve-out proven with `TEXT-ONLY PROOF` against the real diff before the preflight decision, never against an empty one
-- [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent and exactly one read-only Rubber Duck subagent spawned with that bundle before any further edit — routine run: contract note written before any edit
+- [ ] Behavioral run: `gh-rubber-duck/SKILL.md` read in this agent and exactly one read-only `reihitsu-rubber-duck` custom agent spawned with that bundle before any further edit — routine run: contract note written before any edit
 - [ ] Behavior Contract accepted (`READY`, or `NEEDS DECISION` resolved by the user) and shown to the user in short form
 - [ ] Bug-report contract contains a complete code-derived defect-class enumeration and sweep; non-bug contracts mark both sections N/A
 - [ ] Guard-delta and predicate-boundary tables present with a verdict per row, or explicitly `_N/A_`
@@ -774,8 +836,9 @@ End-state checklist for a finished run:
 - [ ] Local self-review completed against every contract row, including comment and documentation consistency for every changed method
 - [ ] Admission artifact complete — no missing row — before any audit starts
 - [ ] Current `origin/main` merged, conflicts formatted and focused-tested, synchronized head pushed with `[skip ci]`
-- [ ] Preflight decision taken from the trigger list; when required, a passing result on that exact tree within the 1 + 1 budget; when skipped, the proof line recorded
-- [ ] `scripts/build.ps1 -NoInstall` + `scripts/test.ps1 -NoInstall` green on the final tree — run once, or recorded as skipped for a diff with no compiled file
+- [ ] Preflight decision taken from the trigger list; when required, a passing result from a `reihitsu-preflight` custom agent on that exact tree within the 1 + 1 budget; when skipped, the proof line recorded
+- [ ] `scripts/build.ps1 -NoInstall` + `scripts/test.ps1 -NoInstall` green on the final tree — run once through `reihitsu-validate`, or recorded as skipped for a diff with no compiled file
+- [ ] Every normal gate spawned by its custom agent name with no model/effort override, and the effective model and effort recorded in the final report
 - [ ] Trigger commit proven content-free with `git diff --exit-code <audited-sha> HEAD`
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label
