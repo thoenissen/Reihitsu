@@ -407,6 +407,11 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                                                .GetLocation());
 
         Assert.IsNotEmpty(actions);
+
+        var fixedCode = await ApplyCodeFixAsync(codeFixData);
+
+        Assert.Contains("/* note */ y;", fixedCode);
+        Assert.DoesNotContain("(y)", fixedCode);
     }
 
     /// <summary>

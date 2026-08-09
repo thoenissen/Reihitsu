@@ -61,28 +61,14 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
         var replacement = $"({parameters.First()},{endOfLine}{alignment}{string.Join($",{endOfLine}{alignment}", parameters.Skip(1))})";
 
         // The rebuilt text already places every parameter on its own line, aligned under the first parameter, so it
-        // is the final layout for the guarded scope: the registration rejects every parameter list that carries a
-        // comment or a directive, including a documentation comment, because the parameter spans read above exclude
-        // the trivia around them and rebuilding from them would drop it. Return the text directly instead of running
-        // the formatter over the owning member:
+        // is the final layout for the guarded scope: the registration rejects every parameter list whose own span
+        // carries a comment or a directive, including a documentation comment, because the parameter spans read
+        // above exclude the trivia around them and rebuilding from them would drop it. Trivia trailing the closing
+        // parenthesis lies outside that span, is reproduced untouched by the replacement below, and does not
+        // withhold the fix. Return the text directly instead of running the formatter over the owning member:
         // that oversized scope reformatted the unrelated member body and inherited the body-scope formatter
         // defects, while formatting the isolated parameter list mis-aligns its continuation lines.
         return document.WithText(sourceText.Replace(parameterList.Span, replacement));
-    }
-
-    /// <summary>
-    /// Determines whether a comment or a directive sits in the region the rewrite actually writes. The replacement
-    /// above rebuilds exactly <see cref="ParameterListSyntax"/>'s own span, so trivia trailing the closing
-    /// parenthesis is never crossed and must not withhold the fix. The inspected region keeps the leading side
-    /// anyway, so this predicate covers the same region as its RH5101 and RH5102 counterparts and the three read
-    /// alike; the replacement could not reach a comment written before the opening parenthesis either way
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <param name="parameterList">Parameter list to inspect</param>
-    /// <returns><see langword="true"/> if the rewritten region carries a comment or directive; otherwise <see langword="false"/></returns>
-    private static bool CarriesCommentOrDirectiveInRewrittenRegion(SyntaxNode root, ParameterListSyntax parameterList)
-    {
-        return SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, TextSpan.FromBounds(parameterList.FullSpan.Start, parameterList.Span.End));
     }
 
     #endregion // Methods
@@ -112,8 +98,12 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
         {
             var parameterList = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
 
+            // The replacement below rebuilds exactly the parameter list's own span, so trivia trailing the closing
+            // parenthesis is never crossed and must not withhold the fix. The leading side is unreachable too, but
+            // it stays guarded so this predicate matches its RH5101 and RH5102 counterparts; the shape it gives up
+            // is recorded in the rule documentation.
             if (parameterList == null
-                || CarriesCommentOrDirectiveInRewrittenRegion(root, parameterList))
+                || SyntaxNodeUtilities.LeadingAndInteriorContainsCommentOrDirective(parameterList))
             {
                 continue;
             }

@@ -1313,6 +1313,30 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifying that a block comment between the initializer value and a semicolon on a later line still exempts the
+    /// property. This is the negative side of the same boundary and the same trivia kind as the reported shape, so it
+    /// pins the line-span condition rather than the comment kind (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlockCommentBeforeSemicolonOnItsOwnLineIsNotReported()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        get;
+                                        set;
+                                    } = 1 /* note */
+                                        ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifying that a comment between the equals token and the initializer value still exempts the property. The
     /// collapse would be safe there, but the interior guard is the only owner of that gap, so the shape is left to
     /// manual correction (issue #650)

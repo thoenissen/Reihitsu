@@ -627,6 +627,10 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
                                                    FirstComparisonOperatorLocation);
 
         Assert.IsNotEmpty(actions);
+
+        var fixedCode = await ApplyCodeFixAsync(codeFixData);
+
+        Assert.Contains("/* note */ count > 0;", fixedCode);
     }
 
     /// <summary>

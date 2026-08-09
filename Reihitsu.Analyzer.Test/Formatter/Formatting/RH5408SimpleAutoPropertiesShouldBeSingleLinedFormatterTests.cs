@@ -248,5 +248,36 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
                                                Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter collapses an auto-property carrying a comment between the initializer value and a
+    /// semicolon on the same line, so the shape RH5408 newly reports is also corrected by the CLI, and that a second
+    /// pass over the result changes nothing under both line endings (issue #650)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesAutoPropertyWithTrailingInitializerComment()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 {|#0:internal int Value
+                                 {
+                                     get;
+                                     set;
+                                 } = 1 /* note */;|}
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal int Value { get; set; } = 1 /* note */;
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    }
+
     #endregion // Tests
 }
