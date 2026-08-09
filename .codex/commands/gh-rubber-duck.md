@@ -26,4 +26,6 @@ Read-only means no repository or GitHub mutation: no repository file edits, comm
 
 When `gh-implement` runs this skill, it hands over a neutral evidence bundle (issue JSON and clarifications, PR metadata, base and head SHAs, merge base, changed files and diff, and its proof that the checkout matches that head). Use it instead of re-deriving the same state; it carries facts only, never the parent's conclusions.
 
-`gh-implement` runs this same skill automatically in a dedicated read-only subagent before it edits anything, so invoking `/gh-rubber-duck` first is optional — useful when the issue looks ambiguous and you want the contract settled before the implementation run starts.
+`gh-implement` runs this same skill automatically in a dedicated read-only `reihitsu-rubber-duck` custom
+agent before it edits anything, so invoking `/gh-rubber-duck` first is optional — useful when the issue looks
+ambiguous and you want the contract settled before the implementation run starts.
