@@ -1,6 +1,6 @@
 ---
 name: gh-preflight
-description: Run a read-only, local preflight review of a Reihitsu pull request before external review or re-review. Use for `/gh-preflight`, `$gh-preflight`, "preflight this PR", "review before review", or as the risk-triggered final quality gate inside `gh-implement` and `gh-apply-review` — invoked once their implementation, admission artifact, and `origin/main` synchronization are done, and before their single full validation and CI-trigger commit. Owns the trigger list that decides when an audit is required at all, the four gate results, the repair-delta retry contract, and the evidence-bundle and restart policy for isolated gate agents. Apply the complete repository `gh-review` checklist, adversarial corpus, test expectations, counterpart tracing, defect-class closure, and an explicit three-axis audit of guard scope, policy ownership, and assertion adequacy without posting to GitHub or changing code. Report every confirmed finding in one pass, because the parent gets one consolidated repair cycle and at most one retry attempt.
+description: Run a read-only local preflight of a Reihitsu pull request before external review or re-review. Use for `/gh-preflight`, `$gh-preflight`, "preflight this PR", "review before review", or as the risk-triggered final quality gate inside `gh-implement` and `gh-apply-review`, after implementation, the admission artifact, and `origin/main` synchronization but before full validation and the CI trigger. Own the audit trigger list, four gate results, repair-delta retry, and evidence-bundle and restart policy for isolated gate agents. Apply the full `gh-review` checklist, adversarial corpus, test expectations, counterpart tracing, defect-class closure, and three-axis audit of guard scope, policy ownership, and assertion adequacy without posting to GitHub or changing code. Report every confirmed finding in one pass; the parent gets one consolidated repair cycle and at most one retry.
 ---
 
 # Reihitsu GitHub PR Preflight
@@ -78,7 +78,11 @@ Once the trigger list says an audit is required, a parent should invoke it only 
 - the intended implementation or review repair cycle is complete and committed;
 - the parent's local self-review has run, its findings are fixed, and its admission artifact is complete — a missing row there is a cheap local gap that must not become an expensive audit finding;
 - current `origin/main` is merged into the branch and any conflict resolution is formatted and focused-tested;
-- the head is pushed and the local checkout matches it.
+- the head is pushed and the local checkout matches it;
+- `git ls-remote origin refs/heads/main` was run **in the spawning step** and still names the `origin/main` the branch was merged with;
+- `scripts/build.ps1 -NoInstall` is green on that exact head.
+
+The last two preconditions exist for measured reasons. A remote-tracking ref proves only when the parent last fetched, and a reviewer spawned against a stale one can run a complete audit and then return `BLOCKED — state mismatch` having produced no gate result — a second of `ls-remote` against minutes of audit. A short build removes an entire class of expensive reasoning from the audit: this repository dogfoods its own analyzers with `TreatWarningsAsErrors=true`, so without that fact a reviewer has to argue from source about whether a merged analyzer change and new documentation can still compile together. Both results belong in the bundle as facts.
 
 ## Reviewer isolation and the evidence bundle
 
@@ -89,13 +93,37 @@ only writer and consumes the subagent's gate report.
 
 The subagent receives the repository root, this skill path, and one **immutable evidence bundle** the parent gathered once:
 
-- the issue JSON and any linked clarification;
-- the PR metadata and body;
-- the base and head SHAs, and the merge base;
+- the issue and PR **by number** (`thoenissen/Reihitsu#<N>`), to be read through authenticated `gh issue view` and `gh pr view` — not pasted in;
+- the base and head SHAs, the merge base, and the remote `main` SHA with the time it was read;
 - the changed-file list and the diff;
-- the parent's proof that the local checkout matches the PR head.
+- the parent's proof that the local checkout matches the PR head;
+- the `scripts/build.ps1 -NoInstall` result on that head;
+- the parent's focused-test results;
+- the parent's checklist-applicability list below.
 
 That bundle is neutral fact-gathering. It contains no author conclusion, no suspected finding, and no intended fix, so consuming it preserves independence while removing the unreliable GitHub reconstruction each isolated agent would otherwise repeat. If the bundle disagrees with the repository — a head SHA that is not the checkout, a diff that does not match — return `BLOCKED — state mismatch` rather than auditing a tree nobody is reviewing.
+
+Documents are referenced rather than inlined because isolation is about the parent's *reasoning*, not about documents one authenticated `gh` call retrieves. Fetch them yourself; a reference also cannot go stale the way a paste can.
+
+### Which bundle facts to verify, and which to trust
+
+"Verify anything your audit depends on" is right in principle and, applied flatly, means every reviewer re-runs the suites the parent had just run and reported. Split the facts by cost and by what a wrong one costs:
+
+| Fact | Treatment | Why |
+|---|---|---|
+| Head SHA, checkout match, remote `main` | **Always verify** | Seconds to check, and a wrong one means the whole audit reviewed a tree nobody is merging |
+| Changed-file list and diff | **Always verify** against the checkout | Same cost, and it is the object under review |
+| `scripts/build.ps1 -NoInstall` result | **Trust**, unless a finding turns on compilability | The parent ran it on this head, and the full validation re-runs it |
+| Focused test results | **Trust and spot-check** | Comparatively expensive, and the parent's full validation re-runs them regardless. Re-run one when a specific finding turns on it — that is the targeted execution this skill already allows |
+| Checklist applicability | **Confirm, do not adopt** | See below |
+
+A spot-check is a targeted run that settles a suspicion, not a routine re-run of the parent's suite.
+
+### Checklist applicability comes with the bundle
+
+Six or seven of the 19 checklist items are typically `N/A` for a given diff — security, error handling, performance, parts of SOLID, coupling — and re-deriving that independently in every agent, in every attempt, pays for the same conclusion three times. The parent derives applicability once from the diff's shape and states it in the bundle, per item, with the one-clause reason.
+
+The reviewer **confirms** that list; it does not adopt it. An item the parent marked `N/A` that the diff can in fact reach is itself a finding, and reporting it costs one line. Independence survives because the reviewer retains the verdict — what it loses is the obligation to rediscover six obvious negatives from scratch. Every item still appears in the report with its status, so a silently dropped item stays impossible.
 
 The retry attempt gets its own fresh `reihitsu-preflight` custom agent on the exact new head — never a
 continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be
@@ -125,6 +153,10 @@ A start that produced no verdict costs a **process start**, not an official atte
 - the repair diff.
 
 Verify every previous finding, the complete repair delta, every guard and predicate the repair moved, the counterparts those reach, and the boundary tests the repair added. Evidence for a decision or a test that is byte-identical to attempt 1 may be reused instead of re-derived — that reuse is the entire saving, and it is what keeps a retry from re-auditing hundreds of untouched tests row by row.
+
+**The retry reports the delta, not a second full report.** Reusing evidence and then re-emitting the complete 19-item checklist and three-axis tables with most rows marked "reused" stops the saving at derivation and never lets it reach the output. A retry returns the previous findings with their status, the rows the repair actually moved, and the verdict — and nothing that was neither re-derived nor changed. Use the retry schema under "Direct chat output"; the full schema belongs to attempt 1.
+
+Reporting less is not reporting selectively: **every** previous finding is named with its status, so a silently dropped one remains impossible, and any checklist item or axis row the repair touched appears in full. A retry that finds a new defect outside the repair delta reports it like any other finding and says where it came from.
 
 Incremental retry mode becomes **invalid** when the repair expands into an unrelated production surface, changes the accepted contract, or materially enlarges the file set. Then audit the change in full and say in the report that scope grew: that situation needs a new scope decision from the parent, not a silent second implementation review.
 
@@ -171,9 +203,13 @@ Read `.codex/skills/gh-review/SKILL.md` completely. Apply its complete methodolo
 
 Override the review skill's GitHub-posting, existing-comment deduplication, and output rules with this skill. Review the current code independently; do not fetch prior review comments merely to learn what another reviewer found.
 
+**Corpus breadth stays flat, deliberately.** The three-axis tables scale with the change — one row per changed decision — and it is tempting to scale the adversarial corpus and counterpart tracing the same way, so a one-decision diff gets a narrow corpus. Do not. A narrow corpus on a small diff is precisely the reasoning that misses the boundary finding this gate exists to catch, and the evidence for the change would have to come from runs where a scaled-down corpus demonstrably lost nothing — which is data this workflow does not have yet. Revisit it when the per-gate metrics from a dozen runs exist; until then, breadth is not the knob.
+
 Limit blocking findings to defects caused by the PR, missing issue requirements, incomplete tests required by the change, and pre-existing behavior that the changed code newly depends on or exposes. Record unrelated pre-existing concerns as hints rather than expanding the PR. Give each confirmed scope hint a defect mechanism and `new mechanism` relation so the parent workflow can preserve it against its scope ledger without treating it as a blocking repair.
 
 Complete the entire checklist and relevant adversarial corpus before returning. Report every confirmed finding in one pass; never stop after the first.
+
+Start the checklist from the parent's applicability list rather than from nothing: for each item it marked `N/A`, confirm the diff genuinely cannot reach it and record the item as `N/A (confirmed)`, or overturn it and audit the item. Every one of the 19 items appears in the report either way.
 
 ## Three axes that must be answered explicitly
 
@@ -245,6 +281,8 @@ When invoked by `gh-implement` or `gh-apply-review`, the parent owns the budget:
 
 ## Direct chat output
 
+The schema below is **attempt 1's**, and the one a direct `/gh-preflight` invocation uses. The retry has its own, smaller schema further down.
+
 For direct `/gh-preflight` invocations, write only:
 
 ```markdown
@@ -302,6 +340,45 @@ In `Scope relation`, state `same mechanism/requirement`, `PR-introduced`, or `ne
 
 When Hints is non-empty, use `| Location | Defect class | Scope relation | Evidence |`. Keep uncertain observations clearly marked as uncertain; use `new mechanism` for a confirmed concern that is non-blocking only because it is unrelated and pre-existing.
 
+### Retry report schema
+
+The repair-delta retry returns this instead. It is deliberately smaller: what the retry re-derived is the repair, so what it reports is the repair.
+
+```markdown
+## Gate
+PASS
+
+## Scope
+- PR #123 at `<repaired-sha>`, repair delta against `<previously-audited-sha>`; local checkout matches.
+- Repair touched: `<files>`; reused unchanged evidence for: `<what>`.
+
+## Previous findings
+| # | Previous finding | Status | Evidence |
+|---|------------------|--------|----------|
+| 1 | Cross-scope label relocation | closed | Guard now models executable scopes; nested-scope regression added and run |
+| 2 | Comment describes previous behavior | closed | Summary rewritten at `Foo.cs:31` |
+
+## Delta rows
+<only the checklist items and three-axis rows the repair moved, in the attempt-1 table formats;
+ `_None._` when the repair moved none>
+
+## New findings
+_None._
+
+## Verification
+- <targeted runs that settled the repair, or "static tracing only">
+
+## Gate metrics
+- Elapsed: `<duration>`; audit mode: repair delta; agent starts: `<n>`.
+```
+
+Rules for it:
+
+- **Previous findings** carries every finding from the previous report, with `closed`, `open`, or `superseded` and one clause of evidence. Omitting one is never an option, whatever its status.
+- **Delta rows** carries only what the repair moved. Do not re-emit a checklist item or an axis row that the repair did not touch, and do not list reused rows one by one — the `Scope` line already names what was reused.
+- **New findings** uses attempt 1's findings table and states, per finding, whether it came from the repair delta or from outside it.
+- If the repair expanded into an unrelated production surface, changed the accepted contract, or materially enlarged the file set, incremental mode is invalid: audit in full, use attempt 1's schema, and say scope grew.
+
 ## Hard rules
 
 - Never edit tracked files or mutate GitHub or repository history.
@@ -316,4 +393,8 @@ When Hints is non-empty, use `| Location | Defect class | Scope relation | Evide
 - Never hold a confirmed finding back for a later round; the parent has one consolidated repair cycle and one retry.
 - Never omit a confirmed unrelated pre-existing concern; record it once under Hints with its mechanism and scope relation.
 - Never act as the parent's discovery loop — it arrives with its local self-review done and `origin/main` merged.
+- Never adopt the parent's checklist-applicability list without confirming it; an `N/A` the diff can reach is a finding, not a shortcut you inherited.
+- Never re-run the parent's focused suites wholesale to re-establish a bundle fact. Verify SHAs, the checkout, and the diff; spot-check a test only when a specific finding turns on it.
+- Never audit a tree whose remote base moved after the parent read it — that is a `BLOCKED — state mismatch`, and the parent's `ls-remote` check in the spawning step exists to make it rare.
+- Never return attempt 1's full report from a repair-delta retry, and never drop a previous finding from the retry's status table — reporting less is by delta, never by selection.
 - Never create or search for follow-up issues.
