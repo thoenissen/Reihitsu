@@ -199,6 +199,39 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies source-derived parameter-list opening gaps retain comments and directives under LF and CRLF,
+    /// including second-pass stability
+    /// </summary>
+    [TestMethod]
+    public void PreservesProtectedSourceDerivedParameterListOpeningGaps()
+    {
+        const string source = """
+                              class Commented // keep
+                              (int value)
+                              {
+                              }
+
+                              class Directed
+                              #if true
+                              #endif
+                              (int value)
+                              {
+                              }
+                              """;
+
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            var input = source.Replace("\r\n", "\n").Replace("\n", endOfLine);
+            var formatted = ExecuteLineBreakPhase(input, endOfLine);
+            var reformatted = ExecuteLineBreakPhase(formatted, endOfLine);
+
+            Assert.Contains($"class Commented // keep{endOfLine}(int value)", formatted);
+            Assert.Contains($"class Directed{endOfLine}#if true{endOfLine}#endif{endOfLine}(int value)", formatted);
+            Assert.AreEqual(formatted, reformatted, "Protected parameter-list gaps must remain stable on a second pass.");
+        }
+    }
+
+    /// <summary>
     /// Verifies closing-parenthesis parity for every direct parameter-list parent under LF and CRLF, including
     /// second-pass stability
     /// </summary>

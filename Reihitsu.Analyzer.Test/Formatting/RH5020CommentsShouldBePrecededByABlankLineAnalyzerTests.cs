@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -440,11 +443,64 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
+    /// Verifies that Fix All converges for multiple newly covered ordinary-comment kinds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllConvergesForNewCommentKinds()
+    {
+        const string testCode = """
+                                internal class RH5020
+                                {
+                                    void Execute()
+                                    {
+                                        var first = 1;
+                                        {|#0://// first|}
+                                        Consume(first);
+                                        var second = 2;
+                                        {|#1:/* second */|}
+                                        Consume(second);
+                                    }
+
+                                    void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5020
+                                 {
+                                     void Execute()
+                                     {
+                                         var first = 1;
+
+                                         //// first
+                                         Consume(first);
+                                         var second = 2;
+
+                                         /* second */
+                                         Consume(second);
+                                     }
+
+                                     void Consume(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies that the accurate primary names own the exports while the former public names remain obsolete
     /// compatibility shims
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public void VerifyPrimaryExportsAndCompatibilityShimsAreUnique()
+    public async Task VerifyPrimaryExportsAndCompatibilityShimsAreUnique()
     {
         var compatibilityAnalyzer = typeof(RH5020CommentsShouldBePrecededByABlankLineAnalyzer).Assembly.GetType("Reihitsu.Analyzer.Rules.Layout.RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer",
                                                                                                                 throwOnError: true) ?? throw new System.InvalidOperationException("The RH5020 analyzer compatibility shim is missing.");
@@ -453,12 +509,32 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerT
 
         Assert.IsTrue(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(System.ObsoleteAttribute), inherit: false));
         Assert.IsTrue(System.Attribute.IsDefined(compatibilityProvider, typeof(System.ObsoleteAttribute), inherit: false));
+        Assert.IsTrue(typeof(Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase).IsAssignableFrom(compatibilityAnalyzer),
+                      "The compatibility analyzer must retain its original public base type.");
         Assert.AreEqual(1,
                         System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5020CommentsShouldBePrecededByABlankLineAnalyzer), typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false))
                         + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false)));
         Assert.AreEqual(1,
                         System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider), typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false))
                         + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityProvider, typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false)));
+
+        const string source = """
+                              internal class Example
+                              {
+                                  void Method()
+                                  {
+                                      var value = 1;
+                                      // note
+                                      value++;
+                                  }
+                              }
+                              """;
+        var actions = await GetCodeFixActionsAsync(source,
+                                                   RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTrivia().Single(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)).GetLocation());
+
+        Assert.HasCount(1, actions);
+        Assert.AreEqual("RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider", actions[0].EquivalenceKey);
     }
 
     #endregion // Tests

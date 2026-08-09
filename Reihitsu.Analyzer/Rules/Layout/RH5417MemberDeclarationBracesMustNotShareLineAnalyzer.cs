@@ -4,13 +4,16 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Enumerations;
+
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
 /// Compatibility name for <see cref="RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer"/>
 /// </summary>
 [Obsolete("Use RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer instead.")]
-public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzer : DiagnosticAnalyzer
+public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Fields
 
@@ -29,6 +32,18 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzer : DiagnosticA
     public const string DiagnosticId = RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId;
 
     #endregion // Constants
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH5417MemberDeclarationBracesMustNotShareLineAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5417Title), nameof(AnalyzerResources.RH5417MessageFormat))
+    {
+    }
+
+    #endregion // Constructor
 
     #region DiagnosticAnalyzer
 

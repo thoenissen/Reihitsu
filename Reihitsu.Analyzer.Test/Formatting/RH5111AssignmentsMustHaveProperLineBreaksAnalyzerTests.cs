@@ -1142,6 +1142,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
 
         await Verify(testData,
                      fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
                      Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2));
     }
 

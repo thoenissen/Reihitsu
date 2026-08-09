@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -429,8 +431,9 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
     /// Verifies that the accurate primary names own the exports while the former public names remain obsolete
     /// compatibility shims
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public void VerifyPrimaryExportsAndCompatibilityShimsAreUnique()
+    public async Task VerifyPrimaryExportsAndCompatibilityShimsAreUnique()
     {
         var compatibilityAnalyzer = typeof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer).Assembly.GetType("Reihitsu.Analyzer.Rules.Layout.RH5417MemberDeclarationBracesMustNotShareLineAnalyzer",
                                                                                                                          throwOnError: true) ?? throw new System.InvalidOperationException("The RH5417 analyzer compatibility shim is missing.");
@@ -439,12 +442,42 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
 
         Assert.IsTrue(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(System.ObsoleteAttribute), inherit: false));
         Assert.IsTrue(System.Attribute.IsDefined(compatibilityProvider, typeof(System.ObsoleteAttribute), inherit: false));
+        Assert.IsTrue(typeof(Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase).IsAssignableFrom(compatibilityAnalyzer),
+                      "The compatibility analyzer must retain its original public base type.");
         Assert.AreEqual(1,
                         System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer), typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false))
                         + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false)));
         Assert.AreEqual(1,
                         System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider), typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false))
                         + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityProvider, typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false)));
+
+        const string memberSource = """
+                                    internal class Example
+                                    {
+                                        void Method() { }
+                                    }
+                                    """;
+        var memberActions = await GetCodeFixActionsAsync(memberSource,
+                                                         RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId,
+                                                         root => root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single().Body.OpenBraceToken.GetLocation());
+
+        Assert.HasCount(1, memberActions);
+        Assert.AreEqual("RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider", memberActions[0].EquivalenceKey);
+
+        const string localSource = """
+                                   internal class Example
+                                   {
+                                       void Method()
+                                       {
+                                           void Local() { }
+                                       }
+                                   }
+                                   """;
+        var localActions = await GetCodeFixActionsAsync(localSource,
+                                                        RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId,
+                                                        root => root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single().Body.OpenBraceToken.GetLocation());
+
+        Assert.IsEmpty(localActions, "A local-function diagnostic must not fall back to formatting its containing member.");
     }
 
     #endregion // Tests

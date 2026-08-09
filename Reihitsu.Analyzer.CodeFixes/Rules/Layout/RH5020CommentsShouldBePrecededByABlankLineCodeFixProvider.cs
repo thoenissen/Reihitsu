@@ -20,6 +20,15 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider))]
 public class RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider : CodeFixProvider
 {
+    #region Constants
+
+    /// <summary>
+    /// Stable equivalence key retained from the original public provider name
+    /// </summary>
+    private const string CodeActionEquivalenceKey = "RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -65,7 +74,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider : CodeFix
         {
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5020Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider)),
+                                                      CodeActionEquivalenceKey),
                                     diagnostic);
         }
 

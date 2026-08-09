@@ -264,6 +264,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : A
 
         await Verify(testData,
                      fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
                      Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 5));
     }
 
