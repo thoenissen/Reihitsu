@@ -1,70 +1,41 @@
+using System;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
 /// <summary>
-/// Code fix provider for <see cref="RH5417MemberDeclarationBracesMustNotShareLineAnalyzer"/>
+/// Compatibility name for <see cref="RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider"/>
 /// </summary>
-[Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider))]
+[Obsolete("Use RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider instead.")]
 public class RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider : CodeFixProvider
 {
-    #region Methods
+    #region Fields
 
     /// <summary>
-    /// Applies the code fix
+    /// Code-fix implementation
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="member">Member declaration whose braces share a line</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
-    {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, member, cancellationToken).ConfigureAwait(false);
-    }
+    private readonly RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider _implementation = new();
 
-    #endregion // Methods
+    #endregion // Fields
 
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId];
+    public override ImmutableArray<string> FixableDiagnosticIds => _implementation.FixableDiagnosticIds;
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    public override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return _implementation.GetFixAllProvider();
     }
 
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-        if (root != null)
-        {
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<MemberDeclarationSyntax>() is { } member)
-                {
-                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5417Title,
-                                                              token => ApplyCodeFixAsync(context.Document, member, token),
-                                                              nameof(RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider)),
-                                            diagnostic);
-                }
-            }
-        }
+        return _implementation.RegisterCodeFixesAsync(context);
     }
 
     #endregion // CodeFixProvider

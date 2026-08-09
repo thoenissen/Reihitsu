@@ -97,5 +97,53 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : A
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies that both foreach syntax shapes use the same multi-line brace policy
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOrdinaryAndVariableForeachBodiesAreDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method((int, int)[] values)
+                                    {
+                                        foreach (var value in values) {|#0:{|}
+                                        }
+
+                                        foreach (var (first, second) in values) {|#1:{|}
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5402MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that catch blocks remain outside the statement-parent policy
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCatchBlockIsExcluded()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        catch {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

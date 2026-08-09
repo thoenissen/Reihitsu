@@ -62,9 +62,13 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     /// <returns>The node to use as formatting context</returns>
     private static SyntaxNode GetFormattingContextNode(SyntaxNode formattingNode)
     {
-        return formattingNode is VariableDeclaratorSyntax variableDeclarator
-                   ? variableDeclarator.Parent?.Parent ?? formattingNode
-                   : formattingNode;
+        return formattingNode switch
+               {
+                   VariableDeclaratorSyntax variableDeclarator => variableDeclarator.Parent?.Parent ?? formattingNode,
+                   ParameterSyntax parameter => parameter.Parent ?? formattingNode,
+                   EnumMemberDeclarationSyntax enumMember => enumMember.Parent ?? formattingNode,
+                   _ => formattingNode
+               };
     }
 
     /// <summary>
@@ -76,7 +80,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     {
         return diagnosticNode.FirstAncestorOrSelf<AssignmentExpressionSyntax>()
                    ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<VariableDeclaratorSyntax>()
-                   ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
+                   ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>()
+                   ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<ParameterSyntax>()
+                   ?? diagnosticNode.FirstAncestorOrSelf<EnumMemberDeclarationSyntax>();
     }
 
     /// <summary>

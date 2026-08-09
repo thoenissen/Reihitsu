@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -9,10 +11,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH5417MemberDeclarationBracesMustNotShareLineAnalyzer"/> and <see cref="RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider"/>
+/// Test methods for <see cref="RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer"/> and <see cref="RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : AnalyzerTestsBase<RH5417MemberDeclarationBracesMustNotShareLineAnalyzer, RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider>
+public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : AnalyzerTestsBase<RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer, RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider>
 {
     #region Tests
 
@@ -57,7 +59,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -83,7 +85,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -108,7 +110,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -133,7 +135,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -150,7 +152,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -167,7 +169,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -197,7 +199,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -216,7 +218,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -233,7 +235,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -258,7 +260,7 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
@@ -336,20 +338,68 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that a single-line local function body is out of scope and does not produce diagnostics
+    /// Verifies that a single-line local function body is detected
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifySingleLineLocalFunctionDoesNotProduceDiagnostics()
+    public async Task VerifySingleLineLocalFunctionProducesDiagnostic()
     {
         const string testData = """
                                 public class C
                                 {
                                     public void Run()
                                     {
-                                        void Local() { }
+                                        void Local() {|#0:{|} }
 
                                         Local();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that lambda and anonymous-method function bodies are detected, including nested forms
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLambdaAndAnonymousMethodBodiesProduceDiagnostics()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                        Action<int> simple = value => {|#0:{|} };
+                                        Action<int> parenthesized = (value) => {|#1:{|} };
+                                        Action anonymous = delegate {|#2:{|} };
+                                        Action nested = () => {|#3:{|} Action inner = () => {|#4:{|} }; };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies that catch blocks remain outside the function-and-accessor policy
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCatchBodyDoesNotProduceDiagnostic()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        catch { }
                                     }
                                 }
                                 """;
@@ -375,6 +425,59 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the accurate primary names own the exports while the former public names remain obsolete
+    /// compatibility shims
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPrimaryExportsAndCompatibilityShimsAreUnique()
+    {
+        var compatibilityAnalyzer = typeof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer).Assembly.GetType("Reihitsu.Analyzer.Rules.Layout.RH5417MemberDeclarationBracesMustNotShareLineAnalyzer",
+                                                                                                                         throwOnError: true) ?? throw new System.InvalidOperationException("The RH5417 analyzer compatibility shim is missing.");
+        var compatibilityProvider = typeof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider).Assembly.GetType("Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider",
+                                                                                                                                throwOnError: true) ?? throw new System.InvalidOperationException("The RH5417 code-fix compatibility shim is missing.");
+
+        Assert.IsTrue(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(System.ObsoleteAttribute), inherit: false));
+        Assert.IsTrue(System.Attribute.IsDefined(compatibilityProvider, typeof(System.ObsoleteAttribute), inherit: false));
+        Assert.IsTrue(typeof(Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase).IsAssignableFrom(compatibilityAnalyzer),
+                      "The compatibility analyzer must retain its original public base type.");
+        Assert.AreEqual(1,
+                        System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer), typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false))
+                        + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityAnalyzer, typeof(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute), inherit: false)));
+        Assert.AreEqual(1,
+                        System.Convert.ToInt32(System.Attribute.IsDefined(typeof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider), typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false))
+                        + System.Convert.ToInt32(System.Attribute.IsDefined(compatibilityProvider, typeof(Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute), inherit: false)));
+
+        const string memberSource = """
+                                    internal class Example
+                                    {
+                                        void Method() { }
+                                    }
+                                    """;
+        var memberActions = await GetCodeFixActionsAsync(memberSource,
+                                                         RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId,
+                                                         root => root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single().Body.OpenBraceToken.GetLocation());
+
+        Assert.HasCount(1, memberActions);
+        Assert.AreEqual("RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider", memberActions[0].EquivalenceKey);
+
+        const string localSource = """
+                                   internal class Example
+                                   {
+                                       void Method()
+                                       {
+                                           void Local() { }
+                                       }
+                                   }
+                                   """;
+        var localActions = await GetCodeFixActionsAsync(localSource,
+                                                        RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId,
+                                                        root => root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single().Body.OpenBraceToken.GetLocation());
+
+        Assert.IsEmpty(localActions, "A local-function diagnostic must not fall back to formatting its containing member.");
     }
 
     #endregion // Tests

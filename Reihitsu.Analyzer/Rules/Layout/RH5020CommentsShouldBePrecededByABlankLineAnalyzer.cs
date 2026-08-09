@@ -1,0 +1,150 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
+
+namespace Reihitsu.Analyzer.Rules.Layout;
+
+/// <summary>
+/// RH5020: Comments should be preceded by a blank line
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class RH5020CommentsShouldBePrecededByABlankLineAnalyzer : DiagnosticAnalyzerBase
+{
+    #region Constants
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    public const string DiagnosticId = "RH5020";
+
+    #endregion // Constants
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH5020CommentsShouldBePrecededByABlankLineAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5020Title), nameof(AnalyzerResources.RH5020MessageFormat))
+    {
+    }
+
+    #endregion // Constructor
+
+    #region Methods
+
+    /// <summary>
+    /// Determines whether the trivia is an ordinary line or block comment owned by RH5020
+    /// </summary>
+    /// <param name="trivia">Trivia to inspect</param>
+    /// <returns><see langword="true"/> for ordinary comments; otherwise, <see langword="false"/></returns>
+    private static bool IsCoveredComment(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether the comment starts a block or switch section
+    /// </summary>
+    /// <param name="commentTrivia">The comment trivia</param>
+    /// <returns><see langword="true"/> if the comment starts a block or switch section</returns>
+    private static bool IsFirstCommentInBlock(SyntaxTrivia commentTrivia)
+    {
+        var previousToken = commentTrivia.Token.GetPreviousToken();
+
+        return previousToken.RawKind == 0
+               || previousToken.IsKind(SyntaxKind.OpenBraceToken)
+               || (previousToken.IsKind(SyntaxKind.ColonToken)
+                   && previousToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel
+                                                   or SyntaxKind.CasePatternSwitchLabel
+                                                   or SyntaxKind.DefaultSwitchLabel);
+    }
+
+    /// <summary>
+    /// Determines whether the comment directly follows another comment or a directive in the same trivia block
+    /// </summary>
+    /// <param name="commentTrivia">The comment trivia</param>
+    /// <returns><see langword="true"/> when an adjacent comment or directive precedes it; otherwise, <see langword="false"/></returns>
+    private static bool IsPrecededByCommentOrDirective(SyntaxTrivia commentTrivia)
+    {
+        var leadingTrivia = commentTrivia.Token.LeadingTrivia;
+        var commentIndex = leadingTrivia.IndexOf(commentTrivia);
+
+        for (var index = commentIndex - 1; index >= 0; index--)
+        {
+            var trivia = leadingTrivia[index];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                   || trivia.IsDirective;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Analyzes ordinary comments for missing separating blank lines
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    {
+        var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
+        var sourceText = context.Tree.GetText(context.CancellationToken);
+
+        foreach (var trivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true).Where(IsCoveredComment))
+        {
+            var commentLineSpan = trivia.GetLocation().GetLineSpan();
+            var commentLineIndex = commentLineSpan.StartLinePosition.Line;
+
+            if (commentLineIndex == 0)
+            {
+                continue;
+            }
+
+            var commentLine = sourceText.Lines[commentLineIndex];
+            var commentLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, commentLine);
+            var commentColumnIndex = Math.Min(commentLineSpan.StartLinePosition.Character, commentLineText.Length);
+
+            if (string.IsNullOrWhiteSpace(commentLineText.Substring(0, commentColumnIndex)) == false)
+            {
+                continue;
+            }
+
+            var previousNonBlankLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, commentLineIndex);
+
+            if (previousNonBlankLineIndex < 0
+                || commentLineIndex - previousNonBlankLineIndex > 1
+                || IsPrecededByCommentOrDirective(trivia)
+                || IsFirstCommentInBlock(trivia))
+            {
+                continue;
+            }
+
+            context.ReportDiagnostic(CreateDiagnostic(trivia.GetLocation()));
+        }
+    }
+
+    #endregion // Methods
+
+    #region DiagnosticAnalyzer
+
+    /// <inheritdoc/>
+    public override void Initialize(AnalysisContext context)
+    {
+        base.Initialize(context);
+
+        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+    }
+
+    #endregion // DiagnosticAnalyzer
+}

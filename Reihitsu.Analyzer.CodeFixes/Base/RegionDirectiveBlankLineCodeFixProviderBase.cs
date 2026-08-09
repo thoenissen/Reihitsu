@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
@@ -75,12 +77,6 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var directiveLineIndex = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start).LineNumber;
-        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
-
-        if (RegionDirectiveBlankLineUtilities.IsAdjacentToNonFormattableLine(directiveLineIndex, sourceText.Lines.Count, nonFormattableLineIndices))
-        {
-            return document;
-        }
 
         if (_insertPrecedingBlankLine)
         {
@@ -96,8 +92,12 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
         var closeBraceStartLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
                                                                                                           sourceText,
                                                                                                           static token => token.IsKind(SyntaxKind.CloseBraceToken));
+        var directiveTrivia = root.FindTrivia(diagnosticSpan.Start, findInsideTrivia: true);
+        var closeBraceExemptions = directiveTrivia.GetStructure() is EndRegionDirectiveTriviaSyntax
+                                       ? closeBraceStartLineIndices
+                                       : new HashSet<int>();
 
-        return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceStartLineIndices)
+        return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceExemptions)
                    ? document.WithText(sourceText.Replace(new TextSpan(sourceText.Lines[directiveLineIndex + 1].Start, 0), endOfLine))
                    : document;
     }

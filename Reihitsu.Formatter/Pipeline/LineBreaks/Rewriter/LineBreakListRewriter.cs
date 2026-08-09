@@ -103,6 +103,38 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Collapses a parameter-list opener when the owning declaration contains the previous token whose trailing trivia
+    /// owns the line break
+    /// </summary>
+    /// <typeparam name="TNode">The parameter-list owner type</typeparam>
+    /// <param name="node">The parameter-list owner</param>
+    /// <param name="parameterList">The parameter list to normalize</param>
+    /// <returns>The updated owner</returns>
+    private static TNode CollapseOwnedOpenParenToDeclarationLine<TNode>(TNode node,
+                                                                        ParameterListSyntax parameterList)
+        where TNode : SyntaxNode
+    {
+        var openParenToken = parameterList.OpenParenToken;
+        var previousToken = openParenToken.GetPreviousToken();
+
+        if (previousToken == default
+            || previousToken.IsKind(SyntaxKind.None)
+            || TokenGapUtilities.HasLineBreakBetween(previousToken, openParenToken) == false
+            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, openParenToken))
+        {
+            return node;
+        }
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openParenToken);
+
+        return node.ReplaceTokens([previousToken, openParenToken],
+                                  (original, _) => original == previousToken
+                                                       ? newPreviousToken
+                                                       : newOpenParen);
+    }
+
+    /// <summary>
     /// Collapses misplaced commas onto the previous parameter line
     /// </summary>
     /// <param name="node">The parameter list node</param>
@@ -374,6 +406,56 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+    {
+        node = (AnonymousMethodExpressionSyntax)base.VisitAnonymousMethodExpression(node);
+
+        return node?.ParameterList == null
+                   ? node
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
+    {
+        node = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
+
+        return node?.ParameterList == null
+                   ? node
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
+    {
+        node = (ExtensionBlockDeclarationSyntax)base.VisitExtensionBlockDeclaration(node);
+
+        return node == null
+                   ? null
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+    {
+        node = (InterfaceDeclarationSyntax)base.VisitInterfaceDeclaration(node);
+
+        return node?.ParameterList == null
+                   ? node
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
+    {
+        node = (StructDeclarationSyntax)base.VisitStructDeclaration(node);
+
+        return node?.ParameterList == null
+                   ? node
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
 
     /// <inheritdoc/>
     public override SyntaxNode VisitArgumentList(ArgumentListSyntax node)
