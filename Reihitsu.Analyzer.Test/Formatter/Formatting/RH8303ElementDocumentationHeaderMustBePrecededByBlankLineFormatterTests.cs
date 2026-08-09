@@ -52,9 +52,47 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies formatter parity and second-pass stability for delimited documentation headers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesDelimitedDocumentationAndIsIdempotent()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 void First()
+                                 {
+                                 }
+                                 {|#0:/**|} <summary>Second.</summary> */
+                                 void Second()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     void First()
+                                     {
+                                     }
+
+                                     /** <summary>Second.</summary> */
+                                     void Second()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
     }
 
     #endregion // Tests

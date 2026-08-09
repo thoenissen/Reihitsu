@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -49,6 +52,16 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase : DiagnosticAnalyzerB
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
+        var regionDirectives = root.DescendantTrivia(descendIntoTrivia: true)
+                                   .Where(static trivia => trivia.GetStructure() is RegionDirectiveTriviaSyntax { IsActive: true }
+                                                                                 or EndRegionDirectiveTriviaSyntax { IsActive: true })
+                                   .ToList();
+
+        if (regionDirectives.Count == 0)
+        {
+            return;
+        }
+
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var openBraceEndLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken(root,
                                                                                                     sourceText,
@@ -56,26 +69,19 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase : DiagnosticAnalyzerB
         var closeBraceStartLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
                                                                                                           sourceText,
                                                                                                           static token => token.IsKind(SyntaxKind.CloseBraceToken));
-        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
+        var noCloseBraceExemptions = new HashSet<int>();
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var trivia in regionDirectives)
         {
-            if (SyntaxTriviaUtilities.IsRegionDirective(trivia) == false)
-            {
-                continue;
-            }
-
             var directiveLine = sourceText.Lines.GetLineFromPosition(trivia.SpanStart);
             var directiveLineIndex = directiveLine.LineNumber;
-
-            if (RegionDirectiveBlankLineUtilities.IsAdjacentToNonFormattableLine(directiveLineIndex, sourceText.Lines.Count, nonFormattableLineIndices))
-            {
-                continue;
-            }
+            var closeBraceExemptions = trivia.GetStructure() is EndRegionDirectiveTriviaSyntax
+                                           ? closeBraceStartLineIndices
+                                           : noCloseBraceExemptions;
 
             var isMissing = _requirePrecedingBlankLine
                                 ? RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(sourceText, directiveLineIndex, openBraceEndLineIndices)
-                                : RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceStartLineIndices);
+                                : RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceExemptions);
 
             if (isMissing)
             {

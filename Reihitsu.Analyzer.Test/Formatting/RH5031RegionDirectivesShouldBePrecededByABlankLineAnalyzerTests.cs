@@ -144,5 +144,147 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that active regions adjacent to formattable literal and comment lines are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormattableLiteralAndCommentAdjacencyIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private string _text = "value";
+                                    {|#0:#region Text|}
+
+                                    #endregion
+
+                                    /* comment */
+                                    {|#1:#region Comment|}
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private string _text = "value";
+
+                                     #region Text
+
+                                     #endregion
+
+                                     /* comment */
+
+                                     #region Comment
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies literal variants, delimited documentation, and disabled-text boundaries do not suppress active regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyActiveRegionsBesideFormerNonFormattableBoundariesAreDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private string _ordinary = "value";
+                                    {|#0:#region Ordinary|}
+
+                                    #endregion
+
+                                    private System.ReadOnlySpan<byte> Utf8 => "value"u8;
+                                    {|#1:#region Utf8|}
+
+                                    #endregion
+
+                                    private string _interpolated = $"{1}";
+                                    {|#2:#region Interpolated|}
+
+                                    #endregion
+
+                                    /** <summary>Documentation.</summary> */
+                                    {|#3:#region Documentation|}
+
+                                    #endregion
+
+                                #if false
+                                    disabled text
+                                #endif
+                                    {|#4:#region DisabledText|}
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private string _ordinary = "value";
+
+                                     #region Ordinary
+
+                                     #endregion
+
+                                     private System.ReadOnlySpan<byte> Utf8 => "value"u8;
+
+                                     #region Utf8
+
+                                     #endregion
+
+                                     private string _interpolated = $"{1}";
+
+                                     #region Interpolated
+
+                                     #endregion
+
+                                     /** <summary>Documentation.</summary> */
+
+                                     #region Documentation
+
+                                     #endregion
+
+                                 #if false
+                                     disabled text
+                                 #endif
+
+                                     #region DisabledText
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies a syntax tree without region directives remains analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDirectiveTreeDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private string _value = "#region is literal content";
+                                    /* #endregion is comment content */
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

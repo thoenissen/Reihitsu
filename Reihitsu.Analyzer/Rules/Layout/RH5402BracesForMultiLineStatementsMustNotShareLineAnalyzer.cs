@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -46,15 +47,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer : Diagno
 
         foreach (var block in root.DescendantNodes().OfType<BlockSyntax>())
         {
-            if (block.Parent is not IfStatementSyntax
-                && block.Parent is not ElseClauseSyntax
-                && block.Parent is not WhileStatementSyntax
-                && block.Parent is not ForStatementSyntax
-                && block.Parent is not ForEachStatementSyntax
-                && block.Parent is not UsingStatementSyntax
-                && block.Parent is not LockStatementSyntax
-                && block.Parent is not FixedStatementSyntax
-                && block.Parent is not DoStatementSyntax)
+            if (StatementBlockParentPolicy.IsCovered(block) == false)
             {
                 continue;
             }

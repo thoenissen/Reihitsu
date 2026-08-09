@@ -40,9 +40,58 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a type primary-constructor opener carried by the preceding token's trailing end-of-line is joined
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterJoinsPrimaryConstructorOpeningGapAndIsIdempotent()
+    {
+        const string input = """
+                             internal class Example
+                             {|#0:(|}int value)
+                             {
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example(int value);
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that formatter-owned callback wrapping remains stable and does not create an RH5105 diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterWrappedParenthesizedLambdaIsStable()
+    {
+        const string input = """
+                             using System;
+
+                             internal class Example
+                             {
+                                 void Method()
+                                 {
+                                     Accept("callback",
+                                            (int item) => item);
+                                 }
+
+                                 void Accept(string name, Func<int, int> callback)
+                                 {
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
     }
 
     #endregion // Tests

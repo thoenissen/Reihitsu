@@ -1,75 +1,41 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
-using System.Threading;
+using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Text;
-
-using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
 /// <summary>
-/// Code fix provider for <see cref="RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer"/>
+/// Compatibility name for <see cref="RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
-[Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider))]
+[Obsolete("Use RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider instead.")]
 public class RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider : CodeFixProvider
 {
-    #region Methods
+    #region Fields
 
     /// <summary>
-    /// Applies the code fix
+    /// Code-fix implementation
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
-    {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+    private readonly RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider _implementation = new();
 
-        if (root == null)
-        {
-            return document;
-        }
-
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var commentLine = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-
-        return document.WithText(sourceText.Replace(new TextSpan(commentLine.Start, 0), endOfLine));
-    }
-
-    #endregion // Methods
+    #endregion // Fields
 
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId];
+    public override ImmutableArray<string> FixableDiagnosticIds => _implementation.FixableDiagnosticIds;
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    public override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return _implementation.GetFixAllProvider();
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5020Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider)),
-                                    diagnostic);
-        }
-
-        return Task.CompletedTask;
+        return _implementation.RegisterCodeFixesAsync(context);
     }
 
     #endregion // CodeFixProvider

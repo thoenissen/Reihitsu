@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -72,12 +73,12 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : Diagno
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var parameterList in root.DescendantNodes().OfType<MethodDeclarationSyntax>().Select(obj => obj.ParameterList))
+        if (context.Tree.GetDiagnostics(context.CancellationToken).Any(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
         {
-            AnalyzeParameterList(context, parameterList);
+            return;
         }
 
-        foreach (var parameterList in root.DescendantNodes().OfType<ConstructorDeclarationSyntax>().Select(obj => obj.ParameterList))
+        foreach (var parameterList in root.DescendantNodes().OfType<ParameterListSyntax>().Where(ParameterListParentPolicy.IsClosingParenthesisCovered))
         {
             AnalyzeParameterList(context, parameterList);
         }

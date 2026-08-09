@@ -75,6 +75,83 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     }
 
     /// <summary>
+    /// Determines whether a documentation trivia directly follows an ordinary comment or directive in its owning
+    /// token's leading trivia
+    /// </summary>
+    /// <param name="documentationTrivia">Documentation trivia to inspect</param>
+    /// <returns><see langword="true"/> when an adjacent comment or directive precedes it; otherwise, <see langword="false"/></returns>
+    private static bool IsPrecededByCommentOrDirective(SyntaxTrivia documentationTrivia)
+    {
+        var leadingTrivia = documentationTrivia.Token.LeadingTrivia;
+        var documentationIndex = leadingTrivia.IndexOf(documentationTrivia);
+
+        for (var triviaIndex = documentationIndex - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = leadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                   || trivia.IsDirective;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Reports delimited XML documentation headers that are missing a preceding blank line
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    private void AnalyzeDelimitedDocumentation(SyntaxTreeAnalysisContext context, SyntaxNode root, SourceText sourceText)
+    {
+        foreach (var trivia in root.DescendantTokens()
+                                   .SelectMany(static token => token.LeadingTrivia)
+                                   .Where(static trivia => trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)))
+        {
+            var documentationStart = trivia.FullSpan.Start;
+            var line = sourceText.Lines.GetLineFromPosition(documentationStart);
+            var lineIndex = line.LineNumber;
+
+            if (lineIndex == 0
+                || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
+            {
+                continue;
+            }
+
+            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
+            var columnIndex = Math.Min(documentationStart - line.Start, lineText.Length);
+
+            if (string.IsNullOrWhiteSpace(lineText.Substring(0, columnIndex)) == false)
+            {
+                continue;
+            }
+
+            var previousNonBlankLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, lineIndex);
+
+            if (previousNonBlankLineIndex < 0)
+            {
+                continue;
+            }
+
+            var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).Trim();
+
+            if (previousLineText.EndsWith("{", StringComparison.Ordinal)
+                || IsPrecededByCommentOrDirective(trivia))
+            {
+                continue;
+            }
+
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(documentationStart, documentationStart + 3))));
+        }
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -83,6 +160,8 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
+
+        AnalyzeDelimitedDocumentation(context, root, sourceText);
 
         for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
         {

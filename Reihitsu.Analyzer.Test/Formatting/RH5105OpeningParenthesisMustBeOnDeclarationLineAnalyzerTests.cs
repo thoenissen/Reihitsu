@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -348,6 +349,106 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that every remaining syntax-valid direct parameter-list parent with an intrinsic opening anchor is covered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRemainingDirectParameterListParentsAreDetected()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Primary
+                                {|#0:(|}int value)
+                                {
+                                    ~Primary
+                                    {|#1:(|})
+                                    {
+                                    }
+
+                                    void Method()
+                                    {
+                                        Func<int, int> parenthesized =
+                                        (int item) => item;
+                                        Func<int, int> anonymous = delegate
+                                        {|#2:(|}int item) { return item; };
+                                    }
+                                }
+
+                                internal struct Value
+                                {|#3:(|}int value)
+                                {
+                                }
+
+                                internal interface Contract
+                                {|#4:(|}int value)
+                                {
+                                }
+
+                                extension
+                                {|#5:(|}string value)
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.CompilerDiagnostics = CompilerDiagnostics.None,
+                     Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat, 6));
+    }
+
+    /// <summary>
+    /// Verifies that parenthesized lambdas are ignored because their opening parenthesis belongs to the expression and
+    /// has no declaration-internal anchor
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyParenthesizedLambdasAreIgnored()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Example
+                                {
+                                    void Method()
+                                    {
+                                        Func<int, int> inline = (int item) => item;
+
+                                        Accept("callback",
+                                               (int item) => item);
+                                    }
+
+                                    void Accept(string name, Func<int, int> callback)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that malformed syntax is ignored and simple lambdas remain outside the rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMalformedSyntaxAndSimpleLambdaAreIgnored()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Example
+                                {
+                                    Func<int, int> simple = value => value;
+
+                                    void Broken
+                                    (
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

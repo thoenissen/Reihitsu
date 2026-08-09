@@ -147,5 +147,111 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an active region, unlike an end-region, requires a blank line before a closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionBeforeClosingBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    {|#0:#region Empty|}
+                                }
+
+                                #endregion
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     #region Empty
+
+                                 }
+
+                                 #endregion
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All converges for both the newly covered closing-brace boundary and an ordinary region boundary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllConvergesAcrossRegionBoundaryKinds()
+    {
+        const string testData = """
+                                #region Outer
+
+                                internal class First
+                                {
+                                    {|#0:#region Empty|}
+                                }
+
+                                #endregion
+
+                                internal class Second
+                                {
+                                    {|#1:#region Members|}
+                                    private int _value;
+
+                                    #endregion
+                                }
+
+                                #endregion
+                                """;
+        const string fixedData = """
+                                 #region Outer
+
+                                 internal class First
+                                 {
+                                     #region Empty
+
+                                 }
+
+                                 #endregion
+
+                                 internal class Second
+                                 {
+                                     #region Members
+
+                                     private int _value;
+
+                                     #endregion
+                                 }
+
+                                 #endregion
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that an end-region at end of file remains exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEndRegionAtEndOfFileIsExempt()
+    {
+        const string testData = """
+                                #region Content
+
+                                internal class TestClass
+                                {
+                                }
+
+                                #endregion
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
