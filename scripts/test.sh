@@ -3,10 +3,10 @@
 #
 #   scripts/test.sh [options] [<extra dotnet test arguments>...]
 #
-#   --project <analyzer|formatter|core|cli|architecture|all>   default: all
-#   --filter <expression>                                      focused run
-#   --no-build                                                 reuse the previous Release build
-#   --no-install                                               fail instead of installing the SDK
+#   --project <analyzer|formatter|core|cli|architecture|tooling|all>   default: all
+#   --filter <expression>                                              focused run
+#   --no-build                                                         reuse the previous Release build
+#   --no-install                                                       fail instead of installing the SDK
 #
 # Test projects are addressed by absolute path, so the caller's working
 # directory is never changed and relative arguments keep their meaning.
@@ -30,7 +30,7 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --project)
             if [ "$#" -lt 2 ]; then
-                echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, or all)." >&2
+                echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, tooling, or all)." >&2
                 exit 2
             fi
 
@@ -65,6 +65,7 @@ case "$project" in
     core) projects=("Reihitsu.Core.Test/Reihitsu.Core.Test.csproj") ;;
     cli) projects=("Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj") ;;
     architecture) projects=("Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj") ;;
+    tooling) projects=("Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj") ;;
     all)
         projects=("Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj"
                   "Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj"
@@ -72,7 +73,7 @@ case "$project" in
                   "Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj")
         ;;
     *)
-        echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, or all)." >&2
+        echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, tooling, or all)." >&2
         exit 2
         ;;
 esac

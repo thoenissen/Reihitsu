@@ -5,7 +5,7 @@
     Test projects are addressed by absolute path, so the caller's working
     directory is never changed and relative arguments keep their meaning.
 .PARAMETER Project
-    Which project to run: analyzer, formatter, core, cli, architecture, or all (default).
+    Which project to run: analyzer, formatter, core, cli, architecture, tooling, or all (default).
 .PARAMETER Filter
     Test filter expression for a focused run.
 .PARAMETER NoBuild
@@ -18,7 +18,7 @@
     .\scripts\test.ps1 -Project analyzer -Filter "FullyQualifiedName~RH3204"
 #>
 param(
-    [ValidateSet('analyzer', 'formatter', 'core', 'cli', 'architecture', 'all')]
+    [ValidateSet('analyzer', 'formatter', 'core', 'cli', 'architecture', 'tooling', 'all')]
     [string]$Project = 'all',
 
     [string]$Filter,
@@ -42,6 +42,7 @@ $projects = switch ($Project)
     'core' { @('Reihitsu.Core.Test/Reihitsu.Core.Test.csproj') }
     'cli' { @('Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj') }
     'architecture' { @('Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj') }
+    'tooling' { @('Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj') }
     'all'
     {
         @('Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj',
