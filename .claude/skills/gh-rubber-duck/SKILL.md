@@ -85,8 +85,34 @@ This section is mandatory for every bug report. A symptom list such as "indexers
 1. State the **mechanism** in one sentence so membership can be decided without judgment, for example: "A brace is normalized on a node that does not contain the token preceding it."
 2. Locate the code that dispatches that mechanism: the fixed switch, visitor registration, rewriter list, syntax type hierarchy, or equivalent closed set.
 3. Enumerate every arm, registration, or concrete type from that code. Cite the defining path and symbol. Do not derive the candidate list from the issue text.
-4. Create one minimal disposable fixture per candidate and exercise all candidates through the narrowest existing entry point. For formatter behavior, run the formatter over the complete fixture batch, then run it a second time and compare the first- and second-pass outputs. For analyzer or code-fix behavior, use the narrowest existing harness that can analyze or fix the temporary fixture and re-analyze the result.
-5. Record whether each candidate reproduces and converges. Decide `In scope` from the mechanism, not from severity, convenience, or whether the issue named it.
+4. Split the candidate set into its **dimensions** — the trivia slot, the container arm, the line ending,
+   whichever the mechanism actually varies over — and decide per dimension whether its arms reach *different
+   code*. Execute the dimensions that do. For a dimension whose arms provably share one code path, state the
+   static proof instead of running it (see below).
+5. Create one minimal disposable fixture per executed candidate and exercise them through the narrowest
+   existing entry point. For formatter behavior, run the formatter over the complete fixture batch, then run
+   it a second time and compare the first- and second-pass outputs. For analyzer or code-fix behavior, use the
+   narrowest existing harness that can analyze or fix the temporary fixture and re-analyze the result.
+6. Record whether each candidate reproduces and converges. Decide `In scope` from the mechanism, not from
+   severity, convenience, or whether the issue named it.
+
+### Execute what varies, prove what provably shares a path
+
+A sweep that runs every arm of every dimension multiplies fixtures against itself, and the product is mostly
+confirmation of something the dispatch code already states. When four `Visit*` overrides all call the same
+`SplitFields(node.Members)`, one `rg` establishes that statically, and six container fixtures add nothing that
+reading the dispatch did not already prove.
+
+So: **enumerate every dimension, execute only the dimensions whose arms reach different code.**
+
+A dimension may go unexecuted only with a **static proof** in the contract — the exact `rg` invocation and the
+shared call site or symbol it lands on. That is the difference between "this dimension is uniform, here is why"
+and an analysis nobody performed, and it is the whole reason the proof is mandatory rather than encouraged.
+Anything short of a single shared call site — a shared *base class* with an override, a switch that dispatches
+to different helpers, a conditional inside the shared method — is not a proof, and the dimension gets executed.
+
+Line endings are never provable this way: LF and CRLF differ in the trivia the code reads, not only in the
+text, so they are executed whenever layout is in scope.
 
 If the dispatch set cannot be enumerated or a candidate cannot be exercised from the inspected baseline, the sweep is incomplete. Report `BLOCKED` when evidence is unavailable, or `NEEDS DECISION` when completing the class exposes materially different intended behavior. Never paper over an untested candidate with `N/A`.
 
@@ -154,7 +180,7 @@ Decide one of:
 
 A single unresolved semantic decision is enough for `NEEDS DECISION`. Do not pick a favorite and report `READY`.
 
-For a bug report, `READY` additionally requires a complete code-derived enumeration and one recorded sweep result per candidate. A green reported example is not enough.
+For a bug report, `READY` additionally requires a complete code-derived enumeration, a dimension-coverage row per dimension, and one recorded sweep result per candidate — where a candidate whose dimension was not executed is covered by that dimension's static proof, and a group of candidates that fail to reproduce for one shared reason may be covered by one collapsed row naming them all. A green reported example is not enough.
 
 Whenever a guard, predicate, or exemption changes, `READY` additionally requires the matching delta table with a verdict per row, no region left uncovered under the guard-delta gate rule, and a named boundary test on each side of every changed predicate condition. An uncovered region or an unmapped issue qualifier is a `NEEDS DECISION`, not a note for the implementer.
 
@@ -204,6 +230,10 @@ READY
 - Dispatch source: `<path>` — `<symbol>`
 - Candidates: …
 
+## Dimension coverage
+| Dimension | Arms | Executed | Static proof if not executed |
+|-----------|------|----------|------------------------------|
+
 ## Defect-class sweep
 | Candidate | Fixture | Reproduces | Converges | In scope | Reason if excluded |
 |-----------|---------|------------|-----------|----------|--------------------|
@@ -230,8 +260,11 @@ Section rules:
 - **Adversarial matrix** carries one row per shape kept from the list above, plus `N/A` rows with their reason for the shapes that were considered and dismissed.
 - **Guard-delta table** and **Predicate-boundary table** carry one row per changed guard and per changed decision. When the change moves no guard, predicate, or exemption, render the explicit text `_N/A — no guard or predicate changes._` under each; an empty table is indistinguishable from an analysis nobody performed. The `Verdict` column states `OK` or names the additional guard the change needs; `Boundary tests` names the two fixtures that will sit on either side of the moved condition.
 - **Defect-class enumeration** names the decidable mechanism, the code location that defines the candidate set, and every candidate found there. For non-bug work, use the explicit `_N/A` text above.
+- **Dimension coverage** carries one row per dimension the candidate set varies over. `Executed` is `yes` or `no`; a `no` row must name the exact `rg` invocation and the shared call site that proves the arms reach one code path, and `_None._` in that column with `Executed = no` is a malformed contract, not a shortcut. For non-bug work, use the same explicit `_N/A` text as the sections below.
 - **Defect-class sweep** contains one row per enumerated candidate. `Fixture` identifies the disposable input, `Reproduces` records the baseline failure, `Converges` records re-analysis or the formatter's second pass, and every `In scope = no` row explains why the candidate does not satisfy the mechanism. For non-bug work, use the explicit `_N/A` text above.
+- **Collapse the negative rows.** When several candidates do not reproduce *for the same reason* — read by the same other call site, guarded by the same predicate — write **one** row per reason rather than one per candidate, and name every candidate it covers in the `Candidate` cell. The closure argument is carried by the reason, not by the repetition, and twenty-five rows of "does not reproduce — read by some other call site" say exactly what five do. A collapsed row that does not enumerate its candidates is not a collapse; it is a gap.
 - **Decisions needed** is `_None._` for `READY`. Otherwise, per decision: the competing interpretations, a concrete example of each (input and the differing output), and a recommended choice with the reason it fits the repository's existing behavior.
+- **Never hand over expected outputs produced by a candidate fix.** Validating the mechanism by patching a copy of the transform and running fixtures through it is legitimate evidence for *this* analysis, and it stays inside it. What must not cross into the handoff is the patched copy's output as the implementer's expected test values: those are a snapshot of one speculative implementation, so a test asserting them can no longer falsify the implementation that produced them, and it silently becomes a test of the code instead of the contract. Name the invariant and the helper; let the implementer derive the expectation from the behavior row.
 - **Implementation handoff** lists the red tests that should exist before production code — including one on each side of every boundary named in the delta tables — matching the repository's test-first rule for analyzer and formatter bug fixes, and names focused `--filter` commands rather than the full suite. Name the existing test helper each red test should use — `VerifyFormatterFixAndIdempotency` for layout changes (second pass plus LF/CRLF), `VerifyFormatterFix` for plain analyzer/formatter parity, `VerifyFormatterStability` for code that must stay untouched, `AnalyzerTestsBase<TAnalyzer, TCodeFix>.Verify` for a code fix and its convergence, `AssertRuleResult(input, expected, endOfLine)` for formatter phases. Pointing at the wrong helper is how an invariant ends up looking covered while it is not.
 
 ## When `gh-implement` invokes this skill
@@ -263,6 +296,9 @@ The analysis is cheap only if it stays cheap:
 - Never run the full validation suite; focused, filtered runs only, and only to settle a factual question or to execute the mandatory bug-report sweep. Prepare the toolchain with `scripts/prepare.sh` only when the sweep needs it; if it cannot install, report `BLOCKED` instead of an unproven contract.
 - Never report `READY` while a material interpretation question is open.
 - Never report `READY` for a bug report without a decidable mechanism, a code-derived complete candidate enumeration, and a completed sweep row for every candidate.
+- Never leave a dimension unexecuted without the static proof — the exact `rg` and the shared call site — that its arms reach one code path. A shared base class, a switch to different helpers, or a conditional inside the shared method is not that proof.
+- Never scale the sweep to how confidently the issue names the mechanism. The enumeration comes from the dispatch code, and an issue that sounds precise is still a hypothesis; the saving comes from not executing dimensions that provably share a path, never from trusting the report.
+- Never collapse sweep rows that fail to reproduce for *different* reasons, and never collapse one without naming every candidate it covers.
 - Never report `READY` for a change that moves a guard, predicate, or exemption without the matching delta table, a verdict per row, and a named boundary test on each side of every changed condition.
 - Never leave a region that loses guard coverage unresolved because every behavior row is green — behavior rows cannot express span algebra, which is exactly why the delta tables exist.
 - Never omit the schema sections; render `_None._` instead.
