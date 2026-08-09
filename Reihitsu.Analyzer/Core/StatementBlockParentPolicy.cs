@@ -1,6 +1,6 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Rules.Layout;
+namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
 /// Defines the statement parents whose directly owned blocks are governed by RH5402 and RH5403

@@ -1,6 +1,6 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Rules.Layout;
+namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
 /// Defines the direct parameter-list parents normalized by the formatter
