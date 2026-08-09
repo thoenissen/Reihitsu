@@ -207,7 +207,10 @@ The audited tree must be the tree that will merge:
 5. Run `Reihitsu.Cli` over every conflict-resolved and changed C# path.
 6. Run the focused tests affected by the merge.
 7. Commit and push the synchronized head with `[skip ci]`.
-8. Run the official preflight against that exact head.
+8. Run `scripts/build.ps1 -NoInstall` on that head and record the result in the evidence bundle — a short build that removes a class of expensive reasoning from the audit, and a red build is never handed to a gate.
+9. Run the official preflight against that exact head.
+
+**Re-verify the remote in the spawning step.** A remote-tracking ref proves only when you last fetched, and a reviewer spawned against a stale one can run a complete audit and return `BLOCKED — state mismatch` having produced no gate result. Run `git ls-remote origin refs/heads/main` in the same step that spawns the agent and re-merge before spawning when it names a SHA you have not merged. Record the SHA and the time in the bundle. This applies to the retry spawn too.
 
 If `origin/main` moves again after a passing preflight, do not enter an unlimited re-merge/re-preflight loop. Check whether another merge is actually required, state that merging again changes the audited tree, and follow the user's explicit direction — including their decision to rely on CI without another preflight attempt.
 
@@ -217,9 +220,12 @@ After the accepted fixes are committed and pushed with `[skip ci]`, the local se
 artifact are complete, and `main` is synchronized, read `.codex/skills/gh-preflight/SKILL.md` completely and
 apply it as an internal, read-only gate against the current PR head. Do not post preflight findings to GitHub.
 Run it in a fresh, independent `reihitsu-preflight` custom agent with no inherited conversation turns when subagents are available, handing it the
-neutral evidence bundle that skill defines — issue and PR data, base and head SHAs, merge base, changed files
-and diff, and your proof that the checkout matches the head — and nothing of your own reasoning. Its model
-and effort come from `.codex/agents/reihitsu-preflight.toml`; pass no overrides.
+neutral evidence bundle that skill defines — the issue and PR **by number** rather than pasted in, base and head
+SHAs, the merge base, the remote `main` SHA with the time you read it, changed files and diff, the build result,
+your focused-test results, your proof that the checkout matches the head, and a per-item checklist-applicability
+list derived from the diff's shape — and nothing of your own reasoning. The reviewer confirms that applicability
+list rather than adopting it, and may overturn any row. Its model and effort come from
+`.codex/agents/reihitsu-preflight.toml`; pass no overrides.
 
 **First decide whether an audit is required at all**, using `gh-preflight`'s trigger list rather than the fact that a file compiles. A round whose accepted findings only touch comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — records a skip instead of spending an attempt, proven with `scripts/verify-text-only.ps1 -NoInstall -Base <base-sha> -Head <head-sha>` and its `TEXT-ONLY PROOF: PASS …` line. Ask the user when the round fits neither list. A skipped audit still leaves the full validation in place unless the diff contains no compiled file at all.
 
@@ -314,21 +320,25 @@ _None._
 - Local self-review: every worklist row checked; parity, boundaries, convergence, idempotency, directives, comment/documentation consistency re-checked. Admission artifact complete.
 - Base sync: merged `origin/main` at `<sha>`; conflicts formatted and focused-tested.
 - Official preflight: required by <trigger>; 1 attempt used (1 reviewer start), PASS on tree `<sha>`; budget not exhausted. (State the skip and its `TEXT-ONLY PROOF` line here instead when the trigger list did not require an audit.)
-- Gate models: preflight `<model>` / `<reasoning effort>`; validation `<model>` / `<reasoning effort>`; include token cost where the environment reports it.
-- Build: green.
+- Build: green — pre-gate run at `<sha>` and the full validation run.
 - Analyzer / Formatter / Core / CLI tests: green, one full run through `reihitsu-validate`.
+- Gate cost: `<gate>` — `<model>` / `<effort>`, `<tokens or "not reported">`, `<elapsed>`; one line per gate that ran.
 
 ## Pushed
 - PR #123, branch `codex/...`: two `[skip ci]` fix commits and trigger commit `Ready for CI (#123)`.
 - Replied on fixed thread #1; F1 awaits approval and has no follow-up thread reply yet. Left threads unresolved for `gh-rereview`.
 `````
 
-List every item once. Every confirmed actionable item appears under Applied or Follow-up drafts; Dismissed is reserved for findings disproved, duplicated, already fixed, or no longer applicable. Include a `preflight` source row under Applied or Follow-up drafts for each confirmed preflight finding or confirmed scope hint; these have no reviewer thread until an issue is approved and published. Move answered decisions into the matching table; list only unresolved decisions under Needs decision. The Validation block must state the local self-review and its admission artifact, the preflight decision with its trigger or proof line, how many official attempts and how many reviewer process starts were used, the result of each, whether the budget was exhausted, and the effective model and reasoning effort of every gate that ran. If validation or push failed, state the exact failure instead of claiming success. Add no preamble or closing text.
+List every item once. Every confirmed actionable item appears under Applied or Follow-up drafts; Dismissed is reserved for findings disproved, duplicated, already fixed, or no longer applicable. Include a `preflight` source row under Applied or Follow-up drafts for each confirmed preflight finding or confirmed scope hint; these have no reviewer thread until an issue is approved and published. Move answered decisions into the matching table; list only unresolved decisions under Needs decision. The Validation block must state the local self-review and its admission artifact, the preflight decision with its trigger or proof line, how many official attempts and how many reviewer process starts were used, the result of each, whether the budget was exhausted, and the single full-validation result. It also carries one `Gate cost` line per gate — the model tier, the effort level, the token cost where the environment reports it, and the elapsed time — because a tier or scope change cannot be shown not to have regressed a verdict without a baseline to compare it against. If validation or push failed, state the exact failure instead of claiming success. Add no preamble or closing text.
 
 For an approval-only continuation turn, return the same structure with each approved draft changed to `created: <issue-url>` or `reused: <issue-url>`, the cache path retained for traceability, the PR-body update and thread reply under Pushed, and unchanged validation explicitly carried forward because the tracked tree did not change. Omit the copy block once the issue exists.
 
 ## Execution economy
 
+- Check the remote with `git ls-remote origin refs/heads/main` in the step that spawns a reviewer; a second there is what stops a complete audit from returning `BLOCKED — state mismatch` with no gate result.
+- Build before the gate; a short build removes a class of expensive reasoning from the audit.
+- Reference the issue and PR by number in the evidence bundle instead of pasting their bodies into every prompt.
+- Derive the checklist applicability once and hand it over, rather than letting each reviewer rediscover the same negatives.
 - Use `rg` for discovery instead of opening candidate files one by one.
 - Batch the independent read-only GitHub queries when building the worklist.
 - Read a large file once and work from that content; do not reload it per finding.
