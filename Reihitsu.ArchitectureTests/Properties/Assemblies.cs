@@ -24,7 +24,9 @@ internal class Assemblies
                                                                                            Assembly.Load("Reihitsu.ArchitectureTests"),
                                                                                            Assembly.Load("Reihitsu.Cli.Test"),
                                                                                            Assembly.Load("Reihitsu.Core.Test"),
-                                                                                           Assembly.Load("Reihitsu.Formatter.Test"))
+                                                                                           Assembly.Load("Reihitsu.Formatter.Test"),
+                                                                                           Assembly.Load("Reihitsu.Tooling"),
+                                                                                           Assembly.Load("Reihitsu.Tooling.Test"))
                                                                            .Build();
 
     /// <summary>

@@ -385,7 +385,7 @@ Everything else is **behavioral** and runs both gates exactly as written below.
 | Test-first for bug fixes | N/A — a routine run changes no behavior | Satisfied by the reproduction gate, then extended by the contract's regression matrix |
 | Full validation | Skipped only when the diff contains **no** compiled file at all | Mandatory — including on a `NOT REPRODUCED` run |
 
-Preflight and validation are separate decisions and must not be collapsed. A comment-only change inside `.cs` can skip the audit, because the syntax-aware proof shows there is nothing to audit — but it still gets the build and all four test projects, because the build is the last thing that would catch a malformed comment or a changed documentation artifact, and test runtime costs wall-clock rather than tokens. Only a diff with no compiled file anywhere skips validation as well. Record every skip and its reason in the report.
+Preflight and validation are separate decisions and must not be collapsed. A comment-only change inside `.cs` can skip the audit, because the syntax-aware proof shows there is nothing to audit — but it still gets the build and all test projects, because the build is the last thing that would catch a malformed comment or a changed documentation artifact, and test runtime costs wall-clock rather than tokens. Only a diff with no compiled file anywhere skips validation as well. Record every skip and its reason in the report.
 
 **Contract note.** On a routine run, write three or four lines in chat before editing: the expected behavior, the files you will touch, and what must not change. It costs seconds, it is the artifact the local self-review walks instead of contract rows, and writing it is often what exposes that the run was not routine after all.
 
@@ -712,10 +712,10 @@ model, effort, and edit-denial hook come from `.codex/agents/reihitsu-validate.t
 fixes and diagnoses nothing. Without subagents, run the commands in the parent and capture their output to a
 temporary file instead of the transcript.
 
-`scripts/test.ps1 -NoInstall` runs all four test projects in order; `-NoBuild` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. All four test projects must pass. If any fails:
+`scripts/test.ps1 -NoInstall` runs all test projects in order; `-NoBuild` is valid only because the Release build immediately above covered this exact tree; drop it and rebuild if any file changed since. Every test project must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
-2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all four test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`.
+2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`. **A change to any compiled file invalidates the build, every project result gathered before it, and the preflight** — those green runs proved the previous tree. Re-run the build and all test projects on the repaired tree; in this repository a formatter fix really can flip analyzer results, because `Reihitsu.Analyzer.CodeFixes` depends on the formatter and the analyzer tests drive it through `FormatterTestsBase<TAnalyzer>`.
 3. If a failure exists on `main` independent of your change, record it in the draft PR's `Review notes` with `gh pr edit` and stop. Do not continue implementation on top of a broken baseline.
 
 If the user explicitly asks to skip repeated local validation and rely on CI, obey that instruction and state in the final report exactly which local checks ran and which did not.
@@ -858,9 +858,9 @@ There is deliberately **no token budget that stops a run**. The expensive stages
 - **Never** run the final preflight on a knowingly stale or conflicting branch and merge `main` afterwards — synchronize first.
 - **Never** start full validation or push the final CI-trigger commit while an audit is required and has not returned `PASS` or `PASS — non-blocking cleanup` for the current PR tree. A recorded, proven skip from the trigger list is the only way past it, and it still leaves the full validation in place unless the diff contains no compiled file at all. If the budget is exhausted without a passing result, stop and report; that is not a licence to proceed.
 - **Never** claim that preflight or validation covered the final *commit* when only the tree matches. Say tree, and prove it with `git diff --exit-code <audited-sha> HEAD`.
-- **Never** treat an earlier green project result as still valid after a compiled file changed — build and all four projects have to be green on one and the same final tree.
+- **Never** treat an earlier green project result as still valid after a compiled file changed — the build and every test project have to be green on one and the same final tree.
 - **Never** write contract row IDs into test code or any tracked file; the mapping lives in the plan and the report.
-- **Never** mark the draft PR ready for review without running the full validation above. A green build on three of four test projects is a regression — run all four.
+- **Never** mark the draft PR ready for review without running the full validation above. A green build with only a subset of test projects is a regression — run them all.
 - **Never** open a non-draft PR. The human reviewer marks ready.
 - **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and generic-placeholder draft before editing files.
 - **Never** copy or paraphrase the issue's title or body into the claim-time draft PR. Title and body are the fixed generic placeholders; the only issue-specific content is the issue number and the `Closes #<N>` link.

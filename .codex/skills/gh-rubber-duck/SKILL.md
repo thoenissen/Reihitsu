@@ -88,7 +88,16 @@ This section is mandatory for every bug report. A symptom list such as "indexers
 2. Locate the code that dispatches that mechanism: the fixed switch, visitor registration, rewriter list, syntax type hierarchy, or equivalent closed set.
 3. Enumerate every arm, registration, or concrete type from that code. Cite the defining path and symbol. Do not derive the candidate list from the issue text.
 4. Split the candidate set into its **dimensions** — the trivia slot, the container arm, the line ending, or whichever dimensions the mechanism actually varies over — and decide per dimension whether its arms reach *different code*. Execute the dimensions that do. For a dimension whose arms provably share one code path, state the static proof instead of running it.
-5. Create one minimal disposable fixture per executed candidate and exercise them through the narrowest existing entry point. For formatter behavior, run the formatter over the complete fixture batch, then run it a second time and compare the first- and second-pass outputs. For analyzer or code-fix behavior, use the narrowest existing harness that can analyze or fix the temporary fixture and re-analyze the result.
+5. Create one minimal disposable fixture per executed candidate and exercise them through the narrowest existing entry point. Both surfaces already have one — **do not build a harness**:
+
+   | Surface | Entry point |
+   |---|---|
+   | Full formatting pipeline | `.\scripts\format.ps1 <fixture-dir>`, run twice to compare the first- and second-pass outputs |
+   | Code fix — analyzer, fix, re-analysis | `.\scripts\apply-fix.ps1 <RH####> <fixture-dir> -NoInstall` |
+
+   `apply-fix` takes the whole fixture directory in one invocation and runs every fixture under LF **and** CRLF, reporting per arm whether the diagnostic was reported, whether a fix was offered, the unified diff it produced, and whether re-analysis converged — which is both sweep columns without a second tool. Its `no-diagnostic` and `no-fix-offered` statuses exit `0`; only `2` means the tool could not run, so a failure never reads as a clean sweep. See `scripts/README.md` for the status table and the exit codes.
+
+   Constructing a disposable project that references `Reihitsu.Formatter` or `Reihitsu.Analyzer.CodeFixes` is not the fallback for these — it is the cost this tooling exists to remove, and it was the single largest driver of a measured contract's token cost. Reach for a hand-built harness only when the mechanism is genuinely reachable through neither script, and say so in the contract.
 6. Record whether each candidate reproduces and converges. Decide `In scope` from the mechanism, not from severity, convenience, or whether the issue named it.
 
 ### Execute what varies, prove what provably shares a path

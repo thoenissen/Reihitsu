@@ -15,6 +15,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 | `test.sh` / `test.ps1` | Run one or all test projects, with an optional focused filter |
 | `format.sh` / `format.ps1` | Format the given paths through `Reihitsu.Cli` |
 | `trace.sh` / `trace.ps1` | Trace source changes at each top-level formatter phase without modifying the input |
+| `apply-fix.sh` / `apply-fix.ps1` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
 | `verify-text-only.sh` / `verify-text-only.ps1` | Prove that a change carries no compiled behavior |
 | `clean-bin-obj.ps1` | Remove all `bin` and `obj` directories |
 | `install-cli.ps1` | Install or update the locally built `Reihitsu.Cli` global tool |
@@ -28,6 +29,7 @@ scripts/build.sh
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
 scripts/format.sh Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
+scripts/apply-fix.sh RH7101 /tmp/sweep
 scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 ```
 
@@ -37,6 +39,7 @@ scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 .\scripts\test.ps1 -Project analyzer -Filter "FullyQualifiedName~RH3204"
 .\scripts\format.ps1 Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs
 .\scripts\trace.ps1 samples\Example.cs -Passes 3 -NoInstall
+.\scripts\apply-fix.ps1 RH7101 C:\Temp\sweep
 .\scripts\verify-text-only.ps1 -Base a1b2c3d -Head worktree
 ```
 
@@ -49,6 +52,34 @@ The trace defaults to at most three passes and requires a positive pass count. I
 Exit codes are `0` when formatting stabilizes or the input is legitimately skipped, `1` when the source is still changing after the requested pass count, and `2` for invalid arguments, missing files, unavailable tooling, or execution failures. Execution errors identify the active pass and, when available, the active phase.
 
 The implementation lives in `trace/trace.cs` as a [.NET 10 file-based app](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps) with a repository-only project reference to `Reihitsu.Cli`. Like the text-only proof app, it is outside `Reihitsu.sln`; its local `Directory.Build.props` isolates it from solution packaging and analyzer settings.
+
+## The code-fix fixture runner
+
+`apply-fix.sh <diagnostic-id> <fixture-directory> [--max-iterations N]` and `apply-fix.ps1 <DiagnosticId> <FixtureDirectory> [-MaxIterations N]` exercise **the code-fix surface** — analyzer, then code fix provider, then re-analysis — over every `*.cs` file below a directory. It exists so a `gh-rubber-duck` defect-class sweep is "write N fixture files and run one command" rather than "build a disposable harness, then write N fixture files"; `format.sh` already reaches the full pipeline, and this closes the surface that had no entry point.
+
+The target is named by **diagnostic ID**, because `FixableDiagnosticIds` and `SupportedDiagnostics` are the only public, stable handles on these types: analyzer and code-fix type names carry no compatibility contract, and the formatter's structural transforms are `internal` and stay that way. An ID no analyzer reports, an ID no provider fixes, or an ID claimed by more than one provider fails before any fixture runs, naming every candidate — the runner never silently picks one.
+
+Fixtures are only read, and paths resolve against the caller's working directory, so a read-only workflow keeps its fixture directory outside the repository and deletes it afterwards. The whole directory is one invocation: process startup is paid once, not once per candidate. Every fixture is run twice, normalized to LF and to CRLF, because the two differ in the trivia the code reads rather than only in the bytes.
+
+Each arm prints a header, an optional line-ending note, and the unified diff from the fixture's input to the final text, followed by one quotable `CODE-FIX RUN: …` summary line. The status token is the sweep's observation:
+
+| Status | Meaning |
+|---|---|
+| `fixed (N action(s), M iteration(s))` | The fix was applied until the diagnostic stopped being reported. `N` above one means the provider offered several actions and the first was taken |
+| `no-diagnostic` | The analyzer never reported — the fixture does not reproduce |
+| `no-fix-offered` | Reported, but the provider registered no action. A **supported end state**, per the code-fix coverage policy in `CLAUDE.md`, not a failure |
+| `not-converged (M iteration(s))` | Still reported when the iteration cap was reached |
+| `no-progress (M iteration(s))` | An action was applied but changed nothing, so the diagnostic can never clear. Reported apart from the cap because an ineffective fix is a defect in the rule and a cap is not |
+| `analyzer-failure` | An analyzer threw. Roslyn reports this as `AD0001` rather than as a failure, so the runner surfaces it explicitly — filtering it away would make a crashed analyzer read as "does not reproduce" |
+| `parse-error` | The fixture itself does not parse |
+| `invalid-result (M iteration(s))` | The applied fix produced source that no longer parses |
+| `[line-ending-drift]` | Suffix on any status whose result stopped using the arm's line ending exclusively — what a fix inserting `Environment.NewLine` instead of the document's own separator looks like |
+
+Convergence is decided by **the diagnostic disappearing**, not by two consecutive passes producing the same text. A fixture carrying the same diagnostic in several places legitimately changes on every iteration while still converging, and a text-equality definition would misreport exactly that case.
+
+Exit codes are `0` when every fixture reached a supported end state, `1` when a fixture never stopped reporting the diagnostic (`not-converged` or `no-progress`), and `2` when the command could not run — bad arguments, an unresolvable ID, a missing or fixture-less directory, an unparseable fixture, a fix producing unparseable source, or an analyzer that threw. `no-diagnostic` and `no-fix-offered` deliberately stay at `0`: every negative sweep row depends on "ran, found nothing" being distinguishable from "could not run".
+
+The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API. Both `Reihitsu.ArchitectureTests` and `Reihitsu.Tooling.Test` participate in the default `all` run, so local full validation covers every solution test project.
 
 ## The text-only proof
 
