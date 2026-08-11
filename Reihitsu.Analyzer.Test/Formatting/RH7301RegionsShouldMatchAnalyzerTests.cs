@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -153,6 +155,78 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
         var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
 
         Assert.Contains(" // Methods\r\n", fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that equivalent region descriptions with separator or trailing whitespace do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EquivalentRegionDescriptionsWithExtraWhitespaceDoNotProduceDiagnostics()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  #region  DoubleSeparator
+
+                                  #endregion // DoubleSeparator
+
+                                  #region TrailingSpace
+
+                                  #endregion // TrailingSpace
+                              }
+                              """;
+        var testData = source.Replace("#region TrailingSpace", "#region TrailingSpace ");
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that nameless regions do not register a code fix action
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamelessRegionsDoNotRegisterCodeFixActions()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region
+
+                                    #endregion
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH7301RegionsShouldMatchAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTrivia(descendIntoTrivia: true)
+                                                               .Select(trivia => trivia.GetStructure())
+                                                               .OfType<EndRegionDirectiveTriviaSyntax>()
+                                                               .Single()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that applying a region fix does not carry an extra start-region separator into the end-region comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RegionFixDoesNotCarryExtraStartSeparatorIntoEndRegionComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region  DoubleSeparator
+
+                                    #endregion // DoubleSeparator
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.Contains("#endregion // DoubleSeparator", fixedSource);
     }
 
     #endregion // Tests

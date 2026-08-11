@@ -299,6 +299,50 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
+    /// Verifies that documented field-like override events are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForFieldLikeOverrideEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    /// <summary>Base documentation</summary>
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    ///{|#0: <summary>
+                                    /// Implementation documentation
+                                    /// </summary>
+                                |}        public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal abstract class TestBase
+                                  {
+                                      /// <summary>Base documentation</summary>
+                                      public virtual event EventHandler TestEvent;
+                                  }
+
+                                  internal class TestImplementation : TestBase
+                                  {
+                                      /// <inheritdoc/>
+                                      public override event EventHandler TestEvent;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
     /// Verifying diagnostic for overridden indexer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

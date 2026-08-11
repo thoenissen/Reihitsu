@@ -45,6 +45,32 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
+    /// Verifies that static readonly interface fields are reported and fixed when they follow mutable static fields
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task StaticReadonlyInterfaceFieldsAreReportedAndFixedWhenTheyFollowMutableFields()
+    {
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    static int Value = 0;
+                                    static readonly int {|#0:ReadonlyValue|} = 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface ITest
+                                 {
+                                     static readonly int ReadonlyValue = 1;
+                                     static int Value = 0;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying no code fix is offered when moving the readonly field would change initializer execution order
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
