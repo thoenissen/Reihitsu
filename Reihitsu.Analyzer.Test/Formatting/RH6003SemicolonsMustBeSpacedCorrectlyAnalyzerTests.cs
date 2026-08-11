@@ -67,5 +67,26 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsB
         await Verify(testData, fixedData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that continuation-line indentation before a semicolon does not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineIndentationDoesNotProduceDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 1
+                                            ;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
