@@ -44,6 +44,35 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
+    /// Normalizes ordinary and documentation-comment line breaks after the syntax replacement
+    /// </summary>
+    /// <param name="root">Syntax root to normalize</param>
+    /// <param name="endOfLine">End-of-line sequence detected from the original document</param>
+    /// <returns>The syntax root with consistent line endings</returns>
+    private static SyntaxNode NormalizeLineEndings(SyntaxNode root, string endOfLine)
+    {
+        var documentationEndOfLines = root.DescendantTokens(descendIntoTrivia: true)
+                                          .Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken)
+                                                          && token.Text != endOfLine)
+                                          .ToArray();
+        var normalizedRoot = documentationEndOfLines.Length == 0
+                                 ? root
+                                 : root.ReplaceTokens(documentationEndOfLines,
+                                                      (original, _) => original.CopyAnnotationsTo(SyntaxFactory.XmlTextNewLine(original.LeadingTrivia,
+                                                                                                                               endOfLine,
+                                                                                                                               original.ValueText,
+                                                                                                                               original.TrailingTrivia)));
+        var endOfLines = normalizedRoot.DescendantTrivia(descendIntoTrivia: true)
+                                       .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                                                        && trivia.ToString() != endOfLine)
+                                       .ToArray();
+
+        return endOfLines.Length == 0
+                   ? normalizedRoot
+                   : normalizedRoot.ReplaceTrivia(endOfLines, (_, _) => SyntaxFactory.EndOfLine(endOfLine));
+    }
+
+    /// <summary>
     /// Replacing the first <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> or
     /// <see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
     /// </summary>
@@ -113,7 +142,7 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
             var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
             var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia(), endOfLine)));
 
-            var newRoot = root.ReplaceNode(memberDeclaration, updatedMemberDeclaration);
+            var newRoot = NormalizeLineEndings(root.ReplaceNode(memberDeclaration, updatedMemberDeclaration), endOfLine);
 
             document = document.WithSyntaxRoot(newRoot);
         }
