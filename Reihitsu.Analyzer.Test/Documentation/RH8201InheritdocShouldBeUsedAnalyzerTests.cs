@@ -339,8 +339,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                   }
                                   """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData),
-                     NormalizeToCarriageReturnLineFeed(resultData),
+        await Verify(testData,
+                     resultData,
                      Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
     }
 
@@ -451,8 +451,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                   }
                                   """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData),
-                     NormalizeToCarriageReturnLineFeed(resultData),
+        await Verify(testData,
+                     resultData,
                      Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
     }
 
@@ -501,8 +501,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                   }
                                   """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData),
-                     NormalizeToCarriageReturnLineFeed(resultData),
+        await Verify(testData,
+                     resultData,
                      static config => config.NumberOfFixAllIterations = 1,
                      Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
     }
@@ -878,11 +878,11 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
 
     /// <summary>
     /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia replacing a multi-line (/** */) documentation
-    /// comment uses the document's detected CRLF end-of-line sequence (issue #463)
+    /// comment uses the environment's end-of-line sequence (issue #463)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMultiLineDocumentationCommentReplacementUsesDetectedCarriageReturnLineFeedEndOfLine()
+    public async Task VerifyMultiLineDocumentationCommentReplacementUsesEnvironmentEndOfLine()
     {
         const string testData = """
                                 using System;
@@ -907,9 +907,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                 }
                                 """;
 
-        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+        var fixedSource = await ApplyCodeFixAsync(testData);
 
-        Assert.Contains("/// <inheritdoc/>\r\n        public override void TestMethod()", fixedSource);
+        Assert.Contains($"/// <inheritdoc/>{System.Environment.NewLine}        public override void TestMethod()", fixedSource);
     }
 
     /// <summary>
@@ -1139,12 +1139,12 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
-    /// Verifies that code-action post-processing preserves CRLF throughout the document instead of introducing
-    /// host-platform line endings (issue #467)
+    /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia uses the environment's end-of-line sequence
+    /// (issue #257)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeActionPostProcessingPreservesCarriageReturnLineFeedEndOfLine()
+    public async Task VerifySynthesizedInheritdocTriviaUsesEnvironmentEndOfLine()
     {
         const string testData = """
                                 using System;
@@ -1171,12 +1171,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                 }
                                 """;
 
-        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
-        var textWithoutCarriageReturnLineFeeds = fixedSource.Replace("\r\n", string.Empty);
+        var fixedSource = await ApplyCodeFixAsync(testData);
 
-        Assert.Contains("/// <inheritdoc/>\r\n", fixedSource);
-        Assert.IsFalse(textWithoutCarriageReturnLineFeeds.Contains('\n') || textWithoutCarriageReturnLineFeeds.Contains('\r'),
-                       "The code fix must preserve CRLF for every line break even when the workspace formatter uses LF.");
+        Assert.Contains($"/// <inheritdoc/>{System.Environment.NewLine}", fixedSource);
     }
 
     #endregion // Methods
