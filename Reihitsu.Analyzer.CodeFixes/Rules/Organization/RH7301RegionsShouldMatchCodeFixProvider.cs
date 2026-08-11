@@ -38,10 +38,7 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
         if (syntaxRoot != null
             && node.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective)
         {
-            var replacementDirective = endRegionDirective.WithEndRegionKeyword(endRegionDirective.EndRegionKeyword.WithTrailingTrivia(SyntaxFactory.Space,
-                                                                                                                                      SyntaxFactory.Comment($"// {startDescription}")))
-                                                         .WithEndOfDirectiveToken(endRegionDirective.EndOfDirectiveToken.WithLeadingTrivia());
-            var replacementTrivia = SyntaxFactory.Trivia(replacementDirective);
+            var replacementTrivia = RegionDirectiveUtilities.CreateCanonicalEndRegionTrivia(endRegionDirective, startDescription);
 
             // The line-ending trivia follows the structured directive in the containing trivia list, so replacing only
             // the directive preserves the document's existing LF or CRLF sequence.

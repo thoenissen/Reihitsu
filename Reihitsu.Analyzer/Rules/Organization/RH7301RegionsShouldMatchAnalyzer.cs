@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -60,25 +59,16 @@ public class RH7301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Analyzes region and endregion directive pairs in source order using LIFO matching
+    /// Analyzes matched region and endregion directive pairs in closing-directive traversal order
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
         var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
-        var regionStack = new Stack<SyntaxTrivia>();
 
-        foreach (var directiveTrivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var (regionTrivia, endRegionTrivia) in RegionDirectiveUtilities.GetRegionPairs(syntaxRoot, includeDirective: null))
         {
-            if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
-            {
-                regionStack.Push(directiveTrivia);
-            }
-            else if (directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
-                     && regionStack.Count > 0)
-            {
-                AnalyzeRegionPair(context, regionStack.Pop(), directiveTrivia);
-            }
+            AnalyzeRegionPair(context, regionTrivia, endRegionTrivia);
         }
     }
 

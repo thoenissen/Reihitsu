@@ -83,42 +83,47 @@ public static class RegionDirectiveUtilities
     }
 
     /// <summary>
+    /// Creates canonical <c>#endregion // Description</c> trivia while preserving the directive's exterior trivia
+    /// </summary>
+    /// <param name="directive">Endregion directive to rewrite</param>
+    /// <param name="description">Normalized description to write</param>
+    /// <returns>Canonical replacement trivia</returns>
+    public static SyntaxTrivia CreateCanonicalEndRegionTrivia(EndRegionDirectiveTriviaSyntax directive, string description)
+    {
+        var replacementDirective = directive.WithEndRegionKeyword(directive.EndRegionKeyword.WithTrailingTrivia(SyntaxFactory.Space,
+                                                                                                                SyntaxFactory.Comment($"// {description}")))
+                                            .WithEndOfDirectiveToken(directive.EndOfDirectiveToken.WithLeadingTrivia());
+
+        return SyntaxFactory.Trivia(replacementDirective);
+    }
+
+    /// <summary>
+    /// Enumerates region directives once and pairs included directives using LIFO matching
+    /// </summary>
+    /// <param name="syntaxRoot">Syntax root whose directives should be paired</param>
+    /// <param name="includeDirective">Optional policy applied to each directive before pairing</param>
+    /// <returns>Matched pairs in closing-directive traversal order; unmatched directives are omitted</returns>
+    public static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetRegionPairs(SyntaxNode syntaxRoot, Func<SyntaxTrivia, bool> includeDirective)
+    {
+        return GetRegionPairsWithDepth(syntaxRoot, includeDirective).Select(pair => (pair.Region, pair.EndRegion))
+                                                                    .ToList();
+    }
+
+    /// <summary>
     /// Gets the top-level region pairs declared for the current type
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <returns>Region pairs</returns>
     public static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetTopLevelRegions(TypeDeclarationSyntax typeDeclaration)
     {
-        var regions = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();
-        var regionStack = new Stack<SyntaxTrivia>();
         var nestedTypeSpans = typeDeclaration.DescendantNodes()
                                              .OfType<TypeDeclarationSyntax>()
                                              .Select(nestedType => nestedType.Span)
                                              .ToList();
 
-        foreach (var directiveTrivia in typeDeclaration.DescendantTrivia(descendIntoTrivia: true)
-                                                       .Where(SyntaxTriviaUtilities.IsRegionDirective))
-        {
-            if (BelongsToType(typeDeclaration, nestedTypeSpans, directiveTrivia) == false)
-            {
-                continue;
-            }
-
-            if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
-            {
-                regionStack.Push(directiveTrivia);
-            }
-            else if (regionStack.Count > 1)
-            {
-                regionStack.Pop();
-            }
-            else if (regionStack.Count > 0)
-            {
-                regions.Add((regionStack.Pop(), directiveTrivia));
-            }
-        }
-
-        return regions;
+        return GetRegionPairsWithDepth(typeDeclaration, directiveTrivia => BelongsToType(typeDeclaration, nestedTypeSpans, directiveTrivia)).Where(pair => pair.NestingDepth == 1)
+                                                                                                                                            .Select(pair => (pair.Region, pair.EndRegion))
+                                                                                                                                            .ToList();
     }
 
     /// <summary>
@@ -183,22 +188,24 @@ public static class RegionDirectiveUtilities
             return false;
         }
 
-        var directives = syntaxRoot.DescendantTrivia(descendIntoTrivia: true)
-                                   .Where(SyntaxTriviaUtilities.IsRegionDirective)
-                                   .ToList();
-        var directiveIndex = directives.FindIndex(currentDirective => currentDirective == directiveTrivia);
-
-        if (directiveIndex < 0)
+        foreach (var (region, endRegion) in GetRegionPairs(syntaxRoot, includeDirective: null))
         {
-            return false;
+            if (region == directiveTrivia)
+            {
+                matchingDirectiveTrivia = endRegion;
+
+                return true;
+            }
+
+            if (endRegion == directiveTrivia)
+            {
+                matchingDirectiveTrivia = region;
+
+                return true;
+            }
         }
 
-        if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
-        {
-            return TryFindMatchingEndRegion(directives, directiveIndex, out matchingDirectiveTrivia);
-        }
-
-        return TryFindMatchingRegion(directives, directiveIndex, out matchingDirectiveTrivia);
+        return false;
     }
 
     /// <summary>
@@ -237,75 +244,43 @@ public static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Tries to find the matching #endregion for a #region
+    /// Enumerates included region directives once and retains each matched pair's opening depth
     /// </summary>
-    /// <param name="directives">Directive list</param>
-    /// <param name="directiveIndex">Index of #region</param>
-    /// <param name="matchingDirectiveTrivia">Matching #endregion</param>
-    /// <returns><see langword="true"/> if found</returns>
-    private static bool TryFindMatchingEndRegion(List<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
+    /// <param name="syntaxRoot">Syntax root whose directives should be paired</param>
+    /// <param name="includeDirective">Optional policy applied to each directive before pairing</param>
+    /// <returns>Matched pairs with their opening depth in closing-directive traversal order</returns>
+    private static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion, int NestingDepth)> GetRegionPairsWithDepth(SyntaxNode syntaxRoot, Func<SyntaxTrivia, bool> includeDirective)
     {
-        matchingDirectiveTrivia = default;
+        var pairs = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion, int NestingDepth)>();
 
-        var nestedRegionCount = 0;
-
-        for (var directivePosition = directiveIndex + 1; directivePosition < directives.Count; directivePosition++)
+        if (syntaxRoot == null)
         {
-            var currentDirective = directives[directivePosition];
+            return pairs;
+        }
 
-            if (currentDirective.IsKind(SyntaxKind.RegionDirectiveTrivia))
-            {
-                nestedRegionCount++;
-            }
-            else if (nestedRegionCount == 0)
-            {
-                matchingDirectiveTrivia = currentDirective;
+        var regionStack = new Stack<SyntaxTrivia>();
 
-                return true;
-            }
-            else
+        foreach (var directiveTrivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia) == false
+                || (includeDirective != null && includeDirective(directiveTrivia) == false))
             {
-                nestedRegionCount--;
+                continue;
+            }
+
+            if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
+            {
+                regionStack.Push(directiveTrivia);
+            }
+            else if (regionStack.Count > 0)
+            {
+                var nestingDepth = regionStack.Count;
+
+                pairs.Add((regionStack.Pop(), directiveTrivia, nestingDepth));
             }
         }
 
-        return false;
-    }
-
-    /// <summary>
-    /// Tries to find the matching #region for an #endregion
-    /// </summary>
-    /// <param name="directives">Directive list</param>
-    /// <param name="directiveIndex">Index of #endregion</param>
-    /// <param name="matchingDirectiveTrivia">Matching #region</param>
-    /// <returns><see langword="true"/> if found</returns>
-    private static bool TryFindMatchingRegion(List<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
-    {
-        matchingDirectiveTrivia = default;
-
-        var nestedEndRegionCount = 0;
-
-        for (var directivePosition = directiveIndex - 1; directivePosition >= 0; directivePosition--)
-        {
-            var currentDirective = directives[directivePosition];
-
-            if (currentDirective.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-            {
-                nestedEndRegionCount++;
-            }
-            else if (nestedEndRegionCount == 0)
-            {
-                matchingDirectiveTrivia = currentDirective;
-
-                return true;
-            }
-            else
-            {
-                nestedEndRegionCount--;
-            }
-        }
-
-        return false;
+        return pairs;
     }
 
     #endregion // Methods

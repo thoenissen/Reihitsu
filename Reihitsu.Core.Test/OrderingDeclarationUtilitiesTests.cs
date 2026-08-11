@@ -54,6 +54,49 @@ public class OrderingDeclarationUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that readonly ordering treats implicit interface accessibility as public while preserving explicit
+    /// public and private modifiers
+    /// </summary>
+    [TestMethod]
+    public void GetEffectiveAccessibilityGroupForReadonlyOrderingUsesInterfaceDefaults()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            public interface ISample
+                                                                            {
+                                                                                static int Implicit = 0;
+                                                                                public static readonly int ExplicitPublic = 1;
+                                                                                private static readonly int ExplicitPrivate = 2;
+                                                                            }
+                                                                            """);
+        var fields = typeDeclaration.Members.OfType<FieldDeclarationSyntax>().ToArray();
+
+        Assert.AreEqual(OrderingAccessibilityGroup.None, OrderingDeclarationUtilities.GetAccessibilityGroup(fields[0]));
+        Assert.AreEqual(OrderingAccessibilityGroup.Public, OrderingDeclarationUtilities.GetAccessibilityGroup(fields[1]));
+        Assert.AreEqual(OrderingAccessibilityGroup.Public, OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fields[0]));
+        Assert.AreEqual(OrderingAccessibilityGroup.Public, OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fields[1]));
+        Assert.AreEqual(OrderingAccessibilityGroup.Private, OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fields[2]));
+    }
+
+    /// <summary>
+    /// Verifies that implicit accessibility outside interfaces retains the existing syntactic accessibility group
+    /// </summary>
+    [TestMethod]
+    public void GetEffectiveAccessibilityGroupForReadonlyOrderingKeepsNonInterfaceDefaults()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                static int Implicit;
+                                                                                private static readonly int ExplicitPrivate;
+                                                                            }
+                                                                            """);
+        var fields = typeDeclaration.Members.OfType<FieldDeclarationSyntax>().ToArray();
+
+        Assert.AreEqual(OrderingAccessibilityGroup.None, OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fields[0]));
+        Assert.AreEqual(OrderingAccessibilityGroup.Private, OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fields[1]));
+    }
+
+    /// <summary>
     /// Verifies that member kind, static detection, and const detection are derived from the declaration
     /// </summary>
     [TestMethod]

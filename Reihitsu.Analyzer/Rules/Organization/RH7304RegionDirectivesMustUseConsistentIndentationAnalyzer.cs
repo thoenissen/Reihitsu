@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -85,16 +83,6 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Determines whether the directive should be ignored by this rule
-    /// </summary>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <returns><see langword="true"/> if ignored</returns>
-    private static bool ShouldIgnoreDirective(SyntaxTrivia directiveTrivia)
-    {
-        return RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia);
-    }
-
-    /// <summary>
     /// Reports diagnostics for region directives whose indentation differs from the containing code
     /// </summary>
     /// <param name="context">Context</param>
@@ -123,33 +111,18 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes region pairs after excluding directives within element bodies from matching
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
         var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var regionStack = new Stack<SyntaxTrivia>();
 
-        foreach (var directiveTrivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var (regionTrivia, endRegionTrivia) in RegionDirectiveUtilities.GetRegionPairs(syntaxRoot,
+                                                                                                static directiveTrivia => RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia) == false))
         {
-            if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
-            {
-                if (ShouldIgnoreDirective(directiveTrivia) == false)
-                {
-                    regionStack.Push(directiveTrivia);
-                }
-            }
-            else if (directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-            {
-                if (ShouldIgnoreDirective(directiveTrivia) || regionStack.Count == 0)
-                {
-                    continue;
-                }
-
-                AnalyzeRegionPair(context, syntaxRoot, sourceText, regionStack.Pop(), directiveTrivia);
-            }
+            AnalyzeRegionPair(context, syntaxRoot, sourceText, regionTrivia, endRegionTrivia);
         }
     }
 

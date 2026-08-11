@@ -45,17 +45,43 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that initialized static readonly interface fields are reported when they follow mutable static fields,
-    /// while the initializer-order safety guard withholds the code fix
+    /// Verifies that an implicit-access mutable interface field and explicit-public readonly field share the same
+    /// effective accessibility group and are safely reordered when neither has an initializer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task InitializedStaticReadonlyInterfaceFieldsAreReportedWithoutCodeFix()
+    public async Task MixedImplicitAndExplicitPublicInterfaceFieldsAreDetectedAndFixedWhenSafe()
+    {
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    static int Value;
+                                    public static readonly int {|#0:ReadonlyValue|};
+                                }
+                                """;
+        const string fixedCode = """
+                                 public interface ITest
+                                 {
+                                     public static readonly int ReadonlyValue;
+                                     static int Value;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the reverse accessibility spelling direction for initialized interface fields while the
+    /// initializer-order safety guard withholds the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ExplicitPublicMutableAndImplicitReadonlyInterfaceFieldsReportWithoutCodeFixWhenInitialized()
     {
         const string source = """
                               public interface ITest
                               {
-                                  static int Value = 0;
+                                  public static int Value = 0;
                                   static readonly int ReadonlyValue = 1;
                               }
                               """;
@@ -75,7 +101,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that readonly interface fields ordered before mutable fields do not produce diagnostics
+    /// Verifies that an explicit-public readonly interface field ordered before an implicit-access mutable field does
+    /// not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -84,8 +111,27 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         const string testCode = """
                                 public interface ITest
                                 {
-                                    static readonly int ReadonlyValue = 1;
+                                    public static readonly int ReadonlyValue = 1;
                                     static int Value = 0;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the reverse accessibility spelling direction when an implicit-access readonly interface field is
+    /// already ordered before an explicit-public mutable field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ImplicitReadonlyBeforeExplicitPublicMutableInterfaceFieldDoesNotProduceDiagnostics()
+    {
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    static readonly int ReadonlyValue = 1;
+                                    public static int Value = 0;
                                 }
                                 """;
 
@@ -126,6 +172,56 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that implicit class accessibility and explicit private accessibility remain distinct syntactic groups
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ImplicitAndPrivateClassFieldsDoNotProduceDiagnostics()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    static int Value;
+                                    private static readonly int ReadonlyValue;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that directive safety still withholds the fix for a mixed-accessibility interface violation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MixedAccessibilityInterfaceViolationWithDirectivesHasNoCodeFix()
+    {
+        const string source = """
+                              public interface ITest
+                              {
+                                  static int Value;
+
+                                  #region Readonly
+                                  public static readonly int ReadonlyValue;
+                                  #endregion
+                              }
+                              """;
+        var testCode = source.Replace("ReadonlyValue", "{|#0:ReadonlyValue|}");
+
+        await Verify(testCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(source,
+                                                   RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "ReadonlyValue")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>

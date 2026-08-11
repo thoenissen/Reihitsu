@@ -273,5 +273,32 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a region opening inside an excluded element body cannot consume the first included endregion
+    /// after that body during pairing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExcludedElementBodyDirectiveCannotPairWithContainingTypeDirective()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                {|#0:#region Outer|}
+
+                                    internal void DoWork()
+                                    {
+                                #region Body
+                                    }
+
+                                {|#1:#endregion // Body|}
+                                #endregion // Outer
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+    }
+
     #endregion // Tests
 }
