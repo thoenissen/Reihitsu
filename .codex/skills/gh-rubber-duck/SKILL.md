@@ -180,9 +180,12 @@ For a bug report, `READY` additionally requires a complete code-derived enumerat
 
 Whenever a guard, predicate, or exemption changes, `READY` additionally requires the matching delta table with a verdict per row, no region left uncovered under the guard-delta gate rule, and a named boundary test on each side of every changed predicate condition. An uncovered region or an unmapped issue qualifier is a `NEEDS DECISION`, not a note for the implementer.
 
-## Required output schema
+## Required evidence artifact
 
-Return exactly these sections, in this order, rendering `_None._` under any that is empty. Keep it short enough to be read in one pass — no dumped source files, no verbatim reproduction of the issue.
+Write the complete contract to a Markdown file under the system temporary directory. Use exactly these
+sections, in this order, rendering `_None._` under any that is empty. Do not dump source files or reproduce
+the issue verbatim. The parent reads this artifact once and passes its path to later gates instead of
+inlining the matrices into every prompt.
 
 ````markdown
 ## Gate
@@ -248,6 +251,31 @@ _None._
 - Risks to re-check: …
 ````
 
+Return only this compact chat result:
+
+```markdown
+## Gate
+READY | NEEDS DECISION | BLOCKED
+
+## Requirement summary
+<one short paragraph>
+
+## Contract index
+- Behavior rows: `<count>`
+- Changed guards/predicates: `<count>`
+- Defect candidates: `<count, or N/A>`
+- Reproducing candidates: `<count, or N/A>`
+
+## Decisions needed
+_None._
+
+## Evidence artifact
+`<absolute temporary Markdown path>`
+```
+
+For `NEEDS DECISION`, include only the competing interpretations and smallest distinguishing examples after
+the index. For `BLOCKED`, replace them with the missing evidence. Do not repeat full tables in chat.
+
 Section rules:
 
 - **User-visible examples** show input *and* expected output whenever formatting changes are involved. For key/value or paired-element formatting, cover all four combinations explicitly: single-line key + single-line value, multi-line key + single-line value, single-line key + multi-line value, multi-line key + multi-line value. If a combination cannot occur, say why instead of omitting it.
@@ -270,7 +298,9 @@ Section rules:
 with no inherited turns and no access to the parent's proposed solution. Three consequences:
 
 - Report the contract you can defend from the issue and the repository, not the one the parent seems to want. Independence is the whole point of the isolation.
-- Return the schema above verbatim. The parent turns the `Behavior contract`, `Adversarial matrix`, `Guard-delta table`, `Predicate-boundary table`, `Dimension coverage`, and `Defect-class sweep` rows directly into its regression matrix and local self-review checklist, so unstable headings break the hand-off.
+- Write the full evidence artifact with the stable headings above, then return only the compact gate result
+  and artifact path. The parent reads the artifact once and turns its rows into the regression matrix and
+  local self-review checklist.
 - The parent hands over an **evidence bundle**: the issue and PR by number, base and head SHAs, the merge base, the remote `main` SHA, the changed-file list and diff, the build result, its proof that the local checkout matches that head, and the user's chat clarifications verbatim. Fetch the referenced issue and PR through authenticated `gh`. The bundle is neutral fact-gathering, not author reasoning — use it instead of re-deriving the same state, and treat a missing or self-contradicting bundle as a reason to gather the evidence yourself rather than to proceed on assumption. It never contains conclusions, suspected findings, or intended fixes; if it does, ignore them and say so in the report.
 
 When the parent later sends new evidence (a user clarification, a fact discovered mid-implementation), amend the same contract: restate the gate, mark which rows changed, and keep the unchanged rows stable so the parent can diff them.

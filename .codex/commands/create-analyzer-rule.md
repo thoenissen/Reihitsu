@@ -24,6 +24,10 @@ Implement a new analyzer rule end to end, including tests and all required rule 
 - Positive tests for the new rule
 - Negative tests for the new rule
 - Code-fix tests when a code fix is implemented
+- A multi-diagnostic, one-iteration Fix All convergence test when the code fix can safely handle coexisting
+  diagnostics
+- No-match and post-match-tail cancellation tests when the analyzer or fix introduces a
+  cancellation-aware traversal
 - Rule markdown created under `documentation/rules/RH####.md` (see rule doc format below)
 - Rule markdown added to `Reihitsu.Analyzer.Package/README.MD`
 - Rule markdown added to `Reihitsu.sln`

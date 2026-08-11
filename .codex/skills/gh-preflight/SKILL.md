@@ -86,10 +86,18 @@ The last two preconditions exist for measured reasons. A remote-tracking ref pro
 
 ## Reviewer isolation and the evidence bundle
 
-When `gh-implement` or `gh-apply-review` invokes preflight and a subagent facility is available, run the audit
-in exactly one fresh `reihitsu-preflight` custom agent with no inherited turns or author transcript. Its model, reasoning effort,
-and instructions come from `.codex/agents/reihitsu-preflight.toml`; pass no overrides. The parent remains the
-only writer and consumes the subagent's gate report.
+When `gh-implement` or `gh-apply-review` invokes preflight and a subagent facility is available, select one
+attempt-1 tier from the final diff:
+
+- use `reihitsu-deep-preflight` for public-API changes, semantic or trivia rewrite changes, security-boundary
+  changes, or destructive behavior;
+- use `reihitsu-preflight` for every other triggered audit;
+- use `reihitsu-preflight` for every repair retry.
+
+Run exactly one fresh selected agent with no inherited turns or author transcript. Its model, reasoning
+effort, and instructions come from its `.codex/agents/*.toml`; pass no overrides. At most one
+`reihitsu-deep-preflight` process may start per issue. The parent remains the only writer and consumes the
+subagent's compact gate report and evidence-artifact path.
 
 The subagent receives the repository root, this skill path, and one **immutable evidence bundle** the parent gathered once:
 
@@ -100,6 +108,7 @@ The subagent receives the repository root, this skill path, and one **immutable 
 - the `scripts/build.ps1 -NoInstall` result on that head;
 - the parent's focused-test results;
 - the parent's checklist-applicability list below.
+- the Rubber Duck evidence-artifact path when a contract exists, rather than pasted contract matrices.
 
 That bundle is neutral fact-gathering. It contains no author conclusion, no suspected finding, and no intended fix, so consuming it preserves independence while removing the unreliable GitHub reconstruction each isolated agent would otherwise repeat. If the bundle disagrees with the repository — a head SHA that is not the checkout, a diff that does not match — return `BLOCKED — state mismatch` rather than auditing a tree nobody is reviewing.
 
@@ -125,7 +134,7 @@ Six or seven of the 19 checklist items are typically `N/A` for a given diff — 
 
 The reviewer **confirms** that list; it does not adopt it. An item the parent marked `N/A` that the diff can in fact reach is itself a finding, and reporting it costs one line. Independence survives because the reviewer retains the verdict — what it loses is the obligation to rediscover six obvious negatives from scratch. Every item still appears in the report with its status, so a silently dropped item stays impossible.
 
-The retry attempt gets its own fresh `reihitsu-preflight` custom agent on the exact new head — never a
+The retry attempt gets its own fresh standard `reihitsu-preflight` custom agent on the exact new head — never a
 continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be
 independent — plus the repair-delta inputs below.
 
@@ -139,6 +148,9 @@ An isolated reviewer that never returns a verdict must not silently consume the 
 2. at most one restart when the agent errors, returns without a verdict, or the parent's own wait passes roughly 15 minutes without a result — report which of the three it was rather than inferring activity you cannot observe inside another agent;
 3. then the local read-only fallback above, performed by the parent.
 
+When the first process was `reihitsu-deep-preflight`, any restart uses `reihitsu-preflight`; the one-deep-
+process cap counts starts, not verdict attempts.
+
 A start that produced no verdict costs a **process start**, not an official attempt. The parent reports both numbers separately.
 
 ### Attempt 1 and the repair-delta retry
@@ -147,7 +159,7 @@ A start that produced no verdict costs a **process start**, not an official atte
 
 **The retry** is repair-delta-aware. The parent adds to the bundle:
 
-- the previous independent report;
+- the previous compact gate result and complete evidence-artifact path;
 - the previously audited SHA;
 - the repaired SHA;
 - the repair diff.
@@ -244,6 +256,10 @@ For every bug fix or review fix:
    - token or trivia changes: comments, directives, and disabled text;
    - formatter changes: LF, CRLF, second-pass idempotency, and neighboring phases;
    - code fixes: one-pass convergence, multiple-diagnostic Fix All, and target identity after earlier edits;
+   - changed code-fix registration or applicability: at least two coexisting safe diagnostics fixed in one
+     Fix All iteration with clean re-analysis; diagnostic-only multi-case tests are insufficient;
+   - changed cancellation-aware traversal: cancellation during a no-match scan and a post-match tail, not
+     only before entry or at eligible items;
    - analyzer / formatter / fix changes: both directions of counterpart parity;
    - naming fixes: Roslyn Renamer reference retargeting.
 
@@ -281,7 +297,31 @@ When invoked by `gh-implement` or `gh-apply-review`, the parent owns the budget:
 
 ## Direct chat output
 
-The schema below is **attempt 1's**, and the one a direct `/gh-preflight` invocation uses. The retry has its own, smaller schema further down.
+For an attempt-1 custom agent invoked by `gh-implement` or `gh-apply-review`, write the complete schema below
+to a Markdown file under the system temporary directory, then return only:
+
+```markdown
+## Gate
+PASS | PASS — non-blocking cleanup | BLOCKED — findings | BLOCKED — state mismatch
+
+## Scope
+- PR #123 at `<head-sha>`; audit tier: `<standard | deep>`; local checkout matches.
+
+## Findings
+<the complete findings table, or `_None._`>
+
+## Evidence artifact
+`<absolute temporary Markdown path>`
+
+## Gate metrics
+- Elapsed: `<duration>`; agent starts: `<n>`.
+```
+
+The artifact is the durable audit evidence; later gates receive its path rather than a pasted report. Do not
+repeat the checklist or three-axis tables in the custom-agent chat result.
+
+The schema below is attempt 1's complete evidence artifact and the output for a direct `/gh-preflight`
+invocation. The retry has its own smaller schema further down.
 
 For direct `/gh-preflight` invocations, write only:
 

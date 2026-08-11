@@ -78,7 +78,8 @@ Every gate below is spawned by its custom agent name, never by an ad-hoc prompt 
 |---|---|
 | Reproduction gate, and its escalated confirmation | `reihitsu-reproduction` |
 | Behavior Contract gate | `reihitsu-rubber-duck` |
-| Official preflight, attempt 1 and retry | `reihitsu-preflight` |
+| Standard preflight and every retry | `reihitsu-preflight` |
+| Deep preflight, at most once per issue | `reihitsu-deep-preflight` |
 | Full validation | `reihitsu-validate` |
 
 The model, reasoning effort, instructions, and tool restrictions come from the corresponding TOML file under
@@ -423,7 +424,7 @@ The subagent prompt must contain that bundle plus, and nothing more:
 - the user's relevant clarifications from this conversation, quoted rather than summarized;
 - the path `.codex/skills/gh-rubber-duck/SKILL.md`, with the instruction to read and follow it completely;
 - a strict read-only instruction (no edits, commits, pushes, PR changes, GitHub comments, or full validation);
-- a request for the exact required output schema.
+- a request for the compact gate result and the absolute path of the complete temporary evidence artifact.
 
 Do **not** include your own proposed solution, suspected root cause, planned diff, or preferred interpretation. The bundle is fact-gathering; anything that carries your conclusions defeats the isolation the gate exists for.
 
@@ -437,6 +438,9 @@ If subagents are unavailable in the current environment, perform the analysis yo
 
 **`READY`**
 
+- Read the complete evidence artifact once. Reject the result when the path is missing, unreadable, or does
+  not match the reported baseline SHA; pass that path to later gates rather than pasting its tables into
+  their prompts.
 - For a bug report, reject a malformed `READY` result that lacks a decidable `Defect-class enumeration` or a completed `Defect-class sweep` row for every code-derived candidate. Send the schema defect back to the same Rubber Duck subagent; do not begin implementation.
 - When the change moves a guard, predicate, or exemption, reject a `READY` result whose `Guard-delta table` or `Predicate-boundary table` is missing, empty without the explicit `_N/A_` text, carries a region that loses coverage without a verdict, or names a boundary with a test on only one side. Those rows are the *after* analysis; the sweep only covers the *before*.
 - Show the user a concise version of the user-visible examples and the important invariants — enough to catch a wrong contract in one glance, not the full report.
@@ -508,6 +512,10 @@ The matrix must cover, for the surfaces the contract names:
 - misaligned or invalid examples that must change;
 - code-fix convergence (one pass silences the diagnostic and raises no new RH diagnostic);
 - Fix All across several diagnostics in one document, where the fix supports it;
+- when code-fix registration or applicability changes and two safe diagnostics can coexist, at least two
+  fixable diagnostics with exact one-iteration Fix All convergence and clean re-analysis;
+- when a shared traversal replaces or accepts cooperative cancellation, cancellation during a no-match scan
+  and during a post-match tail, proving the token is observed inside traversal rather than only at matches;
 - formatter second-pass idempotency;
 - analyzer / formatter / code-fix parity in both directions;
 - the trivia and directive cases the contract flagged as relevant (comments before the token and before both delimiters, `#if`/`#endif`/`#pragma`, disabled text);
@@ -600,6 +608,11 @@ Check, concretely:
 - **documentation** — `documentation/rules/RH####.md` matches the shipped behavior when a rule changed;
 - **changed-path formatting** — every changed C# path went through `scripts/format.ps1 -NoInstall`;
 - **focused tests** — the tests for the changed rule/phase pass at the current working tree.
+- **cancellation unit tests** — every changed cancellation-aware traversal observes cancellation inside its
+  scan, including a no-match or post-match-tail boundary;
+- **Fix All unit tests** — every changed code-fix registration or applicability with coexisting safe
+  diagnostics has a multi-diagnostic, one-iteration convergence test; diagnostic-only cases do not substitute
+  for this boundary.
 
 Fix what you find now. This is not an official preflight, does not consume a preflight attempt, and is not reported as one.
 
@@ -655,11 +668,17 @@ If `origin/main` moves again **after** a passing preflight: do not enter an unli
 
 `gh-preflight` is the final, independent quality gate. Read `.codex/skills/gh-preflight/SKILL.md` completely
 and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings to
-GitHub. Run it in a fresh, independent `reihitsu-preflight` custom agent with no inherited conversation turns
-when subagents are available,
+GitHub. Select attempt 1's tier once from the final diff: use `reihitsu-deep-preflight` only when the diff
+changes public API, the semantic or trivia behavior of a rewrite, a security boundary, or destructive
+behavior; use `reihitsu-preflight` otherwise. At most one deep-preflight process may start per issue, and
+every repair retry uses `reihitsu-preflight`.
+
+Run the selected agent in a fresh, independent custom agent with no inherited conversation turns when
+subagents are available,
 exactly as that skill's reviewer-isolation section requires, and hand it the same evidence bundle the Rubber
-Duck received. Its model and reasoning effort come from `.codex/agents/reihitsu-preflight.toml`; pass no
-overrides, and give the retry its own fresh instance rather than continuing attempt 1.
+Duck received, plus the Rubber Duck artifact path instead of its inlined matrices. Its model and reasoning
+effort come from the selected `.codex/agents/*.toml`; pass no overrides, and give the retry its own fresh
+standard-preflight instance rather than continuing attempt 1.
 
 Add two things to the bundle before the spawn, both derived once by you rather than three times by the agents:
 
@@ -676,9 +695,10 @@ The budget is fixed:
 4. On `BLOCKED — findings`, collect **every** finding into **one** consolidated worklist. Do not start fixing before the worklist is complete, and do not run a preflight in between.
 5. Fix the complete worklist in **one** repair cycle: close each finding's full defect class, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]` and update the PR body when needed.
 6. **Re-audit the repair, not just the finding.** Preflight's `Required change` column is a suggestion, not a specification — implementing it literally is what turns one finding into the next round's finding. Re-run the guard-delta and predicate-boundary tables against the guard *as repaired*, and add a test on each side of every boundary the repair moved.
-7. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent
+7. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent standard
    `reihitsu-preflight` custom agent against the exact new head, carrying the repair-delta inputs that skill
-   defines: the previous report, the previously audited SHA, the repaired SHA, and the repair diff.
+   defines: the previous compact report and evidence-artifact path, the previously audited SHA, the repaired
+   SHA, and the repair diff.
 8. If the retry also blocks, **stop**. Report the remaining findings to the user and let them decide. Never start a third official preflight automatically.
 
 On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head and rerun; a state mismatch is a setup error, not a review result, so it does not consume an attempt. Neither does a reviewer agent that returned no verdict — that costs a process start, and the bounded restart policy applies.
@@ -815,6 +835,8 @@ Tokens and elapsed time are part of the deliverable. Without discipline this wor
 - Check the remote before every reviewer spawn. A second of `ls-remote` is the cheapest thing in the workflow, and it is what stops a complete audit from returning `BLOCKED — state mismatch` with no gate result at all.
 - Build before the gate. A short build removes a class of expensive reasoning from the audit.
 - Reference documents by number in the evidence bundle; do not paste the same issue body into four prompts.
+- Pass contract and audit artifact paths between gates; do not paste their full matrices into later prompts
+  or chat when the consumer can read the artifact directly.
 - Derive the checklist applicability once and hand it over, instead of letting each reviewer rediscover the same obvious negatives.
 - Use `rg` for discovery instead of opening candidate files one by one.
 - Batch independent read-only GitHub queries.

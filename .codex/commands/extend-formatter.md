@@ -22,6 +22,8 @@ Implement a new formatter behavior or formatting rule while preserving the exist
 
 - Positive tests for the new implementation
 - Negative tests for the new implementation
+- No-match and post-match-tail cancellation tests when the change introduces or replaces a
+  cancellation-aware traversal
 
 ## Repository-specific guidance
 

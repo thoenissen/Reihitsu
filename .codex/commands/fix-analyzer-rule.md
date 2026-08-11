@@ -23,6 +23,10 @@ Reproduce the reported analyzer problem first, then implement the fix without we
 - A unit test that fails before the fix and passes after the fix
 - The production fix for the analyzer or code fix
 - Updated or expanded positive and negative coverage when needed to protect surrounding behavior
+- When code-fix registration or applicability changes and safe diagnostics can coexist, a unit test with at
+  least two fixable diagnostics, exact one-iteration Fix All convergence, and clean re-analysis
+- When a cancellation-aware traversal changes, unit tests that cancel during a no-match scan and a
+  post-match tail
 
 ## Repository-specific guidance
 

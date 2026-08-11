@@ -99,7 +99,8 @@ When a review item introduces a materially ambiguous **behavior** change — a d
 input, an anchor moved, a rule's meaning widened — the `gh-rubber-duck` workflow is the right tool to settle
 it before editing. Run it in a `reihitsu-rubber-duck` custom agent with no model or effort override, or
 recommend it; it is read-only and costs one pass. It is optional here: only `gh-implement` runs it
-automatically as a mandatory gate.
+automatically as a mandatory gate. Read its temporary evidence artifact once and pass the path forward;
+do not paste the full contract into later prompts.
 
 ## Implement as one cohesive repair cycle
 
@@ -113,7 +114,11 @@ Apply the repository workflow from `AGENTS.md`:
 
 - For analyzer or formatter bug fixes, add the reproducing regression test first and confirm it fails before changing production code.
 - For formatter behavior, add the requested idempotency, CRLF, and combined-pipeline coverage when applicable. Use the existing helpers rather than new ones: `VerifyFormatterFixAndIdempotency` (second pass plus LF/CRLF) for layout changes, `VerifyFormatterFix` for plain parity, `VerifyFormatterStability` for code that must stay untouched, and `AssertRuleResult(input, expected, endOfLine)` for formatter phases. `VerifyFormatterFix` alone is not idempotency coverage.
-- For code fixes, add convergence and relevant FixAll coverage. Deliver a comprehensive code fix or omit it.
+- For code fixes, add convergence and relevant FixAll coverage. When registration or applicability changes
+  and two safe diagnostics can coexist, require a unit test with at least two fixable diagnostics, exact
+  one-iteration Fix All convergence, and clean re-analysis. Deliver a comprehensive code fix or omit it.
+- For changed cancellation-aware traversals, add unit tests that cancel during a no-match scan and a
+  post-match tail so matching callbacks cannot masquerade as traversal cancellation.
 - Format all changed paths before tests:
 
   ```shell
@@ -191,6 +196,7 @@ The official preflight is a final quality gate, not a discovery loop, and only t
 - **documentation** — the rule doc under `documentation/rules/` matches the shipped behavior;
 - **changed-path formatting** — every changed C# path went through `scripts/format.ps1 -NoInstall`;
 - **focused tests** — the tests for the touched rule/phase pass at the current working tree.
+- **cancellation and Fix All unit tests** — the changed surfaces satisfy the two mandatory boundaries above.
 
 Fix what you find now. This is not an official preflight, does not consume a preflight attempt, and is not reported as one.
 
@@ -219,13 +225,17 @@ If `origin/main` moves again after a passing preflight, do not enter an unlimite
 After the accepted fixes are committed and pushed with `[skip ci]`, the local self-review and its admission
 artifact are complete, and `main` is synchronized, read `.codex/skills/gh-preflight/SKILL.md` completely and
 apply it as an internal, read-only gate against the current PR head. Do not post preflight findings to GitHub.
-Run it in a fresh, independent `reihitsu-preflight` custom agent with no inherited conversation turns when subagents are available, handing it the
+Select attempt 1's tier from the final diff: use `reihitsu-deep-preflight` only for public-API, semantic or
+trivia rewrite, security-boundary, or destructive-behavior changes; use `reihitsu-preflight` otherwise. At
+most one deep-preflight process may start per PR, and every retry uses `reihitsu-preflight`.
+
+Run the selected agent in a fresh, independent custom agent with no inherited conversation turns when subagents are available, handing it the
 neutral evidence bundle that skill defines — the issue and PR **by number** rather than pasted in, base and head
 SHAs, the merge base, the remote `main` SHA with the time you read it, changed files and diff, the build result,
 your focused-test results, your proof that the checkout matches the head, and a per-item checklist-applicability
 list derived from the diff's shape — and nothing of your own reasoning. The reviewer confirms that applicability
-list rather than adopting it, and may overturn any row. Its model and effort come from
-`.codex/agents/reihitsu-preflight.toml`; pass no overrides.
+list rather than adopting it, and may overturn any row. Pass contract/audit artifact paths rather than pasted
+matrices. The selected agent's model and effort come from its `.codex/agents/*.toml`; pass no overrides.
 
 **First decide whether an audit is required at all**, using `gh-preflight`'s trigger list rather than the fact that a file compiles. A round whose accepted findings only touch comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — records a skip instead of spending an attempt, proven with `scripts/verify-text-only.ps1 -NoInstall -Base <base-sha> -Head <head-sha>` and its `TEXT-ONLY PROOF: PASS …` line. Ask the user when the round fits neither list. A skipped audit still leaves the full validation in place unless the diff contains no compiled file at all.
 
@@ -236,9 +246,10 @@ The budget is fixed:
 3. On `PASS — non-blocking cleanup`, apply the listed comment and documentation fixes, prove them non-behavioral *and free of public API documentation changes* with `scripts/verify-text-only.ps1 -NoInstall -StrictDocs -Base <audited-sha> -Head worktree`, and continue to full validation without spending an attempt. If the proof rejects the cleanup, treat it as a repair cycle instead.
 4. On `BLOCKED — findings`, merge **every** finding into **one** consolidated worklist — together with anything still open from the review worklist — and classify it against the frozen scope ledger. Do not fix before the worklist is complete, and do not run a preflight in between.
 5. Fix every `fix here` row in **one** repair cycle and preserve every `follow-up draft` row without changing the PR for it: close each in-scope finding's full defect class, re-derive the repair against the delta tables, format the changed paths, run the focused tests, redo the local self-review and admission artifact, then commit and push with `[skip ci]`.
-6. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent
+6. **Attempt 2** — the preflight retry — then runs **once**, as a fresh, independent standard
    `reihitsu-preflight` custom agent against the exact new head, carrying the repair-delta inputs: the
-   previous report, the previously audited SHA, the repaired SHA, and the repair diff.
+   previous compact report and evidence-artifact path, the previously audited SHA, the repaired SHA, and the
+   repair diff.
 7. If the retry also blocks, **stop**. Report the remaining findings to the user and let them decide. Never start a third official preflight automatically.
 
 On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head before rerunning; a state mismatch is a setup error, not a review result, so it does not consume an attempt. Neither does a reviewer agent that returned no verdict — that costs a process start, and `gh-preflight`'s bounded restart policy applies: one start, one restart after a no-progress timeout, then the local read-only fallback.

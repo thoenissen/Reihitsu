@@ -14,8 +14,9 @@ gate is a one-line TOML change here rather than an edit spread across `gh-implem
 | Agent | Stage | Model | Reasoning effort | Why this tier |
 |---|---|---|---|---|
 | `reihitsu-reproduction` | Reproduction gate (`gh-implement`) | `gpt-5.6-terra` | `high` | Writes one test against a helper named in a fixed table and returns a rigid schema. Its cheap verdict is falsified by later stages; its terminal verdict is escalated. |
-| `reihitsu-rubber-duck` | Behavior Contract gate | `gpt-5.6-sol` | `xhigh` | Produces the guard-delta and predicate-boundary tables the workflow treats as load-bearing. A missed defect class here costs a full implementation and review cycle. |
-| `reihitsu-preflight` | Official preflight, attempt 1 and retry | `gpt-5.6-sol` | `xhigh` | Performs the adversarial audit and checks whether boundary tests can falsify the predicates they guard. |
+| `reihitsu-rubber-duck` | Behavior Contract gate | `gpt-5.6-terra` | `high` | Produces a bounded contract and executable sweep before implementation; unclear or high-risk scope is escalated by the parent rather than paying frontier cost on every issue. |
+| `reihitsu-preflight` | Standard preflight and every retry | `gpt-5.6-sol` | `high` | Performs the independent audit with a balanced frontier reasoning level; retries remain repair-delta aware. |
+| `reihitsu-deep-preflight` | Deep preflight, at most once per issue | `gpt-5.6-sol` | `xhigh` | Reserved for public-API, semantic-rewrite, security-boundary, or destructive-behavior risk where deeper reasoning has a concrete target. |
 | `reihitsu-validate` | Full validation | `gpt-5.6-terra` | `low` | Runs three repository scripts and reports pass/fail plus failing assertions. It makes no judgment and keeps thousands of log lines out of the orchestrator context. Terra is the lowest-cost GPT-5.6 tier currently exposed to this Codex subagent runtime. |
 
 The orchestrator is the session agent and is not configured here. It owns the `Never` rules, scope ledger,
@@ -35,12 +36,24 @@ no inherited turns, the first report as evidence, and explicit `gpt-5.6-sol` / `
 escalated verdict decides. Exactly one escalation is allowed. If the environment cannot override a custom
 agent's model and effort for one spawn, the parent performs the confirmation itself.
 
+## Preflight routing
+
+The parent selects one preflight tier from the final diff before attempt 1:
+
+- use `reihitsu-deep-preflight` when the diff changes public API, the semantic or trivia behavior of a
+  rewrite, a security boundary, or destructive behavior;
+- otherwise use `reihitsu-preflight`;
+- use `reihitsu-preflight` for every repair retry, even when attempt 1 was deep.
+
+Only one `reihitsu-deep-preflight` process may start per issue. A state-mismatch restart does not permit a
+second deep process; fall back to the standard agent after reconciling state. This keeps `xhigh` targeted and
+measurable rather than making it the default cost of every behavioral diff.
+
 ## Reasoning effort
 
-`model_reasoning_effort` is set per agent so the cost profile is a standing, reviewable decision. The two
-analysis gates remain on Sol and are tuned through reasoning effort because they must follow a large rule set
-and challenge plausible but incomplete conclusions. The validation agent omits judgment rather than checks,
-so it uses the lowest reasoning level.
+`model_reasoning_effort` is set per agent so the cost profile is a standing, reviewable decision. Contract
+analysis starts on Terra/high, standard review uses Sol/high, and Sol/xhigh is reserved for the explicit deep
+trigger above. The validation agent omits judgment rather than checks, so it uses the lowest reasoning level.
 
 Available effort levels depend on the model and Codex deployment. If a configured level is unavailable, drop
 the setting and record the effective default rather than silently moving the stage to a different model.
