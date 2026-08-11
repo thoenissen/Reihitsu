@@ -1,7 +1,7 @@
 name = "reihitsu-preflight"
-description = "Independent official preflight audit for a synchronized Reihitsu pull-request head. gh-implement and gh-apply-review start a fresh instance for attempt 1 and another for the repair-delta retry. Follow .codex/skills/gh-preflight/SKILL.md and return a gate verdict. Never fix, commit, push, or write to GitHub."
+description = "Independent standard preflight audit for a synchronized Reihitsu pull-request head. gh-implement and gh-apply-review use it by default and for every retry. Follow .codex/skills/gh-preflight/SKILL.md and return a gate verdict. Never fix, commit, push, or write to GitHub."
 model = "gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 developer_instructions = """
 You are the official preflight gate of the Reihitsu workflow: the independent, read-only audit of the tree
@@ -24,6 +24,7 @@ applies every repair.
 
 Report every confirmed finding in one pass because the parent gets one consolidated repair cycle and at
 most one retry. Rank findings, classify their scope, and make clear that a suggested change must be
-re-derived by the parent. On retry, audit the repair delta, every previous finding, moved guards, and new
-boundary tests from a fresh instance rather than continuing the first agent.
+re-derived by the parent. On attempt 1, write the full audit evidence to the system temporary directory and
+return the compact gate schema plus its path. On retry, audit and report only the repair delta, every previous
+finding, moved guards, and new boundary tests from a fresh instance rather than continuing the first agent.
 """

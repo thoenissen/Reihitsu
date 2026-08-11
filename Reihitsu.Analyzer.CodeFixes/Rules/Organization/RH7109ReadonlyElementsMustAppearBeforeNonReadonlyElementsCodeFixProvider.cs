@@ -44,7 +44,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
             return false;
         }
 
-        var accessibilityGroup = OrderingDeclarationUtilities.GetAccessibilityGroup(fieldDeclaration);
+        var accessibilityGroup = OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fieldDeclaration);
         var isStaticField = modifiers.Any(SyntaxKind.StaticKeyword);
 
         foreach (var currentMember in typeDeclaration.Members)
@@ -58,7 +58,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
                 && currentFieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
                 && currentFieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) == false
                 && currentFieldDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) == isStaticField
-                && OrderingDeclarationUtilities.GetAccessibilityGroup(currentFieldDeclaration) == accessibilityGroup)
+                && OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, currentFieldDeclaration) == accessibilityGroup)
             {
                 targetMember = currentFieldDeclaration;
 

@@ -83,6 +83,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.MethodDeclaration);
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.PropertyDeclaration);
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.EventDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.EventFieldDeclaration);
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.IndexerDeclaration);
     }
 

@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.RegionFormatting.Utilities;
 
 /// <summary>
@@ -29,31 +31,26 @@ internal static class RegionNamingRewriter
     /// <returns>The updated root</returns>
     public static SyntaxNode Rewrite(SyntaxNode root, CancellationToken cancellationToken)
     {
-        var regions = new Stack<SyntaxTrivia>();
-        var pairs = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();
-
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
-            {
-                regions.Push(trivia);
-            }
-            else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) && regions.Count > 0)
-            {
-                pairs.Add((regions.Pop(), trivia));
-            }
-        }
-
         var replacements = new Dictionary<SyntaxTrivia, SyntaxTrivia>();
+
+        // The inclusion policy keeps cancellation responsive while the shared engine scans region directives and
+        // still includes every region directive in pairing.
+        var pairs = RegionDirectiveUtilities.GetRegionPairs(root,
+                                                            _ =>
+                                                            {
+                                                                cancellationToken.ThrowIfCancellationRequested();
+
+                                                                return true;
+                                                            });
 
         foreach (var (region, endRegion) in pairs)
         {
-            var regionDirective = (RegionDirectiveTriviaSyntax)region.GetStructure();
-            var regionName = GetRegionName(regionDirective);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (string.IsNullOrWhiteSpace(regionName))
+            var regionDirective = (RegionDirectiveTriviaSyntax)region.GetStructure();
+            var regionName = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
+
+            if (regionName.Length == 0)
             {
                 continue;
             }
@@ -66,46 +63,17 @@ internal static class RegionNamingRewriter
             }
 
             var endRegionDirective = (EndRegionDirectiveTriviaSyntax)endRegion.GetStructure();
-            var expectedComment = " // " + capitalizedName;
-            var currentComment = GetEndRegionComment(endRegionDirective);
+            var canonicalEndRegion = RegionDirectiveUtilities.CreateCanonicalEndRegionTrivia(endRegionDirective, capitalizedName);
 
-            if (currentComment != expectedComment)
+            if (endRegion.ToFullString() != canonicalEndRegion.ToFullString())
             {
-                replacements[endRegion] = BuildEndRegionTrivia(endRegionDirective, expectedComment);
+                replacements[endRegion] = canonicalEndRegion;
             }
         }
 
         return replacements.Count > 0
                    ? root.ReplaceTrivia(replacements.Keys, (oldTrivia, _) => replacements[oldTrivia])
                    : root;
-    }
-
-    /// <summary>
-    /// Extracts the region name from a <c>#region</c> directive
-    /// </summary>
-    /// <param name="directive">The region directive syntax</param>
-    /// <returns>The region name, or <see langword="null"/> if no name is found</returns>
-    private static string GetRegionName(RegionDirectiveTriviaSyntax directive)
-    {
-        var leadingTrivia = directive.EndOfDirectiveToken.LeadingTrivia;
-        var messageTrivia = leadingTrivia.FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia));
-
-        return messageTrivia == default
-                   ? null
-                   : messageTrivia.ToString().TrimStart();
-    }
-
-    /// <summary>
-    /// Gets the trailing comment text from an <c>#endregion</c> directive
-    /// </summary>
-    /// <param name="directive">The endregion directive syntax</param>
-    /// <returns>The trailing comment text</returns>
-    private static string GetEndRegionComment(EndRegionDirectiveTriviaSyntax directive)
-    {
-        var combined = directive.EndRegionKeyword.TrailingTrivia.ToFullString()
-                       + directive.EndOfDirectiveToken.LeadingTrivia.ToFullString();
-
-        return combined;
     }
 
     /// <summary>
@@ -135,22 +103,6 @@ internal static class RegionNamingRewriter
         var endToken = original.EndOfDirectiveToken;
         var newEndToken = endToken.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.PreprocessingMessage(" " + newName)));
         var newDirective = original.WithRegionKeyword(cleanKeyword).WithEndOfDirectiveToken(newEndToken);
-
-        return SyntaxFactory.Trivia(newDirective);
-    }
-
-    /// <summary>
-    /// Builds a replacement <c>#endregion</c> trivia with the specified comment
-    /// </summary>
-    /// <param name="original">The original endregion directive</param>
-    /// <param name="comment">The comment to attach</param>
-    /// <returns>The replacement trivia</returns>
-    private static SyntaxTrivia BuildEndRegionTrivia(EndRegionDirectiveTriviaSyntax original, string comment)
-    {
-        var cleanKeyword = original.EndRegionKeyword.WithTrailingTrivia(SyntaxTriviaList.Empty);
-        var endToken = original.EndOfDirectiveToken;
-        var newEndToken = endToken.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.PreprocessingMessage(comment)));
-        var newDirective = original.WithEndRegionKeyword(cleanKeyword).WithEndOfDirectiveToken(newEndToken);
 
         return SyntaxFactory.Trivia(newDirective);
     }

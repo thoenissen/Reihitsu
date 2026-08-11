@@ -61,7 +61,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer :
                 continue;
             }
 
-            var group = (OrderingDeclarationUtilities.GetAccessibilityGroup(fieldDeclaration), fieldDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword));
+            var group = (OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fieldDeclaration),
+                         fieldDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword));
 
             if (fieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
             {
@@ -88,6 +89,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer :
 
         context.RegisterSyntaxNodeAction(OnTypeDeclaration,
                                          SyntaxKind.ClassDeclaration,
+                                         SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.RecordDeclaration,
                                          SyntaxKind.RecordStructDeclaration);

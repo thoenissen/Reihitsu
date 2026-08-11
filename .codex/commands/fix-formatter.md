@@ -24,6 +24,8 @@ Capture the regression first, then correct the formatter behavior without breaki
 - A regression test that fails before the fix and passes after the fix
 - The production fix for the formatter behavior
 - Additional unit coverage when it meaningfully protects the corrected behavior
+- When a cancellation-aware traversal changes, unit tests that cancel during a no-match scan and a
+  post-match tail
 
 ## Repository-specific guidance
 

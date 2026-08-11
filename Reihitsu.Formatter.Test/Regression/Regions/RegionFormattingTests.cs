@@ -311,6 +311,92 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that trailing whitespace on an already normalized opening description does not change a canonical
+    /// close under LF or CRLF
+    /// </summary>
+    [TestMethod]
+    public void TrailingOpeningWhitespaceWithCanonicalCloseIsStable()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+
+                                  int _value;
+
+                                  #endregion // Fields
+                              }
+                              """;
+        var input = source.Replace("#region Fields", "#region Fields   ");
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a mismatched close uses the normalized opening description without trailing whitespace
+    /// </summary>
+    [TestMethod]
+    public void MismatchedCloseUsesNormalizedOpeningDescription()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+
+                                  int _value;
+
+                                  #endregion // Wrong
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       #region Fields
+
+                                       int _value;
+
+                                       #endregion // Fields
+                                   }
+                                   """;
+        var input = source.Replace("#region Fields", "#region Fields   ");
+        var expected = fixedSource.Replace("#region Fields", "#region Fields   ");
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a lowercase opening description with trailing whitespace and a bare close is fully
+    /// canonicalized and idempotent
+    /// </summary>
+    [TestMethod]
+    public void LowercaseTrailingOpeningAndBareCloseAreCanonicalized()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region methods
+
+                                  int _value;
+
+                                  #endregion
+                              }
+                              """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Methods
+
+                                    int _value;
+
+                                    #endregion // Methods
+                                }
+                                """;
+        var input = source.Replace("#region methods", "#region methods   ");
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that misindented region directives are aligned with their containing code
     /// </summary>
     [TestMethod]

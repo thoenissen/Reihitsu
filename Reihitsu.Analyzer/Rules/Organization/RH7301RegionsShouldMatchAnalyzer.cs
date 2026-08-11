@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -39,60 +41,34 @@ public class RH7301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Checks if the region name is valid
-    /// </summary>
-    /// <param name="text">Text of the region</param>
-    /// <returns>Is the name valid?</returns>
-    private static bool IsRegionNameValid(string text)
-    {
-        return text.Length > 4
-               && text.StartsWith(" // ");
-    }
-
-    /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
+    /// Reports a diagnostic when the normalized descriptions of a matched region pair differ
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnEndRegion(SyntaxNodeAnalysisContext context)
+    /// <param name="regionTrivia">Opening region trivia</param>
+    /// <param name="endRegionTrivia">Closing endregion trivia</param>
+    private void AnalyzeRegionPair(SyntaxTreeAnalysisContext context, SyntaxTrivia regionTrivia, SyntaxTrivia endRegionTrivia)
     {
-        if (context.Node is EndRegionDirectiveTriviaSyntax node)
+        if (regionTrivia.GetStructure() is RegionDirectiveTriviaSyntax regionDirective
+            && endRegionTrivia.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective
+            && string.Equals(RegionDirectiveUtilities.GetRegionDescription(regionDirective),
+                             RegionDirectiveUtilities.GetEndRegionDescription(endRegionDirective),
+                             StringComparison.Ordinal) == false)
         {
-            var endText = node.ParentTrivia.ToString().Substring(10);
-
-            if (IsRegionNameValid(endText) == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
-            }
-            else
-            {
-                CheckRegionPair(context, node, endText);
-            }
+            context.ReportDiagnostic(CreateDiagnostic(endRegionTrivia.GetLocation()));
         }
     }
 
     /// <summary>
-    /// Check if the region pair has a matching text
+    /// Analyzes matched region and endregion directive pairs in closing-directive traversal order
     /// </summary>
     /// <param name="context">Context</param>
-    /// <param name="node">#endregion node</param>
-    /// <param name="text">Region text</param>
-    private void CheckRegionPair(SyntaxNodeAnalysisContext context, EndRegionDirectiveTriviaSyntax node, string text)
+    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
-        var syntaxRoot = context.Node.SyntaxTree.GetRoot(context.CancellationToken);
+        var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
 
-        if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, node.ParentTrivia, out var regionTrivia))
+        foreach (var (regionTrivia, endRegionTrivia) in RegionDirectiveUtilities.GetRegionPairs(syntaxRoot, includeDirective: null))
         {
-            var startText = regionTrivia.ToString();
-
-            if (startText.Length >= 8)
-            {
-                startText = startText.Substring(8);
-
-                if (text.Substring(4) != startText)
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
-                }
-            }
+            AnalyzeRegionPair(context, regionTrivia, endRegionTrivia);
         }
     }
 
@@ -105,7 +81,7 @@ public class RH7301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnEndRegion, SyntaxKind.EndRegionDirectiveTrivia);
+        context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 
     #endregion // DiagnosticAnalyzer

@@ -299,6 +299,215 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
+    /// Verifies that documented field-like override events are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForFieldLikeOverrideEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    /// <summary>Base documentation</summary>
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    ///{|#0: <summary>
+                                    /// Implementation documentation
+                                    /// </summary>
+                                |}        public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal abstract class TestBase
+                                  {
+                                      /// <summary>Base documentation</summary>
+                                      public virtual event EventHandler TestEvent;
+                                  }
+
+                                  internal class TestImplementation : TestBase
+                                  {
+                                      /// <inheritdoc/>
+                                      public override event EventHandler TestEvent;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that field-like override events already documented with &lt;inheritdoc/&gt; do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFieldLikeOverrideEventWithInheritdoc()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    /// <inheritdoc/>
+                                    public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that undocumented field-like override events do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUndocumentedFieldLikeOverrideEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that documented field-like events without the override modifier do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDocumentedNonOverrideFieldLikeEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    /// <summary>Event documentation</summary>
+                                    public event EventHandler TestEvent;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line documentation comment on a field-like override event is replaced with
+    /// &lt;inheritdoc/&gt;
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineDocumentationForFieldLikeOverrideEventIsReplaced()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    /**{|#0: <summary>Implementation documentation</summary> */|}
+                                    public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal abstract class TestBase
+                                  {
+                                      public virtual event EventHandler TestEvent;
+                                  }
+
+                                  internal class TestImplementation : TestBase
+                                  {
+                                      /// <inheritdoc/>
+                                      public override event EventHandler TestEvent;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All replaces documentation on multiple field-like override events in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleFieldLikeOverrideEventsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler First;
+                                    public virtual event EventHandler Second;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    ///{|#0: <summary>First implementation</summary>
+                                |}        public override event EventHandler First;
+
+                                    ///{|#1: <summary>Second implementation</summary>
+                                |}        public override event EventHandler Second;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal abstract class TestBase
+                                  {
+                                      public virtual event EventHandler First;
+                                      public virtual event EventHandler Second;
+                                  }
+
+                                  internal class TestImplementation : TestBase
+                                  {
+                                      /// <inheritdoc/>
+                                      public override event EventHandler First;
+
+                                      /// <inheritdoc/>
+                                      public override event EventHandler Second;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifying diagnostic for overridden indexer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -669,11 +878,11 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
 
     /// <summary>
     /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia replacing a multi-line (/** */) documentation
-    /// comment uses the document's detected CRLF end-of-line sequence (issue #463)
+    /// comment uses the environment's end-of-line sequence (issue #463)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMultiLineDocumentationCommentReplacementUsesDetectedCarriageReturnLineFeedEndOfLine()
+    public async Task VerifyMultiLineDocumentationCommentReplacementUsesEnvironmentEndOfLine()
     {
         const string testData = """
                                 using System;
@@ -698,9 +907,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                 }
                                 """;
 
-        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+        var fixedSource = await ApplyCodeFixAsync(testData);
 
-        Assert.Contains("/// <inheritdoc/>\r\n        public override void TestMethod()", fixedSource);
+        Assert.Contains($"/// <inheritdoc/>{System.Environment.NewLine}        public override void TestMethod()", fixedSource);
     }
 
     /// <summary>
@@ -930,13 +1139,12 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
-    /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia uses the document's detected CRLF end-of-line
-    /// sequence instead of <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line
-    /// endings (issue #257)
+    /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia uses the environment's end-of-line sequence
+    /// (issue #257)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifySynthesizedInheritdocTriviaUsesDetectedCarriageReturnLineFeedEndOfLine()
+    public async Task VerifySynthesizedInheritdocTriviaUsesEnvironmentEndOfLine()
     {
         const string testData = """
                                 using System;
@@ -963,9 +1171,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                 }
                                 """;
 
-        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+        var fixedSource = await ApplyCodeFixAsync(testData);
 
-        Assert.Contains("/// <inheritdoc/>\r\n", fixedSource);
+        Assert.Contains($"/// <inheritdoc/>{System.Environment.NewLine}", fixedSource);
     }
 
     #endregion // Methods

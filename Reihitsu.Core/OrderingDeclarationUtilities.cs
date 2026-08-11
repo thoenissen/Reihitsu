@@ -78,6 +78,23 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
+    /// Gets the effective accessibility group used to order readonly fields, treating an interface member without
+    /// an accessibility modifier as public
+    /// </summary>
+    /// <param name="typeDeclaration">Containing type declaration</param>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns>The effective accessibility group for readonly ordering</returns>
+    public static OrderingAccessibilityGroup GetEffectiveAccessibilityGroupForReadonlyOrdering(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration)
+    {
+        var accessibilityGroup = GetAccessibilityGroup(memberDeclaration);
+
+        return typeDeclaration.IsKind(SyntaxKind.InterfaceDeclaration)
+               && accessibilityGroup == OrderingAccessibilityGroup.None
+                   ? OrderingAccessibilityGroup.Public
+                   : accessibilityGroup;
+    }
+
+    /// <summary>
     /// Gets the member kind group of the declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
