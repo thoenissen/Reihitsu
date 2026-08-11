@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -28,33 +28,48 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">Node with diagnostics</param>
+    /// <param name="startDescription">Normalized start-region description</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private async Task<Document> ApplyCodeFixAsync(Document document, SyntaxTrivia node, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxTrivia node, string startDescription, CancellationToken cancellationToken)
     {
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot != null
-            && RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, node, out var regionTrivia))
+            && node.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective)
         {
-            var startText = regionTrivia.ToString();
+            var replacementDirective = endRegionDirective.WithEndRegionKeyword(endRegionDirective.EndRegionKeyword.WithTrailingTrivia(SyntaxFactory.Space,
+                                                                                                                                      SyntaxFactory.Comment($"// {startDescription}")))
+                                                         .WithEndOfDirectiveToken(endRegionDirective.EndOfDirectiveToken.WithLeadingTrivia());
+            var replacementTrivia = SyntaxFactory.Trivia(replacementDirective);
 
-            if (startText.Length >= 8)
-            {
-                startText = startText.Substring(8);
-
-                var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
-                var replacementTrivia = SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)
-                                                                          .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
-                                                                                                                    SyntaxKind.EndRegionKeyword,
-                                                                                                                    SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{endOfLine}")))));
-
-                syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
-                document = document.WithSyntaxRoot(syntaxRoot);
-            }
+            // The line-ending trivia follows the structured directive in the containing trivia list, so replacing only
+            // the directive preserves the document's existing LF or CRLF sequence.
+            syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
+            document = document.WithSyntaxRoot(syntaxRoot);
         }
 
         return document;
+    }
+
+    /// <summary>
+    /// Tries to get a nonempty normalized description from the matching start-region directive
+    /// </summary>
+    /// <param name="syntaxRoot">Syntax root</param>
+    /// <param name="endRegionTrivia">End-region trivia carrying the diagnostic</param>
+    /// <param name="startDescription">Normalized start-region description</param>
+    /// <returns><see langword="true"/> when a nonempty matching start description is available</returns>
+    private static bool TryGetStartDescription(SyntaxNode syntaxRoot, SyntaxTrivia endRegionTrivia, out string startDescription)
+    {
+        startDescription = string.Empty;
+
+        if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, endRegionTrivia, out var regionTrivia)
+            && regionTrivia.GetStructure() is RegionDirectiveTriviaSyntax regionDirective)
+        {
+            startDescription = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
+        }
+
+        return startDescription.Length > 0;
     }
 
     #endregion // Methods
@@ -79,10 +94,11 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindTrivia(diagnostic.Location.SourceSpan.Start) is { RawKind: (int)SyntaxKind.EndRegionDirectiveTrivia } syntaxTrivia)
+                if (root.FindTrivia(diagnostic.Location.SourceSpan.Start) is { RawKind: (int)SyntaxKind.EndRegionDirectiveTrivia } syntaxTrivia
+                    && TryGetStartDescription(root, syntaxTrivia, out var startDescription))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7301Title,
-                                                              cancellationToken => ApplyCodeFixAsync(context.Document, syntaxTrivia, cancellationToken),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, syntaxTrivia, startDescription, cancellationToken),
                                                               nameof(RH7301RegionsShouldMatchCodeFixProvider)),
                                             diagnostic);
                 }

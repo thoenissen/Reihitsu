@@ -88,6 +88,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer :
 
         context.RegisterSyntaxNodeAction(OnTypeDeclaration,
                                          SyntaxKind.ClassDeclaration,
+                                         SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.RecordDeclaration,
                                          SyntaxKind.RecordStructDeclaration);

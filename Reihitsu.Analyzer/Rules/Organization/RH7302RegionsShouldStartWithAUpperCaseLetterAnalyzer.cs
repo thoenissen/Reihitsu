@@ -61,7 +61,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer : DiagnosticAn
     }
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
+    /// Analyzes start-region directives
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStartRegion(SyntaxNodeAnalysisContext context)

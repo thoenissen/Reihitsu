@@ -45,29 +45,107 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that static readonly interface fields are reported and fixed when they follow mutable static fields
+    /// Verifies that initialized static readonly interface fields are reported when they follow mutable static fields,
+    /// while the initializer-order safety guard withholds the code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task StaticReadonlyInterfaceFieldsAreReportedAndFixedWhenTheyFollowMutableFields()
+    public async Task InitializedStaticReadonlyInterfaceFieldsAreReportedWithoutCodeFix()
+    {
+        const string source = """
+                              public interface ITest
+                              {
+                                  static int Value = 0;
+                                  static readonly int ReadonlyValue = 1;
+                              }
+                              """;
+        var testCode = source.Replace("ReadonlyValue", "{|#0:ReadonlyValue|}");
+
+        await Verify(testCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(source,
+                                                   RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "ReadonlyValue")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that readonly interface fields ordered before mutable fields do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task OrderedReadonlyInterfaceFieldsDoNotProduceDiagnostics()
     {
         const string testCode = """
                                 public interface ITest
                                 {
+                                    static readonly int ReadonlyValue = 1;
                                     static int Value = 0;
-                                    static readonly int {|#0:ReadonlyValue|} = 1;
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 public interface ITest
-                                 {
-                                     static readonly int ReadonlyValue = 1;
-                                     static int Value = 0;
-                                 }
-                                 """;
+        await Verify(testCode);
+    }
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
+    /// <summary>
+    /// Verifies that interface constants do not participate in readonly field ordering
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task InterfaceConstantsDoNotProduceDiagnostics()
+    {
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    const int Constant = 1;
+                                    static readonly int ReadonlyValue = 2;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that readonly and mutable interface fields in different accessibility groups do not conflict
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task InterfaceFieldsInDifferentAccessibilityGroupsDoNotProduceDiagnostics()
+    {
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    public static int Value = 0;
+                                    private static readonly int ReadonlyValue = 1;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that every same-group readonly interface field following a mutable field is reported at its first
+    /// variable identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MultipleMisorderedReadonlyInterfaceFieldsProduceDiagnostics()
+    {
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    public static int Value = 0;
+                                    public static readonly int {|#0:FirstReadonlyValue|} = 1;
+                                    public static readonly int {|#1:SecondReadonlyValue|} = 2;
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat, 2));
     }
 
     /// <summary>

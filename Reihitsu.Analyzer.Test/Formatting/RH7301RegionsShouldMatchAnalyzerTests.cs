@@ -36,12 +36,12 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                     {
                                         #region Fields
                                         private bool _field;
-                                        {|#0:#endregion Fields|}
+                                        #endregion Fields
                                         #region Properties
 
                                         public bool Property { get { return _field; } }
 
-                                        {|#1:#endregion // Fields|}
+                                        {|#0:#endregion // Fields|}
 
                                         #region Methods
 
@@ -61,7 +61,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
 
                                         #region Inner 2
 
-                                        {|#2:#endregion|}
+                                        {|#1:#endregion|}
 
                                         #endregion // Outer 2
 
@@ -71,7 +71,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
 
                                         #endregion // Inner 3
 
-                                        {|#3:#endregion|}
+                                        {|#2:#endregion|}
                                     }
                                 }
                                 """;
@@ -87,7 +87,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                       {
                                           #region Fields
                                           private bool _field;
-                                          #endregion // Fields
+                                          #endregion Fields
                                           #region Properties
 
                                           public bool Property { get { return _field; } }
@@ -127,7 +127,9 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 4));
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 3));
     }
 
     /// <summary>
@@ -155,6 +157,37 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
         var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
 
         Assert.Contains(" // Methods\r\n", fixedSource);
+
+        var sourceWithoutCarriageReturnLineFeeds = fixedSource.Replace("\r\n", string.Empty);
+
+        Assert.IsFalse(sourceWithoutCarriageReturnLineFeeds.Contains('\r'));
+        Assert.IsFalse(sourceWithoutCarriageReturnLineFeeds.Contains('\n'));
+    }
+
+    /// <summary>
+    /// Verifies that the synthesized endregion comment preserves LF line endings without introducing CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySynthesizedEndRegionCommentUsesDetectedLineFeedEndOfLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+
+                                    public void Method()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData.Replace("\r\n", "\n"));
+
+        Assert.Contains(" // Methods\n", fixedSource);
+        Assert.IsFalse(fixedSource.Contains('\r'));
     }
 
     /// <summary>
@@ -174,11 +207,34 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                   #region TrailingSpace
 
                                   #endregion // TrailingSpace
+
+                                  #region   OptionalComment
+
+                                  #endregion   OptionalComment
                               }
                               """;
         var testData = source.Replace("#region TrailingSpace", "#region TrailingSpace ");
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that normalized-different region descriptions report exactly one diagnostic on the matching endregion
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DifferentNormalizedRegionDescriptionsReportAtMatchingEndRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Expected
+
+                                    {|#0:#endregion // Actual|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
     }
 
     /// <summary>
@@ -197,6 +253,8 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                 }
                                 """;
 
+        await Verify(testData);
+
         var actions = await GetCodeFixActionsAsync(testData,
                                                    RH7301RegionsShouldMatchAnalyzer.DiagnosticId,
                                                    root => root.DescendantTrivia(descendIntoTrivia: true)
@@ -206,6 +264,64 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that an empty start description and named end description report without offering an ineffective fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EmptyStartRegionDescriptionReportsWithoutCodeFixAction()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  #region
+
+                                  #endregion // Named
+                              }
+                              """;
+        var testData = source.Replace("#endregion // Named", "{|#0:#endregion // Named|}");
+
+        await Verify(testData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(source,
+                                                   RH7301RegionsShouldMatchAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTrivia(descendIntoTrivia: true)
+                                                               .Select(trivia => trivia.GetStructure())
+                                                               .OfType<EndRegionDirectiveTriviaSyntax>()
+                                                               .Single()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a named start description and empty end description are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamedStartRegionAndBareEndRegionAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+
+                                    {|#0:#endregion|}
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      #region Methods
+
+                                      #endregion // Methods
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
     }
 
     /// <summary>
@@ -220,13 +336,80 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                 {
                                     #region  DoubleSeparator
 
-                                    #endregion // DoubleSeparator
+                                    {|#0:#endregion // Wrong|}
                                 }
                                 """;
 
-        var fixedSource = await ApplyCodeFixAsync(testData);
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      #region  DoubleSeparator
 
-        Assert.Contains("#endregion // DoubleSeparator", fixedSource);
+                                      #endregion // DoubleSeparator
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that nested, sequential and inactive-branch region pairs use LIFO matching and are independently
+    /// corrected by Fix All without crossing pair boundaries
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedSequentialAndInactiveRegionPairsAreFixedIndependently()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region First
+
+                                    {|#0:#endregion // WrongFirst|}
+
+                                    #region Outer
+
+                                    #region Inner
+
+                                    {|#1:#endregion // WrongInner|}
+
+                                    {|#2:#endregion // WrongOuter|}
+
+                                #if false
+                                    #region Inactive
+
+                                    {|#3:#endregion // WrongInactive|}
+                                #endif
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      #region First
+
+                                      #endregion // First
+
+                                      #region Outer
+
+                                      #region Inner
+
+                                      #endregion // Inner
+
+                                      #endregion // Outer
+
+                                  #if false
+                                      #region Inactive
+
+                                      #endregion // Inactive
+                                  #endif
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 4));
     }
 
     #endregion // Tests

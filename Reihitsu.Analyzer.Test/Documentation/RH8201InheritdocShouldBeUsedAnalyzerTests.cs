@@ -339,7 +339,172 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(resultData),
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that field-like override events already documented with &lt;inheritdoc/&gt; do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFieldLikeOverrideEventWithInheritdoc()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    /// <inheritdoc/>
+                                    public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that undocumented field-like override events do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUndocumentedFieldLikeOverrideEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that documented field-like events without the override modifier do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDocumentedNonOverrideFieldLikeEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    /// <summary>Event documentation</summary>
+                                    public event EventHandler TestEvent;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line documentation comment on a field-like override event is replaced with
+    /// &lt;inheritdoc/&gt;
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineDocumentationForFieldLikeOverrideEventIsReplaced()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    /**{|#0: <summary>Implementation documentation</summary> */|}
+                                    public override event EventHandler TestEvent;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal abstract class TestBase
+                                  {
+                                      public virtual event EventHandler TestEvent;
+                                  }
+
+                                  internal class TestImplementation : TestBase
+                                  {
+                                      /// <inheritdoc/>
+                                      public override event EventHandler TestEvent;
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(resultData),
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All replaces documentation on multiple field-like override events in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleFieldLikeOverrideEventsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                using System;
+
+                                internal abstract class TestBase
+                                {
+                                    public virtual event EventHandler First;
+                                    public virtual event EventHandler Second;
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    ///{|#0: <summary>First implementation</summary>
+                                |}        public override event EventHandler First;
+
+                                    ///{|#1: <summary>Second implementation</summary>
+                                |}        public override event EventHandler Second;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal abstract class TestBase
+                                  {
+                                      public virtual event EventHandler First;
+                                      public virtual event EventHandler Second;
+                                  }
+
+                                  internal class TestImplementation : TestBase
+                                  {
+                                      /// <inheritdoc/>
+                                      public override event EventHandler First;
+
+                                      /// <inheritdoc/>
+                                      public override event EventHandler Second;
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(resultData),
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
     }
 
     /// <summary>
