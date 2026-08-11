@@ -137,8 +137,7 @@ public class DeclarationModifierUtilitiesTests
 
         var updatedDeclaration = (ClassDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifier(classDeclaration, SyntaxKind.InternalKeyword);
 
-        CollectionAssert.AreEqual(new[] { SyntaxKind.InternalKeyword, SyntaxKind.FileKeyword },
-                                  updatedDeclaration.Modifiers.Select(obj => obj.Kind()).ToArray());
+        Assert.AreSequenceEqual([SyntaxKind.InternalKeyword, SyntaxKind.FileKeyword], updatedDeclaration.Modifiers.Select(obj => obj.Kind()).ToArray());
     }
 
     /// <summary>
@@ -155,7 +154,7 @@ public class DeclarationModifierUtilitiesTests
     {
         var kinds = DeclarationModifierUtilities.GetAccessibilityModifierKinds(accessibility);
 
-        CollectionAssert.AreEqual(new[] { expectedKeyword }, kinds.ToArray());
+        Assert.AreSequenceEqual([expectedKeyword], kinds.ToArray());
     }
 
     /// <summary>
@@ -164,10 +163,8 @@ public class DeclarationModifierUtilitiesTests
     [TestMethod]
     public void GetAccessibilityModifierKindsMapsCompoundAccessibilitiesInCanonicalOrder()
     {
-        CollectionAssert.AreEqual(new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword },
-                                  DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedOrInternal).ToArray());
-        CollectionAssert.AreEqual(new[] { SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword },
-                                  DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedAndInternal).ToArray());
+        Assert.AreSequenceEqual([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword], DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedOrInternal).ToArray());
+        Assert.AreSequenceEqual([SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword], DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedAndInternal).ToArray());
     }
 
     /// <summary>
@@ -198,8 +195,7 @@ public class DeclarationModifierUtilitiesTests
         var updatedDeclaration = (ClassDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifiers(classDeclaration,
                                                                                                                 [SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]);
 
-        CollectionAssert.AreEqual(new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword, SyntaxKind.PartialKeyword },
-                                  updatedDeclaration.Modifiers.Select(obj => obj.Kind()).ToArray());
+        Assert.AreSequenceEqual([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword, SyntaxKind.PartialKeyword], updatedDeclaration.Modifiers.Select(obj => obj.Kind()).ToArray());
         Assert.AreEqual(" ", updatedDeclaration.Modifiers[0].TrailingTrivia.ToFullString());
         Assert.AreEqual(" ", updatedDeclaration.Modifiers[1].TrailingTrivia.ToFullString());
     }

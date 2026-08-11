@@ -378,7 +378,7 @@ public class CliEndToEndTests
 
             var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
 
-            CollectionAssert.AreEqual(originalBytes, actualBytes);
+            Assert.AreSequenceEqual(originalBytes, actualBytes);
         }
     }
 
@@ -411,7 +411,7 @@ public class CliEndToEndTests
 
             var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
 
-            CollectionAssert.AreEqual(originalBytes, actualBytes);
+            Assert.AreSequenceEqual(originalBytes, actualBytes);
         }
     }
 

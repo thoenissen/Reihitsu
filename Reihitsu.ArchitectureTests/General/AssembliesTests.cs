@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,8 +24,8 @@ public sealed class AssembliesTests
         var assemblyNames = Assemblies.All.Assemblies.Select(assembly => assembly.Name).ToList();
 
         // Act and assert
-        CollectionAssert.Contains(assemblyNames, "Reihitsu.Tooling");
-        CollectionAssert.Contains(assemblyNames, "Reihitsu.Tooling.Test");
+        Assert.Contains("Reihitsu.Tooling", assemblyNames);
+        Assert.Contains("Reihitsu.Tooling.Test", assemblyNames);
     }
 
     /// <summary>
@@ -46,7 +46,7 @@ public sealed class AssembliesTests
                        };
 
         // Act and assert
-        CollectionAssert.AreEquivalent(expected, assemblyNames);
+        Assert.AreSequenceEqual(expected, assemblyNames, SequenceOrder.InAnyOrder);
     }
 
     #endregion // Methods

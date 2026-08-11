@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Reihitsu.Tooling.Test.Unit;
 
@@ -63,11 +63,10 @@ public sealed class FixtureLineEndingsTests
     public void SplitLinesPreservesContentLines()
     {
         // Act and assert
-        CollectionAssert.AreEqual(Array.Empty<string>(), FixtureLineEndings.SplitLines(string.Empty));
-        CollectionAssert.AreEqual(new[] { string.Empty }, FixtureLineEndings.SplitLines("\n"));
-        CollectionAssert.AreEqual(new[] { "first", string.Empty, "second" },
-                                  FixtureLineEndings.SplitLines("first\r\n\rsecond\n"));
-        CollectionAssert.AreEqual(new[] { "first" }, FixtureLineEndings.SplitLines("first\n"));
+        Assert.AreSequenceEqual([], FixtureLineEndings.SplitLines(string.Empty));
+        Assert.AreSequenceEqual([string.Empty], FixtureLineEndings.SplitLines("\n"));
+        Assert.AreSequenceEqual(["first", string.Empty, "second"], FixtureLineEndings.SplitLines("first\r\n\rsecond\n"));
+        Assert.AreSequenceEqual(["first"], FixtureLineEndings.SplitLines("first\n"));
     }
 
     #endregion // Methods

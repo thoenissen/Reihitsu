@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -288,7 +288,7 @@ public sealed class CodeFixRunCommandTests
 
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
-            CollectionAssert.AreEqual(originalBytes, await File.ReadAllBytesAsync(path, TestContext.CancellationToken));
+            Assert.AreSequenceEqual(originalBytes, await File.ReadAllBytesAsync(path, TestContext.CancellationToken));
         }
     }
 

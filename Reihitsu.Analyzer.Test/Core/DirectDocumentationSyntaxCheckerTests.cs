@@ -34,8 +34,7 @@ public class DirectDocumentationSyntaxCheckerTests
         var documentationComment = GetDocumentationComment(source);
         var matches = DirectDocumentationSyntaxChecker.GetTagsIncludingNested(documentationComment, "param");
 
-        CollectionAssert.AreEqual(new[] { "first", "second" },
-                                  matches.Select(DocumentationAnalysisUtilities.GetNameAttributeValue).ToArray());
+        Assert.AreSequenceEqual(["first", "second"], matches.Select(DocumentationAnalysisUtilities.GetNameAttributeValue).ToArray());
     }
 
     #endregion // Tests

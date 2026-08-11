@@ -329,7 +329,7 @@ public class FormatCommandHandlerIntegrationTests
 
             var actualBytes = await File.ReadAllBytesAsync(generatedPath, TestContext.CancellationToken);
 
-            CollectionAssert.AreEqual(originalBytes, actualBytes);
+            Assert.AreSequenceEqual(originalBytes, actualBytes);
             Assert.Contains(line => line == "Skipped 1 generated file(s).", console.StandardOutput);
             Assert.Contains(line => line.Contains("0 of 0 file(s)", StringComparison.Ordinal), console.StandardOutput);
         }
@@ -733,7 +733,7 @@ public class FormatCommandHandlerIntegrationTests
 
             var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
 
-            CollectionAssert.AreEqual(originalBytes, actualBytes);
+            Assert.AreSequenceEqual(originalBytes, actualBytes);
         }
     }
 
@@ -784,7 +784,7 @@ public class FormatCommandHandlerIntegrationTests
 
             var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
 
-            CollectionAssert.AreEqual(originalBytes, actualBytes);
+            Assert.AreSequenceEqual(originalBytes, actualBytes);
         }
     }
 
@@ -836,7 +836,7 @@ public class FormatCommandHandlerIntegrationTests
 
             var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
 
-            CollectionAssert.AreEqual(originalBytes, actualBytes);
+            Assert.AreSequenceEqual(originalBytes, actualBytes);
         }
     }
 
@@ -921,7 +921,7 @@ public class FormatCommandHandlerIntegrationTests
         var fileRead = await fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
         var actualPreamble = fileRead.Encoding.GetPreamble();
 
-        CollectionAssert.AreEqual(expectedPreamble, actualPreamble);
+        Assert.AreSequenceEqual(expectedPreamble, actualPreamble);
         Assert.AreEqual(expectedContent, fileRead.Content);
     }
 

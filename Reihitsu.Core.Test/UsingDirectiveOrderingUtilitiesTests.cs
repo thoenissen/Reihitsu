@@ -126,8 +126,7 @@ public class UsingDirectiveOrderingUtilitiesTests
         var systemChild = usingDirectives.Single(usingDirective => usingDirective.Name.ToString() == "System.Text");
         var caseVariant = usingDirectives.Single(usingDirective => usingDirective.Name.ToString() == "SYSTEM");
 
-        CollectionAssert.AreEqual(new[] { "using System;", "using System.Text;", "using SYSTEM;" },
-                                  canonical.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual(["using System;", "using System.Text;", "using SYSTEM;"], canonical.Select(obj => obj.ToString()).ToArray());
         Assert.IsTrue(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(exactSystem));
         Assert.AreEqual(UsingDirectiveOrderingGroup.SystemNamespace, UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(exactSystem));
         Assert.IsTrue(UsingDirectiveOrderingUtilities.AreInSameGroup(exactSystem, systemChild));
@@ -210,15 +209,14 @@ public class UsingDirectiveOrderingUtilitiesTests
 
         var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
 
-        CollectionAssert.AreEqual(new[]
-                                  {
-                                      "global using System.Collections;",
-                                      "global using SYSTEM.Text;",
-                                      "global using static Alpha.Helper;",
-                                      "global using Alias = Beta.Type;",
-                                      "using System.Text;"
-                                  },
-                                  canonical.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual([
+                                    "global using System.Collections;",
+                                    "global using SYSTEM.Text;",
+                                    "global using static Alpha.Helper;",
+                                    "global using Alias = Beta.Type;",
+                                    "using System.Text;"
+                                ],
+                                canonical.Select(obj => obj.ToString()).ToArray());
         Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[0], usingDirectives[4]));
     }
 
@@ -243,19 +241,18 @@ public class UsingDirectiveOrderingUtilitiesTests
 
         var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
 
-        CollectionAssert.AreEqual(new[]
-                                  {
-                                      "using SYSTEM.Alpha;",
-                                      "using SYSTEM.Zulu;",
-                                      "using system.Bravo;",
-                                      "using static SYSTEM.Alpha;",
-                                      "using static SYSTEM.Zulu;",
-                                      "using static system.Bravo;",
-                                      "using AlphaAlias = SYSTEM.Alpha;",
-                                      "using ZuluAlias = SYSTEM.Zulu;",
-                                      "using BravoAlias = system.Bravo;"
-                                  },
-                                  canonical.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual([
+                                    "using SYSTEM.Alpha;",
+                                    "using SYSTEM.Zulu;",
+                                    "using system.Bravo;",
+                                    "using static SYSTEM.Alpha;",
+                                    "using static SYSTEM.Zulu;",
+                                    "using static system.Bravo;",
+                                    "using AlphaAlias = SYSTEM.Alpha;",
+                                    "using ZuluAlias = SYSTEM.Zulu;",
+                                    "using BravoAlias = system.Bravo;"
+                                ],
+                                canonical.Select(obj => obj.ToString()).ToArray());
     }
 
     /// <summary>
@@ -289,8 +286,7 @@ public class UsingDirectiveOrderingUtilitiesTests
 
         var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
 
-        CollectionAssert.AreEqual(_aliasCanonicalOrder,
-                                  canonical.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual(_aliasCanonicalOrder, canonical.Select(obj => obj.ToString()).ToArray());
     }
 
     /// <summary>
@@ -307,8 +303,7 @@ public class UsingDirectiveOrderingUtilitiesTests
 
         var orderedUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(compilationUnit));
 
-        CollectionAssert.AreEqual(_aliasTargetRootOrder,
-                                  orderedUsings.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual(_aliasTargetRootOrder, orderedUsings.Select(obj => obj.ToString()).ToArray());
     }
 
     /// <summary>
@@ -358,10 +353,8 @@ public class UsingDirectiveOrderingUtilitiesTests
         var orderedNamespaceUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(namespaceDeclaration));
         var updatedNamespaceDeclaration = (FileScopedNamespaceDeclarationSyntax)UsingDirectiveOrderingUtilities.WithUsings(namespaceDeclaration, orderedNamespaceUsings);
 
-        CollectionAssert.AreEqual(_compilationUnitReorderedOrder,
-                                  orderedCompilationUnitUsings.Select(obj => obj.ToString()).ToArray());
-        CollectionAssert.AreEqual(_namespaceReorderedOrder,
-                                  updatedNamespaceDeclaration.Usings.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual(_compilationUnitReorderedOrder, orderedCompilationUnitUsings.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual(_namespaceReorderedOrder, updatedNamespaceDeclaration.Usings.Select(obj => obj.ToString()).ToArray());
     }
 
     /// <summary>
@@ -382,8 +375,7 @@ public class UsingDirectiveOrderingUtilitiesTests
         var charlie = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Charlie");
         var alpha = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Alpha");
 
-        CollectionAssert.AreEqual(_commentDirectiveOrder,
-                                  orderedUsings.Select(obj => obj.ToString()).ToArray());
+        Assert.AreSequenceEqual(_commentDirectiveOrder, orderedUsings.Select(obj => obj.ToString()).ToArray());
         Assert.Contains("Keep with Charlie", charlie.GetLeadingTrivia().ToFullString());
         Assert.DoesNotContain("Keep with Charlie", alpha.GetLeadingTrivia().ToFullString());
     }

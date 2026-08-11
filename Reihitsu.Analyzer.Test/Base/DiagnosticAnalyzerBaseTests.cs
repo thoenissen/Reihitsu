@@ -38,7 +38,7 @@ public class DiagnosticAnalyzerBaseTests
 
         var diagnostic = new DiagnosticAnalyzerBaseProbe().Probe([first, second]);
 
-        CollectionAssert.AreEqual(new[] { second }, diagnostic.AdditionalLocations.ToArray());
+        Assert.AreSequenceEqual([second], diagnostic.AdditionalLocations.ToArray());
     }
 
     /// <summary>

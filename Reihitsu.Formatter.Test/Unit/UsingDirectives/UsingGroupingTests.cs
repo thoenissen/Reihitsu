@@ -68,7 +68,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(_documentedExampleOrder, canonical.Select(GetName).ToList());
+        Assert.AreSequenceEqual(_documentedExampleOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(_systemNamespacesFirstOrder, canonical.Select(GetName).ToList());
+        Assert.AreSequenceEqual(_systemNamespacesFirstOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(_regularStaticAliasOrder, canonical.Select(GetName).ToList());
+        Assert.AreSequenceEqual(_regularStaticAliasOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(_alphabeticalWithinGroupOrder, canonical.Select(GetName).ToList());
+        Assert.AreSequenceEqual(_alphabeticalWithinGroupOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>

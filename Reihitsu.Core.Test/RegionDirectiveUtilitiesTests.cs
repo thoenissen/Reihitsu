@@ -208,14 +208,13 @@ public class RegionDirectiveUtilitiesTests
         var descriptions = pairs.Select(pair => $"{GetDescription(pair.Region)}->{GetDescription(pair.EndRegion)}")
                                 .ToArray();
 
-        CollectionAssert.AreEqual(new[]
-                                  {
-                                      "First->First",
-                                      "Inner->Inner",
-                                      "Outer->Outer",
-                                      "Inactive->Inactive"
-                                  },
-                                  descriptions);
+        Assert.AreSequenceEqual([
+                                    "First->First",
+                                    "Inner->Inner",
+                                    "Outer->Outer",
+                                    "Inactive->Inactive"
+                                ],
+                                descriptions);
     }
 
     /// <summary>

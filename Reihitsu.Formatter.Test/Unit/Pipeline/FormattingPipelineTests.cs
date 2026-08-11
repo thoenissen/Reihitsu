@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -194,7 +193,7 @@ public class FormattingPipelineTests
                                                   TestContext.CancellationToken);
 
         // Assert
-        CollectionAssert.AreEqual(expectedPhases, observedPhases);
+        Assert.AreSequenceEqual(expectedPhases, observedPhases);
         Assert.AreEqual(unobserved.ToFullString(), observed.ToFullString());
     }
 

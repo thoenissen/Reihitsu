@@ -31,8 +31,7 @@ public class ModifierOrderingUtilitiesTests
 
         Assert.IsTrue(hasViolation);
         Assert.AreEqual(SyntaxKind.StaticKeyword, diagnosticToken.Kind());
-        CollectionAssert.AreEqual(new[] { SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword },
-                                  orderedModifiers.Select(obj => obj.Kind()).ToArray());
+        Assert.AreSequenceEqual([SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword], orderedModifiers.Select(obj => obj.Kind()).ToArray());
     }
 
     /// <summary>
@@ -80,8 +79,7 @@ public class ModifierOrderingUtilitiesTests
 
         Assert.IsTrue(hasViolation);
         Assert.AreEqual(SyntaxKind.PartialKeyword, diagnosticToken.Kind());
-        CollectionAssert.AreEqual(new[] { precedingModifier, SyntaxKind.PartialKeyword },
-                                  reorderedModifiers.Select(token => token.Kind()).ToArray());
+        Assert.AreSequenceEqual([precedingModifier, SyntaxKind.PartialKeyword], reorderedModifiers.Select(token => token.Kind()).ToArray());
     }
 
     /// <summary>
@@ -105,8 +103,7 @@ public class ModifierOrderingUtilitiesTests
 
         Assert.IsTrue(hasViolation);
         Assert.AreEqual(SyntaxKind.PartialKeyword, diagnosticToken.Kind());
-        CollectionAssert.AreEqual(new[] { SyntaxKind.RefKeyword, SyntaxKind.PartialKeyword },
-                                  reorderedModifiers.Select(token => token.Kind()).ToArray());
+        Assert.AreSequenceEqual([SyntaxKind.RefKeyword, SyntaxKind.PartialKeyword], reorderedModifiers.Select(token => token.Kind()).ToArray());
     }
 
     /// <summary>
@@ -134,8 +131,7 @@ public class ModifierOrderingUtilitiesTests
 
         Assert.IsTrue(hasViolation);
         Assert.AreEqual(SyntaxKind.RefKeyword, diagnosticToken.Kind());
-        CollectionAssert.AreEqual(new[] { precedingModifier, SyntaxKind.RefKeyword },
-                                  reorderedModifiers.Select(token => token.Kind()).ToArray());
+        Assert.AreSequenceEqual([precedingModifier, SyntaxKind.RefKeyword], reorderedModifiers.Select(token => token.Kind()).ToArray());
     }
 
     /// <summary>
@@ -173,8 +169,7 @@ public class ModifierOrderingUtilitiesTests
 
         Assert.IsTrue(hasViolation);
         Assert.AreEqual(SyntaxKind.ProtectedKeyword, diagnosticToken.Kind());
-        CollectionAssert.AreEqual(new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword },
-                                  orderedModifiers.Select(obj => obj.Kind()).ToArray());
+        Assert.AreSequenceEqual([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword], orderedModifiers.Select(obj => obj.Kind()).ToArray());
     }
 
     #endregion // Tests

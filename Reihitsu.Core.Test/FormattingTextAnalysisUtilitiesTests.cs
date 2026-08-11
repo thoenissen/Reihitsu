@@ -72,7 +72,7 @@ public class FormattingTextAnalysisUtilitiesTests
                                                              "singleLineRawInterpolated");
         var actualLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
 
-        CollectionAssert.AreEquivalent(expectedLineIndices.ToArray(), actualLineIndices.ToArray());
+        Assert.AreSequenceEqual(expectedLineIndices.ToArray(), actualLineIndices.ToArray(), SequenceOrder.InAnyOrder);
     }
 
     /// <summary>

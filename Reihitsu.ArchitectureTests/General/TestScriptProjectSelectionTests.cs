@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -104,10 +104,8 @@ public sealed class TestScriptProjectSelectionTests
         var selected = ProjectPaths(branch.Groups["body"].Value);
         var solutionProjects = SolutionTestProjects(repositoryRoot);
 
-        CollectionAssert.AreEqual(_expectedTestProjects, selected, "The all-project order changed.");
-        CollectionAssert.AreEquivalent(_expectedTestProjects,
-                                       solutionProjects,
-                                       "The all branch does not match the solution's test projects.");
+        Assert.AreSequenceEqual(_expectedTestProjects, selected, "The all-project order changed.");
+        Assert.AreSequenceEqual(_expectedTestProjects, solutionProjects, SequenceOrder.InAnyOrder, "The all branch does not match the solution's test projects.");
     }
 
     /// <summary>

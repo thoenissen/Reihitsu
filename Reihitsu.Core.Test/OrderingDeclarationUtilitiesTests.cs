@@ -179,10 +179,10 @@ public class OrderingDeclarationUtilitiesTests
 
         var updatedTypeDeclaration = OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, firstMethod, secondMethod);
 
-        CollectionAssert.AreEqual(_movedMemberOrder,
-                                  updatedTypeDeclaration.Members.OfType<MethodDeclarationSyntax>()
-                                                                .Select(obj => obj.Identifier.ValueText)
-                                                                .ToArray());
+        Assert.AreSequenceEqual(_movedMemberOrder,
+                                updatedTypeDeclaration.Members.OfType<MethodDeclarationSyntax>()
+                                                              .Select(obj => obj.Identifier.ValueText)
+                                                              .ToArray());
     }
 
     /// <summary>

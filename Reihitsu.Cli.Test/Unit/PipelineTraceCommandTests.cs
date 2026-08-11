@@ -1,5 +1,4 @@
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -57,8 +56,7 @@ public sealed class PipelineTraceCommandTests
             Assert.Contains("+++ b/", trace);
             Assert.Contains("Stable after pass 2", trace);
             Assert.AreEqual(string.Empty, error.ToString());
-            CollectionAssert.AreEqual(originalBytes,
-                                      await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
+            Assert.AreSequenceEqual(originalBytes, await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
         }
     }
 
@@ -151,8 +149,7 @@ public sealed class PipelineTraceCommandTests
             Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.IsFalse(output.ToString().Contains("LineEndingNormalizationPhase", StringComparison.Ordinal));
             Assert.AreEqual(string.Empty, error.ToString());
-            CollectionAssert.AreEqual(originalBytes,
-                                      await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
+            Assert.AreSequenceEqual(originalBytes, await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
         }
     }
 
@@ -187,8 +184,7 @@ public sealed class PipelineTraceCommandTests
             Assert.Contains("Stable after pass 2", trace);
             Assert.DoesNotContain("--- a/", trace);
             Assert.AreEqual(string.Empty, error.ToString());
-            CollectionAssert.AreEqual(originalBytes,
-                                      await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
+            Assert.AreSequenceEqual(originalBytes, await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
         }
     }
 
@@ -225,8 +221,7 @@ public sealed class PipelineTraceCommandTests
             Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.Contains(expectedMessage, output.ToString());
             Assert.AreEqual(string.Empty, error.ToString());
-            CollectionAssert.AreEqual(originalBytes,
-                                      await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
+            Assert.AreSequenceEqual(originalBytes, await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken));
         }
     }
 
