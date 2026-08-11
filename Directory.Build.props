@@ -28,6 +28,7 @@
       <DocumentationFile>bin\Release\$(MSBuildProjectName).xml</DocumentationFile>
       <CodeAnalysisRuleSet>..\Release.ruleset</CodeAnalysisRuleSet>
       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+      <MSTestAnalysisMode>Recommended</MSTestAnalysisMode>
    </PropertyGroup>
 
    <ItemGroup>
