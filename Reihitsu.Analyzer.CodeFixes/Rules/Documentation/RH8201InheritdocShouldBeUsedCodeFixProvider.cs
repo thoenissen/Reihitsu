@@ -45,8 +45,7 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Replacing the first <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> or
-    /// <see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia and
-    /// preserving the document's end-of-line sequence throughout the rewritten leading trivia
+    /// <see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
     /// </summary>
     /// <param name="triviaList">List of trivia elements</param>
     /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
@@ -88,15 +87,6 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
                 isLineBreakPending = trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
 
                 yield return CreateInheritdocTrivia(endOfLine);
-
-                continue;
-            }
-
-            // Rebuilding a member's leading trivia can otherwise cause retained line breaks to use the host's
-            // end-of-line sequence. Recreate them explicitly so a CRLF document stays CRLF on Linux as well
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                yield return SyntaxFactory.EndOfLine(endOfLine);
 
                 continue;
             }
@@ -162,9 +152,9 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 
             if (declaration != null)
             {
-                context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8201Title,
-                                                          cancellationToken => ApplyCodeFixAsync(context.Document, declaration, cancellationToken),
-                                                          nameof(RH8201InheritdocShouldBeUsedCodeFixProvider)),
+                context.RegisterCodeFix(new RH8201PreserveTriviaCodeAction(CodeFixResources.RH8201Title,
+                                                                           cancellationToken => ApplyCodeFixAsync(context.Document, declaration, cancellationToken),
+                                                                           nameof(RH8201InheritdocShouldBeUsedCodeFixProvider)),
                                         diagnostic);
             }
         }

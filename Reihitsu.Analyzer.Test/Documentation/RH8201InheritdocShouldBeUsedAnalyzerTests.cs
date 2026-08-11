@@ -1139,13 +1139,12 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
-    /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia uses the document's detected CRLF end-of-line
-    /// sequence instead of <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line
-    /// endings (issue #257)
+    /// Verifies that code-action post-processing preserves CRLF throughout the document instead of introducing
+    /// host-platform line endings (issue #467)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifySynthesizedInheritdocTriviaUsesDetectedCarriageReturnLineFeedEndOfLine()
+    public async Task VerifyCodeActionPostProcessingPreservesCarriageReturnLineFeedEndOfLine()
     {
         const string testData = """
                                 using System;
@@ -1173,8 +1172,11 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                 """;
 
         var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+        var textWithoutCarriageReturnLineFeeds = fixedSource.Replace("\r\n", string.Empty);
 
         Assert.Contains("/// <inheritdoc/>\r\n", fixedSource);
+        Assert.IsFalse(textWithoutCarriageReturnLineFeeds.Contains('\n') || textWithoutCarriageReturnLineFeeds.Contains('\r'),
+                       "The code fix must preserve CRLF for every line break even when the workspace formatter uses LF.");
     }
 
     #endregion // Methods
