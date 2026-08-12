@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -44,7 +45,7 @@ public class RH4113InternalPropertyCasingAnalyzer : CasingAnalyzerBase
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
         if (node is PropertyDeclarationSyntax declaration
-            && declaration.Modifiers.Any(SyntaxKind.InternalKeyword))
+            && NamingAccessibilityClassifier.GetEffectiveAccessibility(declaration) == Accessibility.Internal)
         {
             yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
         }

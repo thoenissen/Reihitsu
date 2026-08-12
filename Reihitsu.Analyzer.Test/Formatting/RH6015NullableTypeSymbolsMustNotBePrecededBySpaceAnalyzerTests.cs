@@ -160,6 +160,56 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : An
     }
 
     /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line nullable type symbol do not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineNullableTypeSymbolDoNotProduceDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if false
+                                    void Disabled(int ? value)
+                                    {
+                                    }
+                                #endif
+                                    void Method(int
+                                        ? value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line nullable type symbol do not produce a diagnostic with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineNullableTypeSymbolDoNotProduceDiagnosticWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if false
+                                    void Disabled(int ? value)
+                                    {
+                                    }
+                                #endif
+                                    void Method(int
+                                        ? value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
     /// Verifies that Fix All removes multiple same-line whitespace runs in one iteration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

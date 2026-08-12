@@ -57,7 +57,7 @@ public class RH4102EventNameCasingAnalyzer : CasingAnalyzerBase
                 yield return (identifier.ValueText, identifier.GetLocation());
             }
         }
-        else if (node is EventDeclarationSyntax eventDeclaration)
+        else if (node is EventDeclarationSyntax { ExplicitInterfaceSpecifier: null } eventDeclaration)
         {
             yield return (eventDeclaration.Identifier.ValueText, eventDeclaration.Identifier.GetLocation());
         }

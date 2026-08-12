@@ -172,5 +172,41 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
                      Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies two expression-bodied methods are fixed in one Fix All iteration
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTwoMethodsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int First() {|#0:=> 1|};
+
+                                    public int Second() {|#1:=> 2|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int First()
+                                      {
+                                          return 1;
+                                      }
+                                      public int Second()
+                                      {
+                                          return 2;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

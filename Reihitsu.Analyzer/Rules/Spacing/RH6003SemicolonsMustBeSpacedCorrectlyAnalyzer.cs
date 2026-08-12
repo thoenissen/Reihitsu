@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
@@ -50,20 +50,9 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerB
                                            .Where(currentToken => currentToken.IsKind(SyntaxKind.SemicolonToken))
                                            .Select(token => token.SpanStart))
         {
-            var start = tokenSpanStart;
-            var end = start;
-            var lineStart = sourceText.Lines.GetLineFromPosition(tokenSpanStart).Start;
-
-            while (start > lineStart
-                   && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
+            if (SameLinePrecedingWhitespaceAnalysis.GetSpan(sourceText, tokenSpanStart) is { } whitespaceSpan)
             {
-                start--;
-            }
-
-            if (start > lineStart
-                && start < end)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, end))));
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, whitespaceSpan)));
             }
         }
     }

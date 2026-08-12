@@ -135,5 +135,44 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
                      Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies two expression-bodied constructors are fixed in one Fix All iteration
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTwoConstructorsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                internal class RH3203
+                                {
+                                    private int _value;
+
+                                    public RH3203() {|#0:=> _value = 1|};
+
+                                    public RH3203(int value) {|#1:=> _value = value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3203
+                                  {
+                                      private int _value;
+                                      public RH3203()
+                                      {
+                                          _value = 1;
+                                      }
+                                      public RH3203(int value)
+                                      {
+                                          _value = value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

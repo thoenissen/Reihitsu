@@ -141,6 +141,48 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line closing attribute bracket do not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingAttributeBracketDoNotProduceDiagnostic()
+    {
+        const string testData = """
+                                #if false
+                                [System.Obsolete ]
+                                internal class Disabled;
+                                #endif
+                                [
+                                    System.Obsolete
+                                    ]
+                                internal class TestClass;
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line closing attribute bracket do not produce a diagnostic with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingAttributeBracketDoNotProduceDiagnosticWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                #if false
+                                [System.Obsolete ]
+                                internal class Disabled;
+                                #endif
+                                [
+                                    System.Obsolete
+                                    ]
+                                internal class TestClass;
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
     /// Verifies that Fix All removes multiple same-line whitespace runs in one iteration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
@@ -65,19 +65,9 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
                                        .Select(GetGreaterThanTokenStart)
                                        .Where(spanStart => spanStart >= 0))
         {
-            var start = tokenStart;
-            var lineStart = sourceText.Lines.GetLineFromPosition(tokenStart).Start;
-
-            while (start > lineStart
-                   && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
+            if (SameLinePrecedingWhitespaceAnalysis.GetSpan(sourceText, tokenStart) is { } whitespaceSpan)
             {
-                start--;
-            }
-
-            if (start > lineStart
-                && start < tokenStart)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, tokenStart))));
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, whitespaceSpan)));
             }
         }
     }

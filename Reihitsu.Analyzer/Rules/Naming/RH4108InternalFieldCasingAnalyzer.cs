@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -45,7 +46,7 @@ public class RH4108InternalFieldCasingAnalyzer : CasingAnalyzerBase
     {
         if (node is FieldDeclarationSyntax declaration
             && declaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
-            && declaration.Modifiers.Any(SyntaxKind.InternalKeyword))
+            && NamingAccessibilityClassifier.GetEffectiveAccessibility(declaration) == Accessibility.Internal)
         {
             foreach (var identifier in declaration.Declaration
                                                   .Variables

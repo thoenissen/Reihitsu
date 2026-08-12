@@ -105,7 +105,23 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  internal interface IContract
+                                  {
+                                      void InterfaceMethod();
+
+                                      public class NestedType
+                                      {
+                                          private void NestedMethod()
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData.ReplaceLineEndings("\r\n"), Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
     }
 
     /// <summary>

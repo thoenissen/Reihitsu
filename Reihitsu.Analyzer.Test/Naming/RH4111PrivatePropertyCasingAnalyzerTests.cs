@@ -167,5 +167,27 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : AnalyzerTestsBase<RH4111
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies an explicit-interface property implementation is not owned by the private property rule
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForExplicitInterfacePropertyImplementation()
+    {
+        const string testCode = """
+                                internal interface IResourceSettings
+                                {
+                                    int resourceCount { get; }
+                                }
+
+                                internal class ResourceSettings : IResourceSettings
+                                {
+                                    int IResourceSettings.resourceCount => 42;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

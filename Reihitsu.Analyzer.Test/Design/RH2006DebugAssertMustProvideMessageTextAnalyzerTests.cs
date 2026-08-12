@@ -79,6 +79,31 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
+    /// Verifying that named arguments are associated with the message parameter rather than their source order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyReversedNamedArgumentsUseMessageParameter()
+    {
+        const string testData = """
+                                using System.Diagnostics;
+
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal static class Sample
+                                {
+                                    internal static void Verify()
+                                    {
+                                        {|#0:Debug.Assert(message: "", condition: true)|};
+                                        Debug.Assert(message: "Condition must hold.", condition: true);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2006DebugAssertMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2006MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying that descriptive and nonconstant messages do not trigger diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

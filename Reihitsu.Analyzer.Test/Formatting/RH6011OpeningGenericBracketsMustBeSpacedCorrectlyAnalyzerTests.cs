@@ -177,6 +177,50 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
     }
 
     /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line opening generic bracket do not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineOpeningGenericBracketDoNotProduceDiagnostic()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                #if false
+                                    List <string> Disabled() => new();
+                                #endif
+                                    List
+                                        <int> Method() => new();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line opening generic bracket do not produce a diagnostic with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineOpeningGenericBracketDoNotProduceDiagnosticWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                #if false
+                                    List <string> Disabled() => new();
+                                #endif
+                                    List
+                                        <int> Method() => new();
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
     /// Verifies that Fix All removes multiple same-line whitespace runs in one iteration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

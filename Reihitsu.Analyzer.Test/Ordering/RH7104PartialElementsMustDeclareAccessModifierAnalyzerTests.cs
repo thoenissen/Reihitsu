@@ -60,5 +60,52 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Analy
         await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat, 5));
     }
 
+    /// <summary>
+    /// Verifying that partial parts inherit and declare the accessibility selected by another part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task PartialTypesWithPublicAndCompoundAccessibilityAreFixed()
+    {
+        const string testCode = """
+                                public partial class Sample
+                                {
+                                }
+
+                                partial class {|#0:Sample|}
+                                {
+                                }
+
+                                internal partial class Outer
+                                {
+                                    protected internal partial class Inner
+                                    {
+                                    }
+
+                                    partial class {|#1:Inner|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public partial class Sample
+                                 {
+                                 }
+
+                                 public partial class Sample;
+
+                                 internal partial class Outer
+                                 {
+                                     protected internal partial class Inner
+                                     {
+                                     }
+                                     protected internal partial class Inner;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

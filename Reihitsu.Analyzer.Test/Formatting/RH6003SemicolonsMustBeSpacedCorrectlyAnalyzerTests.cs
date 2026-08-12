@@ -1,8 +1,10 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Spacing;
 using Reihitsu.Analyzer.Test.Base;
 
@@ -136,6 +138,69 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsB
                                 """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line semicolon do not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineSemicolonDoNotProduceDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                #if false
+                                        int disabled = 0 ;
+                                #endif
+                                        ;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that disabled text and a directive boundary before a continuation-line semicolon do not produce a diagnostic with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineSemicolonDoNotProduceDiagnosticWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                #if false
+                                        int disabled = 0 ;
+                                #endif
+                                        ;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the shared whitespace-span policy reports only same-line runs and rejects continuation indentation
+    /// </summary>
+    [TestMethod]
+    public void VerifySharedWhitespaceSpanPolicyIsLineBounded()
+    {
+        const string sameLine = "value \t;";
+        const string continuation = "#if false\ndisabled ;\n#endif\n    ;";
+        var sameLineText = SourceText.From(sameLine);
+        var continuationText = SourceText.From(continuation);
+        var carriageReturnLineFeedText = SourceText.From(NormalizeToCarriageReturnLineFeed(continuation));
+
+        Assert.AreEqual(TextSpan.FromBounds(5, 7), SameLinePrecedingWhitespaceAnalysis.GetSpan(sameLineText, sameLine.Length - 1));
+        Assert.IsNull(SameLinePrecedingWhitespaceAnalysis.GetSpan(continuationText, continuation.LastIndexOf(';')));
+        Assert.IsNull(SameLinePrecedingWhitespaceAnalysis.GetSpan(carriageReturnLineFeedText, carriageReturnLineFeedText.ToString().LastIndexOf(';')));
     }
 
     /// <summary>

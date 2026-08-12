@@ -1,10 +1,12 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
 using Reihitsu.Analyzer.Rules.Naming;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Verifiers;
 
 namespace Reihitsu.Analyzer.Test.Naming;
 
@@ -261,7 +263,207 @@ public class RH4102EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH4102EventN
                                  }
                                  """;
 
+        await VerifyCustomEvent(testCode, fixedCode, 1);
+    }
+
+    /// <summary>
+    /// Verifies the event rename retargets subscriptions and references
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEventRenameRetargetsSubscriptionsAndReferences()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class EventSource
+                                {
+                                    public event EventHandler {|#0:dataChanged|};
+
+                                    public void Subscribe()
+                                    {
+                                        dataChanged += OnDataChanged;
+                                        dataChanged?.Invoke(this, EventArgs.Empty);
+                                    }
+
+                                    private void OnDataChanged(object sender, EventArgs args) { }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class EventSource
+                                 {
+                                     public event EventHandler DataChanged;
+
+                                     public void Subscribe()
+                                     {
+                                         DataChanged += OnDataChanged;
+                                         DataChanged?.Invoke(this, EventArgs.Empty);
+                                     }
+
+                                     private void OnDataChanged(object sender, EventArgs args) { }
+                                 }
+                                 """;
+
         await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies two field-like events are fixed in one Fix All iteration
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTwoEventsAreFixedInOneFixAllIteration()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class EventSource
+                                {
+                                    public event EventHandler {|#0:firstChanged|};
+
+                                    public event EventHandler {|#1:secondChanged|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class EventSource
+                                 {
+                                     public event EventHandler FirstChanged;
+
+                                     public event EventHandler SecondChanged;
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies two custom events are fixed by their dedicated provider in one Fix All iteration
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTwoCustomEventsAreFixedInOneFixAllIteration()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class EventSource
+                                {
+                                    public event EventHandler {|#0:firstChanged|}
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+
+                                    public event EventHandler {|#1:secondChanged|}
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class EventSource
+                                 {
+                                     public event EventHandler FirstChanged
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+
+                                     public event EventHandler SecondChanged
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCustomEvent(testCode, fixedCode, 2, fixAll: true);
+    }
+
+    /// <summary>
+    /// Verifies explicit-interface event implementations are not diagnosed separately from their interface declaration
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExplicitInterfaceEventImplementationIsExcluded()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal interface IEventSource
+                                {
+                                    event EventHandler {|#0:dataChanged|};
+                                }
+
+                                internal class EventSource : IEventSource
+                                {
+                                    event EventHandler IEventSource.dataChanged
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal interface IEventSource
+                                 {
+                                     event EventHandler DataChanged;
+                                 }
+
+                                 internal class EventSource : IEventSource
+                                 {
+                                     event EventHandler IEventSource.DataChanged
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a custom-event code fix with the dedicated internal provider
+    /// </summary>
+    /// <param name="testCode">Test source</param>
+    /// <param name="fixedCode">Expected fixed source</param>
+    /// <param name="diagnosticCount">Expected diagnostic count</param>
+    /// <param name="fixAll">Whether the provider must fix all diagnostics in one iteration</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    private static async Task VerifyCustomEvent(string testCode, string fixedCode, int diagnosticCount, bool fixAll = false)
+    {
+        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102CustomEventNameCasingCodeFixProvider>
+                   {
+                       TestCode = testCode,
+                       FixedCode = fixedCode,
+                       ReferenceAssemblies = ReferenceAssemblies.Net.Net90
+                   };
+
+        test.ExpectedDiagnostics.AddRange(Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat, diagnosticCount));
+
+        if (fixAll)
+        {
+            test.NumberOfFixAllIterations = 1;
+        }
+
+        await test.RunAsync();
     }
 
     #endregion // Tests

@@ -147,5 +147,39 @@ public class RH4114PublicPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH4114P
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the interface declaration owns casing and its explicit implementation is renamed through the symbol
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInterfacePropertyOwnsExplicitImplementationCasing()
+    {
+        const string testCode = """
+                                internal interface IResourceSettings
+                                {
+                                    int {|#0:resourceCount|} { get; }
+                                }
+
+                                internal class ResourceSettings : IResourceSettings
+                                {
+                                    int IResourceSettings.resourceCount => 42;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal interface IResourceSettings
+                                 {
+                                     int ResourceCount { get; }
+                                 }
+
+                                 internal class ResourceSettings : IResourceSettings
+                                 {
+                                     int IResourceSettings.ResourceCount => 42;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+    }
+
     #endregion // Tests
 }

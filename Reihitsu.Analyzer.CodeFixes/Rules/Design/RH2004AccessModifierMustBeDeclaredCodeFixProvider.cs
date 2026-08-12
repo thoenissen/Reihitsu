@@ -39,7 +39,7 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var updatedDeclaration = await CreateUpdatedDeclarationAsync(document, memberDeclaration, cancellationToken).ConfigureAwait(false);
+        var updatedDeclaration = CreateUpdatedDeclaration(memberDeclaration);
         var updatedRoot = root.ReplaceNode(memberDeclaration, updatedDeclaration);
 
         return document.WithSyntaxRoot(updatedRoot);
@@ -48,35 +48,16 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
     /// <summary>
     /// Creates the declaration with the missing accessibility modifier added
     /// </summary>
-    /// <param name="document">Document</param>
     /// <param name="memberDeclaration">Declaration</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated declaration</returns>
-    private static async Task<MemberDeclarationSyntax> CreateUpdatedDeclarationAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
+    private static MemberDeclarationSyntax CreateUpdatedDeclaration(MemberDeclarationSyntax memberDeclaration)
     {
-        // A partial type may declare its accessibility on another part. Selecting the modifier syntactically would
-        // insert a conflicting one next to that part (CS0262), so the already declared accessibility is read from
-        // the merged declared symbol instead.
-        if (memberDeclaration is TypeDeclarationSyntax typeDeclaration
-            && typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            if (semanticModel?.GetDeclaredSymbol(typeDeclaration, cancellationToken) is { } declaredSymbol)
-            {
-                var accessibilityModifiers = DeclarationModifierUtilities.GetAccessibilityModifierKinds(declaredSymbol.DeclaredAccessibility);
-
-                if (accessibilityModifiers.Count > 0)
-                {
-                    return DeclarationModifierUtilities.AddAccessibilityModifiers(typeDeclaration, accessibilityModifiers);
-                }
-            }
-        }
-
-        var defaultModifier = memberDeclaration.Parent is CompilationUnitSyntax
-                                                       or BaseNamespaceDeclarationSyntax
-                                  ? SyntaxKind.InternalKeyword
-                                  : SyntaxKind.PrivateKeyword;
+        var defaultModifier = memberDeclaration.Parent switch
+                              {
+                                  CompilationUnitSyntax or BaseNamespaceDeclarationSyntax => SyntaxKind.InternalKeyword,
+                                  InterfaceDeclarationSyntax => SyntaxKind.PublicKeyword,
+                                  _ => SyntaxKind.PrivateKeyword
+                              };
 
         return DeclarationModifierUtilities.AddAccessibilityModifier(memberDeclaration, defaultModifier);
     }
