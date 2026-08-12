@@ -174,23 +174,114 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies that keyword operators such as "is" do not produce diagnostics
+    /// Verifies that extra padding around the <c>is</c> keyword operator is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyKeywordOperatorIsIgnored()
+    public async Task VerifyIsKeywordOperatorIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     bool Method(object value)
                                     {
-                                        return value  is  string;
+                                        return value  {|#0:is|}  string;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     bool Method(object value)
+                                     {
+                                         return value is string;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that extra padding around the <c>as</c> keyword operator is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsKeywordOperatorIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(object value)
+                                    {
+                                        return value  {|#0:as|}  string;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     string Method(object value)
+                                     {
+                                         return value as string;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a keyword operator on a continuation line does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedKeywordOperatorIsIgnored()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(object value)
+                                    {
+                                        return value
+                                               as string;
                                     }
                                 }
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All normalizes multiple keyword-operator diagnostics in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleKeywordOperatorDiagnosticsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    bool Method(object value)
+                                    {
+                                        return value  {|#0:is|}  string && value  {|#1:as|}  string != null;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     bool Method(object value)
+                                     {
+                                         return value is string && value as string != null;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat, 2));
     }
 
     /// <summary>

@@ -48,13 +48,6 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
                                 internal interface IContract
                                 {
                                     void InterfaceMethod();
-
-                                    class NestedInterfaceType
-                                    {
-                                        void NestedInterfaceMethod()
-                                        {
-                                        }
-                                    }
                                 }
                                 """;
 
@@ -83,17 +76,58 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
                                   internal interface IContract
                                   {
                                       void InterfaceMethod();
-
-                                      class NestedInterfaceType
-                                      {
-                                          void NestedInterfaceMethod()
-                                          {
-                                          }
-                                      }
                                   }
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifying that direct interface members are exempt while a nested type and its members are analyzed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyDirectInterfaceMembersAreExempt()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal interface IContract
+                                {
+                                    void InterfaceMethod();
+
+                                    class {|#0:NestedType|}
+                                    {
+                                        void {|#1:NestedMethod|}()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that a non-partial record struct without explicit accessibility is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNonPartialRecordStructIsReportedAndFixed()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                record struct {|#0:Sample|};
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  internal record struct Sample;
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
     }
 
     /// <summary>
@@ -173,13 +207,11 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying that a partial type without an explicit accessibility adopts the accessibility declared on
-    /// another part instead of the syntactic default, so the fixed code does not introduce a conflicting
-    /// modifier (CS0262)
+    /// Verifying that partial types with accessibility declared on another part are owned by RH7104
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPartialTypeAdoptsPublicAccessibilityDeclaredOnAnotherPart()
+    public async Task VerifyPartialTypeWithAccessibilityOnAnotherPartDoesNotTriggerDiagnostic()
     {
         const string testData = """
                                 namespace Reihitsu.Analyzer.Test.Design.Resources;
@@ -188,33 +220,20 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
                                 {
                                 }
 
-                                partial class {|#0:Sample|}
+                                partial class Sample
                                 {
                                 }
                                 """;
 
-        const string resultData = """
-                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
-
-                                  public partial class Sample
-                                  {
-                                  }
-
-                                  public partial class Sample
-                                  {
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
+        await Verify(testData);
     }
 
     /// <summary>
-    /// Verifying that a nested partial type adopts a compound accessibility (<see langword="protected"/>
-    /// <see langword="internal"/>) declared on another part
+    /// Verifying that nested partial types are owned by RH7104
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNestedPartialTypeAdoptsProtectedInternalAccessibilityDeclaredOnAnotherPart()
+    public async Task VerifyNestedPartialTypeDoesNotTriggerDiagnostic()
     {
         const string testData = """
                                 namespace Reihitsu.Analyzer.Test.Design.Resources;
@@ -228,90 +247,47 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
 
                                 internal partial class Outer
                                 {
-                                    partial class {|#0:Inner|}
+                                    partial class Inner
                                     {
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
-
-                                  internal partial class Outer
-                                  {
-                                      protected internal partial class Inner
-                                      {
-                                      }
-                                  }
-
-                                  internal partial class Outer
-                                  {
-                                      protected internal partial class Inner
-                                      {
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
+        await Verify(testData);
     }
 
     /// <summary>
-    /// Verifying that a single-part partial type at namespace level keeps the existing <see langword="internal"/>
-    /// default
+    /// Verifying that all partial type kinds are owned by RH7104
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifySinglePartPartialTypeAtNamespaceLevelReceivesInternal()
+    public async Task VerifyPartialTypesDoNotTriggerDiagnostics()
     {
         const string testData = """
                                 namespace Reihitsu.Analyzer.Test.Design.Resources;
 
-                                partial class {|#0:Sample|}
+                                partial class SampleClass
+                                {
+                                }
+
+                                partial struct SampleStruct
+                                {
+                                }
+
+                                partial interface ISample
+                                {
+                                }
+
+                                partial record SampleRecord
+                                {
+                                }
+
+                                partial record struct SampleRecordStruct
                                 {
                                 }
                                 """;
 
-        const string resultData = """
-                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
-
-                                  internal partial class Sample
-                                  {
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
-    }
-
-    /// <summary>
-    /// Verifying that a nested single-part partial type keeps the existing <see langword="private"/> default
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyNestedSinglePartPartialTypeReceivesPrivate()
-    {
-        const string testData = """
-                                namespace Reihitsu.Analyzer.Test.Design.Resources;
-
-                                internal class Outer
-                                {
-                                    partial class {|#0:Inner|}
-                                    {
-                                    }
-                                }
-                                """;
-
-        const string resultData = """
-                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
-
-                                  internal class Outer
-                                  {
-                                      private partial class Inner
-                                      {
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
+        await Verify(testData);
     }
 
     /// <summary>

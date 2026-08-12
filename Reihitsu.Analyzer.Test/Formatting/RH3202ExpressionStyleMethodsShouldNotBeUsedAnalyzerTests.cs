@@ -26,7 +26,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
         const string testData = """
                                 internal class RH3202
                                 {
-                                    {|#0:public int GetValueExpression() => 42;|}
+                                    public int GetValueExpression() {|#0:=> 42|};
                                     
                                     public int GetValueBlock()
                                     {
@@ -50,7 +50,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
     /// <summary>
@@ -63,7 +65,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
         const string testData = """
                                 internal class RH3202
                                 {
-                                    {|#0:public int GetValue() => throw new System.Exception();|}
+                                    public int GetValue() {|#0:=> throw new System.Exception()|};
                                 }
                                 """;
 
@@ -77,7 +79,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
     /// <summary>
@@ -92,7 +96,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
 
                                 internal class RH3202
                                 {
-                                    {|#0:public async ValueTask DoWorkAsync() => await Task.CompletedTask;|}
+                                    public async ValueTask DoWorkAsync() {|#0:=> await Task.CompletedTask|};
                                 }
                                 """;
 
@@ -108,7 +112,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
     /// <summary>
@@ -143,9 +149,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
         const string testData = """
                                 internal class RH3202
                                 {
-                                    {|#0:public int GetValue() => 1
+                                    public int GetValue() {|#0:=> 1|}
                                 #pragma warning disable CS0618
-                                        ;|}
+                                        ;
                                 }
                                 """;
 
@@ -161,7 +167,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
     #endregion // Tests

@@ -44,5 +44,25 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
                                  Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a continuation-line nullable type symbol remains analyzer-clean with LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineNullableTypeSymbolStaysAnalyzerClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int
+                                    ? value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
     #endregion // Tests
 }

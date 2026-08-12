@@ -136,5 +136,22 @@ public class RH4108InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4108In
         await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an implicitly private field is not claimed by the internal field rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForImplicitlyPrivateField()
+    {
+        const string testCode = """
+                                internal class ResourceCache
+                                {
+                                    int cacheCount;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

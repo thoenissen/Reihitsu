@@ -52,14 +52,16 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerB
         {
             var start = tokenSpanStart;
             var end = start;
+            var lineStart = sourceText.Lines.GetLineFromPosition(tokenSpanStart).Start;
 
-            while (start > 0
+            while (start > lineStart
                    && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
             {
                 start--;
             }
 
-            if (start < end)
+            if (start > lineStart
+                && start < end)
             {
                 context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, end))));
             }

@@ -126,5 +126,46 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : AnalyzerTestsBase<RH4111
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that a class property without an accessibility modifier is treated as effectively private
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyImplicitlyPrivateClassPropertyIsDetectedAndFixed()
+    {
+        const string testCode = """
+                                internal class ResourceSettings
+                                {
+                                    int {|#0:resourceCount|} { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class ResourceSettings
+                                 {
+                                     int ResourceCount { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4111PrivatePropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an implicit interface property is owned by the public property rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForImplicitInterfaceProperty()
+    {
+        const string testCode = """
+                                internal interface IResourceSettings
+                                {
+                                    int resourceCount { get; }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

@@ -26,7 +26,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
         const string testData = """
                                 internal class RH3203
                                 {
-                                    {|#0:public RH3203() => System.Console.WriteLine();|}
+                                    public RH3203() {|#0:=> System.Console.WriteLine()|};
                                 }
                                 """;
         const string fixedData = """
@@ -39,8 +39,8 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
                                  }
                                  """;
 
-        await Verify(testData,
-                     fixedData,
+        await Verify(testData.Replace("\r\n", "\n"),
+                     fixedData.Replace("\r\n", "\n"),
                      Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat));
     }
 
@@ -54,8 +54,8 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
         const string testData = """
                                 internal class RH3203
                                 {
-                                    {|#0:public RH3203() => System.Console.WriteLine();|}
-                                    {|#1:public RH3203(int i) => System.Console.WriteLine(i);|}
+                                    public RH3203() {|#0:=> System.Console.WriteLine()|};
+                                    public RH3203(int i) {|#1:=> System.Console.WriteLine(i)|};
                                 }
 
                                 internal class RH3203Expression
@@ -111,9 +111,9 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
                                 {
                                     private int _value;
 
-                                    {|#0:public RH3203() => _value = 1
+                                    public RH3203() {|#0:=> _value = 1|}
                                 #pragma warning disable CS0168
-                                        ;|}
+                                        ;
                                 }
                                 """;
 
@@ -130,7 +130,9 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat));
+        await Verify(testData.Replace("\r\n", "\n"),
+                     resultData.Replace("\r\n", "\n"),
+                     Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat));
     }
 
     #endregion // Tests

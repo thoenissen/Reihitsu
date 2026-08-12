@@ -17,7 +17,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH2005Fi
     #region Tests
 
     /// <summary>
-    /// Verifying that exposed fields trigger diagnostics and are fixed
+    /// Verifying that public fields in classes and record classes trigger diagnostics and are fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -30,9 +30,13 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH2005Fi
                                 {
                                     public string {|#0:publicField|};
 
-                                    protected int {|#1:protectedField|};
+                                    protected int protectedField;
 
-                                    internal bool {|#2:internalField|};
+                                    internal bool internalField;
+
+                                    protected internal int protectedInternalField;
+
+                                    private protected int privateProtectedField;
 
                                     private string privateField;
 
@@ -50,7 +54,12 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH2005Fi
 
                                 public record SampleRecord
                                 {
-                                    public int {|#3:recordField|};
+                                    public int {|#1:recordField|};
+                                }
+
+                                public record struct SampleRecordStruct
+                                {
+                                    public int PublicField;
                                 }
                                 """;
 
@@ -61,9 +70,13 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH2005Fi
                                   {
                                       private string publicField;
 
-                                      private int protectedField;
+                                      protected int protectedField;
 
-                                      private bool internalField;
+                                      internal bool internalField;
+
+                                      protected internal int protectedInternalField;
+
+                                      private protected int privateProtectedField;
 
                                       private string privateField;
 
@@ -83,9 +96,46 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH2005Fi
                                   {
                                       private int recordField;
                                   }
+
+                                  public record struct SampleRecordStruct
+                                  {
+                                      public int PublicField;
+                                  }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat, 4));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that non-public fields in classes and record classes do not trigger diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNonPublicFieldsDoNotTriggerDiagnostics()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class SampleClass
+                                {
+                                    internal int InternalField;
+                                    protected int ProtectedField;
+                                    protected internal int ProtectedInternalField;
+                                    private protected int PrivateProtectedField;
+                                    private int PrivateField;
+                                }
+
+                                internal record SampleRecord
+                                {
+                                    internal int InternalField;
+                                    protected int ProtectedField;
+                                    protected internal int ProtectedInternalField;
+                                    private protected int PrivateProtectedField;
+                                    private int PrivateField;
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

@@ -228,5 +228,41 @@ public class RH4102EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH4102EventN
         await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that property-style event declarations are checked and renamed at the event identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPropertyStyleEventIsDetectedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class EventSource
+                                {
+                                    public event EventHandler {|#0:dataChanged|}
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class EventSource
+                                 {
+                                     public event EventHandler DataChanged
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+    }
+
     #endregion // Tests
 }

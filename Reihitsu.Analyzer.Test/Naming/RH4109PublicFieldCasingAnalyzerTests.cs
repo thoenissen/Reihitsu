@@ -106,5 +106,22 @@ public class RH4109PublicFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4109Publ
         await Verify(testCode, fixedCode, Diagnostics(RH4109PublicFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4109MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an implicitly private field is not claimed by the public field rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForImplicitlyPrivateField()
+    {
+        const string testCode = """
+                                internal class ResourceCache
+                                {
+                                    int cacheCount;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

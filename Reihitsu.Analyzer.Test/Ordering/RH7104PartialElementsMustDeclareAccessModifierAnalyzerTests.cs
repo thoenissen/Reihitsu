@@ -28,6 +28,18 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Analy
                                 {
                                     public int Bar { get; set; }
                                 }
+
+                                partial struct {|#1:TestStruct|}
+                                {
+                                }
+
+                                partial interface {|#2:ITest|}
+                                {
+                                }
+
+                                partial record {|#3:TestRecord|};
+
+                                partial record struct {|#4:TestRecordStruct|};
                                 """;
 
         const string fixedCode = """
@@ -35,9 +47,17 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Analy
                                  {
                                      public int Bar { get; set; }
                                  }
+
+                                 internal partial struct TestStruct;
+
+                                 internal partial interface ITest;
+
+                                 internal partial record TestRecord;
+
+                                 internal partial record struct TestRecordStruct;
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat, 5));
     }
 
     #endregion // Tests

@@ -38,6 +38,18 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAn
     #region Methods
 
     /// <summary>
+    /// Determine whether the expression creates <see cref="System.NotImplementedException"/>
+    /// </summary>
+    /// <param name="expression">Creation expression</param>
+    /// <param name="context">Context</param>
+    /// <returns><see langword="true"/> if the created type is <see cref="System.NotImplementedException"/></returns>
+    private static bool IsNotImplementedException(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
+    {
+        return context.SemanticModel.GetTypeInfo(expression, context.CancellationToken).Type is INamedTypeSymbol typeSymbol
+               && typeSymbol.ToDisplayString() == "System.NotImplementedException";
+    }
+
+    /// <summary>
     /// Gets the simple (rightmost) type name of a type syntax
     /// </summary>
     /// <param name="type">Type syntax</param>
@@ -70,14 +82,22 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAn
             return;
         }
 
-        if (context.SemanticModel.GetTypeInfo(objectCreation).Type is not INamedTypeSymbol typeSymbol)
-        {
-            return;
-        }
-
-        if (typeSymbol.ToDisplayString() == "System.NotImplementedException")
+        if (IsNotImplementedException(objectCreation, context))
         {
             context.ReportDiagnostic(CreateDiagnostic(objectCreation.Type.GetLocation()));
+        }
+    }
+
+    /// <summary>
+    /// Analyzing all <see cref="SyntaxKind.ImplicitObjectCreationExpression"/> nodes
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnImplicitObjectCreationExpression(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is ImplicitObjectCreationExpressionSyntax implicitObjectCreation
+            && IsNotImplementedException(implicitObjectCreation, context))
+        {
+            context.ReportDiagnostic(CreateDiagnostic(implicitObjectCreation.NewKeyword.GetLocation()));
         }
     }
 
@@ -91,6 +111,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAn
         base.Initialize(context);
 
         context.RegisterSyntaxNodeAction(OnObjectCreationExpression, SyntaxKind.ObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(OnImplicitObjectCreationExpression, SyntaxKind.ImplicitObjectCreationExpression);
     }
 
     #endregion // DiagnosticAnalyzer

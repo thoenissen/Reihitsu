@@ -70,5 +70,22 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
                                  Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a continuation-line closing attribute bracket remains analyzer-clean with LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineClosingAttributeBracketStaysAnalyzerClean()
+    {
+        const string testData = """
+                                [
+                                System.Obsolete
+                                ]
+                                internal class TestClass;
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
     #endregion // Tests
 }

@@ -65,5 +65,129 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : An
         await Verify(testData, fixedData, Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a tab before a nullable type symbol is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTabBeforeNullableTypeSymbolIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int{|#0:	|}? value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int? value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix preserves a comment before a nullable type symbol
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeNullableTypeSymbolIsPreservedByCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int /* Keep. */{|#0: |}? value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int /* Keep. */? value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a nullable type symbol on a continuation line does not produce a diagnostic with LF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineNullableTypeSymbolDoesNotProduceDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int
+                                        ? value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a nullable type symbol on a continuation line does not produce a diagnostic with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineNullableTypeSymbolDoesNotProduceDiagnosticWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int
+                                        ? value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All removes multiple same-line whitespace runs in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleSameLineDiagnosticsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int{|#0: |}? first, long{|#1:	|}? second)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int? first, long? second)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

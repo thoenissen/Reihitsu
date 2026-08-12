@@ -51,14 +51,16 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
                                        .Select(node => node.QuestionToken.SpanStart))
         {
             var start = tokenStart;
+            var lineStart = sourceText.Lines.GetLineFromPosition(tokenStart).Start;
 
-            while (start > 0
+            while (start > lineStart
                    && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
             {
                 start--;
             }
 
-            if (start < tokenStart)
+            if (start > lineStart
+                && start < tokenStart)
             {
                 context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, tokenStart))));
             }

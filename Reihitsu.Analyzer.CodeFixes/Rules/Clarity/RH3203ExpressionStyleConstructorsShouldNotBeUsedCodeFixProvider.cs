@@ -59,7 +59,10 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider : C
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (root.FindNode(diagnostic.Location.SourceSpan) is ConstructorDeclarationSyntax constructorDeclaration)
+            var constructorDeclaration = root.FindNode(diagnostic.Location.SourceSpan)
+                                             .FirstAncestorOrSelf<ConstructorDeclarationSyntax>();
+
+            if (constructorDeclaration != null)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3203Title,
                                                           token => ApplyCodeFixAsync(context.Document, constructorDeclaration, token),

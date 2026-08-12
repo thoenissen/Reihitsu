@@ -44,7 +44,12 @@ public class RH4114PublicPropertyCasingAnalyzer : CasingAnalyzerBase
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
         if (node is PropertyDeclarationSyntax declaration
-            && declaration.Modifiers.Any(SyntaxKind.PublicKeyword))
+            && (declaration.Modifiers.Any(SyntaxKind.PublicKeyword)
+                || (declaration.Parent is InterfaceDeclarationSyntax
+                    && declaration.Modifiers.Any(SyntaxKind.PrivateKeyword) == false
+                    && declaration.Modifiers.Any(SyntaxKind.ProtectedKeyword) == false
+                    && declaration.Modifiers.Any(SyntaxKind.InternalKeyword) == false
+                    && declaration.Modifiers.Any(SyntaxKind.PublicKeyword) == false)))
         {
             yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
         }

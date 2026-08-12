@@ -126,5 +126,22 @@ public class RH4107ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4107P
         await Verify(testCode, fixedCode, Diagnostics(RH4107ProtectedFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4107MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an implicitly private field is not claimed by the protected field rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForImplicitlyPrivateField()
+    {
+        const string testCode = """
+                                internal class ResourceCache
+                                {
+                                    int cacheCount;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

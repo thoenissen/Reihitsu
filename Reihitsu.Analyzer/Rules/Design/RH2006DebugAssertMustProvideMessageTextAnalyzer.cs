@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -55,6 +57,31 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyze
     }
 
     /// <summary>
+    /// Determine whether the message argument is absent, <see langword="null"/>, empty, or whitespace
+    /// </summary>
+    /// <param name="invocationExpression">Invocation expression</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the invocation should be reported</returns>
+    private static bool ShouldReport(InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        if (invocationExpression.ArgumentList.Arguments.Count < 2)
+        {
+            return true;
+        }
+
+        var constantValue = semanticModel.GetConstantValue(invocationExpression.ArgumentList.Arguments[1].Expression, cancellationToken);
+
+        if (constantValue.HasValue == false)
+        {
+            return false;
+        }
+
+        return constantValue.Value is null
+               || (constantValue.Value is string text && string.IsNullOrWhiteSpace(text));
+    }
+
+    /// <summary>
     /// Analyzing all <see cref="SyntaxKind.InvocationExpression"/> nodes
     /// </summary>
     /// <param name="context">Context</param>
@@ -89,7 +116,7 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyze
             return;
         }
 
-        if (invocationExpression.ArgumentList.Arguments.Count >= 2)
+        if (ShouldReport(invocationExpression, context.SemanticModel, context.CancellationToken) == false)
         {
             return;
         }
