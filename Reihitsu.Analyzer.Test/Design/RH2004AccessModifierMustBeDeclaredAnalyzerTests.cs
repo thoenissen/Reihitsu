@@ -121,7 +121,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
                                   }
                                   """;
 
-        await Verify(testData, resultData.ReplaceLineEndings("\r\n"), Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+        await Verify(testData, resultData.ReplaceLineEndings(System.Environment.NewLine), Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
     }
 
     /// <summary>
