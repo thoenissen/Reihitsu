@@ -184,7 +184,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies that disabled text and a directive boundary before a continuation-line closing generic bracket do not produce a diagnostic
+    /// Verifies that disabled text and a directive inside the gap before a continuation-line closing generic bracket do not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -194,10 +194,10 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
                                 using System.Collections.Generic;
                                 internal class TestClass
                                 {
-                                #if false
-                                    List<string > Disabled() => new();
-                                #endif
                                     List<int
+                                #if false
+                                    disabled text
+                                #endif
                                         > Method() => new();
                                 }
                                 """;
@@ -206,7 +206,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies that disabled text and a directive boundary before a continuation-line closing generic bracket do not produce a diagnostic with CRLF line endings
+    /// Verifies that disabled text and a directive inside the gap before a continuation-line closing generic bracket do not produce a diagnostic with CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -216,10 +216,10 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
                                 using System.Collections.Generic;
                                 internal class TestClass
                                 {
-                                #if false
-                                    List<string > Disabled() => new();
-                                #endif
                                     List<int
+                                #if false
+                                    disabled text
+                                #endif
                                         > Method() => new();
                                 }
                                 """;

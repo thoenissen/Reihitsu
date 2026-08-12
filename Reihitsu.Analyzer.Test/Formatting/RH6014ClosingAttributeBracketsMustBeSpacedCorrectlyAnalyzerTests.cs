@@ -141,19 +141,17 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that disabled text and a directive boundary before a continuation-line closing attribute bracket do not produce a diagnostic
+    /// Verifies that disabled text and a directive inside the gap before a continuation-line closing attribute bracket do not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingAttributeBracketDoNotProduceDiagnostic()
     {
         const string testData = """
+                                [System.Obsolete
                                 #if false
-                                [System.Obsolete ]
-                                internal class Disabled;
+                                disabled text
                                 #endif
-                                [
-                                    System.Obsolete
                                     ]
                                 internal class TestClass;
                                 """;
@@ -162,19 +160,17 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that disabled text and a directive boundary before a continuation-line closing attribute bracket do not produce a diagnostic with CRLF line endings
+    /// Verifies that disabled text and a directive inside the gap before a continuation-line closing attribute bracket do not produce a diagnostic with CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingAttributeBracketDoNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
+                                [System.Obsolete
                                 #if false
-                                [System.Obsolete ]
-                                internal class Disabled;
+                                disabled text
                                 #endif
-                                [
-                                    System.Obsolete
                                     ]
                                 internal class TestClass;
                                 """;
