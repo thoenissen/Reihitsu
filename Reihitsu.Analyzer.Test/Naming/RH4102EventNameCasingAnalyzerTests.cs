@@ -247,6 +247,14 @@ public class RH4102EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH4102EventN
                                         add { }
                                         remove { }
                                     }
+
+                                    public void Subscribe()
+                                    {
+                                        dataChanged += OnDataChanged;
+                                        dataChanged -= OnDataChanged;
+                                    }
+
+                                    private void OnDataChanged(object sender, EventArgs args) { }
                                 }
                                 """;
 
@@ -260,6 +268,14 @@ public class RH4102EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH4102EventN
                                          add { }
                                          remove { }
                                      }
+
+                                     public void Subscribe()
+                                     {
+                                         DataChanged += OnDataChanged;
+                                         DataChanged -= OnDataChanged;
+                                     }
+
+                                     private void OnDataChanged(object sender, EventArgs args) { }
                                  }
                                  """;
 
