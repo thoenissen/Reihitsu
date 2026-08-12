@@ -30,6 +30,31 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
+    /// Verifies that a mixed XML documentation line ending is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedLineEndingsInsideXmlDocumentationAreDetectedAndFixed()
+    {
+        const string testData = "/// <summary>{|#0:\r\n|}"
+                                + "/// Documentation.\n"
+                                + "/// </summary>\n"
+                                + "internal class TestClass\n"
+                                + "{\n"
+                                + "}";
+        const string fixedData = "/// <summary>\n"
+                                 + "/// Documentation.\n"
+                                 + "/// </summary>\n"
+                                 + "internal class TestClass\n"
+                                 + "{\n"
+                                 + "}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that LF-only files do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
