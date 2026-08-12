@@ -47,10 +47,8 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnal
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        // Keyword operators such as "is" and "as" are covered by RH6005
         foreach (var operatorToken in root.DescendantNodes()
                                           .OfType<BinaryExpressionSyntax>()
-                                          .Where(binaryExpression => binaryExpression.OperatorToken.IsKeyword() == false)
                                           .Select(binaryExpression => binaryExpression.OperatorToken))
         {
             if (FormattingTextAnalysisUtilities.HasOperatorSpacingViolation(sourceText, operatorToken))

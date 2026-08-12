@@ -585,5 +585,49 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
         }
     }
 
+    /// <summary>
+    /// Verifies that an empty first namespace does not prevent discovery of a type in a later sibling namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task LaterSiblingNamespaceTypeIsDetectedAndFileIsRenamed()
+    {
+        const string testCode = """
+                                namespace EmptyNamespace
+                                {
+                                }
+
+                                namespace PopulatedNamespace
+                                {
+                                    internal class {|#0:LaterType|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace EmptyNamespace
+                                 {
+                                 }
+
+                                 namespace PopulatedNamespace
+                                 {
+                                     internal class LaterType
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Mismatched.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/LaterType.cs", fixedCode));
+                     },
+                     Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+    }
+
     #endregion // Tests
 }

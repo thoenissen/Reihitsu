@@ -95,5 +95,160 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
         await Verify(testData, fixedData, Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a tab before an opening generic bracket is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTabBeforeOpeningGenericBracketIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List{|#0:	|}<int> Method() => new();
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+                                 internal class TestClass
+                                 {
+                                     List<int> Method() => new();
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment before an opening generic bracket does not broaden the diagnostic span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeOpeningGenericBracketDoesNotBroadenDiagnosticSpan()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List /* Keep. */{|#0: |}<int> Method() => new();
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an opening generic bracket on a continuation line does not produce a diagnostic with LF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineOpeningGenericBracketDoesNotProduceDiagnostic()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List
+                                        <int> Method() => new();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an opening generic bracket on a continuation line does not produce a diagnostic with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineOpeningGenericBracketDoesNotProduceDiagnosticWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List
+                                        <int> Method() => new();
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that disabled text and a directive inside the gap before a continuation-line opening generic bracket do not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineOpeningGenericBracketDoNotProduceDiagnostic()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List
+                                #if false
+                                    disabled text
+                                #endif
+                                        <int> Method() => new();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that disabled text and a directive inside the gap before a continuation-line opening generic bracket do not produce a diagnostic with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineOpeningGenericBracketDoNotProduceDiagnosticWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List
+                                #if false
+                                    disabled text
+                                #endif
+                                        <int> Method() => new();
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All removes multiple same-line whitespace runs in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleSameLineDiagnosticsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List{|#0: |}<int> First() => new();
+                                    List{|#1:	|}<string> Second() => new();
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+                                 internal class TestClass
+                                 {
+                                     List<int> First() => new();
+                                     List<string> Second() => new();
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

@@ -46,5 +46,36 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyFormatterTests : Formatte
                                  Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter fixes keyword-operator spacing and remains stable with LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesKeywordOperatorsAndIsIdempotent()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    bool Method(object value)
+                                    {
+                                        return value  {|#0:is|}  string && value  {|#1:as|}  string != null;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     bool Method(object value)
+                                     {
+                                         return value is string && value as string != null;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

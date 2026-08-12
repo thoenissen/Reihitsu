@@ -136,5 +136,27 @@ public class RH4113InternalPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH411
         await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that implicit class and interface properties are owned by the private and public rules
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForImplicitProperties()
+    {
+        const string testCode = """
+                                internal class ResourceSettings
+                                {
+                                    int classProperty { get; set; }
+                                }
+
+                                internal interface IResourceSettings
+                                {
+                                    int interfaceProperty { get; }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

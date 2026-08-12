@@ -46,7 +46,8 @@ public class RH2005FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase
     private static bool ShouldSkip(FieldDeclarationSyntax fieldDeclaration)
     {
         if (fieldDeclaration.Parent is not ClassDeclarationSyntax
-            && fieldDeclaration.Parent is not RecordDeclarationSyntax)
+            && (fieldDeclaration.Parent is not RecordDeclarationSyntax recordDeclaration
+                || recordDeclaration.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)))
         {
             return true;
         }
@@ -66,16 +67,13 @@ public class RH2005FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Determine whether the modifiers declare only <see langword="private"/> accessibility
+    /// Determine whether the modifiers declare <see langword="public"/> accessibility
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
-    /// <returns><see langword="true"/> if the field is explicitly private</returns>
-    private static bool HasOnlyPrivateAccessibility(SyntaxTokenList modifiers)
+    /// <returns><see langword="true"/> if the field is explicitly public</returns>
+    private static bool HasPublicAccessibility(SyntaxTokenList modifiers)
     {
-        return modifiers.Any(SyntaxKind.PrivateKeyword)
-               && modifiers.Any(SyntaxKind.PublicKeyword) == false
-               && modifiers.Any(SyntaxKind.ProtectedKeyword) == false
-               && modifiers.Any(SyntaxKind.InternalKeyword) == false;
+        return modifiers.Any(SyntaxKind.PublicKeyword);
     }
 
     /// <summary>
@@ -94,7 +92,7 @@ public class RH2005FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        if (HasOnlyPrivateAccessibility(fieldDeclaration.Modifiers))
+        if (HasPublicAccessibility(fieldDeclaration.Modifiers) == false)
         {
             return;
         }

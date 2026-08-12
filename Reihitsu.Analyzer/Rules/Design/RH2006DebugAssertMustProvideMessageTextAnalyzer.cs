@@ -1,9 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Design;
@@ -55,6 +58,31 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyze
     }
 
     /// <summary>
+    /// Determine whether the message argument is absent, <see langword="null"/>, empty, or whitespace
+    /// </summary>
+    /// <param name="invocationExpression">Invocation expression</param>
+    /// <param name="methodSymbol">Method symbol</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the invocation should be reported</returns>
+    private static bool ShouldReport(InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var messageParameter = methodSymbol.Parameters.FirstOrDefault(parameter => parameter.Name == "message");
+
+        if (messageParameter == null)
+        {
+            return true;
+        }
+
+        var arguments = invocationExpression.ArgumentList.Arguments;
+        var messageArgument = arguments.FirstOrDefault(argument => argument.NameColon?.Name.Identifier.ValueText == "message")
+                                  ?? (arguments.Count > messageParameter.Ordinal ? arguments[messageParameter.Ordinal] : null);
+
+        return messageArgument == null
+               || DebugMessageTextAnalysisUtilities.IsConstantMessageWithoutText(messageArgument.Expression, semanticModel, cancellationToken);
+    }
+
+    /// <summary>
     /// Analyzing all <see cref="SyntaxKind.InvocationExpression"/> nodes
     /// </summary>
     /// <param name="context">Context</param>
@@ -89,7 +117,7 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyze
             return;
         }
 
-        if (invocationExpression.ArgumentList.Arguments.Count >= 2)
+        if (ShouldReport(invocationExpression, methodSymbol, context.SemanticModel, context.CancellationToken) == false)
         {
             return;
         }

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Design;
@@ -71,25 +72,25 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerB
     /// Determine whether the message argument is <see langword="null"/>, empty, or whitespace
     /// </summary>
     /// <param name="invocationExpression">Invocation expression</param>
+    /// <param name="methodSymbol">Method symbol</param>
     /// <param name="semanticModel">Semantic model</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> if the invocation should be reported</returns>
-    private static bool ShouldReport(InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+    private static bool ShouldReport(InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        if (invocationExpression.ArgumentList.Arguments.Count == 0)
+        var messageParameter = methodSymbol.Parameters.FirstOrDefault(parameter => parameter.Name == "message");
+
+        if (messageParameter == null)
         {
             return false;
         }
 
-        var constantValue = semanticModel.GetConstantValue(invocationExpression.ArgumentList.Arguments[0].Expression, cancellationToken);
+        var arguments = invocationExpression.ArgumentList.Arguments;
+        var messageArgument = arguments.FirstOrDefault(argument => argument.NameColon?.Name.Identifier.ValueText == "message")
+                                  ?? (arguments.Count > messageParameter.Ordinal ? arguments[messageParameter.Ordinal] : null);
 
-        if (constantValue.HasValue == false)
-        {
-            return false;
-        }
-
-        return constantValue.Value is null
-               || (constantValue.Value is string text && string.IsNullOrWhiteSpace(text));
+        return messageArgument != null
+               && DebugMessageTextAnalysisUtilities.IsConstantMessageWithoutText(messageArgument.Expression, semanticModel, cancellationToken);
     }
 
     /// <summary>
@@ -114,7 +115,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerB
 
         if (methodSymbol == null
             || IsDebugFail(methodSymbol) == false
-            || ShouldReport(invocationExpression, context.SemanticModel, context.CancellationToken) == false)
+            || ShouldReport(invocationExpression, methodSymbol, context.SemanticModel, context.CancellationToken) == false)
         {
             return;
         }

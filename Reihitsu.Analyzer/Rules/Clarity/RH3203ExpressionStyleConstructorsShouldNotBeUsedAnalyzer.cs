@@ -61,7 +61,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer : Diagnost
             return;
         }
 
-        context.ReportDiagnostic(CreateDiagnostic(constructorDeclaration.GetLocation()));
+        context.ReportDiagnostic(CreateDiagnostic(constructorDeclaration.ExpressionBody.GetLocation()));
     }
 
     #endregion // Methods

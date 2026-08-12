@@ -45,7 +45,15 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
     /// <returns><see langword="true"/> if the declaration should be skipped</returns>
     private static bool ShouldSkip(MemberDeclarationSyntax memberDeclaration)
     {
-        if (memberDeclaration.Ancestors().OfType<InterfaceDeclarationSyntax>().Any())
+        if (memberDeclaration is TypeDeclarationSyntax typeDeclaration
+            && typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
+        {
+            return true;
+        }
+
+        if (memberDeclaration.Parent is InterfaceDeclarationSyntax
+            && memberDeclaration is not BaseTypeDeclarationSyntax
+            && memberDeclaration is not DelegateDeclarationSyntax)
         {
             return true;
         }
@@ -127,6 +135,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.EnumDeclaration,
                                          SyntaxKind.RecordDeclaration,
+                                         SyntaxKind.RecordStructDeclaration,
                                          SyntaxKind.DelegateDeclaration,
                                          SyntaxKind.MethodDeclaration,
                                          SyntaxKind.PropertyDeclaration,

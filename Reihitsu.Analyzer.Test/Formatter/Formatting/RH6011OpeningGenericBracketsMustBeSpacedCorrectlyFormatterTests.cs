@@ -48,5 +48,27 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
                                  Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a continuation-line opening generic bracket remains analyzer-clean with LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineOpeningGenericBracketStaysAnalyzerClean()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List
+                                    <int> Method()
+                                    {
+                                        return new();
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
     #endregion // Tests
 }

@@ -54,5 +54,28 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
         await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies that the message parameter is analyzed when named arguments are in reverse source order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyReorderedNamedMessageArgumentIsAnalyzed()
+    {
+        const string testData = """
+                                using System.Diagnostics;
+
+                                internal static class Sample
+                                {
+                                    internal static void Verify()
+                                    {
+                                        {|#0:Debug.Fail(detailMessage: "detail", message: "")|};
+                                        Debug.Fail(detailMessage: "detail", message: "Do not get here.");
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat));
+    }
+
     #endregion // Tests
 }

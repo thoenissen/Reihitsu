@@ -186,5 +186,29 @@ public class RH4106PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4106Pri
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a field without an accessibility modifier is treated as effectively private
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyImplicitlyPrivateFieldIsDetectedAndFixed()
+    {
+        const string testCode = """
+                                internal class ResourceCache
+                                {
+                                    int {|#0:cacheCount|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class ResourceCache
+                                 {
+                                     int _cacheCount;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
@@ -50,17 +50,9 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
                                        .OfType<NullableTypeSyntax>()
                                        .Select(node => node.QuestionToken.SpanStart))
         {
-            var start = tokenStart;
-
-            while (start > 0
-                   && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
+            if (SameLinePrecedingWhitespaceAnalysis.GetSpan(sourceText, tokenStart) is { } whitespaceSpan)
             {
-                start--;
-            }
-
-            if (start < tokenStart)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, tokenStart))));
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, whitespaceSpan)));
             }
         }
     }

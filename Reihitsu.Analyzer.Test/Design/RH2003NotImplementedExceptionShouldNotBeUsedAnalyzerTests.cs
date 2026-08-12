@@ -66,5 +66,47 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
         await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifying that implicit creation of <see cref="System.NotImplementedException"/> triggers a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyImplicitNotImplementedExceptionDiagnostic()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class Sample
+                                {
+                                    private readonly NotImplementedException exception = {|#0:new|}();
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that implicit creation of another exception type does not trigger a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyImplicitOtherExceptionDoesNotTriggerDiagnostic()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class Sample
+                                {
+                                    private readonly InvalidOperationException exception = new();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

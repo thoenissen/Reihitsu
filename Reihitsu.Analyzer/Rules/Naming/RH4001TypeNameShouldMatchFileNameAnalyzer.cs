@@ -52,7 +52,12 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase
 
             if (child is BaseNamespaceDeclarationSyntax)
             {
-                return FindFirstTypeDeclaration(child);
+                var declaration = FindFirstTypeDeclaration(child);
+
+                if (declaration != null)
+                {
+                    return declaration;
+                }
             }
         }
 

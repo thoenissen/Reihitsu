@@ -32,7 +32,12 @@ public class RH4102EventNameCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4102EventNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4102Title), nameof(AnalyzerResources.RH4102MessageFormat), SyntaxKind.EventFieldDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId,
+               DiagnosticCategory.Naming,
+               nameof(AnalyzerResources.RH4102Title),
+               nameof(AnalyzerResources.RH4102MessageFormat),
+               [SyntaxKind.EventFieldDeclaration, SyntaxKind.EventDeclaration],
+               CasingUtilities.IsPascalCase)
     {
     }
 
@@ -51,6 +56,10 @@ public class RH4102EventNameCasingAnalyzer : CasingAnalyzerBase
             {
                 yield return (identifier.ValueText, identifier.GetLocation());
             }
+        }
+        else if (node is EventDeclarationSyntax { ExplicitInterfaceSpecifier: null } eventDeclaration)
+        {
+            yield return (eventDeclaration.Identifier.ValueText, eventDeclaration.Identifier.GetLocation());
         }
     }
 

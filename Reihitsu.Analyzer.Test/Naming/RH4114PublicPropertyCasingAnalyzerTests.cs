@@ -106,5 +106,80 @@ public class RH4114PublicPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH4114P
         await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an interface property without an accessibility modifier is treated as effectively public
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyImplicitlyPublicInterfacePropertyIsDetectedAndFixed()
+    {
+        const string testCode = """
+                                internal interface IResourceSettings
+                                {
+                                    int {|#0:resourceCount|} { get; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal interface IResourceSettings
+                                 {
+                                     int ResourceCount { get; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an implicit class property is owned by the private property rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForImplicitClassProperty()
+    {
+        const string testCode = """
+                                internal class ResourceSettings
+                                {
+                                    int resourceCount { get; set; }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the interface declaration owns casing and its explicit implementation is renamed through the symbol
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInterfacePropertyOwnsExplicitImplementationCasing()
+    {
+        const string testCode = """
+                                internal interface IResourceSettings
+                                {
+                                    int {|#0:resourceCount|} { get; }
+                                }
+
+                                internal class ResourceSettings : IResourceSettings
+                                {
+                                    int IResourceSettings.resourceCount => 42;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal interface IResourceSettings
+                                 {
+                                     int ResourceCount { get; }
+                                 }
+
+                                 internal class ResourceSettings : IResourceSettings
+                                 {
+                                     int IResourceSettings.ResourceCount => 42;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+    }
+
     #endregion // Tests
 }
