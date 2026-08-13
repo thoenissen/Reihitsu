@@ -92,7 +92,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
     }
 
     /// <summary>
-    /// Verifies syntax-tree and node formatting normalize mixed input and all formatter entry points remain stable
+    /// Verifies syntax-tree and detached-node formatting normalize mixed input, and document-scoped formatting remains stable
     /// </summary>
     /// <param name="input">Mixed-line-ending input</param>
     /// <param name="expected">Expected normalized output</param>
