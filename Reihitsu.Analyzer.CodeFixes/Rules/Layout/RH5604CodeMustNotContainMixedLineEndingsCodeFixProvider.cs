@@ -38,16 +38,31 @@ public class RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider : CodeFixPr
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var endOfLinesToReplace = root.DescendantTrivia(descendIntoTrivia: true)
-                                      .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != endOfLine)
-                                      .ToArray();
+        var documentationEndOfLinesToReplace = root.DescendantTokens(descendIntoTrivia: true)
+                                                   .Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken) && token.Text != endOfLine)
+                                                   .ToArray();
+        var normalizedRoot = documentationEndOfLinesToReplace.Length == 0
+                                 ? root
+                                 : root.ReplaceTokens(documentationEndOfLinesToReplace,
+                                                      (original, _) => original.CopyAnnotationsTo(SyntaxFactory.XmlTextNewLine(original.LeadingTrivia,
+                                                                                                                               endOfLine,
+                                                                                                                               original.ValueText,
+                                                                                                                               original.TrailingTrivia)));
+        var endOfLinesToReplace = normalizedRoot.DescendantTrivia(descendIntoTrivia: true)
+                                                .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != endOfLine)
+                                                .ToArray();
 
-        if (endOfLinesToReplace.Length == 0)
+        if (documentationEndOfLinesToReplace.Length == 0 && endOfLinesToReplace.Length == 0)
         {
             return document;
         }
 
-        return document.WithSyntaxRoot(root.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(endOfLine)));
+        if (endOfLinesToReplace.Length == 0)
+        {
+            return document.WithSyntaxRoot(normalizedRoot);
+        }
+
+        return document.WithSyntaxRoot(normalizedRoot.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(endOfLine)));
     }
 
     #endregion // Methods
