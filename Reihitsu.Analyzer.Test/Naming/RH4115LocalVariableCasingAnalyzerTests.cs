@@ -564,6 +564,35 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies a local-variable casing fix does not introduce a duplicate declaration in a nested block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue469LocalRenameDoesNotProduceDuplicateDeclaration()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public void Load()
+                                        {
+                                            int badName = 0;
+
+                                            {
+                                                int BadName = 1;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(testCode);
+
+        Assert.DoesNotContain("int badName = 1;", fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods

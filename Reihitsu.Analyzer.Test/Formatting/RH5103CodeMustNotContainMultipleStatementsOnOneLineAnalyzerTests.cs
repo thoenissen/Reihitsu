@@ -121,5 +121,39 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies a three-statement same-line chain is rewritten with block indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue469ThreeStatementChainFixAllKeepsBlockIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int first = 1; {|#0:int second = 2;|} {|#1:int third = 3;|}
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int first = 1;
+                                         int second = 2;
+                                         int third = 3;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

@@ -236,5 +236,38 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode, fixedCode, Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a comment between a not operator and its operand survives the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue469CommentBetweenNotOperatorAndOperandIsPreserved()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private bool _field;
+
+                                    public bool GetField()
+                                    {
+                                        return {|#0:!|} /* Keep. */ _field;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private bool _field;
+
+                                     public bool GetField()
+                                     {
+                                         return /* Keep. */ _field == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat));
+    }
+
     #endregion // Tests
 }

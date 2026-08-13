@@ -199,5 +199,35 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies a same-line following statement is split before a blank line is added after a break statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue469SameLineBreakFixSeparatesAndConverges()
+    {
+        const string testCode = """
+                                internal class RH5011
+                                {
+                                    public void Execute()
+                                    {
+                                        while (true)
+                                        {
+                                            break; Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var onceFixed = await ApplyCodeFixAsync(testCode);
+        var twiceFixed = await ApplyCodeFixAsync(onceFixed);
+
+        Assert.AreEqual(onceFixed, twiceFixed);
+    }
+
     #endregion // Tests
 }
