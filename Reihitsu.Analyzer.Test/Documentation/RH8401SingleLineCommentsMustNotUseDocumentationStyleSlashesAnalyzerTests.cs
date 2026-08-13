@@ -74,6 +74,43 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     }
 
     /// <summary>
+    /// Verifies that a comment reporting several diagnostics converges: applying the fix clears every diagnostic
+    /// in the comment and the re-analyzed result reports nothing further
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsAndCodeFixForMultiLineDocumentationStyleComment()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  {|#0:///|} just a comment
+                                  {|#1:///|} second line
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       // just a comment
+                                       // second line
+                                       internal void TestMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies that a single application converts every line of a line-feed separated comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
