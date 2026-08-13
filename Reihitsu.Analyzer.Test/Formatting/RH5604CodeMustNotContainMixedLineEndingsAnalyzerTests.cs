@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -36,7 +37,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
     [TestMethod]
     public async Task VerifyMixedLineEndingsInsideXmlDocumentationAreDetectedAndFixed()
     {
-        const string testData = "/// <summary>{|#0:\r\n|}"
+        const string testData = "{|#0:/// <summary>\r\n|}"
                                 + "/// Documentation.\n"
                                 + "/// </summary>\n"
                                 + "internal class TestClass\n"
@@ -49,9 +50,121 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
                                  + "{\n"
                                  + "}";
 
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(testData,
+                     fixedData,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an LF XML documentation line ending is detected and fixed when CRLF is predominant
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLfInsideXmlDocumentationIsDetectedWhenCrLfIsPredominant()
+    {
+        const string testData = "{|#0:/// <summary>\n|}"
+                                + "/// Documentation.\r\n"
+                                + "/// </summary>\r\n"
+                                + "internal class TestClass\r\n"
+                                + "{\r\n"
+                                + "}";
+        const string fixedData = "/// <summary>\r\n"
+                                 + "/// Documentation.\r\n"
+                                 + "/// </summary>\r\n"
+                                 + "internal class TestClass\r\n"
+                                 + "{\r\n"
+                                 + "}";
+
         await Verify(testData,
                      fixedData,
                      Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lone CR XML documentation line ending is normalized to predominant LF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLoneCarriageReturnInsideXmlDocumentationIsNormalizedToLf()
+    {
+        const string testData = "{|#0:/// <summary>\r|}"
+                                + "/// Documentation.\n"
+                                + "/// </summary>\n"
+                                + "internal class TestClass\n"
+                                + "{\n"
+                                + "}";
+        const string fixedData = "/// <summary>\n"
+                                 + "/// Documentation.\n"
+                                 + "/// </summary>\n"
+                                 + "internal class TestClass\n"
+                                 + "{\n"
+                                 + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(testData,
+                     fixedData,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an XML and ordinary line-ending tie uses CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCrLfWinsTieIncludingXmlDocumentationLineEnding()
+    {
+        const string testData = "{|#0:/// Documentation\n|}"
+                                + "internal class TestClass { }\r\n";
+        const string fixedData = "/// Documentation\r\n"
+                                 + "internal class TestClass { }\r\n";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that uniform XML documentation line endings do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenOnlyXmlDocumentationLineEndingsAreUniform()
+    {
+        const string testData = "/// <summary>\n"
+                                + "/// Documentation.\n"
+                                + "/// </summary>\n"
+                                + "internal class TestClass { }";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that XML and ordinary minority line endings are fixed in one Fix All iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyXmlAndOrdinaryMinoritiesAreFixedInOneFixAllIteration()
+    {
+        const string testData = "{|#0:/// <summary>\r\n|}"
+                                + "/// Documentation.\n"
+                                + "/// </summary>\n"
+                                + "{|#1:internal class TestClass\r\n|}"
+                                + "{\n"
+                                + "}";
+        const string fixedData = "/// <summary>\n"
+                                 + "/// Documentation.\n"
+                                 + "/// </summary>\n"
+                                 + "internal class TestClass\n"
+                                 + "{\n"
+                                 + "}";
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat, 2));
     }
 
     /// <summary>
@@ -147,6 +260,58 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
                                 + "{\r\n"
                                 + "    string Value = @\"line1\nline2\";\r\n"
                                 + "}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that line endings embedded in raw strings do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLineEndingsInsideRawStringsDoNotProduceDiagnostics()
+    {
+        const string testData = "internal class TestClass\r\n"
+                                + "{\r\n"
+                                + "    private const string Value = \"\"\"\n"
+                                + "line1\n"
+                                + "line2\n"
+                                + "\"\"\";\r\n"
+                                + "}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that line endings embedded in multi-line comments do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLineEndingsInsideMultiLineCommentsDoNotProduceDiagnostics()
+    {
+        const string testData = "internal class TestClass\r\n"
+                                + "{\r\n"
+                                + "    /* line1\n"
+                                + "    line2 */\r\n"
+                                + "}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that documentation-shaped text and line endings in disabled text do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLineEndingsInsideDisabledTextDoNotProduceDiagnostics()
+    {
+        const string testData = "#if false\r\n"
+                                + "/// <summary>\n"
+                                + "/// Disabled documentation.\n"
+                                + "/// </summary>\n"
+                                + "internal class DisabledClass { }\n"
+                                + "#endif\r\n"
+                                + "internal class TestClass { }";
 
         await Verify(testData);
     }

@@ -49,6 +49,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var endOfLineTrivia = new List<SyntaxTrivia>();
+        var documentationEndOfLineTokens = new List<SyntaxToken>();
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true).Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
@@ -57,6 +58,14 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
 
             endOfLineTrivia.Add(trivia);
             counts[lineEnding] = counts.TryGetValue(lineEnding, out var count)
+                                     ? count + 1
+                                     : 1;
+        }
+
+        foreach (var token in root.DescendantTokens(descendIntoTrivia: true).Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken)))
+        {
+            documentationEndOfLineTokens.Add(token);
+            counts[token.Text] = counts.TryGetValue(token.Text, out var count)
                                      ? count + 1
                                      : 1;
         }
@@ -71,6 +80,13 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
         foreach (var trivia in endOfLineTrivia.Where(trivia => trivia.ToString() != predominantLineEnding))
         {
             var line = sourceText.Lines.GetLineFromPosition(trivia.SpanStart);
+
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(line.Start, line.EndIncludingLineBreak))));
+        }
+
+        foreach (var token in documentationEndOfLineTokens.Where(token => token.Text != predominantLineEnding))
+        {
+            var line = sourceText.Lines.GetLineFromPosition(token.SpanStart);
 
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(line.Start, line.EndIncludingLineBreak))));
         }
