@@ -1,7 +1,18 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -565,6 +576,89 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     }
 
     /// <summary>
+    /// Verifies an unrelated compiler error elsewhere in the document does not suppress a safe rename
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnrelatedDocumentCompilerErrorDoesNotSuppressSafeRename()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    MissingType ExistingError;
+
+                                    void Method()
+                                    {
+                                        int BadName = 1;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH4115LocalVariableCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "BadName")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.HasCount(1, actions);
+    }
+
+    /// <summary>
+    /// Verifies the custom provider retains the three scopes supported by the prior batch provider
+    /// </summary>
+    [TestMethod]
+    public void FixAllProviderSupportsDocumentProjectAndSolutionScopes()
+    {
+        var provider = new RH4115LocalVariableCasingCodeFixProvider();
+        var scopes = provider.GetFixAllProvider().GetSupportedFixAllScopes().ToArray();
+
+        Assert.AreSequenceEqual(new[] { FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution }, scopes);
+    }
+
+    /// <summary>
+    /// Verifies broader Fix All scopes retrieve and apply their aggregate diagnostics
+    /// </summary>
+    /// <param name="scope">Fix All scope</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow(FixAllScope.Project)]
+    [DataRow(FixAllScope.Solution)]
+    public async Task BroaderFixAllScopesApplyUniqueRename(FixAllScope scope)
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        int BadName = 1;
+
+                                        return BadName;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     int Method()
+                                     {
+                                         int badName = 1;
+
+                                         return badName;
+                                     }
+                                 }
+                                 """;
+
+        var (fixedSource, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAsync(testCode, scope);
+
+        Assert.HasCount(1, initialAnalyzerDiagnostics);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.AreEqual(fixedCode, fixedSource);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
     /// Verifies a local-variable casing fix does not introduce a duplicate declaration in a nested block
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -665,6 +759,130 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
         }
     }
 
+    /// <summary>
+    /// Verifies diagnostics that normalize to one shared target are refused as a group by Fix All
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DuplicateNormalizedTargetGroupIsRefusedBeforeFixAll()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int BadName = 1;
+                                        int BAD_NAME = 2;
+                                    }
+                                }
+                                """;
+
+        var (fixedSource, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAsync(testCode);
+
+        Assert.HasCount(2, initialAnalyzerDiagnostics);
+        Assert.AreEqual(testCode, fixedSource);
+        Assert.HasCount(2, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies equal normalized targets in independent sibling declaration spaces remain fixable together
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DuplicateNormalizedTargetsInSiblingScopesRemainFixableTogether()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method(bool condition)
+                                    {
+                                        if (condition)
+                                        {
+                                            int BadName = 1;
+                                        }
+
+                                        if (!condition)
+                                        {
+                                            int BAD_NAME = 2;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method(bool condition)
+                                     {
+                                         if (condition)
+                                         {
+                                             int badName = 1;
+                                         }
+
+                                         if (!condition)
+                                         {
+                                             int badName = 2;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        var (fixedSource, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAsync(testCode);
+
+        Assert.HasCount(2, initialAnalyzerDiagnostics);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.AreEqual(fixedCode, fixedSource);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies distinct normalized targets remain fixable together in one Fix All iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UniqueNormalizedTargetsRemainFixableTogether()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        int {|#0:BadName|} = 1;
+                                        int {|#1:OTHER_NAME|} = 2;
+
+                                        return BadName + OTHER_NAME;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     int Method()
+                                     {
+                                         int badName = 1;
+                                         int otherName = 2;
+
+                                         return badName + otherName;
+                                     }
+                                 }
+                                 """;
+
+        var plainTestCode = testCode.Replace("{|#0:", string.Empty)
+                                    .Replace("{|#1:", string.Empty)
+                                    .Replace("|}", string.Empty);
+        var (fixedSource, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAsync(plainTestCode);
+
+        Assert.HasCount(2, initialAnalyzerDiagnostics);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.AreEqual(fixedCode, fixedSource);
+        Assert.IsEmpty(compilerErrors, string.Join(Environment.NewLine, compilerErrors));
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -678,5 +896,135 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
         test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
     }
 
+    /// <summary>
+    /// Applies the provider's requested Fix All action to every supplied analyzer diagnostic
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="scope">Fix All scope</param>
+    /// <returns>The fixed source, initial and post-fix analyzer diagnostics, and compiler errors after Fix All</returns>
+    private static async Task<(string FixedSource,
+    ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
+    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+    ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAsync(string source, FixAllScope scope = FixAllScope.Document)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+            var solution = workspace.CurrentSolution
+                                    .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp)
+                                    .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                                    .AddMetadataReferences(projectId, GetMetadataReferences())
+                                    .AddDocument(documentId, "Test.cs", SourceText.From(source));
+            var document = solution.GetDocument(documentId)
+                               ?? throw new InvalidOperationException("Failed to create test document.");
+            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                  ?? throw new InvalidOperationException("Failed to compile test document.");
+            var analyzerDiagnostics = await compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new RH4115LocalVariableCasingAnalyzer()))
+                                                       .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                       .ConfigureAwait(false);
+            var provider = new RH4115LocalVariableCasingCodeFixProvider();
+            var context = new FixAllContext(document,
+                                            provider,
+                                            scope,
+                                            provider.GetType().Name,
+                                            provider.FixableDiagnosticIds,
+                                            new TestFixAllDiagnosticProvider(analyzerDiagnostics),
+                                            CancellationToken.None);
+            var action = await provider.GetFixAllProvider()
+                                       .GetFixAsync(context)
+                                       .ConfigureAwait(false)
+                             ?? throw new InvalidOperationException("Failed to create the Fix All action.");
+
+            Assert.AreEqual(provider.GetType().Name, action.EquivalenceKey);
+
+            var operation = (await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false)).OfType<ApplyChangesOperation>()
+                                                                                                           .Single();
+            var fixedDocument = operation.ChangedSolution.GetDocument(documentId)
+                                    ?? throw new InvalidOperationException("Failed to get the fixed document.");
+            var fixedCompilation = await fixedDocument.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                       ?? throw new InvalidOperationException("Failed to compile the fixed document.");
+            var compilerErrors = fixedCompilation.GetDiagnostics(CancellationToken.None)
+                                                 .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                                                 .ToImmutableArray();
+            var postFixAnalyzerDiagnostics = await fixedCompilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new RH4115LocalVariableCasingAnalyzer()))
+                                                                   .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                                   .ConfigureAwait(false);
+            var fixedSource = await fixedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+
+            return (fixedSource.ToString(), analyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors);
+        }
+    }
+
+    /// <summary>
+    /// Gets the platform references needed by the aggregate code-fix document
+    /// </summary>
+    /// <returns>Metadata references</returns>
+    private static IEnumerable<MetadataReference> GetMetadataReferences()
+    {
+        var trustedPlatformAssemblies = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+        var referencePaths = trustedPlatformAssemblies?.Split(Path.PathSeparator)
+                                 ?? [];
+
+        return referencePaths.Select(static path => MetadataReference.CreateFromFile(path));
+    }
+
     #endregion // Methods
+
+    #region Types
+
+#pragma warning disable RH2101 // The provider is a focused test adapter owned by this fixture
+    /// <summary>
+    /// Supplies the document diagnostics used by the focused Fix All tests
+    /// </summary>
+    private sealed class TestFixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
+    {
+        #region Fields
+
+        /// <summary>
+        /// Diagnostics
+        /// </summary>
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
+
+        #endregion // Fields
+
+        #region Constructor
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="diagnostics">Diagnostics</param>
+        public TestFixAllDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics)
+        {
+            _diagnostics = diagnostics;
+        }
+
+        #endregion // Constructor
+
+        #region DiagnosticProvider
+
+        /// <inheritdoc/>
+        public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
+        }
+
+        /// <inheritdoc/>
+        public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<Diagnostic>>([]);
+        }
+
+        /// <inheritdoc/>
+        public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
+        }
+
+        #endregion // DiagnosticProvider
+    }
+
+#pragma warning restore RH2101
+
+    #endregion // Types
 }

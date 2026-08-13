@@ -318,7 +318,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
                                 {
                                     public bool GetField()
                                     {
-                                        return !(
+                                        return {|#0:!|}(
                                 #if FEATURE
                                             true /* enabled branch */
                                 #else
@@ -329,21 +329,33 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testCode,
-                                                   RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single().OperatorToken.GetLocation(),
-                                                   "FEATURE");
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public bool GetField()
+                                     {
+                                         return (
+                                 #if FEATURE
+                                             true /* enabled branch */
+                                 #else
+                                             false /* disabled branch */
+                                 #endif
+                                         ) == false;
+                                     }
+                                 }
+                                 """;
 
-        Assert.HasCount(1, actions);
+        await Verify(testCode,
+                     fixedCode,
+                     static test => test.SolutionTransforms.Add(static (solution, projectId) =>
+                                                                       {
+                                                                           var project = solution.GetProject(projectId);
 
-        var fixedCode = await ApplyCodeFixAsync(testCode, "FEATURE");
-
-        Assert.Contains("== false", fixedCode);
-        Assert.AreEqual(1, fixedCode.Split("#if FEATURE").Length - 1);
-        Assert.AreEqual(1, fixedCode.Split("#else").Length - 1);
-        Assert.AreEqual(1, fixedCode.Split("#endif").Length - 1);
-        Assert.AreEqual(1, fixedCode.Split("true /* enabled branch */").Length - 1);
-        Assert.AreEqual(1, fixedCode.Split("false /* disabled branch */").Length - 1);
+                                                                           return project?.ParseOptions is Microsoft.CodeAnalysis.CSharp.CSharpParseOptions parseOptions
+                                                                                      ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("FEATURE"))
+                                                                                      : solution;
+                                                                       }),
+                     Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat));
     }
 
     /// <summary>

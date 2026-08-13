@@ -293,6 +293,45 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
                                     }
                                 }
                                 """;
+        const string markedTestCode = """
+                                      internal class RH5011
+                                      {
+                                          public void Execute()
+                                          {
+                                              while (true)
+                                              {
+                                                  {|#0:break|};
+                                                  Consume();
+                                              }
+                                          }
+
+                                          private void Consume()
+                                          {
+                                          }
+                                      }
+                                      """;
+        const string fixedCode = """
+                                 internal class RH5011
+                                 {
+                                     public void Execute()
+                                     {
+                                         while (true)
+                                         {
+                                             break;
+
+                                             Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(markedTestCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
 
         var onceFixed = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
 
