@@ -588,9 +588,81 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
                                 }
                                 """;
 
-        var fixedSource = await ApplyCodeFixAsync(testCode);
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH4115LocalVariableCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "BadName")
+                                                               .Identifier
+                                                               .GetLocation());
 
-        Assert.DoesNotContain("int badName = 1;", fixedSource);
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies collisions are refused for each declaration-node form supported by RH4115
+    /// </summary>
+    /// <param name="declaration">Declaration that would collide with the enclosing local</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("foreach (var BadName in new int[0]) { }")]
+    [DataRow("if (new object() is int BadName) { }")]
+    [DataRow("try { } catch (System.Exception BadName) { }")]
+    public async Task CollisionIsRefusedForSupportedLocalDeclarationForms(string declaration)
+    {
+        var testCode = $$"""
+                         internal class TestClass
+                         {
+                             void Method()
+                             {
+                                 int badName = 0;
+                                 {{declaration}}
+                             }
+                         }
+                         """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH4115LocalVariableCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens()
+                                                               .Single(token => token.ValueText == "BadName")
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies multiple colliding diagnostics are refused independently
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MultipleCollidingDiagnosticsAreRefusedIndependently()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int firstName = 0;
+                                        int secondName = 0;
+
+                                        {
+                                            int FirstName = 1;
+                                            int SecondName = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        foreach (var identifier in new[] { "FirstName", "SecondName" })
+        {
+            var actions = await GetCodeFixActionsAsync(testCode,
+                                                       RH4115LocalVariableCasingAnalyzer.DiagnosticId,
+                                                       root => root.DescendantTokens()
+                                                                   .Single(token => token.ValueText == identifier)
+                                                                   .GetLocation());
+
+            Assert.IsEmpty(actions);
+        }
     }
 
     #endregion // Tests

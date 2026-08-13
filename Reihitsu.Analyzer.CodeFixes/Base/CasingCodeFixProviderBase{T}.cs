@@ -161,6 +161,55 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         return await Renamer.RenameSymbolAsync(document.Project.Solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Determines whether Roslyn reports a conflict for the proposed comprehensive rename
+    /// </summary>
+    /// <param name="solution">Solution containing the declaration</param>
+    /// <param name="declaredSymbol">Declared symbol to rename</param>
+    /// <param name="identifier">Proposed replacement identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when the rename would conflict; otherwise, <see langword="false"/></returns>
+    private async Task<bool> HasRenameConflictAsync(Solution solution, ISymbol declaredSymbol, string identifier, CancellationToken cancellationToken)
+    {
+        var renamedSolution = await Renamer.RenameSymbolAsync(solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
+        var changes = renamedSolution.GetChanges(solution);
+
+        foreach (var projectChanges in changes.GetProjectChanges())
+        {
+            var originalProject = solution.GetProject(projectChanges.ProjectId);
+            var renamedProject = renamedSolution.GetProject(projectChanges.ProjectId);
+            var originalCompilation = originalProject == null
+                                          ? null
+                                          : await originalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var renamedCompilation = renamedProject == null
+                                         ? null
+                                         : await renamedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            if (originalCompilation != null
+                && renamedCompilation != null
+                && renamedCompilation.GetDiagnostics(cancellationToken).Count(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                   > originalCompilation.GetDiagnostics(cancellationToken).Count(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+            {
+                return true;
+            }
+
+            foreach (var documentId in projectChanges.GetChangedDocuments())
+            {
+                var document = renamedSolution.GetDocument(documentId);
+                var root = document == null
+                               ? null
+                               : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                if (root?.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind).Any() == true)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -189,11 +238,18 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
                 // The fix is only offered when the declared symbol resolves, so the rename covers the declaration and
                 // every reference. A declaration-only rename would leave references stale and produce non-compiling code
-                if (model != null
-                    && root.FindNode(diagnosticSpan) is T node
-                    && CanRegisterCodeFix(node)
-                    && TryGetFixedIdentifier(node, out var identifier)
-                    && GetDeclaredSymbol(model, node, context.CancellationToken) != null)
+                if (model == null
+                    || root.FindNode(diagnosticSpan) is not T node
+                    || CanRegisterCodeFix(node) == false
+                    || TryGetFixedIdentifier(node, out var identifier) == false)
+                {
+                    continue;
+                }
+
+                var declaredSymbol = GetDeclaredSymbol(model, node, context.CancellationToken);
+
+                if (declaredSymbol != null
+                    && await HasRenameConflictAsync(context.Document.Project.Solution, declaredSymbol, identifier, context.CancellationToken).ConfigureAwait(false) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, identifier, cancellationToken),

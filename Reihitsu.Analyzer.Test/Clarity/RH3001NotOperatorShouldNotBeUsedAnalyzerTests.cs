@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -267,6 +269,136 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies an end-of-line comment between a not operator and its operand survives the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EndOfLineCommentBetweenNotOperatorAndOperandIsPreserved()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private bool _field;
+
+                                    public bool GetField()
+                                    {
+                                        return {|#0:!|} // Keep.
+                                               _field;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private bool _field;
+
+                                     public bool GetField()
+                                     {
+                                         return // Keep.
+                                                _field == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies directives and disabled text nested inside an operand do not suppress a fix for a clean operator gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedOperandDirectivesRemainAvailableAndArePreserved()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool GetField()
+                                    {
+                                        return !(
+                                #if FEATURE
+                                            true /* enabled branch */
+                                #else
+                                            false /* disabled branch */
+                                #endif
+                                        );
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single().OperatorToken.GetLocation(),
+                                                   "FEATURE");
+
+        Assert.HasCount(1, actions);
+
+        var fixedCode = await ApplyCodeFixAsync(testCode, "FEATURE");
+
+        Assert.Contains("== false", fixedCode);
+        Assert.AreEqual(1, fixedCode.Split("#if FEATURE").Length - 1);
+        Assert.AreEqual(1, fixedCode.Split("#else").Length - 1);
+        Assert.AreEqual(1, fixedCode.Split("#endif").Length - 1);
+        Assert.AreEqual(1, fixedCode.Split("true /* enabled branch */").Length - 1);
+        Assert.AreEqual(1, fixedCode.Split("false /* disabled branch */").Length - 1);
+    }
+
+    /// <summary>
+    /// Verifies no fix is offered when conditional-compilation trivia separates the not operator and operand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsNotOfferedAcrossDirectiveAndDisabledText()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool GetField()
+                                    {
+                                        return !
+                                #if FEATURE
+                                               true
+                                #else
+                                               false
+                                #endif
+                                               ;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single().OperatorToken.GetLocation(),
+                                                   "FEATURE");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies no fix is offered when skipped syntax separates the not operator and operand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsNotOfferedAcrossSkippedSyntax()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool GetField(bool value)
+                                    {
+                                        return ! @ value;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single().OperatorToken.GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -213,7 +215,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
                                     {
                                         while (true)
                                         {
-                                            break; Consume();
+                                            {|#0:break|}; Consume();
                                         }
                                     }
 
@@ -223,10 +225,144 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
                                 }
                                 """;
 
-        var onceFixed = await ApplyCodeFixAsync(testCode);
-        var twiceFixed = await ApplyCodeFixAsync(onceFixed);
+        const string fixedCode = """
+                                 internal class RH5011
+                                 {
+                                     public void Execute()
+                                     {
+                                         while (true)
+                                         {
+                                             break;
 
-        Assert.AreEqual(onceFixed, twiceFixed);
+                                             Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+
+        var crlfFixed = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode.Replace("{|#0:", string.Empty).Replace("|}", string.Empty)));
+
+        Assert.Contains("break;\r\n\r\n            Consume();", crlfFixed);
+        Assert.DoesNotContain("\n", crlfFixed.Replace("\r\n", string.Empty));
+    }
+
+    /// <summary>
+    /// Verifies a same-line split preserves the break line's exact tab indentation and converges
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SameLineFixPreservesExactTabIndentationAndConverges()
+    {
+        const string testCode = "internal class RH5011\n{\n\tpublic void Execute()\n\t{\n\t\twhile (true)\n\t\t{\n\t\t\t{|#0:break|}; Consume();\n\t\t}\n\t}\n\n\tprivate void Consume()\n\t{\n\t}\n}";
+        const string fixedCode = "internal class RH5011\n{\n\tpublic void Execute()\n\t{\n\t\twhile (true)\n\t\t{\n\t\t\tbreak;\n\n\t\t\tConsume();\n\t\t}\n\t}\n\n\tprivate void Consume()\n\t{\n\t}\n}";
+
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies separate-line insertion preserves CRLF and converges after one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SeparateLineFixPreservesCarriageReturnLineFeedAndConverges()
+    {
+        const string testCode = """
+                                internal class RH5011
+                                {
+                                    public void Execute()
+                                    {
+                                        while (true)
+                                        {
+                                            break;
+                                            Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var onceFixed = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.Contains("break;\r\n\r\n", onceFixed);
+        Assert.DoesNotContain("\n", onceFixed.Replace("\r\n", string.Empty));
+    }
+
+    /// <summary>
+    /// Verifies a same-line fix is withheld when the inter-statement gap contains a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SameLineFixIsNotOfferedAcrossComment()
+    {
+        const string testCode = """
+                                internal class RH5011
+                                {
+                                    public void Execute()
+                                    {
+                                        while (true)
+                                        {
+                                            break; /* Keep. */ Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<BreakStatementSyntax>().Single().BreakKeyword.GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies a same-line fix is withheld when the gap contains directive or skipped syntax
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SameLineFixIsNotOfferedAcrossDirectiveAndSkippedSyntax()
+    {
+        const string testCode = """
+                                internal class RH5011
+                                {
+                                    public void Execute()
+                                    {
+                                        while (true)
+                                        {
+                                            break; #if FEATURE
+                                            Consume();
+                                            #endif
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<BreakStatementSyntax>().Single().BreakKeyword.GetLocation(),
+                                                   "FEATURE");
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
