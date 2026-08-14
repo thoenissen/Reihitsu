@@ -468,7 +468,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Annotates every source declaration that owns the target declaration's binding domain
+    /// Annotates every non-global source declaration that owns the target declaration's binding domain
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Target declaration document</param>
@@ -571,6 +571,58 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
+    /// Determines whether a global-namespace declaration's proposed name collides with an existing source member
+    /// </summary>
+    /// <param name="declaredSymbol">Declaration symbol</param>
+    /// <param name="identifier">Proposed identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when the proposed name collides; otherwise, <see langword="false"/></returns>
+    private bool HasGlobalNamespaceCollision(ISymbol declaredSymbol, string identifier, CancellationToken cancellationToken)
+    {
+        if (declaredSymbol.ContainingSymbol is not INamespaceSymbol { IsGlobalNamespace: true } globalNamespace)
+        {
+            return false;
+        }
+
+        var declaringTrees = declaredSymbol.DeclaringSyntaxReferences.Select(static reference => reference.SyntaxTree)
+                                                                     .ToImmutableHashSet();
+
+        foreach (var member in globalNamespace.GetMembers(identifier))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (SymbolEqualityComparer.Default.Equals(member, declaredSymbol)
+                || member.DeclaringSyntaxReferences.IsEmpty)
+            {
+                continue;
+            }
+
+            if (declaredSymbol is INamedTypeSymbol declaredType
+                && member is INamedTypeSymbol existingType)
+            {
+                if (declaredType.Arity != existingType.Arity)
+                {
+                    continue;
+                }
+
+                // File-local types occupy only their declaring syntax tree, so an equal name and arity in another
+                // document is not a collision.
+                if ((declaredType.IsFileLocal || existingType.IsFileLocal)
+                    && existingType.DeclaringSyntaxReferences.Any(reference => declaringTrees.Contains(reference.SyntaxTree)) == false)
+                {
+                    continue;
+                }
+            }
+
+            // Namespace merging is legal, but casing fixes deliberately refuse to merge declarations. A type and a
+            // namespace with the same source name also occupy a conflicting global-namespace member slot.
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether a comprehensive rename produces Roslyn conflict annotations or added declaration errors
     /// </summary>
     /// <param name="document">Document containing the declaration</param>
@@ -598,7 +650,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies a rename only when Roslyn produces no conflict annotations or added declaration errors
+    /// Applies a rename only when Roslyn produces no global member collision, conflict annotations, or added declaration errors
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
@@ -632,36 +684,55 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
-        var (domainSolution, domains) = await AnnotateBindingDomainsAsync(solution,
-                                                                          documentId,
-                                                                          declaredSymbol,
-                                                                          cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        solution = domainSolution;
-        document = solution.GetDocument(documentId);
-        root = document == null
-                   ? null
-                   : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        model = document == null
-                    ? null
-                    : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        node = root?.GetAnnotatedNodes(annotation).OfType<T>().SingleOrDefault();
-        declaredSymbol = model == null || node == null
-                             ? null
-                             : GetDeclaredSymbol(model, node, cancellationToken);
+        var hasGlobalNamespaceOwner = declaredSymbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: true };
+        var domains = ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)>.Empty;
+        var originalErrors = ImmutableArray<Diagnostic>.Empty;
 
-        if (declaredSymbol == null)
+        if (hasGlobalNamespaceOwner)
         {
-            return null;
+            // Global namespace syntax references cover every compilation unit. Membership lookup proves source
+            // collisions without turning the declaration-domain diagnostic check into a project-wide scan.
+            if (HasGlobalNamespaceCollision(declaredSymbol, identifier, cancellationToken))
+            {
+                return null;
+            }
         }
-
-        // Comparing error-ID multiplicities across only the containing symbol's source declaration spans includes
-        // either side of a duplicate declaration without requiring unrelated pre-existing errors to disappear.
-        var originalErrors = await GetBindingDomainErrorsAsync(solution, domains, cancellationToken).ConfigureAwait(false);
-
-        if (originalErrors.IsDefault)
+        else
         {
-            return null;
+            var domainResult = await AnnotateBindingDomainsAsync(solution,
+                                                                 documentId,
+                                                                 declaredSymbol,
+                                                                 cancellationToken).ConfigureAwait(false);
+
+            solution = domainResult.Solution;
+            domains = domainResult.Domains;
+            document = solution.GetDocument(documentId);
+            root = document == null
+                       ? null
+                       : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            model = document == null
+                        ? null
+                        : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            node = root?.GetAnnotatedNodes(annotation).OfType<T>().SingleOrDefault();
+            declaredSymbol = model == null || node == null
+                                 ? null
+                                 : GetDeclaredSymbol(model, node, cancellationToken);
+
+            if (declaredSymbol == null)
+            {
+                return null;
+            }
+
+            // Comparing error-ID multiplicities across only the containing symbol's source declaration spans includes
+            // either side of a duplicate declaration without requiring unrelated pre-existing errors to disappear.
+            originalErrors = await GetBindingDomainErrorsAsync(solution, domains, cancellationToken).ConfigureAwait(false);
+
+            if (originalErrors.IsDefault)
+            {
+                return null;
+            }
         }
 
         var renamedSolution = await Renamer.RenameSymbolAsync(solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
@@ -698,18 +769,21 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
-        var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
-
-        if (renamedErrors.IsDefault)
+        if (hasGlobalNamespaceOwner == false)
         {
-            return null;
-        }
+            var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
 
-        foreach (var errorGroup in renamedErrors.GroupBy(static diagnostic => diagnostic.Id))
-        {
-            if (errorGroup.Count() > originalErrors.Count(diagnostic => string.Equals(diagnostic.Id, errorGroup.Key, StringComparison.Ordinal)))
+            if (renamedErrors.IsDefault)
             {
                 return null;
+            }
+
+            foreach (var errorGroup in renamedErrors.GroupBy(static diagnostic => diagnostic.Id))
+            {
+                if (errorGroup.Count() > originalErrors.Count(diagnostic => string.Equals(diagnostic.Id, errorGroup.Key, StringComparison.Ordinal)))
+                {
+                    return null;
+                }
             }
         }
 

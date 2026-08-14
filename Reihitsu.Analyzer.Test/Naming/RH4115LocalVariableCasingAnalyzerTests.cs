@@ -800,6 +800,133 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     }
 
     /// <summary>
+    /// Verifies a top-level type rename is refused when the normalized target exists in another document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TopLevelTypeCollisionAcrossDocumentsIsRefused()
+    {
+        const string source = "internal class badName { }";
+        const string conflictingSource = "internal class BadName { }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 conflictingSource);
+
+        Assert.AreEqual(0, actionCount);
+        Assert.AreSequenceEqual(new[] { source, conflictingSource }, fixedSources);
+        Assert.HasCount(1, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies an unrelated compiler error in another document does not suppress a safe top-level type rename
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TopLevelTypeRenameIgnoresUnrelatedDocumentError()
+    {
+        const string source = "internal class badName { }";
+        const string unrelatedErrorSource = "internal class Broken { MissingType Value; }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 unrelatedErrorSource);
+
+        Assert.AreEqual(1, actionCount);
+        Assert.AreSequenceEqual(new[] { "internal class BadName { }", unrelatedErrorSource }, fixedSources);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.HasCount(1, compilerErrors);
+        Assert.AreEqual("CS0246", compilerErrors[0].Id);
+    }
+
+    /// <summary>
+    /// Verifies top-level types with the same normalized name but different arity can coexist
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TopLevelTypeRenameAllowsDifferentArity()
+    {
+        const string source = "internal class badName<T> { }";
+        const string differentAritySource = "internal class BadName<TFirst, TSecond> { }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 differentAritySource);
+
+        Assert.AreEqual(1, actionCount);
+        Assert.AreSequenceEqual(new[] { "internal class BadName<T> { }", differentAritySource }, fixedSources);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies a file-local type with the normalized target in another document does not create a collision
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TopLevelTypeRenameAllowsFileLocalTargetInAnotherDocument()
+    {
+        const string source = "internal class badName { }";
+        const string fileLocalSource = "file class BadName { }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 fileLocalSource);
+
+        Assert.AreEqual(1, actionCount);
+        Assert.AreSequenceEqual(new[] { "internal class BadName { }", fileLocalSource }, fixedSources);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies a top-level type rename is refused when its normalized target is an existing namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TopLevelTypeRenameToNamespaceAcrossDocumentsIsRefused()
+    {
+        const string source = "internal class badName { }";
+        const string conflictingSource = "namespace BadName { internal class SecondClass { } }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 conflictingSource);
+
+        Assert.AreEqual(0, actionCount);
+        Assert.AreSequenceEqual(new[] { source, conflictingSource }, fixedSources);
+        Assert.HasCount(1, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies Project Fix All refuses a cross-document top-level type collision
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TopLevelTypeCollisionAcrossDocumentsIsRefusedByProjectFixAll()
+    {
+        const string source = "internal class badName { }";
+        const string conflictingSource = "internal class BadName { }";
+
+        var (fixedSources, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                           new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                           source,
+                                                                                                                                           conflictingSource);
+
+        Assert.HasCount(1, initialAnalyzerDiagnostics);
+        Assert.AreSequenceEqual(new[] { source, conflictingSource }, fixedSources);
+        Assert.HasCount(1, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
     /// Verifies a local-variable casing fix does not introduce a duplicate declaration in a nested block
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1226,6 +1353,169 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
                     initialAnalyzerDiagnostics.ToImmutable(),
                     postFixAnalyzerDiagnostics.ToImmutable(),
                     compilerErrors.ToImmutable());
+        }
+    }
+
+    /// <summary>
+    /// Applies an ordinary code fix to the first diagnostic in a multi-document project
+    /// </summary>
+    /// <param name="analyzer">Analyzer that reports the target diagnostic</param>
+    /// <param name="provider">Code fix provider</param>
+    /// <param name="sources">Project source documents</param>
+    /// <returns>The action count, resulting sources, post-fix analyzer diagnostics, and compiler errors</returns>
+    private static async Task<(int ActionCount,
+    ImmutableArray<string> FixedSources,
+    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+    ImmutableArray<Diagnostic> CompilerErrors)> ApplyOrdinaryFixAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
+                                                                                     CodeFixProvider provider,
+                                                                                     params string[] sources)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentIds = ImmutableArray.CreateBuilder<DocumentId>();
+            var solution = workspace.CurrentSolution
+                                    .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp)
+                                    .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                                    .AddMetadataReferences(projectId, GetMetadataReferences());
+
+            for (var index = 0; index < sources.Length; index++)
+            {
+                var documentId = DocumentId.CreateNewId(projectId);
+
+                documentIds.Add(documentId);
+                solution = solution.AddDocument(documentId, $"Test{index}.cs", SourceText.From(sources[index]));
+            }
+
+            var project = solution.GetProject(projectId)
+                              ?? throw new InvalidOperationException("Failed to create test project.");
+            var compilation = await project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                  ?? throw new InvalidOperationException("Failed to compile test project.");
+            var analyzerDiagnostics = await compilation.WithAnalyzers(ImmutableArray.Create(analyzer))
+                                                       .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                       .ConfigureAwait(false);
+            var diagnostic = analyzerDiagnostics.Single(item => item.Location.SourceTree != null
+                                                                && solution.GetDocument(item.Location.SourceTree)?.Id == documentIds[0]);
+            var initiatingDocument = solution.GetDocument(documentIds[0])
+                                         ?? throw new InvalidOperationException("Failed to get initiating document.");
+            var actions = new List<CodeAction>();
+            var context = new CodeFixContext(initiatingDocument,
+                                             diagnostic,
+                                             (action, _) => actions.Add(action),
+                                             CancellationToken.None);
+
+            await provider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+
+            var fixedSolution = solution;
+
+            if (actions.Count > 0)
+            {
+                var operation = (await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false)).OfType<ApplyChangesOperation>()
+                                                                                                                   .Single();
+
+                fixedSolution = operation.ChangedSolution;
+            }
+
+            var fixedProject = fixedSolution.GetProject(projectId)
+                                   ?? throw new InvalidOperationException("Failed to get fixed project.");
+            var fixedCompilation = await fixedProject.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                       ?? throw new InvalidOperationException("Failed to compile fixed project.");
+            var fixedSources = ImmutableArray.CreateBuilder<string>();
+
+            foreach (var documentId in documentIds)
+            {
+                var fixedDocument = fixedSolution.GetDocument(documentId)
+                                        ?? throw new InvalidOperationException("Failed to get fixed document.");
+
+                fixedSources.Add((await fixedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString());
+            }
+
+            var postFixAnalyzerDiagnostics = await fixedCompilation.WithAnalyzers(ImmutableArray.Create(analyzer))
+                                                                   .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                                   .ConfigureAwait(false);
+            var compilerErrors = fixedCompilation.GetDiagnostics(CancellationToken.None)
+                                                 .Where(static item => item.Severity == DiagnosticSeverity.Error)
+                                                 .ToImmutableArray();
+
+            return (actions.Count, fixedSources.ToImmutable(), postFixAnalyzerDiagnostics, compilerErrors);
+        }
+    }
+
+    /// <summary>
+    /// Applies Project Fix All to every diagnostic in a multi-document project
+    /// </summary>
+    /// <param name="analyzer">Analyzer that reports the target diagnostics</param>
+    /// <param name="provider">Code fix provider</param>
+    /// <param name="sources">Project source documents</param>
+    /// <returns>The resulting sources plus initial/post-fix analyzer diagnostics and compiler errors</returns>
+    private static async Task<(ImmutableArray<string> FixedSources,
+    ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
+    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+    ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
+                                                                                CodeFixProvider provider,
+                                                                                params string[] sources)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentIds = ImmutableArray.CreateBuilder<DocumentId>();
+            var solution = workspace.CurrentSolution
+                                    .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp)
+                                    .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                                    .AddMetadataReferences(projectId, GetMetadataReferences());
+
+            for (var index = 0; index < sources.Length; index++)
+            {
+                var documentId = DocumentId.CreateNewId(projectId);
+
+                documentIds.Add(documentId);
+                solution = solution.AddDocument(documentId, $"Test{index}.cs", SourceText.From(sources[index]));
+            }
+
+            var project = solution.GetProject(projectId)
+                              ?? throw new InvalidOperationException("Failed to create test project.");
+            var compilation = await project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                  ?? throw new InvalidOperationException("Failed to compile test project.");
+            var initialAnalyzerDiagnostics = await compilation.WithAnalyzers(ImmutableArray.Create(analyzer))
+                                                              .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                              .ConfigureAwait(false);
+            var initiatingDocument = solution.GetDocument(documentIds[0])
+                                         ?? throw new InvalidOperationException("Failed to get initiating document.");
+            var context = new FixAllContext(initiatingDocument,
+                                            provider,
+                                            FixAllScope.Project,
+                                            provider.GetType().Name,
+                                            provider.FixableDiagnosticIds,
+                                            new TestFixAllDiagnosticProvider(solution, initialAnalyzerDiagnostics),
+                                            CancellationToken.None);
+            var action = await provider.GetFixAllProvider()
+                                       .GetFixAsync(context)
+                                       .ConfigureAwait(false)
+                             ?? throw new InvalidOperationException("Failed to create the Fix All action.");
+            var operation = (await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false)).OfType<ApplyChangesOperation>()
+                                                                                                           .Single();
+            var fixedProject = operation.ChangedSolution.GetProject(projectId)
+                                   ?? throw new InvalidOperationException("Failed to get fixed project.");
+            var fixedCompilation = await fixedProject.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                       ?? throw new InvalidOperationException("Failed to compile fixed project.");
+            var fixedSources = ImmutableArray.CreateBuilder<string>();
+
+            foreach (var documentId in documentIds)
+            {
+                var fixedDocument = operation.ChangedSolution.GetDocument(documentId)
+                                        ?? throw new InvalidOperationException("Failed to get fixed document.");
+
+                fixedSources.Add((await fixedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString());
+            }
+
+            var postFixAnalyzerDiagnostics = await fixedCompilation.WithAnalyzers(ImmutableArray.Create(analyzer))
+                                                                   .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                                   .ConfigureAwait(false);
+            var compilerErrors = fixedCompilation.GetDiagnostics(CancellationToken.None)
+                                                 .Where(static item => item.Severity == DiagnosticSeverity.Error)
+                                                 .ToImmutableArray();
+
+            return (fixedSources.ToImmutable(), initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors);
         }
     }
 
