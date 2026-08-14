@@ -26,10 +26,10 @@ filter=""
 install_arguments=()
 test_arguments=()
 
-while [ "$#" -gt 0 ]; do
+while [[ "$#" -gt 0 ]]; do
     case "$1" in
         --project)
-            if [ "$#" -lt 2 ]; then
+            if [[ "$#" -lt 2 ]]; then
                 echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, tooling, or all)." >&2
                 exit 2
             fi
@@ -38,7 +38,7 @@ while [ "$#" -gt 0 ]; do
             shift 2
             ;;
         --filter)
-            if [ "$#" -lt 2 ]; then
+            if [[ "$#" -lt 2 ]]; then
                 echo "test.sh: --filter expects an expression." >&2
                 exit 2
             fi
@@ -87,7 +87,7 @@ repository_root="$(reihitsu_repo_root)"
 for test_project in "${projects[@]}"; do
     echo "==> $test_project"
 
-    if [ -n "$filter" ]; then
+    if [[ -n "$filter" ]]; then
         dotnet test "$repository_root/$test_project" -c Release --verbosity minimal --filter "$filter" "${test_arguments[@]+"${test_arguments[@]}"}"
     else
         dotnet test "$repository_root/$test_project" -c Release --verbosity minimal "${test_arguments[@]+"${test_arguments[@]}"}"

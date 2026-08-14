@@ -105,10 +105,16 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="statement">Selected statement</param>
-    /// <param name="previousStatement">Previous analyzed non-empty statement</param>
     /// <returns><see langword="true"/> if only formatting trivia separates the statements; otherwise, <see langword="false"/></returns>
-    private static bool HasEditableLeadingGap(SyntaxNode root, StatementSyntax statement, StatementSyntax previousStatement)
+    private static bool HasEditableLeadingGap(SyntaxNode root, StatementSyntax statement)
     {
+        var previousStatement = GetPreviousStatement(statement);
+
+        if (previousStatement == null)
+        {
+            return false;
+        }
+
         var previousToken = statement.GetFirstToken().GetPreviousToken(includeZeroWidth: true, includeSkipped: true);
 
         if (previousToken.Parent?.FirstAncestorOrSelf<StatementSyntax>() != previousStatement)
@@ -156,9 +162,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
                 continue;
             }
 
-            var previousStatement = GetPreviousStatement(statement);
-
-            if (previousStatement == null || HasEditableLeadingGap(root, statement, previousStatement) == false)
+            if (HasEditableLeadingGap(root, statement) == false)
             {
                 continue;
             }
