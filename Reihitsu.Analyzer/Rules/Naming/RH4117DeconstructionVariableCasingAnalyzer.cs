@@ -43,14 +43,11 @@ public class RH4117DeconstructionVariableCasingAnalyzer : CasingAnalyzerBase
     /// <inheritdoc/>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
-        if (node is DeclarationExpressionSyntax { Designation: ParenthesizedVariableDesignationSyntax tuple })
-        {
-            foreach (var variable in tuple.DescendantNodes()
-                                          .OfType<SingleVariableDesignationSyntax>())
-            {
-                yield return (variable.Identifier.ValueText, variable.Identifier.GetLocation());
-            }
-        }
+        return node is DeclarationExpressionSyntax { Designation: ParenthesizedVariableDesignationSyntax tuple }
+                   ? tuple.DescendantNodes()
+                          .OfType<SingleVariableDesignationSyntax>()
+                          .Select(static variable => (variable.Identifier.ValueText, variable.Identifier.GetLocation()))
+                   : [];
     }
 
     #endregion // CasingAnalyzerBase

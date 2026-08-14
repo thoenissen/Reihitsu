@@ -141,8 +141,8 @@ public static class AttributeTargetUtilities
                     }
                 case "type":
                     {
+                        return TryResolveImplicitTarget(attributeList.Parent, out target);
                     }
-                    break;
 
                 default:
                     {

@@ -49,12 +49,10 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnal
 
         foreach (var operatorToken in root.DescendantNodes()
                                           .OfType<BinaryExpressionSyntax>()
-                                          .Select(binaryExpression => binaryExpression.OperatorToken))
+                                          .Select(static binaryExpression => binaryExpression.OperatorToken)
+                                          .Where(operatorToken => FormattingTextAnalysisUtilities.HasOperatorSpacingViolation(sourceText, operatorToken)))
         {
-            if (FormattingTextAnalysisUtilities.HasOperatorSpacingViolation(sourceText, operatorToken))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(operatorToken.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(operatorToken.GetLocation()));
         }
     }
 

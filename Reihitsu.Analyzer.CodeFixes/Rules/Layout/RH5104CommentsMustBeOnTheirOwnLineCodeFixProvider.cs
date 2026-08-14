@@ -90,7 +90,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
 
         replacementEnd = SkipTrailingHorizontalWhitespace(sourceText, replacementEnd, endLine.End);
 
-        if (hasCodeBeforeComment && hasCodeAfterComment && startLine.LineNumber != endLine.LineNumber)
+        if (startLine.LineNumber != endLine.LineNumber)
         {
             replacementStart = SkipLeadingHorizontalWhitespace(sourceText, replacementStart, startLine.Start);
 

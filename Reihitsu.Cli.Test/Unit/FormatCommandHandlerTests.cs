@@ -56,7 +56,7 @@ public sealed class FormatCommandHandlerTests
     /// <summary>
     /// UTF-8 encoding with a byte order mark used to verify encoding normalization
     /// </summary>
-    private static readonly Encoding _utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+    private static readonly UTF8Encoding _utf8Bom = new(encoderShouldEmitUTF8Identifier: true);
 
     #endregion // Fields
 

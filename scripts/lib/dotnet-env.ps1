@@ -58,7 +58,7 @@ function Initialize-ReihitsuDotnet
 
     if (Test-ReihitsuDotnet)
     {
-        if (-not $Quiet) { Write-Host "dotnet: using $((Get-Command dotnet).Source) ($(& dotnet --version))" }
+        if (-not $Quiet) { Write-Information "dotnet: using $((Get-Command dotnet).Source) ($(& dotnet --version))" -InformationAction Continue }
 
         return
     }
@@ -77,7 +77,7 @@ function Initialize-ReihitsuDotnet
 
         if (Test-ReihitsuDotnet)
         {
-            if (-not $Quiet) { Write-Host "dotnet: using $privateDotnet ($(& dotnet --version))" }
+            if (-not $Quiet) { Write-Information "dotnet: using $privateDotnet ($(& dotnet --version))" -InformationAction Continue }
 
             return
         }
@@ -88,7 +88,7 @@ function Initialize-ReihitsuDotnet
         throw "dotnet: no .NET $script:ReihitsuDotnetMajor SDK found and -NoInstall was requested."
     }
 
-    Write-Host "dotnet: no .NET $script:ReihitsuDotnetMajor SDK found, installing channel $script:ReihitsuDotnetChannel into $script:ReihitsuDotnetRoot"
+    Write-Information "dotnet: no .NET $script:ReihitsuDotnetMajor SDK found, installing channel $script:ReihitsuDotnetChannel into $script:ReihitsuDotnetRoot" -InformationAction Continue
 
     $installer = Join-Path ([IO.Path]::GetTempPath()) 'dotnet-install.ps1'
 
@@ -104,5 +104,5 @@ function Initialize-ReihitsuDotnet
         throw "dotnet: installation finished but no $script:ReihitsuDotnetMajor.* SDK is visible."
     }
 
-    if (-not $Quiet) { Write-Host "dotnet: installed $(& dotnet --version) in $script:ReihitsuDotnetRoot" }
+    if (-not $Quiet) { Write-Information "dotnet: installed $(& dotnet --version) in $script:ReihitsuDotnetRoot" -InformationAction Continue }
 }

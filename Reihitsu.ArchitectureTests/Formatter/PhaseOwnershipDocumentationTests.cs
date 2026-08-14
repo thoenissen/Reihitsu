@@ -140,7 +140,7 @@ public sealed class PhaseOwnershipDocumentationTests
     /// Obtains the top-level runtime phase names through the pipeline observer
     /// </summary>
     /// <returns>Phase names in execution order</returns>
-    private static IReadOnlyList<string> GetRuntimePhaseNames()
+    private static List<string> GetRuntimePhaseNames()
     {
         var tree = CSharpSyntaxTree.ParseText("internal class Sample { }");
         var phaseNames = new List<string>();

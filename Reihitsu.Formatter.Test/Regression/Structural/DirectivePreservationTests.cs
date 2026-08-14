@@ -17,6 +17,15 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 [TestClass]
 public class DirectivePreservationTests
 {
+    #region Fields
+
+    /// <summary>
+    /// Preprocessor symbols that keep the directive branch active
+    /// </summary>
+    private static readonly string[] _preprocessorSymbols = ["DEBUG"];
+
+    #endregion // Fields
+
     #region Properties
 
     /// <summary>
@@ -37,7 +46,7 @@ public class DirectivePreservationTests
     /// <returns>The formatted source text</returns>
     private static string Format(string input, CancellationToken cancellationToken)
     {
-        var parseOptions = new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" });
+        var parseOptions = new CSharpParseOptions(preprocessorSymbols: _preprocessorSymbols);
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions, cancellationToken: cancellationToken);
         var context = new FormattingContext("\n");
         var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken);

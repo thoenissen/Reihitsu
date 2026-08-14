@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
@@ -816,8 +814,9 @@ public class LineBreakRewriterTests
 
         // Assert
         Assert.DoesNotContain("x switch {", result, "Switch expression opening brace should be moved to its own line.");
-        Assert.IsTrue(Regex.IsMatch(result, @"return x switch\s*\r?\n\{"),
-                      "Switch expression opening brace should be moved to the next line before indentation is applied.");
+        Assert.Contains("return x switch\n{",
+                        result.Replace("\r\n", "\n").Replace(" \n", "\n"),
+                        "Switch expression opening brace should be moved to the next line before indentation is applied.");
         Assert.Contains("1 => \"one\"", result, "Switch arms should be preserved.");
     }
 
