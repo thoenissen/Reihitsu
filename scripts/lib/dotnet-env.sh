@@ -33,7 +33,7 @@ reihitsu_has_required_sdk()
 # Adds a previously installed private SDK to PATH when one exists.
 reihitsu_use_private_sdk()
 {
-    if [ -x "$REIHITSU_DOTNET_ROOT/dotnet" ]; then
+    if [[ -x "$REIHITSU_DOTNET_ROOT/dotnet" ]]; then
         export PATH="$REIHITSU_DOTNET_ROOT:$PATH"
         export DOTNET_ROOT="$REIHITSU_DOTNET_ROOT"
 
@@ -62,18 +62,18 @@ reihitsu_ensure_dotnet()
     done
 
     if reihitsu_has_required_sdk; then
-        [ "$quiet" -eq 1 ] || echo "dotnet: using $(command -v dotnet) ($(dotnet --version))"
+        [[ "$quiet" -eq 1 ]] || echo "dotnet: using $(command -v dotnet) ($(dotnet --version))"
 
         return 0
     fi
 
     if reihitsu_use_private_sdk && reihitsu_has_required_sdk; then
-        [ "$quiet" -eq 1 ] || echo "dotnet: using $REIHITSU_DOTNET_ROOT/dotnet ($(dotnet --version))"
+        [[ "$quiet" -eq 1 ]] || echo "dotnet: using $REIHITSU_DOTNET_ROOT/dotnet ($(dotnet --version))"
 
         return 0
     fi
 
-    if [ "$allow_install" -eq 0 ]; then
+    if [[ "$allow_install" -eq 0 ]]; then
         echo "dotnet: no .NET ${REIHITSU_DOTNET_MAJOR} SDK found and --no-install was requested." >&2
 
         return 2
@@ -109,7 +109,7 @@ reihitsu_ensure_dotnet()
         return 2
     fi
 
-    [ "$quiet" -eq 1 ] || echo "dotnet: installed $(dotnet --version) in $REIHITSU_DOTNET_ROOT"
+    [[ "$quiet" -eq 1 ]] || echo "dotnet: installed $(dotnet --version) in $REIHITSU_DOTNET_ROOT"
 
     return 0
 }
