@@ -468,6 +468,109 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
+    /// Annotates every source declaration that owns the target declaration's binding domain
+    /// </summary>
+    /// <param name="solution">Solution containing the declaration</param>
+    /// <param name="documentId">Target declaration document</param>
+    /// <param name="declaredSymbol">Target declaration symbol</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The annotated solution and binding-domain document/annotation pairs</returns>
+    private async Task<(Solution Solution, ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains)> AnnotateBindingDomainsAsync(Solution solution,
+                                                                                                                                                      DocumentId documentId,
+                                                                                                                                                      ISymbol declaredSymbol,
+                                                                                                                                                      CancellationToken cancellationToken)
+    {
+        var domains = ImmutableArray.CreateBuilder<(DocumentId DocumentId, SyntaxAnnotation Annotation)>();
+        var containingDeclarations = declaredSymbol.ContainingSymbol == null
+                                         ? []
+                                         : declaredSymbol.ContainingSymbol.DeclaringSyntaxReferences
+                                                         .OrderBy(reference => GetDocumentSortKey(solution, reference.SyntaxTree), StringComparer.Ordinal)
+                                                         .ThenBy(static reference => reference.Span.Start)
+                                                         .Select(reference => (DocumentId: solution.GetDocument(reference.SyntaxTree)?.Id, reference.Span))
+                                                         .Where(static reference => reference.DocumentId != null)
+                                                         .ToImmutableArray();
+
+        foreach (var containingDeclaration in containingDeclarations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var domainDocument = solution.GetDocument(containingDeclaration.DocumentId);
+            var domainRoot = domainDocument == null
+                                 ? null
+                                 : await domainDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var domainNode = domainRoot?.FindNode(containingDeclaration.Span, getInnermostNodeForTie: true);
+
+            if (domainDocument == null
+                || domainRoot == null
+                || domainNode == null)
+            {
+                continue;
+            }
+
+            var annotation = new SyntaxAnnotation(nameof(AnnotateBindingDomainsAsync), domains.Count.ToString(CultureInfo.InvariantCulture));
+            solution = domainDocument.WithSyntaxRoot(domainRoot.ReplaceNode(domainNode, domainNode.WithAdditionalAnnotations(annotation))).Project.Solution;
+            domains.Add((domainDocument.Id, annotation));
+        }
+
+        if (domains.Count == 0)
+        {
+            var declarationDocument = solution.GetDocument(documentId);
+            var declarationRoot = declarationDocument == null
+                                      ? null
+                                      : await declarationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            if (declarationDocument != null
+                && declarationRoot != null)
+            {
+                var annotation = new SyntaxAnnotation(nameof(AnnotateBindingDomainsAsync), "fallback");
+                solution = declarationDocument.WithSyntaxRoot(declarationRoot.WithAdditionalAnnotations(annotation)).Project.Solution;
+                domains.Add((declarationDocument.Id, annotation));
+            }
+        }
+
+        return (solution, domains.ToImmutable());
+    }
+
+    /// <summary>
+    /// Gets compiler errors from the tracked source declarations that own a rename's binding domain
+    /// </summary>
+    /// <param name="solution">Current solution</param>
+    /// <param name="domains">Binding-domain document/annotation pairs</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Binding-domain compiler errors, or a default array when a tracked domain cannot be resolved</returns>
+    private async Task<ImmutableArray<Diagnostic>> GetBindingDomainErrorsAsync(Solution solution,
+                                                                               ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
+                                                                               CancellationToken cancellationToken)
+    {
+        var errors = ImmutableArray.CreateBuilder<Diagnostic>();
+
+        foreach (var domain in domains)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var document = solution.GetDocument(domain.DocumentId);
+            var root = document == null
+                           ? null
+                           : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = document == null
+                            ? null
+                            : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var node = root?.GetAnnotatedNodes(domain.Annotation).SingleOrDefault();
+
+            if (model == null
+                || node == null)
+            {
+                return default;
+            }
+
+            errors.AddRange(model.GetDiagnostics(node.Span, cancellationToken)
+                                 .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        }
+
+        return errors.ToImmutable();
+    }
+
+    /// <summary>
     /// Determines whether a comprehensive rename produces Roslyn conflict annotations or added declaration errors
     /// </summary>
     /// <param name="document">Document containing the declaration</param>
@@ -529,12 +632,38 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
-        // The declaration-node span is the narrowest stable region that owns the proven duplicate-declaration errors.
-        // Comparing error-ID multiplicities keeps unrelated pre-existing errors elsewhere in the document out of the
-        // decision while still allowing an existing error inside the declaration to remain unchanged.
-        var originalErrors = model.GetDiagnostics(node.Span, cancellationToken)
-                                  .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
-                                  .ToImmutableArray();
+        var (domainSolution, domains) = await AnnotateBindingDomainsAsync(solution,
+                                                                          documentId,
+                                                                          declaredSymbol,
+                                                                          cancellationToken).ConfigureAwait(false);
+
+        solution = domainSolution;
+        document = solution.GetDocument(documentId);
+        root = document == null
+                   ? null
+                   : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        model = document == null
+                    ? null
+                    : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        node = root?.GetAnnotatedNodes(annotation).OfType<T>().SingleOrDefault();
+        declaredSymbol = model == null || node == null
+                             ? null
+                             : GetDeclaredSymbol(model, node, cancellationToken);
+
+        if (declaredSymbol == null)
+        {
+            return null;
+        }
+
+        // Comparing error-ID multiplicities across only the containing symbol's source declaration spans includes
+        // either side of a duplicate declaration without requiring unrelated pre-existing errors to disappear.
+        var originalErrors = await GetBindingDomainErrorsAsync(solution, domains, cancellationToken).ConfigureAwait(false);
+
+        if (originalErrors.IsDefault)
+        {
+            return null;
+        }
+
         var renamedSolution = await Renamer.RenameSymbolAsync(solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
         var changes = renamedSolution.GetChanges(solution);
 
@@ -569,9 +698,12 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
-        var renamedErrors = renamedModel.GetDiagnostics(renamedNode.Span, cancellationToken)
-                                        .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
-                                        .ToImmutableArray();
+        var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
+
+        if (renamedErrors.IsDefault)
+        {
+            return null;
+        }
 
         foreach (var errorGroup in renamedErrors.GroupBy(static diagnostic => diagnostic.Id))
         {

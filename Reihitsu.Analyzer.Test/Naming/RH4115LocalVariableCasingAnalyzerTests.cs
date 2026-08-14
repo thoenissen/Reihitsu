@@ -606,6 +606,65 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     }
 
     /// <summary>
+    /// Verifies an existing target in the same declaration space refuses an ordinary action regardless of source order or line ending
+    /// </summary>
+    /// <param name="targetBefore">Whether the existing target precedes the diagnosed declaration</param>
+    /// <param name="carriageReturnLineFeed">Whether the source uses carriage-return/line-feed endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task SameScopeExistingTargetRefusesOrdinaryActionInEitherOrder(bool targetBefore, bool carriageReturnLineFeed)
+    {
+        var testCode = CreateSameScopeExistingTargetSource(targetBefore);
+
+        if (carriageReturnLineFeed)
+        {
+            testCode = NormalizeToCarriageReturnLineFeed(testCode);
+        }
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH4115LocalVariableCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "BadName")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies an existing target in the same declaration space remains unchanged under Fix All regardless of source order or line ending
+    /// </summary>
+    /// <param name="targetBefore">Whether the existing target precedes the diagnosed declaration</param>
+    /// <param name="carriageReturnLineFeed">Whether the source uses carriage-return/line-feed endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task SameScopeExistingTargetRemainsUnchangedUnderFixAll(bool targetBefore, bool carriageReturnLineFeed)
+    {
+        var testCode = CreateSameScopeExistingTargetSource(targetBefore);
+
+        if (carriageReturnLineFeed)
+        {
+            testCode = NormalizeToCarriageReturnLineFeed(testCode);
+        }
+
+        var (fixedSource, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAsync(testCode);
+
+        Assert.HasCount(1, initialAnalyzerDiagnostics);
+        Assert.AreEqual(testCode, fixedSource);
+        Assert.HasCount(1, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
     /// Verifies the custom provider retains the three scopes supported by the prior batch provider
     /// </summary>
     [TestMethod]
@@ -618,43 +677,125 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     }
 
     /// <summary>
-    /// Verifies broader Fix All scopes retrieve and apply their aggregate diagnostics
+    /// Verifies Project Fix All retrieves and applies diagnostics from every document in the project
     /// </summary>
-    /// <param name="scope">Fix All scope</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [DataRow(FixAllScope.Project)]
-    [DataRow(FixAllScope.Solution)]
-    public async Task BroaderFixAllScopesApplyUniqueRename(FixAllScope scope)
+    public async Task ProjectFixAllAppliesUniqueRenamesAcrossDocuments()
     {
-        const string testCode = """
-                                internal class TestClass
-                                {
-                                    int Method()
+        const string firstSource = """
+                                   internal class FirstClass
+                                   {
+                                       int Method()
+                                       {
+                                           int BadName = 1;
+
+                                           return BadName;
+                                       }
+                                   }
+                                   """;
+        const string secondSource = """
+                                    internal class SecondClass
                                     {
-                                        int BadName = 1;
+                                        int Method()
+                                        {
+                                            int OTHER_NAME = 2;
 
-                                        return BadName;
+                                            return OTHER_NAME;
+                                        }
                                     }
-                                }
-                                """;
-        const string fixedCode = """
-                                 internal class TestClass
-                                 {
-                                     int Method()
-                                     {
-                                         int badName = 1;
+                                    """;
+        const string firstFixedSource = """
+                                        internal class FirstClass
+                                        {
+                                            int Method()
+                                            {
+                                                int badName = 1;
 
-                                         return badName;
-                                     }
-                                 }
-                                 """;
+                                                return badName;
+                                            }
+                                        }
+                                        """;
+        const string secondFixedSource = """
+                                         internal class SecondClass
+                                         {
+                                             int Method()
+                                             {
+                                                 int otherName = 2;
 
-        var (fixedSource, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAsync(testCode, scope);
+                                                 return otherName;
+                                             }
+                                         }
+                                         """;
 
-        Assert.HasCount(1, initialAnalyzerDiagnostics);
+        var (fixedSources, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAcrossSolutionAsync(FixAllScope.Project,
+                                                                                                                                          [firstSource, secondSource]);
+
+        Assert.HasCount(2, initialAnalyzerDiagnostics);
+        Assert.AreSequenceEqual(new[] { firstFixedSource, secondFixedSource }, fixedSources);
         Assert.IsEmpty(postFixAnalyzerDiagnostics);
-        Assert.AreEqual(fixedCode, fixedSource);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies Solution Fix All retrieves and applies diagnostics from every project in the solution
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SolutionFixAllAppliesUniqueRenamesAcrossProjects()
+    {
+        const string firstSource = """
+                                   internal class FirstClass
+                                   {
+                                       int Method()
+                                       {
+                                           int BadName = 1;
+
+                                           return BadName;
+                                       }
+                                   }
+                                   """;
+        const string secondSource = """
+                                    internal class SecondClass
+                                    {
+                                        int Method()
+                                        {
+                                            int OTHER_NAME = 2;
+
+                                            return OTHER_NAME;
+                                        }
+                                    }
+                                    """;
+        const string firstFixedSource = """
+                                        internal class FirstClass
+                                        {
+                                            int Method()
+                                            {
+                                                int badName = 1;
+
+                                                return badName;
+                                            }
+                                        }
+                                        """;
+        const string secondFixedSource = """
+                                         internal class SecondClass
+                                         {
+                                             int Method()
+                                             {
+                                                 int otherName = 2;
+
+                                                 return otherName;
+                                             }
+                                         }
+                                         """;
+
+        var (fixedSources, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAcrossSolutionAsync(FixAllScope.Solution,
+                                                                                                                                          [firstSource],
+                                                                                                                                          [secondSource]);
+
+        Assert.HasCount(2, initialAnalyzerDiagnostics);
+        Assert.AreSequenceEqual(new[] { firstFixedSource, secondFixedSource }, fixedSources);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
         Assert.IsEmpty(compilerErrors);
     }
 
@@ -897,6 +1038,34 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     }
 
     /// <summary>
+    /// Creates a same-scope local declaration pair whose diagnosed name normalizes to the existing target
+    /// </summary>
+    /// <param name="targetBefore">Whether the existing target precedes the diagnosed declaration</param>
+    /// <returns>Source containing the declaration pair</returns>
+    private static string CreateSameScopeExistingTargetSource(bool targetBefore)
+    {
+        var declarations = targetBefore
+                               ? """
+                                     int badName = 2;
+                                     int BadName = 1;
+                                 """
+                               : """
+                                     int BadName = 1;
+                                     int badName = 2;
+                                 """;
+
+        return $$"""
+                 internal class TestClass
+                 {
+                     void Method()
+                     {
+                 {{declarations}}
+                     }
+                 }
+                 """;
+    }
+
+    /// <summary>
     /// Applies the provider's requested Fix All action to every supplied analyzer diagnostic
     /// </summary>
     /// <param name="source">Source text</param>
@@ -929,7 +1098,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
                                             scope,
                                             provider.GetType().Name,
                                             provider.FixableDiagnosticIds,
-                                            new TestFixAllDiagnosticProvider(analyzerDiagnostics),
+                                            new TestFixAllDiagnosticProvider(solution, analyzerDiagnostics),
                                             CancellationToken.None);
             var action = await provider.GetFixAllProvider()
                                        .GetFixAsync(context)
@@ -953,6 +1122,110 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
             var fixedSource = await fixedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
 
             return (fixedSource.ToString(), analyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors);
+        }
+    }
+
+    /// <summary>
+    /// Applies Project or Solution Fix All to a solution containing the supplied project/document matrix
+    /// </summary>
+    /// <param name="scope">Fix All scope</param>
+    /// <param name="projectSources">Source documents grouped by project</param>
+    /// <returns>Fixed sources plus initial/post-fix analyzer diagnostics and post-fix compiler errors</returns>
+    private static async Task<(ImmutableArray<string> FixedSources,
+    ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
+    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+    ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAcrossSolutionAsync(FixAllScope scope, params string[][] projectSources)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var solution = workspace.CurrentSolution;
+            var projectIds = ImmutableArray.CreateBuilder<ProjectId>();
+            var documentIds = ImmutableArray.CreateBuilder<DocumentId>();
+
+            for (var projectIndex = 0; projectIndex < projectSources.Length; projectIndex++)
+            {
+                var projectId = ProjectId.CreateNewId();
+
+                projectIds.Add(projectId);
+                solution = solution.AddProject(projectId, $"TestProject{projectIndex}", $"TestProject{projectIndex}", LanguageNames.CSharp)
+                                   .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                                   .AddMetadataReferences(projectId, GetMetadataReferences());
+
+                for (var documentIndex = 0; documentIndex < projectSources[projectIndex].Length; documentIndex++)
+                {
+                    var documentId = DocumentId.CreateNewId(projectId);
+
+                    documentIds.Add(documentId);
+                    solution = solution.AddDocument(documentId,
+                                                    $"Test{projectIndex}_{documentIndex}.cs",
+                                                    SourceText.From(projectSources[projectIndex][documentIndex]));
+                }
+            }
+
+            var initialAnalyzerDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+
+            foreach (var projectId in projectIds)
+            {
+                var project = solution.GetProject(projectId)
+                                  ?? throw new InvalidOperationException("Failed to create test project.");
+                var compilation = await project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                      ?? throw new InvalidOperationException("Failed to compile test project.");
+
+                initialAnalyzerDiagnostics.AddRange(await compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new RH4115LocalVariableCasingAnalyzer()))
+                                                                     .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                                     .ConfigureAwait(false));
+            }
+
+            var initiatingDocument = solution.GetDocument(documentIds[0])
+                                         ?? throw new InvalidOperationException("Failed to get initiating document.");
+            var provider = new RH4115LocalVariableCasingCodeFixProvider();
+            var context = new FixAllContext(initiatingDocument,
+                                            provider,
+                                            scope,
+                                            provider.GetType().Name,
+                                            provider.FixableDiagnosticIds,
+                                            new TestFixAllDiagnosticProvider(solution, initialAnalyzerDiagnostics.ToImmutable()),
+                                            CancellationToken.None);
+            var action = await provider.GetFixAllProvider()
+                                       .GetFixAsync(context)
+                                       .ConfigureAwait(false)
+                             ?? throw new InvalidOperationException("Failed to create the Fix All action.");
+
+            Assert.AreEqual(provider.GetType().Name, action.EquivalenceKey);
+
+            var operation = (await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false)).OfType<ApplyChangesOperation>()
+                                                                                                           .Single();
+            var fixedSources = ImmutableArray.CreateBuilder<string>();
+
+            foreach (var documentId in documentIds)
+            {
+                var fixedDocument = operation.ChangedSolution.GetDocument(documentId)
+                                        ?? throw new InvalidOperationException("Failed to get fixed document.");
+
+                fixedSources.Add((await fixedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString());
+            }
+
+            var postFixAnalyzerDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+            var compilerErrors = ImmutableArray.CreateBuilder<Diagnostic>();
+
+            foreach (var projectId in projectIds)
+            {
+                var fixedProject = operation.ChangedSolution.GetProject(projectId)
+                                       ?? throw new InvalidOperationException("Failed to get fixed project.");
+                var fixedCompilation = await fixedProject.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                           ?? throw new InvalidOperationException("Failed to compile fixed project.");
+
+                compilerErrors.AddRange(fixedCompilation.GetDiagnostics(CancellationToken.None)
+                                                        .Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+                postFixAnalyzerDiagnostics.AddRange(await fixedCompilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new RH4115LocalVariableCasingAnalyzer()))
+                                                                          .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                                                          .ConfigureAwait(false));
+            }
+
+            return (fixedSources.ToImmutable(),
+                    initialAnalyzerDiagnostics.ToImmutable(),
+                    postFixAnalyzerDiagnostics.ToImmutable(),
+                    compilerErrors.ToImmutable());
         }
     }
 
@@ -986,6 +1259,11 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
         /// </summary>
         private readonly ImmutableArray<Diagnostic> _diagnostics;
 
+        /// <summary>
+        /// Solution containing the diagnostics
+        /// </summary>
+        private readonly Solution _solution;
+
         #endregion // Fields
 
         #region Constructor
@@ -993,9 +1271,11 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="solution">Solution containing the diagnostics</param>
         /// <param name="diagnostics">Diagnostics</param>
-        public TestFixAllDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics)
+        public TestFixAllDiagnosticProvider(Solution solution, ImmutableArray<Diagnostic> diagnostics)
         {
+            _solution = solution;
             _diagnostics = diagnostics;
         }
 
@@ -1006,7 +1286,10 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
         /// <inheritdoc/>
         public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
-            return Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
+            var diagnostics = _diagnostics.Where(diagnostic => diagnostic.Location.SourceTree != null
+                                                               && _solution.GetDocument(diagnostic.Location.SourceTree)?.Id == document.Id);
+
+            return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
         }
 
         /// <inheritdoc/>
@@ -1018,7 +1301,10 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
         /// <inheritdoc/>
         public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
-            return Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);
+            var diagnostics = _diagnostics.Where(diagnostic => diagnostic.Location.SourceTree != null
+                                                               && _solution.GetDocument(diagnostic.Location.SourceTree)?.Project.Id == project.Id);
+
+            return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
         }
 
         #endregion // DiagnosticProvider
