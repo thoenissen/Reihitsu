@@ -185,10 +185,11 @@ public class DocumentationCommentFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a very large documentation comment is normalized completely, without an exception and
-    /// without a wall-clock budget deciding the outcome. The comment is sized past the point at which the
-    /// historic 100 ms match timeout aborted the pattern this phase used to run, so an implementation that
-    /// reintroduced a tight budget would fail here rather than intermittently under CI load
+    /// Verifies that a very large documentation comment is normalized completely and converges, far beyond the
+    /// size of any real source file. The scan is linear, so what this pins is completeness and second-pass
+    /// stability at scale rather than a timing bound: at this size it would also have completed within the
+    /// budget the phase used to carry. That no wall-clock budget can be reintroduced at all is pinned by
+    /// <c>DocumentationCommentNormalizationDeterminismTests</c>, which no output assertion can replace
     /// </summary>
     [TestMethod]
     public void NormalizesVeryLargeDocumentationComment()
