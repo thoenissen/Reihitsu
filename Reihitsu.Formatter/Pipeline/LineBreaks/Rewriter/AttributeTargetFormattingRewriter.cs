@@ -110,33 +110,16 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
                 return owner;
             }
 
-            var mergedAttributes = new List<AttributeSyntax>();
             var firstList = matchingLists[0];
-
-            foreach (var attributeList in matchingLists)
-            {
-                foreach (var attribute in attributeList.Attributes)
-                {
-                    mergedAttributes.Add(attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                  .WithTrailingTrivia(SyntaxFactory.TriviaList()));
-                }
-            }
+            var mergedAttributes = matchingLists.SelectMany(attributeList => attributeList.Attributes)
+                                                .Select(attribute => attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                                              .WithTrailingTrivia(SyntaxFactory.TriviaList()));
 
             var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
                                       .WithTrailingTrivia(SyntaxFactory.Space);
-            var updatedLists = new List<AttributeListSyntax>();
-
-            foreach (var attributeList in lists)
-            {
-                if (ReferenceEquals(attributeList, firstList))
-                {
-                    updatedLists.Add(mergedList);
-                }
-                else if (matchingLists.Contains(attributeList) == false)
-                {
-                    updatedLists.Add(attributeList);
-                }
-            }
+            var updatedLists = lists.Where(attributeList => ReferenceEquals(attributeList, firstList)
+                                                            || matchingLists.Contains(attributeList) == false)
+                                    .Select(attributeList => ReferenceEquals(attributeList, firstList) ? mergedList : attributeList);
 
             owner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
         }

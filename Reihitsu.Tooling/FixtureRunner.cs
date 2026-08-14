@@ -52,73 +52,49 @@ public static class FixtureRunner
             return Create(FixtureOutcome.ParseError, 0, 0, normalized, normalized, lineEnding);
         }
 
-        var current = normalized;
-        var iterations = 0;
-        var registeredActions = 0;
+        var state = (Current: normalized, Iterations: 0, RegisteredActions: 0);
 
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (var workspace = new AdhocWorkspace())
+            var iteration = await RunIterationAsync(target,
+                                                    normalized,
+                                                    lineEnding,
+                                                    maximumIterations,
+                                                    state,
+                                                    cancellationToken).ConfigureAwait(false);
+
+            if (iteration.TerminalResult != null)
             {
-                var (document, documentId) = CreateDocument(workspace, current);
-
-                var reported = await AnalyzeAsync(document, target, cancellationToken).ConfigureAwait(false);
-
-                if (reported.Any(diagnostic => diagnostic.Id == AnalyzerFailureDiagnosticId))
-                {
-                    return Create(FixtureOutcome.AnalyzerFailure, iterations, registeredActions, normalized, current, lineEnding);
-                }
-
-                var diagnostics = reported.Where(diagnostic => diagnostic.Id == target.DiagnosticId)
-                                          .OrderBy(diagnostic => diagnostic.Location.SourceSpan.Start)
-                                          .ToImmutableArray();
-
-                if (diagnostics.IsEmpty)
-                {
-                    return Create(iterations == 0 ? FixtureOutcome.NoDiagnostic : FixtureOutcome.Fixed,
-                                  iterations,
-                                  registeredActions,
-                                  normalized,
-                                  current,
-                                  lineEnding);
-                }
-
-                if (iterations >= maximumIterations)
-                {
-                    return Create(FixtureOutcome.NotConverged, iterations, registeredActions, normalized, current, lineEnding);
-                }
-
-                var actions = await RegisterActionsAsync(document, target, diagnostics[0], cancellationToken).ConfigureAwait(false);
-
-                if (actions.Count == 0)
-                {
-                    return Create(FixtureOutcome.NoFixOffered, iterations, registeredActions, normalized, current, lineEnding);
-                }
-
-                if (iterations == 0)
-                {
-                    registeredActions = actions.Count;
-                }
-
-                var applied = await ApplyAsync(actions[0], documentId, cancellationToken).ConfigureAwait(false);
-
-                iterations++;
-
-                if (string.Equals(applied, current, StringComparison.Ordinal))
-                {
-                    // The action produced no textual change, so another iteration would repeat it forever. This is
-                    // reported apart from the cap: an ineffective fix is a defect in the rule, a cap is not.
-                    return Create(FixtureOutcome.NoProgress, iterations, registeredActions, normalized, current, lineEnding);
-                }
-
-                current = applied;
+                return iteration.TerminalResult;
             }
 
-            if (HasSyntaxErrors(current, cancellationToken))
+            state.RegisteredActions = iteration.RegisteredActions;
+            state.Iterations++;
+
+            if (string.Equals(iteration.AppliedSource, state.Current, StringComparison.Ordinal))
             {
-                return Create(FixtureOutcome.InvalidResult, iterations, registeredActions, normalized, current, lineEnding);
+                // The action produced no textual change, so another iteration would repeat it forever. This is
+                // reported apart from the cap: an ineffective fix is a defect in the rule, a cap is not.
+                return Create(FixtureOutcome.NoProgress,
+                              state.Iterations,
+                              state.RegisteredActions,
+                              normalized,
+                              state.Current,
+                              lineEnding);
+            }
+
+            state.Current = iteration.AppliedSource;
+
+            if (HasSyntaxErrors(state.Current, cancellationToken))
+            {
+                return Create(FixtureOutcome.InvalidResult,
+                              state.Iterations,
+                              state.RegisteredActions,
+                              normalized,
+                              state.Current,
+                              lineEnding);
             }
         }
     }
@@ -136,6 +112,111 @@ public static class FixtureRunner
                                                     cancellationToken: cancellationToken);
 
         return syntaxTree.GetDiagnostics(cancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+    }
+
+    /// <summary>
+    /// Analyzes one iteration and either returns a terminal result or the source produced by the first code action
+    /// </summary>
+    /// <param name="target">Resolved analyzer and code fix target</param>
+    /// <param name="normalized">Original normalized fixture source</param>
+    /// <param name="lineEnding">Requested fixture line ending</param>
+    /// <param name="maximumIterations">Maximum number of code actions</param>
+    /// <param name="state">Current source, iteration count, and first action count</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A terminal result or the source and action count for the next iteration</returns>
+    private static async Task<(FixtureRunResult TerminalResult, string AppliedSource, int RegisteredActions)> RunIterationAsync(CodeFixTarget target,
+                                                                                                                                string normalized,
+                                                                                                                                string lineEnding,
+                                                                                                                                int maximumIterations,
+                                                                                                                                (string Current, int Iterations, int RegisteredActions) state,
+                                                                                                                                CancellationToken cancellationToken)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var (document, documentId) = CreateDocument(workspace, state.Current);
+
+            var reported = await AnalyzeAsync(document, target, cancellationToken).ConfigureAwait(false);
+
+            if (reported.Any(diagnostic => diagnostic.Id == AnalyzerFailureDiagnosticId))
+            {
+                return (Create(FixtureOutcome.AnalyzerFailure,
+                               state.Iterations,
+                               state.RegisteredActions,
+                               normalized,
+                               state.Current,
+                               lineEnding),
+                        null,
+                        state.RegisteredActions);
+            }
+
+            var diagnostics = reported.Where(diagnostic => diagnostic.Id == target.DiagnosticId)
+                                      .OrderBy(diagnostic => diagnostic.Location.SourceSpan.Start)
+                                      .ToImmutableArray();
+            var terminalResult = GetDiagnosticTerminalResult(diagnostics,
+                                                             normalized,
+                                                             lineEnding,
+                                                             maximumIterations,
+                                                             state);
+
+            if (terminalResult != null)
+            {
+                return (terminalResult, null, state.RegisteredActions);
+            }
+
+            var actions = await RegisterActionsAsync(document, target, diagnostics[0], cancellationToken).ConfigureAwait(false);
+
+            if (actions.Count == 0)
+            {
+                return (Create(FixtureOutcome.NoFixOffered,
+                               state.Iterations,
+                               state.RegisteredActions,
+                               normalized,
+                               state.Current,
+                               lineEnding),
+                        null,
+                        state.RegisteredActions);
+            }
+
+            var registeredActions = state.Iterations == 0 ? actions.Count : state.RegisteredActions;
+            var applied = await ApplyAsync(actions[0], documentId, cancellationToken).ConfigureAwait(false);
+
+            return (null, applied, registeredActions);
+        }
+    }
+
+    /// <summary>
+    /// Resolves terminal states determined solely by the reported diagnostics and iteration count
+    /// </summary>
+    /// <param name="diagnostics">Target diagnostics reported for the current source</param>
+    /// <param name="normalized">Original normalized fixture source</param>
+    /// <param name="lineEnding">Requested fixture line ending</param>
+    /// <param name="maximumIterations">Maximum number of code actions</param>
+    /// <param name="state">Current source, iteration count, and first action count</param>
+    /// <returns>The terminal result, or <see langword="null"/> when a code action may be applied</returns>
+    private static FixtureRunResult GetDiagnosticTerminalResult(ImmutableArray<Diagnostic> diagnostics,
+                                                                string normalized,
+                                                                string lineEnding,
+                                                                int maximumIterations,
+                                                                (string Current, int Iterations, int RegisteredActions) state)
+    {
+        if (diagnostics.IsEmpty)
+        {
+            return Create(state.Iterations == 0 ? FixtureOutcome.NoDiagnostic : FixtureOutcome.Fixed,
+                          state.Iterations,
+                          state.RegisteredActions,
+                          normalized,
+                          state.Current,
+                          lineEnding);
+        }
+
+        return state.Iterations >= maximumIterations
+                   ? Create(FixtureOutcome.NotConverged,
+                            state.Iterations,
+                            state.RegisteredActions,
+                            normalized,
+                            state.Current,
+                            lineEnding)
+                   : null;
     }
 
     /// <summary>
