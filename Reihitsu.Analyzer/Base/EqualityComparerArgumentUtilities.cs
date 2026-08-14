@@ -117,10 +117,15 @@ internal static class EqualityComparerArgumentUtilities
     /// <returns><see langword="true"/> when every reachable branch is non-custom; otherwise, <see langword="false"/></returns>
     private static bool IsDefinitelyNonCustomConditional(IConditionalOperation conditional, INamedTypeSymbol equalityComparerType)
     {
-        return conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue }
-                   ? IsDefinitelyNonCustomEqualityComparerOperation(conditionValue ? conditional.WhenTrue : conditional.WhenFalse, equalityComparerType)
-                   : IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
-                     && IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
+        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
+        {
+            var reachableBranch = conditionValue ? conditional.WhenTrue : conditional.WhenFalse;
+
+            return IsDefinitelyNonCustomEqualityComparerOperation(reachableBranch, equalityComparerType);
+        }
+
+        return IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
+               && IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
     }
 
     /// <summary>
@@ -183,9 +188,14 @@ internal static class EqualityComparerArgumentUtilities
     /// <returns><see langword="true"/> when every reachable branch is null-like; otherwise, <see langword="false"/></returns>
     private static bool IsNullLikeConditional(IConditionalOperation conditional)
     {
-        return conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue }
-                   ? IsNullLikeOperation(conditionValue ? conditional.WhenTrue : conditional.WhenFalse)
-                   : IsNullLikeOperation(conditional.WhenTrue) && IsNullLikeOperation(conditional.WhenFalse);
+        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
+        {
+            var reachableBranch = conditionValue ? conditional.WhenTrue : conditional.WhenFalse;
+
+            return IsNullLikeOperation(reachableBranch);
+        }
+
+        return IsNullLikeOperation(conditional.WhenTrue) && IsNullLikeOperation(conditional.WhenFalse);
     }
 
     /// <summary>
@@ -291,10 +301,15 @@ internal static class EqualityComparerArgumentUtilities
     /// <returns><see langword="true"/> when every reachable branch is the framework default; otherwise, <see langword="false"/></returns>
     private static bool IsFrameworkDefaultConditional(IConditionalOperation conditional, INamedTypeSymbol equalityComparerType)
     {
-        return conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue }
-                   ? IsFrameworkDefaultEqualityComparerOperation(conditionValue ? conditional.WhenTrue : conditional.WhenFalse, equalityComparerType)
-                   : IsFrameworkDefaultEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
-                     && IsFrameworkDefaultEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
+        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
+        {
+            var reachableBranch = conditionValue ? conditional.WhenTrue : conditional.WhenFalse;
+
+            return IsFrameworkDefaultEqualityComparerOperation(reachableBranch, equalityComparerType);
+        }
+
+        return IsFrameworkDefaultEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
+               && IsFrameworkDefaultEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
     }
 
     /// <summary>

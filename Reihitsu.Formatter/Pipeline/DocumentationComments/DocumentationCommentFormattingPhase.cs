@@ -171,7 +171,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                                            SyntaxTrivia trivia,
                                            SourceText sourceText,
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
-                                           IDictionary<SyntaxToken, int> previousTokenRelocationCounts)
+                                           Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
         if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
             || IsAfterSourceOnSameLine(trivia, sourceText) == false)

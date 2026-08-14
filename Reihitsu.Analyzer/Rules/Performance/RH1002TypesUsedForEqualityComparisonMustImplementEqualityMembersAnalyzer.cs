@@ -131,7 +131,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// <returns><see langword="true"/> if the containing type is relevant to this rule</returns>
     private static bool IsRelevantContainingType(Compilation compilation, INamedTypeSymbol containingType)
     {
-        return _relevantContainingTypes.Any(typeName => SymbolEqualityComparer.Default.Equals(containingType, compilation.GetTypeByMetadataName(typeName)));
+        return Array.Exists(_relevantContainingTypes, typeName => SymbolEqualityComparer.Default.Equals(containingType, compilation.GetTypeByMetadataName(typeName)));
     }
 
     /// <summary>
