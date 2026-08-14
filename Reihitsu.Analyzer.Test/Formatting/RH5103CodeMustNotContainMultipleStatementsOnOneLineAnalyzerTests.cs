@@ -268,5 +268,32 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a stale diagnostic targeting the first statement does not offer a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsNotOfferedWhenDiagnosticTargetsFirstStatement()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Method();
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ExpressionStatementSyntax>()
+                                                               .Single()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }
