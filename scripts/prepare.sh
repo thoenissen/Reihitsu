@@ -19,7 +19,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 reihitsu_ensure_dotnet "$@"
 
-if [ -x "$REIHITSU_DOTNET_ROOT/dotnet" ]; then
+if [[ -x "$REIHITSU_DOTNET_ROOT/dotnet" ]]; then
     case ":$PATH:" in
         *":$REIHITSU_DOTNET_ROOT:"*)
             echo "hint: for direct dotnet calls in this shell, run: export PATH=\"$REIHITSU_DOTNET_ROOT:\$PATH\""

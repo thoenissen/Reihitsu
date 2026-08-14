@@ -15,7 +15,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/dotnet-env.sh
 . "$script_dir/lib/dotnet-env.sh"
 
-if [ "$#" -eq 0 ]; then
+if [[ "$#" -eq 0 ]]; then
     echo "format.sh: expected at least one path." >&2
     exit 2
 fi
@@ -33,7 +33,7 @@ for argument in "$@"; do
             ;;
         *)
             # Absolute paths survive the repository-root invocation below
-            if [ -e "$argument" ]; then
+            if [[ -e "$argument" ]]; then
                 formatter_arguments+=("$(cd "$(dirname "$argument")" && pwd)/$(basename "$argument")")
             else
                 formatter_arguments+=("$argument")
@@ -42,7 +42,7 @@ for argument in "$@"; do
     esac
 done
 
-if [ "${#formatter_arguments[@]}" -eq 0 ]; then
+if [[ "${#formatter_arguments[@]}" -eq 0 ]]; then
     echo "format.sh: expected at least one path." >&2
     exit 2
 fi
