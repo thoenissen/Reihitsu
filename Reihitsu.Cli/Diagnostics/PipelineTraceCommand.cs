@@ -178,7 +178,7 @@ internal static class PipelineTraceCommand
     }
 
     /// <summary>
-    /// Validates a parsed pass and returns its root when tracing may continue
+    /// Validates a parsed pass and determines whether tracing must stop
     /// </summary>
     /// <param name="syntaxTree">Parsed source tree</param>
     /// <param name="root">Parsed source root</param>

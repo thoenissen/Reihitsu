@@ -59,10 +59,7 @@ reihitsu_ensure_dotnet()
         case "$argument" in
             --no-install) allow_install=0 ;;
             --quiet) quiet=1 ;;
-            *)
-                echo "dotnet: unknown option: $argument" >&2
-                return 2
-                ;;
+            *) : ;;
         esac
     done
 
