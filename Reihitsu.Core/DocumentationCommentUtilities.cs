@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,6 +21,11 @@ public static class DocumentationCommentUtilities
     /// The exterior marker that introduces a single-line documentation comment
     /// </summary>
     public const string DocumentationExterior = "///";
+
+    /// <summary>
+    /// The exterior marker that introduces an ordinary single-line comment
+    /// </summary>
+    public const string SingleLineCommentExterior = "//";
 
     #endregion // Constants
 
@@ -56,6 +63,50 @@ public static class DocumentationCommentUtilities
     {
         return RewriteContinuationExteriorMarkers(documentationTrivia,
                                                   exteriorTrivia => CreateExteriorTrivia(exteriorTrivia, Math.Max(0, column)));
+    }
+
+    /// <summary>
+    /// Normalizes the separator after every <c>///</c> exterior in documentation comment text
+    /// </summary>
+    /// <param name="commentText">Full text of a single-line documentation comment trivia</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The comment text with a canonical separator after every exterior</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="commentText"/> is <see langword="null"/></exception>
+    /// <remarks>
+    /// The separator policy itself belongs to <see cref="NormalizeExteriorSuffix"/>; this method only decides
+    /// which span of each line is the suffix
+    /// </remarks>
+    public static string NormalizeDocumentationLinePrefixes(string commentText, CancellationToken cancellationToken = default)
+    {
+        return RewriteDocumentationLines(commentText,
+                                         (builder, exterior, suffix) =>
+                                         {
+                                             builder.Append(exterior);
+                                             builder.Append(NormalizeExteriorSuffix(suffix));
+                                         },
+                                         cancellationToken);
+    }
+
+    /// <summary>
+    /// Replaces every <c>///</c> exterior in documentation comment text with an ordinary <c>//</c> comment marker
+    /// </summary>
+    /// <param name="commentText">Full text of a single-line documentation comment trivia</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The comment text with every exterior reduced to two slashes</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="commentText"/> is <see langword="null"/></exception>
+    /// <remarks>
+    /// Everything after the exterior is content and is preserved verbatim, so a second <c>///</c> further along
+    /// the same line is left alone
+    /// </remarks>
+    public static string ConvertDocumentationExteriorsToComments(string commentText, CancellationToken cancellationToken = default)
+    {
+        return RewriteDocumentationLines(commentText,
+                                         (builder, _, suffix) =>
+                                         {
+                                             builder.Append(SingleLineCommentExterior);
+                                             builder.Append(suffix);
+                                         },
+                                         cancellationToken);
     }
 
     /// <summary>
@@ -174,6 +225,98 @@ public static class DocumentationCommentUtilities
 
                                                       return CreateExteriorTrivia(exteriorTrivia, Math.Max(0, currentColumn + columnOffset));
                                                   });
+    }
+
+    /// <summary>
+    /// Determines whether the character terminates a line for the purposes of documentation comment scanning.
+    /// This is the C# line-terminator set, which is what <see cref="SourceText.Lines"/> recognizes as well
+    /// </summary>
+    /// <param name="character">Character</param>
+    /// <returns><see langword="true"/> when the character terminates a line</returns>
+    private static bool IsLineTerminator(char character)
+    {
+        return character is '\r' or '\n' or '\u0085' or '\u2028' or '\u2029';
+    }
+
+    /// <summary>
+    /// Rewrites the exterior and its suffix on every documentation line of the given comment text
+    /// </summary>
+    /// <param name="commentText">Full text of a single-line documentation comment trivia</param>
+    /// <param name="rewriteExterior">Appends the replacement for an exterior and its suffix</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The rewritten comment text</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="commentText"/> is <see langword="null"/></exception>
+    /// <remarks>
+    /// The scan is deterministic and single-pass, so how long it takes depends only on the length of the input.
+    /// Line-leading indentation, content after the exterior, the line terminators themselves and every line that
+    /// carries no exterior are copied verbatim, which keeps the rewrite confined to the exteriors
+    /// </remarks>
+    private static string RewriteDocumentationLines(string commentText, Action<StringBuilder, string, string> rewriteExterior, CancellationToken cancellationToken)
+    {
+        if (commentText == null)
+        {
+            throw new ArgumentNullException(nameof(commentText));
+        }
+
+        var builder = new StringBuilder(commentText.Length);
+        var index = 0;
+
+        while (index < commentText.Length)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var lineStart = index;
+
+            while (index < commentText.Length
+                   && char.IsWhiteSpace(commentText[index])
+                   && IsLineTerminator(commentText[index]) == false)
+            {
+                index++;
+            }
+
+            if (string.CompareOrdinal(commentText, index, DocumentationExterior, 0, DocumentationExterior.Length) == 0)
+            {
+                var suffixStart = index + DocumentationExterior.Length;
+                var suffixEnd = suffixStart;
+
+                while (suffixEnd < commentText.Length
+                       && IsLineTerminator(commentText[suffixEnd]) == false)
+                {
+                    suffixEnd++;
+                }
+
+                builder.Append(commentText, lineStart, index - lineStart);
+
+                rewriteExterior(builder, DocumentationExterior, commentText.Substring(suffixStart, suffixEnd - suffixStart));
+
+                index = suffixEnd;
+            }
+            else
+            {
+                while (index < commentText.Length
+                       && IsLineTerminator(commentText[index]) == false)
+                {
+                    index++;
+                }
+
+                builder.Append(commentText, lineStart, index - lineStart);
+            }
+
+            if (index < commentText.Length)
+            {
+                var terminatorLength = commentText[index] == '\r'
+                                       && index + 1 < commentText.Length
+                                       && commentText[index + 1] == '\n'
+                                           ? 2
+                                           : 1;
+
+                builder.Append(commentText, index, terminatorLength);
+
+                index += terminatorLength;
+            }
+        }
+
+        return builder.ToString();
     }
 
     /// <summary>

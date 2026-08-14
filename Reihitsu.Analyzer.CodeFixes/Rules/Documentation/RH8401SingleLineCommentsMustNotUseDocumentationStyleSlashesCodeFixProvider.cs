@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
@@ -34,7 +34,12 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var triviaSpan = documentationComment.ParentTrivia.FullSpan;
         var currentCommentText = text.ToString(triviaSpan);
-        var updatedCommentText = Regex.Replace(currentCommentText, @"(?m)^(\s*)///", "$1//", RegexOptions.None, TimeSpan.FromMilliseconds(100));
+
+        // A deterministic single-pass scan over the C# line-terminator set. The pattern it replaced anchored on
+        // (?m)^, which .NET resolves against the line feed alone, so a comment separated by a carriage return,
+        // U+0085, U+2028 or U+2029 kept its remaining exteriors and one application left the comment half // and
+        // half ///. It also carried a wall-clock match timeout, which made success depend on process scheduling
+        var updatedCommentText = DocumentationCommentUtilities.ConvertDocumentationExteriorsToComments(currentCommentText, cancellationToken);
 
         return document.WithText(text.Replace(triviaSpan, updatedCommentText));
     }

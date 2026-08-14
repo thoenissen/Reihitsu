@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -335,15 +334,11 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         var normalizedCommentText = rebuiltCommentText ?? sourceText.ToString(documentationCommentTrivia.FullSpan);
         var changed = rebuiltCommentText != null;
 
-        // The match timeout is a safety net against pathological input, not a performance budget. This prefix
-        // pattern is anchored on /// and cannot backtrack catastrophically, so the value is deliberately generous:
-        // a tight wall-clock timeout is tripped by ordinary CI scheduling jitter (a GC pause or a thread preemption
-        // during one of the many calls the self-hosting tests make), not by real regex work
-        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText,
-                                                   @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)(?<suffix>[^\r\n\u0085\u2028\u2029]*)(?=\r\n|\r|\n|\u0085|\u2028|\u2029|$)",
-                                                   obj => $"{obj.Groups["indent"].Value}{obj.Groups["prefix"].Value}{DocumentationCommentUtilities.NormalizeExteriorSuffix(obj.Groups["suffix"].Value)}",
-                                                   RegexOptions.None,
-                                                   TimeSpan.FromSeconds(2));
+        // A deterministic single-pass scan, so how long this takes depends only on the length of the comment.
+        // The pattern it replaced was linear too, but it carried a wall-clock match timeout, which made success
+        // depend on process scheduling rather than on the input: ordinary CI jitter under coverage and parallel
+        // test execution could abort a normalization that had no real work left to do
+        var normalizedLinePrefixes = DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes(normalizedCommentText, cancellationToken);
 
         if (normalizedLinePrefixes != normalizedCommentText)
         {

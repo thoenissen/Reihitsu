@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -167,6 +168,192 @@ public class DocumentationCommentUtilitiesTests
         var shiftedTrivia = DocumentationCommentUtilities.ShiftContinuationExteriorMarkers(documentationTrivia, 3);
 
         Assert.AreEqual("/// First.\n       /// Second.\n", shiftedTrivia.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that a missing separator is replaced by a single space
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesInsertsMissingSeparator()
+    {
+        Assert.AreEqual("/// Text", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///Text", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that a canonical single space is preserved
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesKeepsCanonicalSeparator()
+    {
+        Assert.AreEqual("/// Text", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("/// Text", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that content indentation beyond the separator is preserved
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesKeepsContentIndentation()
+    {
+        Assert.AreEqual("///   Text", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///   Text", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that a tab separator is replaced by a single space
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesReplacesTabSeparator()
+    {
+        Assert.AreEqual("/// Text", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///\tText", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that an empty suffix is left alone
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesKeepsEmptySuffix()
+    {
+        Assert.AreEqual("///", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that a whitespace-only suffix is reduced to nothing
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesReducesWhitespaceOnlySuffix()
+    {
+        Assert.AreEqual("///", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///   ", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that only the first exterior on a line is recognized and later slashes stay content
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesTreatsLaterSlashesAsContent()
+    {
+        Assert.AreEqual("/// see /// here", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("/// see /// here", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that continuation indentation before the exterior is preserved verbatim
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesPreservesContinuationIndentation()
+    {
+        Assert.AreEqual("/// A\n\t /// B", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///A\n\t ///B", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that non-breaking space, form feed and vertical tab count as line-leading indentation
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesAcceptsExoticIndentation()
+    {
+        Assert.AreEqual("/// A\n\u00A0\u000B\u000C/// B", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///A\n\u00A0\u000B\u000C///B", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that every line terminator C# recognizes starts a new documentation line
+    /// </summary>
+    /// <param name="lineTerminator">Terminator separating the two documentation lines</param>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [DataRow("\r")]
+    [DataRow("\u0085")]
+    [DataRow("\u2028")]
+    [DataRow("\u2029")]
+    public void NormalizeDocumentationLinePrefixesNormalizesEveryLineTerminator(string lineTerminator)
+    {
+        var input = string.Concat("///A", lineTerminator, "///B");
+        var expected = string.Concat("/// A", lineTerminator, "/// B");
+
+        Assert.AreEqual(expected, DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes(input, TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that a trailing terminator does not produce a match past the end of the text
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesLeavesTrailingTerminatorAlone()
+    {
+        Assert.AreEqual("/// A\n", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///A\n", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that a line carrying no exterior is copied verbatim
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesCopiesNonDocumentationLinesVerbatim()
+    {
+        Assert.AreEqual("  plain\n/// A", DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("  plain\n///A", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that normalizing already normalized text is a no-op
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesIsIdempotent()
+    {
+        var once = DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes("///A\r\n  ///\tB\r\n", TestContext.CancellationToken);
+
+        Assert.AreEqual(once, DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes(once, TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that a null comment text is rejected
+    /// </summary>
+    [TestMethod]
+    public void NormalizeDocumentationLinePrefixesRejectsNullText()
+    {
+        Assert.ThrowsExactly<ArgumentNullException>(() => DocumentationCommentUtilities.NormalizeDocumentationLinePrefixes(null, TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that every exterior becomes an ordinary comment marker on every line terminator
+    /// </summary>
+    /// <param name="lineTerminator">Terminator separating the two documentation lines</param>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [DataRow("\r")]
+    [DataRow("\u0085")]
+    [DataRow("\u2028")]
+    [DataRow("\u2029")]
+    public void ConvertDocumentationExteriorsToCommentsConvertsEveryLineTerminator(string lineTerminator)
+    {
+        var input = string.Concat("///A", lineTerminator, "  ///B");
+        var expected = string.Concat("//A", lineTerminator, "  //B");
+
+        Assert.AreEqual(expected, DocumentationCommentUtilities.ConvertDocumentationExteriorsToComments(input, TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that content after the exterior is preserved verbatim, including a later exterior-looking run
+    /// </summary>
+    [TestMethod]
+    public void ConvertDocumentationExteriorsToCommentsPreservesContent()
+    {
+        Assert.AreEqual("//  spaced /// content", DocumentationCommentUtilities.ConvertDocumentationExteriorsToComments("///  spaced /// content", TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that converting already converted text is a no-op
+    /// </summary>
+    [TestMethod]
+    public void ConvertDocumentationExteriorsToCommentsIsIdempotent()
+    {
+        var once = DocumentationCommentUtilities.ConvertDocumentationExteriorsToComments("///A\n  ///B", TestContext.CancellationToken);
+
+        Assert.AreEqual(once, DocumentationCommentUtilities.ConvertDocumentationExteriorsToComments(once, TestContext.CancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that a null comment text is rejected
+    /// </summary>
+    [TestMethod]
+    public void ConvertDocumentationExteriorsToCommentsRejectsNullText()
+    {
+        Assert.ThrowsExactly<ArgumentNullException>(() => DocumentationCommentUtilities.ConvertDocumentationExteriorsToComments(null, TestContext.CancellationToken));
     }
 
     /// <summary>
