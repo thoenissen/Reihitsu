@@ -92,98 +92,74 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
     /// <returns><see langword="true"/> if the declaration can be collapsed to a single line; otherwise, <see langword="false"/></returns>
     private static bool IsEligibleSimpleAutoProperty(PropertyDeclarationSyntax propertyDeclaration)
     {
-        if (propertyDeclaration.AccessorList == null)
+        return propertyDeclaration.AccessorList != null
+               && IsSignatureCollapsible(propertyDeclaration)
+               && IsInitializerCollapsible(propertyDeclaration);
+    }
+
+    /// <summary>
+    /// Determines whether the property signature and accessor-list opener can be joined safely
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> when the signature can be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsSignatureCollapsible(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var accessorList = propertyDeclaration.AccessorList;
+
+        if (accessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(accessorList))
         {
             return false;
         }
 
-        // The formatter's CanCollapseAutoPropertyToSingleLine bails out on a comment or directive inside the
-        // accessor list (for example a comment between accessors), so the analyzer must guard the same shape,
-        // otherwise it flags a property the formatter never collapses, leaving a permanent diagnostic. The
-        // guard is interior-scoped to match the formatter exactly: a comment trailing the closing brace sits
-        // outside the accessor list, is never crossed by the collapse, and must not suppress the diagnostic.
-        if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.AccessorList))
-        {
-            return false;
-        }
-
-        var tokenBeforeOpenBrace = propertyDeclaration.AccessorList.OpenBraceToken.GetPreviousToken();
+        var tokenBeforeOpenBrace = accessorList.OpenBraceToken.GetPreviousToken();
         var signatureStartToken = GetSingleLineSignatureStartToken(propertyDeclaration);
 
-        if (signatureStartToken == default
-            || signatureStartToken.IsKind(SyntaxKind.None)
-            || tokenBeforeOpenBrace == default
-            || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
+        return signatureStartToken != default
+               && signatureStartToken.IsKind(SyntaxKind.None) == false
+               && tokenBeforeOpenBrace != default
+               && tokenBeforeOpenBrace.IsKind(SyntaxKind.None) == false
+               && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, accessorList.OpenBraceToken) == false
+               && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End));
+    }
+
+    /// <summary>
+    /// Determines whether the optional initializer and semicolon can be joined safely
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> when the initializer can be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsInitializerCollapsible(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var initializer = propertyDeclaration.Initializer;
+
+        if (initializer == null)
         {
-            return false;
+            return true;
         }
 
-        // A comment or directive in the gap between the signature and the accessor brace (for example
-        // "public int X // note\n{ get; set; }") lives in the signature's trailing trivia, not in the accessor
-        // list, so the check above misses it. The formatter refuses to join the brace across such trivia, so the
-        // analyzer must guard the same gap to avoid a permanent diagnostic.
-        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, propertyDeclaration.AccessorList.OpenBraceToken))
-        {
-            return false;
-        }
+        var accessorList = propertyDeclaration.AccessorList;
+        var initializerGapSpan = TextSpan.FromBounds(accessorList.CloseBraceToken.Span.End, initializer.EqualsToken.SpanStart);
 
-        if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
-        {
-            return false;
-        }
+        return SyntaxNodeUtilities.InteriorContainsCommentOrDirective(initializer) == false
+               && (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializerGapSpan)
+                   || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(accessorList.CloseBraceToken, initializer.EqualsToken) == false)
+               && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializer.Value.Span)
+               && IsSemicolonGapCollapsible(propertyDeclaration);
+    }
 
-        if (propertyDeclaration.Initializer != null)
-        {
-            // Only the initializer's own span is inspected. Its full span additionally covers the leading trivia of
-            // the equals token and the trailing trivia of the value's last token, and neither region is crossed in
-            // every case: the two gap guards below own them wherever the collapse actually has to join across them,
-            // and where they do not fire nothing is joined at all. Both of those guards carry a line-span
-            // precondition and are, after this narrowing, the only owners of their region — weakening either one
-            // silently uncovers it.
-            if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.Initializer))
-            {
-                return false;
-            }
+    /// <summary>
+    /// Determines whether a line break before the terminating semicolon can be joined safely
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> when the semicolon gap can be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsSemicolonGapCollapsible(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var semicolon = propertyDeclaration.SemicolonToken;
+        var tokenBeforeSemicolon = semicolon.GetPreviousToken();
 
-            // The reported span runs to the end of the declaration, so it covers the initializer as well. This guard
-            // is the only owner of the gap between the accessor list and the initializer: a comment there lives in
-            // the closing brace's trailing trivia and a directive in the equals token's leading trivia, and the
-            // interior check above inspects neither. The formatter only has to join that gap when the initializer
-            // starts on a later line, and it refuses to join across such trivia, so the analyzer must guard the same
-            // gap to avoid a permanent diagnostic. Trivia in a gap that already sits on one line is never crossed
-            // and must not suppress the diagnostic.
-            var initializerGapSpan = TextSpan.FromBounds(propertyDeclaration.AccessorList.CloseBraceToken.Span.End, propertyDeclaration.Initializer.EqualsToken.SpanStart);
-
-            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializerGapSpan) == false
-                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(propertyDeclaration.AccessorList.CloseBraceToken, propertyDeclaration.Initializer.EqualsToken))
-            {
-                return false;
-            }
-
-            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
-            {
-                return false;
-            }
-
-            // The reported span ends at the terminating semicolon, so a semicolon broken onto its own line makes the
-            // declaration multi-line. DeclarationSemicolonLineBreakRewriter joins that gap, but it refuses to join
-            // across a comment or directive, so the analyzer must guard the same gap to avoid a permanent diagnostic.
-            // The line check keeps the guard aligned with the rewriter, which only acts on a semicolon that carries a
-            // leading line break: trivia in a gap that already sits on one line is never crossed. Such a comment is
-            // trailing trivia of the initializer value, which the interior guard above deliberately no longer owns,
-            // so this guard is its only owner once the gap spans lines.
-            var tokenBeforeSemicolon = propertyDeclaration.SemicolonToken.GetPreviousToken();
-
-            if (propertyDeclaration.SemicolonToken.IsMissing == false
-                && tokenBeforeSemicolon.IsKind(SyntaxKind.None) == false
-                && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(tokenBeforeSemicolon.Span.End, propertyDeclaration.SemicolonToken.SpanStart)) == false
-                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeSemicolon, propertyDeclaration.SemicolonToken))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return semicolon.IsMissing
+               || tokenBeforeSemicolon.IsKind(SyntaxKind.None)
+               || SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(tokenBeforeSemicolon.Span.End, semicolon.SpanStart))
+               || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeSemicolon, semicolon) == false;
     }
 
     /// <summary>

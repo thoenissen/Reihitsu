@@ -269,16 +269,17 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                                                                                  CancellationToken cancellationToken)
     {
         var candidates = ImmutableArray.CreateBuilder<FixAllCandidate>();
-        var orderedDiagnostics = diagnostics.Where(static diagnostic => diagnostic.Location.IsInSource)
-                                            .OrderBy(diagnostic => GetDocumentSortKey(solution, diagnostic.Location.SourceTree), StringComparer.Ordinal)
-                                            .ThenBy(static diagnostic => diagnostic.Location.SourceSpan.Start)
-                                            .ThenBy(static diagnostic => diagnostic.Location.SourceSpan.Length);
+        var orderedLocations = diagnostics.Where(static diagnostic => diagnostic.Location.IsInSource)
+                                          .Select(static diagnostic => diagnostic.Location)
+                                          .OrderBy(location => GetDocumentSortKey(solution, location.SourceTree), StringComparer.Ordinal)
+                                          .ThenBy(static location => location.SourceSpan.Start)
+                                          .ThenBy(static location => location.SourceSpan.Length);
 
-        foreach (var diagnostic in orderedDiagnostics)
+        foreach (var location in orderedLocations)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var sourceTree = diagnostic.Location.SourceTree;
+            var sourceTree = location.SourceTree;
             var document = sourceTree == null
                                ? null
                                : solution.GetDocument(sourceTree);
@@ -292,7 +293,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             if (document == null
                 || root == null
                 || model == null
-                || root.FindNode(diagnostic.Location.SourceSpan) is not T node
+                || root.FindNode(location.SourceSpan) is not T node
                 || CanRegisterCodeFix(node) == false
                 || TryGetFixedIdentifier(node, out var identifier) == false)
             {
@@ -304,7 +305,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             if (declaredSymbol != null)
             {
                 candidates.Add(new FixAllCandidate(document.Id,
-                                                   diagnostic.Location.SourceSpan,
+                                                   location.SourceSpan,
                                                    new SyntaxAnnotation(nameof(FixAllCandidate), candidates.Count.ToString(CultureInfo.InvariantCulture)),
                                                    identifier,
                                                    declaredSymbol.ContainingSymbol));
@@ -379,37 +380,60 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         for (var firstIndex = 0; firstIndex < candidates.Length; firstIndex++)
         {
-            for (var secondIndex = firstIndex + 1; secondIndex < candidates.Length; secondIndex++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var first = candidates[firstIndex];
-                var second = candidates[secondIndex];
-
-                if (string.Equals(first.Identifier, second.Identifier, StringComparison.Ordinal) == false
-                    || SymbolEqualityComparer.Default.Equals(first.ContainingSymbol, second.ContainingSymbol) == false)
-                {
-                    continue;
-                }
-
-                if (await CandidatesConflictAsync(solution, first, second, cancellationToken).ConfigureAwait(false) == false)
-                {
-                    continue;
-                }
-
-                if (duplicateTargetCandidates.Any(candidate => candidate.Annotation == first.Annotation) == false)
-                {
-                    duplicateTargetCandidates.Add(first);
-                }
-
-                if (duplicateTargetCandidates.Any(candidate => candidate.Annotation == second.Annotation) == false)
-                {
-                    duplicateTargetCandidates.Add(second);
-                }
-            }
+            await AddDuplicateTargetsForCandidateAsync(solution,
+                                                       candidates,
+                                                       firstIndex,
+                                                       duplicateTargetCandidates,
+                                                       cancellationToken).ConfigureAwait(false);
         }
 
         return duplicateTargetCandidates.ToImmutable();
+    }
+
+    /// <summary>
+    /// Adds every later candidate that conflicts with one candidate's normalized target
+    /// </summary>
+    /// <param name="solution">Annotated solution</param>
+    /// <param name="candidates">Ordered fix-all candidates</param>
+    /// <param name="firstIndex">Index of the candidate to compare</param>
+    /// <param name="duplicates">Duplicate target accumulator</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A task that completes after all later candidates have been compared</returns>
+    private async Task AddDuplicateTargetsForCandidateAsync(Solution solution,
+                                                            ImmutableArray<FixAllCandidate> candidates,
+                                                            int firstIndex,
+                                                            ImmutableArray<FixAllCandidate>.Builder duplicates,
+                                                            CancellationToken cancellationToken)
+    {
+        var first = candidates[firstIndex];
+
+        for (var secondIndex = firstIndex + 1; secondIndex < candidates.Length; secondIndex++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var second = candidates[secondIndex];
+
+            if (string.Equals(first.Identifier, second.Identifier, StringComparison.Ordinal)
+                && SymbolEqualityComparer.Default.Equals(first.ContainingSymbol, second.ContainingSymbol)
+                && await CandidatesConflictAsync(solution, first, second, cancellationToken).ConfigureAwait(false))
+            {
+                AddIfMissing(duplicates, first);
+                AddIfMissing(duplicates, second);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds a candidate when its tracking annotation is not already represented
+    /// </summary>
+    /// <param name="candidates">Candidate accumulator</param>
+    /// <param name="candidate">Candidate to add</param>
+    private void AddIfMissing(ImmutableArray<FixAllCandidate>.Builder candidates, FixAllCandidate candidate)
+    {
+        if (candidates.Any(existing => existing.Annotation == candidate.Annotation) == false)
+        {
+            candidates.Add(candidate);
+        }
     }
 
     /// <summary>
@@ -591,35 +615,39 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (SymbolEqualityComparer.Default.Equals(member, declaredSymbol)
-                || member.DeclaringSyntaxReferences.IsEmpty)
+            if (IsNamespaceCollision(member, declaredSymbol, declaringTrees))
             {
-                continue;
+                return true;
             }
-
-            if (declaredSymbol is INamedTypeSymbol declaredType
-                && member is INamedTypeSymbol existingType)
-            {
-                if (declaredType.Arity != existingType.Arity)
-                {
-                    continue;
-                }
-
-                // File-local types occupy only their declaring syntax tree, so an equal name and arity in another
-                // document is not a collision.
-                if ((declaredType.IsFileLocal || existingType.IsFileLocal)
-                    && existingType.DeclaringSyntaxReferences.Any(reference => declaringTrees.Contains(reference.SyntaxTree)) == false)
-                {
-                    continue;
-                }
-            }
-
-            // Namespace merging is legal, but casing fixes deliberately refuse to merge declarations. A type and a
-            // namespace with the same source name also occupy a conflicting namespace member slot.
-            return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether one existing namespace member conflicts with the proposed declaration name
+    /// </summary>
+    /// <param name="member">Existing namespace member</param>
+    /// <param name="declaredSymbol">Declaration being renamed</param>
+    /// <param name="declaringTrees">Syntax trees containing the declaration</param>
+    /// <returns><see langword="true"/> when the existing member conflicts; otherwise, <see langword="false"/></returns>
+    private bool IsNamespaceCollision(ISymbol member, ISymbol declaredSymbol, ImmutableHashSet<SyntaxTree> declaringTrees)
+    {
+        if (SymbolEqualityComparer.Default.Equals(member, declaredSymbol)
+            || member.DeclaringSyntaxReferences.IsEmpty)
+        {
+            return false;
+        }
+
+        if (declaredSymbol is not INamedTypeSymbol declaredType
+            || member is not INamedTypeSymbol existingType)
+        {
+            return true;
+        }
+
+        return declaredType.Arity == existingType.Arity
+               && ((declaredType.IsFileLocal || existingType.IsFileLocal) == false
+                   || existingType.DeclaringSyntaxReferences.Any(reference => declaringTrees.Contains(reference.SyntaxTree)));
     }
 
     /// <summary>
@@ -664,6 +692,120 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                                                             string identifier,
                                                             CancellationToken cancellationToken)
     {
+        var preparation = await PrepareRenameAsync(solution,
+                                                   documentId,
+                                                   annotation,
+                                                   identifier,
+                                                   cancellationToken).ConfigureAwait(false);
+
+        if (preparation == null)
+        {
+            return null;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var prepared = preparation.Value;
+        var renamedSolution = await Renamer.RenameSymbolAsync(prepared.Solution,
+                                                              prepared.Symbol,
+                                                              default,
+                                                              identifier,
+                                                              cancellationToken)
+                                           .ConfigureAwait(false);
+
+        if (await HasConflictAnnotationsAsync(prepared.Solution, renamedSolution, cancellationToken).ConfigureAwait(false)
+            || await ResolveRenameDeclarationAsync(renamedSolution, documentId, annotation, cancellationToken).ConfigureAwait(false) == null)
+        {
+            return null;
+        }
+
+        if (prepared.HasNamespaceOwner == false
+            && await HasAddedBindingErrorsAsync(renamedSolution,
+                                                prepared.Domains,
+                                                prepared.OriginalErrors,
+                                                cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return renamedSolution;
+    }
+
+    /// <summary>
+    /// Resolves and validates the declaration plus binding domains required before a rename
+    /// </summary>
+    /// <param name="solution">Annotated solution</param>
+    /// <param name="documentId">Document containing the declaration</param>
+    /// <param name="annotation">Declaration tracking annotation</param>
+    /// <param name="identifier">Proposed identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The prepared rename inputs, or <see langword="null"/> when the rename is unsafe</returns>
+    private async Task<(Solution Solution,
+    ISymbol Symbol,
+    ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains,
+    ImmutableArray<Diagnostic> OriginalErrors,
+    bool HasNamespaceOwner)?> PrepareRenameAsync(Solution solution,
+                                                 DocumentId documentId,
+                                                 SyntaxAnnotation annotation,
+                                                 string identifier,
+                                                 CancellationToken cancellationToken)
+    {
+        var resolved = await ResolveRenameDeclarationAsync(solution, documentId, annotation, cancellationToken).ConfigureAwait(false);
+
+        if (resolved == null)
+        {
+            return null;
+        }
+
+        var declaredSymbol = resolved.Value.Symbol;
+
+        if (declaredSymbol.ContainingSymbol is INamespaceSymbol)
+        {
+            return HasNamespaceCollision(declaredSymbol, identifier, cancellationToken)
+                       ? null
+                       : (solution,
+                          declaredSymbol,
+                          ImmutableArray<(DocumentId, SyntaxAnnotation)>.Empty,
+                          ImmutableArray<Diagnostic>.Empty,
+                          true);
+        }
+
+        var domainResult = await AnnotateBindingDomainsAsync(solution,
+                                                             documentId,
+                                                             declaredSymbol,
+                                                             cancellationToken).ConfigureAwait(false);
+        var updatedResolved = await ResolveRenameDeclarationAsync(domainResult.Solution,
+                                                                  documentId,
+                                                                  annotation,
+                                                                  cancellationToken).ConfigureAwait(false);
+
+        if (updatedResolved == null)
+        {
+            return null;
+        }
+
+        var originalErrors = await GetBindingDomainErrorsAsync(domainResult.Solution,
+                                                               domainResult.Domains,
+                                                               cancellationToken).ConfigureAwait(false);
+
+        return originalErrors.IsDefault
+                   ? null
+                   : (domainResult.Solution, updatedResolved.Value.Symbol, domainResult.Domains, originalErrors, false);
+    }
+
+    /// <summary>
+    /// Resolves an annotated declaration and its symbol in a solution
+    /// </summary>
+    /// <param name="solution">Solution containing the declaration</param>
+    /// <param name="documentId">Document containing the declaration</param>
+    /// <param name="annotation">Declaration tracking annotation</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The declaration and symbol, or <see langword="null"/> when either cannot be resolved</returns>
+    private async Task<(T Node, ISymbol Symbol)?> ResolveRenameDeclarationAsync(Solution solution,
+                                                                                DocumentId documentId,
+                                                                                SyntaxAnnotation annotation,
+                                                                                CancellationToken cancellationToken)
+    {
         var document = solution.GetDocument(documentId);
         var root = document == null
                        ? null
@@ -672,122 +814,62 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                         ? null
                         : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var node = root?.GetAnnotatedNodes(annotation).OfType<T>().SingleOrDefault();
-        var declaredSymbol = model == null || node == null
-                                 ? null
-                                 : GetDeclaredSymbol(model, node, cancellationToken);
+        var symbol = model == null || node == null
+                         ? null
+                         : GetDeclaredSymbol(model, node, cancellationToken);
 
-        if (document == null
-            || model == null
-            || node == null
-            || declaredSymbol == null)
+        return node == null || symbol == null
+                   ? null
+                   : (node, symbol);
+    }
+
+    /// <summary>
+    /// Determines whether Roslyn attached a conflict annotation to any changed document
+    /// </summary>
+    /// <param name="originalSolution">Solution before the rename</param>
+    /// <param name="renamedSolution">Solution after the rename</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when a changed document contains a conflict annotation; otherwise, <see langword="false"/></returns>
+    private async Task<bool> HasConflictAnnotationsAsync(Solution originalSolution,
+                                                         Solution renamedSolution,
+                                                         CancellationToken cancellationToken)
+    {
+        foreach (var documentId in renamedSolution.GetChanges(originalSolution)
+                                                  .GetProjectChanges()
+                                                  .SelectMany(static changes => changes.GetChangedDocuments()))
         {
-            return null;
-        }
+            var document = renamedSolution.GetDocument(documentId);
+            var root = document == null
+                           ? null
+                           : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var hasNamespaceOwner = declaredSymbol.ContainingSymbol is INamespaceSymbol;
-        var domains = ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)>.Empty;
-        var originalErrors = ImmutableArray<Diagnostic>.Empty;
-
-        if (hasNamespaceOwner)
-        {
-            // Namespace syntax references can cover every declaration of that namespace. Membership lookup proves
-            // source collisions without turning the declaration-domain diagnostic check into a multi-document scan.
-            if (HasNamespaceCollision(declaredSymbol, identifier, cancellationToken))
+            if (root?.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind).Any() == true)
             {
-                return null;
-            }
-        }
-        else
-        {
-            var domainResult = await AnnotateBindingDomainsAsync(solution,
-                                                                 documentId,
-                                                                 declaredSymbol,
-                                                                 cancellationToken).ConfigureAwait(false);
-
-            solution = domainResult.Solution;
-            domains = domainResult.Domains;
-            document = solution.GetDocument(documentId);
-            root = document == null
-                       ? null
-                       : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            model = document == null
-                        ? null
-                        : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            node = root?.GetAnnotatedNodes(annotation).OfType<T>().SingleOrDefault();
-            declaredSymbol = model == null || node == null
-                                 ? null
-                                 : GetDeclaredSymbol(model, node, cancellationToken);
-
-            if (declaredSymbol == null)
-            {
-                return null;
-            }
-
-            // Comparing error-ID multiplicities across only the containing symbol's source declaration spans includes
-            // either side of a duplicate declaration without requiring unrelated pre-existing errors to disappear.
-            originalErrors = await GetBindingDomainErrorsAsync(solution, domains, cancellationToken).ConfigureAwait(false);
-
-            if (originalErrors.IsDefault)
-            {
-                return null;
+                return true;
             }
         }
 
-        var renamedSolution = await Renamer.RenameSymbolAsync(solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
-        var changes = renamedSolution.GetChanges(solution);
+        return false;
+    }
 
-        foreach (var projectChanges in changes.GetProjectChanges())
-        {
-            foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
-            {
-                var changedDocument = renamedSolution.GetDocument(changedDocumentId);
-                var changedRoot = changedDocument == null
-                                      ? null
-                                      : await changedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+    /// <summary>
+    /// Determines whether a rename added errors within the declaration's binding domains
+    /// </summary>
+    /// <param name="renamedSolution">Solution after the rename</param>
+    /// <param name="domains">Annotated binding domains</param>
+    /// <param name="originalErrors">Errors present before the rename</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when the rename added binding errors; otherwise, <see langword="false"/></returns>
+    private async Task<bool> HasAddedBindingErrorsAsync(Solution renamedSolution,
+                                                        ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
+                                                        ImmutableArray<Diagnostic> originalErrors,
+                                                        CancellationToken cancellationToken)
+    {
+        var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
 
-                if (changedRoot?.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind).Any() == true)
-                {
-                    return null;
-                }
-            }
-        }
-
-        var renamedDocument = renamedSolution.GetDocument(documentId);
-        var renamedRoot = renamedDocument == null
-                              ? null
-                              : await renamedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var renamedModel = renamedDocument == null
-                               ? null
-                               : await renamedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var renamedNode = renamedRoot?.GetAnnotatedNodes(annotation).OfType<T>().SingleOrDefault();
-
-        if (renamedModel == null
-            || renamedNode == null)
-        {
-            return null;
-        }
-
-        if (hasNamespaceOwner == false)
-        {
-            var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
-
-            if (renamedErrors.IsDefault)
-            {
-                return null;
-            }
-
-            foreach (var errorGroup in renamedErrors.GroupBy(static diagnostic => diagnostic.Id))
-            {
-                if (errorGroup.Count() > originalErrors.Count(diagnostic => string.Equals(diagnostic.Id, errorGroup.Key, StringComparison.Ordinal)))
-                {
-                    return null;
-                }
-            }
-        }
-
-        return renamedSolution;
+        return renamedErrors.IsDefault
+               || renamedErrors.GroupBy(static diagnostic => diagnostic.Id)
+                               .Any(errorGroup => errorGroup.Count() > originalErrors.Count(diagnostic => string.Equals(diagnostic.Id, errorGroup.Key, StringComparison.Ordinal)));
     }
 
     #endregion // Methods

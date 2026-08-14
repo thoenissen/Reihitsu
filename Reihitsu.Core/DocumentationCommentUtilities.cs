@@ -264,59 +264,91 @@ public static class DocumentationCommentUtilities
         while (index < commentText.Length)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var lineStart = index;
-
-            while (index < commentText.Length
-                   && char.IsWhiteSpace(commentText[index])
-                   && IsLineTerminator(commentText[index]) == false)
-            {
-                index++;
-            }
-
-            if (string.CompareOrdinal(commentText, index, DocumentationExterior, 0, DocumentationExterior.Length) == 0)
-            {
-                var suffixStart = index + DocumentationExterior.Length;
-                var suffixEnd = suffixStart;
-
-                while (suffixEnd < commentText.Length
-                       && IsLineTerminator(commentText[suffixEnd]) == false)
-                {
-                    suffixEnd++;
-                }
-
-                builder.Append(commentText, lineStart, index - lineStart);
-
-                rewriteExterior(builder, DocumentationExterior, commentText.Substring(suffixStart, suffixEnd - suffixStart));
-
-                index = suffixEnd;
-            }
-            else
-            {
-                while (index < commentText.Length
-                       && IsLineTerminator(commentText[index]) == false)
-                {
-                    index++;
-                }
-
-                builder.Append(commentText, lineStart, index - lineStart);
-            }
-
-            if (index < commentText.Length)
-            {
-                var terminatorLength = commentText[index] == '\r'
-                                       && index + 1 < commentText.Length
-                                       && commentText[index + 1] == '\n'
-                                           ? 2
-                                           : 1;
-
-                builder.Append(commentText, index, terminatorLength);
-
-                index += terminatorLength;
-            }
+            index = RewriteDocumentationLine(commentText, index, builder, rewriteExterior);
+            index = AppendLineTerminator(commentText, index, builder);
         }
 
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Rewrites one documentation line and returns the index of its terminator
+    /// </summary>
+    /// <param name="commentText">Complete documentation comment text</param>
+    /// <param name="lineStart">Index at which the line starts</param>
+    /// <param name="builder">Destination builder</param>
+    /// <param name="rewriteExterior">Exterior rewrite callback</param>
+    /// <returns>The index of the line terminator, or the text length for the final line</returns>
+    private static int RewriteDocumentationLine(string commentText,
+                                                int lineStart,
+                                                StringBuilder builder,
+                                                Action<StringBuilder, string, string> rewriteExterior)
+    {
+        var contentStart = lineStart;
+
+        while (contentStart < commentText.Length
+               && char.IsWhiteSpace(commentText[contentStart])
+               && IsLineTerminator(commentText[contentStart]) == false)
+        {
+            contentStart++;
+        }
+
+        var lineEnd = FindLineEnd(commentText, contentStart);
+
+        if (string.CompareOrdinal(commentText, contentStart, DocumentationExterior, 0, DocumentationExterior.Length) != 0)
+        {
+            builder.Append(commentText, lineStart, lineEnd - lineStart);
+
+            return lineEnd;
+        }
+
+        var suffixStart = contentStart + DocumentationExterior.Length;
+
+        builder.Append(commentText, lineStart, contentStart - lineStart);
+        rewriteExterior(builder, DocumentationExterior, commentText.Substring(suffixStart, lineEnd - suffixStart));
+
+        return lineEnd;
+    }
+
+    /// <summary>
+    /// Finds the end of the current physical line
+    /// </summary>
+    /// <param name="text">Text to inspect</param>
+    /// <param name="startIndex">Index from which to scan</param>
+    /// <returns>The index of the line terminator, or the text length when none remains</returns>
+    private static int FindLineEnd(string text, int startIndex)
+    {
+        while (startIndex < text.Length && IsLineTerminator(text[startIndex]) == false)
+        {
+            startIndex++;
+        }
+
+        return startIndex;
+    }
+
+    /// <summary>
+    /// Copies the current line terminator and returns the next line's start index
+    /// </summary>
+    /// <param name="text">Text containing the terminator</param>
+    /// <param name="terminatorIndex">Index of the terminator</param>
+    /// <param name="builder">Destination builder</param>
+    /// <returns>The index immediately after the terminator</returns>
+    private static int AppendLineTerminator(string text, int terminatorIndex, StringBuilder builder)
+    {
+        if (terminatorIndex >= text.Length)
+        {
+            return terminatorIndex;
+        }
+
+        var terminatorLength = text[terminatorIndex] == '\r'
+                               && terminatorIndex + 1 < text.Length
+                               && text[terminatorIndex + 1] == '\n'
+                                   ? 2
+                                   : 1;
+
+        builder.Append(text, terminatorIndex, terminatorLength);
+
+        return terminatorIndex + terminatorLength;
     }
 
     /// <summary>

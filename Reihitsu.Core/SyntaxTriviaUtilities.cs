@@ -591,45 +591,7 @@ public static class SyntaxTriviaUtilities
                                                                         int desiredSpaces,
                                                                         bool returnOriginalWhenUnchanged)
     {
-        var lastNonWhitespaceIndex = -1;
-
-        for (var triviaIndex = trailing.Count - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            if (trailing[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                lastNonWhitespaceIndex = triviaIndex;
-
-                break;
-            }
-        }
-
-        var normalizedTrivia = SyntaxFactory.TriviaList();
-        var previousWasWhitespace = false;
-
-        for (var triviaIndex = 0; triviaIndex < trailing.Count; triviaIndex++)
-        {
-            var trivia = trailing[triviaIndex];
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                if (triviaIndex > lastNonWhitespaceIndex)
-                {
-                    continue;
-                }
-
-                if (previousWasWhitespace == false)
-                {
-                    normalizedTrivia = normalizedTrivia.Add(_singleSpace);
-                }
-
-                previousWasWhitespace = true;
-            }
-            else
-            {
-                normalizedTrivia = normalizedTrivia.Add(trivia);
-                previousWasWhitespace = false;
-            }
-        }
+        var normalizedTrivia = NormalizeInteriorWhitespace(trailing, FindLastNonWhitespaceIndex(trailing));
 
         if (desiredSpaces > 0)
         {
@@ -643,6 +605,58 @@ public static class SyntaxTriviaUtilities
         }
 
         return token.WithTrailingTrivia(normalizedTrivia);
+    }
+
+    /// <summary>
+    /// Finds the final non-whitespace trivia in a list
+    /// </summary>
+    /// <param name="trivia">The trivia list to inspect</param>
+    /// <returns>The index of the final non-whitespace trivia, or <c>-1</c> when none exists</returns>
+    private static int FindLastNonWhitespaceIndex(SyntaxTriviaList trivia)
+    {
+        for (var index = trivia.Count - 1; index >= 0; index--)
+        {
+            if (trivia[index].IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Collapses whitespace runs before the final non-whitespace trivia to one space
+    /// </summary>
+    /// <param name="trivia">The trivia list to normalize</param>
+    /// <param name="lastNonWhitespaceIndex">The index of the final non-whitespace trivia</param>
+    /// <returns>The normalized trivia list</returns>
+    private static SyntaxTriviaList NormalizeInteriorWhitespace(SyntaxTriviaList trivia, int lastNonWhitespaceIndex)
+    {
+        var normalized = SyntaxFactory.TriviaList();
+        var previousWasWhitespace = false;
+
+        for (var index = 0; index <= lastNonWhitespaceIndex; index++)
+        {
+            var current = trivia[index];
+
+            if (current.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                if (previousWasWhitespace == false)
+                {
+                    normalized = normalized.Add(_singleSpace);
+                }
+
+                previousWasWhitespace = true;
+            }
+            else
+            {
+                normalized = normalized.Add(current);
+                previousWasWhitespace = false;
+            }
+        }
+
+        return normalized;
     }
 
     #endregion // Methods
