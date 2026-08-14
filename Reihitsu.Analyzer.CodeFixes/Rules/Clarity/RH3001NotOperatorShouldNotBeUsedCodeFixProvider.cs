@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -32,8 +34,22 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
     {
-        var replacementNode = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, node.Operand.WithoutTrivia(), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
-                                           .WithTriviaFrom(node)
+        var operandLeadingTrivia = node.OperatorToken.TrailingTrivia.AddRange(node.Operand.GetLeadingTrivia());
+
+        while (operandLeadingTrivia.Count > 0
+               && operandLeadingTrivia[0].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            operandLeadingTrivia = operandLeadingTrivia.RemoveAt(0);
+        }
+
+        var openParenthesis = SyntaxFactory.Token(SyntaxKind.OpenParenToken)
+                                           .WithLeadingTrivia(node.GetLeadingTrivia())
+                                           .WithTrailingTrivia(operandLeadingTrivia);
+        var operand = node.Operand.WithoutLeadingTrivia();
+        var replacementNode = SyntaxFactory.ParenthesizedExpression(openParenthesis,
+                                                                    SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, operand, SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
+                                                                    SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+                                           .WithTrailingTrivia(node.GetTrailingTrivia())
                                            .WithAdditionalAnnotations(Simplifier.Annotation);
 
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -46,6 +62,21 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
         }
 
         return document;
+    }
+
+    /// <summary>
+    /// Determines whether the operator-to-operand gap contains syntax that cannot be transferred safely
+    /// </summary>
+    /// <param name="node">Logical-not expression</param>
+    /// <returns><see langword="true"/> if the operand trivia can be preserved by the rewrite; otherwise, <see langword="false"/></returns>
+    private static bool HasSafeOperandTrivia(PrefixUnaryExpressionSyntax node)
+    {
+        var gap = TextSpan.FromBounds(node.OperatorToken.Span.End, node.Operand.SpanStart);
+        var gapTrivia = node.OperatorToken.TrailingTrivia.AddRange(node.Operand.GetLeadingTrivia());
+
+        return node.SyntaxTree.GetDiagnostics().Any(diagnostic => diagnostic.Location.SourceSpan.IntersectsWith(gap)) == false
+               && gapTrivia.All(static trivia => SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia) == false
+                                                 && trivia.IsKind(SyntaxKind.SkippedTokensTrivia) == false);
     }
 
     #endregion // Methods
@@ -70,7 +101,8 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindNode(diagnostic.Location.SourceSpan) is PrefixUnaryExpressionSyntax node)
+                if (root.FindNode(diagnostic.Location.SourceSpan) is PrefixUnaryExpressionSyntax node
+                    && HasSafeOperandTrivia(node))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3001Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),

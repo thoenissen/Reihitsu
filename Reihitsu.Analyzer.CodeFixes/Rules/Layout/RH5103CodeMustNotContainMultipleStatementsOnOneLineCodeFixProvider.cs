@@ -29,10 +29,9 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="statement">Statement to move</param>
-    /// <param name="previousStatement">Previous statement</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, StatementSyntax statement, StatementSyntax previousStatement, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, StatementSyntax statement, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -42,11 +41,41 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var indentationColumn = previousStatement.GetLocation().GetLineSpan().StartLinePosition.Character;
-        var replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + new string(' ', indentationColumn);
-        var replacementSpan = TextSpan.FromBounds(previousStatement.Span.End, statement.Span.Start);
+        var previousToken = statement.GetFirstToken().GetPreviousToken();
+        var previousStatement = GetPreviousStatement(statement);
+
+        if (previousStatement == null)
+        {
+            return document;
+        }
+
+        var replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + GetIndentation(sourceText, statement, previousStatement);
+        var replacementSpan = TextSpan.FromBounds(previousToken.Span.End, statement.Span.Start);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacementText));
+    }
+
+    /// <summary>
+    /// Gets the exact indentation from the containing statement list when it is available
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="statement">Statement to move</param>
+    /// <param name="previousStatement">Previous statement in the containing list</param>
+    /// <returns>The indentation to place before the moved statement</returns>
+    private static string GetIndentation(SourceText sourceText, StatementSyntax statement, StatementSyntax previousStatement)
+    {
+        var previousLine = sourceText.Lines.GetLineFromPosition(previousStatement.SpanStart);
+        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, previousLine));
+
+        if (statement.Parent is BlockSyntax
+            || previousLine.Start + indentation.Length == previousStatement.SpanStart)
+        {
+            return indentation;
+        }
+
+        var indentationColumn = SyntaxIndentationUtilities.ComputeStatementIndentLevel(statement) * SyntaxIndentationUtilities.IndentSize;
+
+        return new string(' ', indentationColumn);
     }
 
     /// <summary>
@@ -69,6 +98,30 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Determines whether the selected statement has a directly editable leading gap
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="statement">Selected statement</param>
+    /// <param name="previousStatement">Previous analyzed non-empty statement</param>
+    /// <returns><see langword="true"/> if only formatting trivia separates the statements; otherwise, <see langword="false"/></returns>
+    private static bool HasEditableLeadingGap(SyntaxNode root, StatementSyntax statement, StatementSyntax previousStatement)
+    {
+        var previousToken = statement.GetFirstToken().GetPreviousToken(includeZeroWidth: true, includeSkipped: true);
+
+        if (previousToken.Parent?.FirstAncestorOrSelf<StatementSyntax>() != previousStatement)
+        {
+            return false;
+        }
+
+        var gap = TextSpan.FromBounds(previousStatement.Span.End, statement.Span.Start);
+
+        return root.SyntaxTree.GetDiagnostics().Any(diagnostic => diagnostic.Location.SourceSpan.IntersectsWith(gap)) == false
+               && root.SyntaxTree.GetText()
+                                 .ToString(gap)
+                                 .All(static character => character is ' ' or '\t');
     }
 
     #endregion // Methods
@@ -105,14 +158,13 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
 
             var previousStatement = GetPreviousStatement(statement);
 
-            if (previousStatement == null
-                || SyntaxNodeUtilities.SpanContainsComment(root, TextSpan.FromBounds(previousStatement.Span.End, statement.Span.Start)))
+            if (previousStatement == null || HasEditableLeadingGap(root, statement, previousStatement) == false)
             {
                 continue;
             }
 
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5103Title,
-                                                      token => ApplyCodeFixAsync(context.Document, statement, previousStatement, token),
+                                                      token => ApplyCodeFixAsync(context.Document, statement, token),
                                                       nameof(RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider)),
                                     diagnostic);
         }
