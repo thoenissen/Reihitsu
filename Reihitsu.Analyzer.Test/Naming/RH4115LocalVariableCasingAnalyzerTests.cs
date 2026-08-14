@@ -927,6 +927,133 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     }
 
     /// <summary>
+    /// Verifies a named-namespace type rename is refused when the normalized target exists in another document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamedNamespaceTypeCollisionAcrossDocumentsIsRefused()
+    {
+        const string source = "namespace Common;\ninternal class badName { }";
+        const string conflictingSource = "namespace Common;\ninternal class BadName { }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 conflictingSource);
+
+        Assert.AreEqual(0, actionCount);
+        Assert.AreSequenceEqual(new[] { source, conflictingSource }, fixedSources);
+        Assert.HasCount(1, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies Project Fix All refuses a cross-document type collision within a named namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamedNamespaceTypeCollisionAcrossDocumentsIsRefusedByProjectFixAll()
+    {
+        const string source = "namespace Common;\ninternal class badName { }";
+        const string conflictingSource = "namespace Common;\ninternal class BadName { }";
+
+        var (fixedSources, initialAnalyzerDiagnostics, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyFixAllAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                           new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                           source,
+                                                                                                                                           conflictingSource);
+
+        Assert.HasCount(1, initialAnalyzerDiagnostics);
+        Assert.AreSequenceEqual(new[] { source, conflictingSource }, fixedSources);
+        Assert.HasCount(1, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies an error in another declaration of the same namespace does not suppress a safe type rename
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamedNamespaceTypeRenameIgnoresUnrelatedDocumentError()
+    {
+        const string source = "namespace Common;\ninternal class badName { }";
+        const string unrelatedErrorSource = "namespace Common;\ninternal class Broken { MissingType Value; }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 unrelatedErrorSource);
+
+        Assert.AreEqual(1, actionCount);
+        Assert.AreSequenceEqual(new[] { "namespace Common;\ninternal class BadName { }", unrelatedErrorSource }, fixedSources);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.HasCount(1, compilerErrors);
+        Assert.AreEqual("CS0246", compilerErrors[0].Id);
+    }
+
+    /// <summary>
+    /// Verifies named-namespace types with the same normalized name but different arity can coexist
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamedNamespaceTypeRenameAllowsDifferentArity()
+    {
+        const string source = "namespace Common;\ninternal class badName<T> { }";
+        const string differentAritySource = "namespace Common;\ninternal class BadName<TFirst, TSecond> { }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 differentAritySource);
+
+        Assert.AreEqual(1, actionCount);
+        Assert.AreSequenceEqual(new[] { "namespace Common;\ninternal class BadName<T> { }", differentAritySource }, fixedSources);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies a file-local normalized target in another declaration of a named namespace does not collide
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamedNamespaceTypeRenameAllowsFileLocalTargetInAnotherDocument()
+    {
+        const string source = "namespace Common;\ninternal class badName { }";
+        const string fileLocalSource = "namespace Common;\nfile class BadName { }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 fileLocalSource);
+
+        Assert.AreEqual(1, actionCount);
+        Assert.AreSequenceEqual(new[] { "namespace Common;\ninternal class BadName { }", fileLocalSource }, fixedSources);
+        Assert.IsEmpty(postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
+    /// Verifies a named-namespace type rename is refused when its normalized target is a nested source namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NamedNamespaceTypeRenameToNamespaceAcrossDocumentsIsRefused()
+    {
+        const string source = "namespace Common;\ninternal class badName { }";
+        const string conflictingSource = "namespace Common.BadName { internal class SecondClass { } }";
+
+        var (actionCount, fixedSources, postFixAnalyzerDiagnostics, compilerErrors) = await ApplyOrdinaryFixAcrossDocumentsAsync(new RH4002ClassNameCasingAnalyzer(),
+                                                                                                                                 new RH4002ClassNameCasingCodeFixProvider(),
+                                                                                                                                 source,
+                                                                                                                                 conflictingSource);
+
+        Assert.AreEqual(0, actionCount);
+        Assert.AreSequenceEqual(new[] { source, conflictingSource }, fixedSources);
+        Assert.HasCount(1, postFixAnalyzerDiagnostics);
+        Assert.IsEmpty(compilerErrors);
+    }
+
+    /// <summary>
     /// Verifies a local-variable casing fix does not introduce a duplicate declaration in a nested block
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -468,7 +468,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Annotates every non-global source declaration that owns the target declaration's binding domain
+    /// Annotates every source declaration that owns a non-namespace target's binding domain
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Target declaration document</param>
@@ -532,7 +532,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets compiler errors from the tracked source declarations that own a rename's binding domain
+    /// Gets compiler errors from the tracked source declarations that own a non-namespace rename's binding domain
     /// </summary>
     /// <param name="solution">Current solution</param>
     /// <param name="domains">Binding-domain document/annotation pairs</param>
@@ -571,15 +571,15 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether a global-namespace declaration's proposed name collides with an existing source member
+    /// Determines whether a namespace-owned declaration's proposed name collides with an existing source member
     /// </summary>
     /// <param name="declaredSymbol">Declaration symbol</param>
     /// <param name="identifier">Proposed identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when the proposed name collides; otherwise, <see langword="false"/></returns>
-    private bool HasGlobalNamespaceCollision(ISymbol declaredSymbol, string identifier, CancellationToken cancellationToken)
+    private bool HasNamespaceCollision(ISymbol declaredSymbol, string identifier, CancellationToken cancellationToken)
     {
-        if (declaredSymbol.ContainingSymbol is not INamespaceSymbol { IsGlobalNamespace: true } globalNamespace)
+        if (declaredSymbol.ContainingSymbol is not INamespaceSymbol containingNamespace)
         {
             return false;
         }
@@ -587,7 +587,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         var declaringTrees = declaredSymbol.DeclaringSyntaxReferences.Select(static reference => reference.SyntaxTree)
                                                                      .ToImmutableHashSet();
 
-        foreach (var member in globalNamespace.GetMembers(identifier))
+        foreach (var member in containingNamespace.GetMembers(identifier))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -615,7 +615,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             }
 
             // Namespace merging is legal, but casing fixes deliberately refuse to merge declarations. A type and a
-            // namespace with the same source name also occupy a conflicting global-namespace member slot.
+            // namespace with the same source name also occupy a conflicting namespace member slot.
             return true;
         }
 
@@ -650,7 +650,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies a rename only when Roslyn produces no global member collision, conflict annotations, or added declaration errors
+    /// Applies a rename only when Roslyn produces no namespace member collision, conflict annotations, or added declaration errors
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
@@ -686,15 +686,15 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var hasGlobalNamespaceOwner = declaredSymbol.ContainingSymbol is INamespaceSymbol { IsGlobalNamespace: true };
+        var hasNamespaceOwner = declaredSymbol.ContainingSymbol is INamespaceSymbol;
         var domains = ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)>.Empty;
         var originalErrors = ImmutableArray<Diagnostic>.Empty;
 
-        if (hasGlobalNamespaceOwner)
+        if (hasNamespaceOwner)
         {
-            // Global namespace syntax references cover every compilation unit. Membership lookup proves source
-            // collisions without turning the declaration-domain diagnostic check into a project-wide scan.
-            if (HasGlobalNamespaceCollision(declaredSymbol, identifier, cancellationToken))
+            // Namespace syntax references can cover every declaration of that namespace. Membership lookup proves
+            // source collisions without turning the declaration-domain diagnostic check into a multi-document scan.
+            if (HasNamespaceCollision(declaredSymbol, identifier, cancellationToken))
             {
                 return null;
             }
@@ -769,7 +769,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
-        if (hasGlobalNamespaceOwner == false)
+        if (hasNamespaceOwner == false)
         {
             var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
 
