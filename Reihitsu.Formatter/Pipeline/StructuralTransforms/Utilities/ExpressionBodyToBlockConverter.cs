@@ -110,17 +110,8 @@ internal static class ExpressionBodyToBlockConverter
     /// <returns>The significant trivia to carry over, or an empty list when nothing but whitespace was present</returns>
     private static SyntaxTriviaList ExtractSignificantTrivia(SyntaxTriviaList triviaList)
     {
-        var hasSignificantTrivia = false;
-
-        foreach (var trivia in triviaList)
-        {
-            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia))
-            {
-                hasSignificantTrivia = true;
-
-                break;
-            }
-        }
+        var hasSignificantTrivia = triviaList.Any(static trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                                                   || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
 
         if (hasSignificantTrivia == false)
         {

@@ -48,12 +48,10 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : Diagno
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true)
+                                   .Where(static trivia => trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: false }))
         {
-            if (trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: false })
-            {
-                nonFormattableLineIndices.Add(sourceText.Lines.GetLineFromPosition(trivia.SpanStart).LineNumber);
-            }
+            nonFormattableLineIndices.Add(sourceText.Lines.GetLineFromPosition(trivia.SpanStart).LineNumber);
         }
 
         foreach (var line in sourceText.Lines)

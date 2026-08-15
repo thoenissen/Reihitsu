@@ -69,6 +69,27 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
+    /// Replaces the accessibility modifiers with the specified modifier
+    /// </summary>
+    /// <param name="modifiers">Modifiers</param>
+    /// <param name="accessibilityModifier">Accessibility modifier</param>
+    /// <returns>Updated modifiers</returns>
+    /// <remarks>
+    /// This overload operates on the modifier list in isolation and does not relocate any leading trivia that
+    /// is attached to a declaration's first token. Callers that add a modifier to a declaration should use
+    /// <see cref="AddAccessibilityModifier(MemberDeclarationSyntax, SyntaxKind)"/> so leading trivia (for
+    /// example doc comments and indentation) is moved onto the inserted modifier. The file-scoped
+    /// <see langword="file"/> modifier is never replaced by this method: unlike the four accessibility
+    /// keywords, <see langword="file"/> cannot be combined with another accessibility modifier, so silently
+    /// replacing it would widen a file-local type's visibility instead of leaving the (already invalid)
+    /// combination for the caller to detect
+    /// </remarks>
+    public static SyntaxTokenList AddAccessibilityModifier(SyntaxTokenList modifiers, SyntaxKind accessibilityModifier)
+    {
+        return AddAccessibilityModifiers(modifiers, [accessibilityModifier]);
+    }
+
+    /// <summary>
     /// Adds (or replaces) the accessibility modifiers on the specified declaration while keeping the
     /// declaration's leading trivia (such as XML documentation and indentation) attached to it. Passing more
     /// than one modifier expresses a compound accessibility such as <see langword="protected"/>
@@ -91,27 +112,6 @@ public static class DeclarationModifierUtilities
 
         return declarationWithoutLeadingTrivia.WithModifiers(updatedModifiers)
                                               .WithLeadingTrivia(leadingTrivia);
-    }
-
-    /// <summary>
-    /// Replaces the accessibility modifiers with the specified modifier
-    /// </summary>
-    /// <param name="modifiers">Modifiers</param>
-    /// <param name="accessibilityModifier">Accessibility modifier</param>
-    /// <returns>Updated modifiers</returns>
-    /// <remarks>
-    /// This overload operates on the modifier list in isolation and does not relocate any leading trivia that
-    /// is attached to a declaration's first token. Callers that add a modifier to a declaration should use
-    /// <see cref="AddAccessibilityModifier(MemberDeclarationSyntax, SyntaxKind)"/> so leading trivia (for
-    /// example doc comments and indentation) is moved onto the inserted modifier. The file-scoped
-    /// <see langword="file"/> modifier is never replaced by this method: unlike the four accessibility
-    /// keywords, <see langword="file"/> cannot be combined with another accessibility modifier, so silently
-    /// replacing it would widen a file-local type's visibility instead of leaving the (already invalid)
-    /// combination for the caller to detect
-    /// </remarks>
-    public static SyntaxTokenList AddAccessibilityModifier(SyntaxTokenList modifiers, SyntaxKind accessibilityModifier)
-    {
-        return AddAccessibilityModifiers(modifiers, [accessibilityModifier]);
     }
 
     /// <summary>

@@ -44,13 +44,11 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerB
     {
         var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var directiveTrivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var directiveTrivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true)
+                                                  .Where(directiveTrivia => SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia)
+                                                                            && RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia)))
         {
-            if (SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia)
-                && RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(directiveTrivia.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(directiveTrivia.GetLocation()));
         }
     }
 

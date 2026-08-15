@@ -196,23 +196,34 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
         foreach (var comment in GetComments(declaratorLeadingTrivia))
         {
-            trivia.AddRange(indentationTrivia);
-            trivia.Add(comment);
-
-            // A single-line documentation comment already terminates its line, so appending another end-of-line would
-            // put a blank line between the comment and the field it documents. The pipeline's blank-line phase
-            // absorbs that break, but the RH7101 code fix runs this transform on its own and would emit the detached
-            // comment verbatim. A delimited documentation comment (/** … */) carries no break and still needs one,
-            // which is why the question is asked of the trivia text rather than of its kind (issue #592).
-            if (EndsLine(comment) == false)
-            {
-                trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
-            }
+            AppendLeadingComment(trivia, indentationTrivia, comment);
         }
 
         trivia.AddRange(indentationTrivia);
 
         return SyntaxFactory.TriviaList(trivia);
+    }
+
+    /// <summary>
+    /// Appends one standalone comment and the line break it needs before a generated field
+    /// </summary>
+    /// <param name="trivia">Destination trivia</param>
+    /// <param name="indentationTrivia">Indentation for the comment</param>
+    /// <param name="comment">Comment to append</param>
+    private void AppendLeadingComment(List<SyntaxTrivia> trivia, SyntaxTriviaList indentationTrivia, SyntaxTrivia comment)
+    {
+        trivia.AddRange(indentationTrivia);
+        trivia.Add(comment);
+
+        // A single-line documentation comment already terminates its line, so appending another end-of-line would
+        // put a blank line between the comment and the field it documents. The pipeline's blank-line phase
+        // absorbs that break, but the RH7101 code fix runs this transform on its own and would emit the detached
+        // comment verbatim. A delimited documentation comment (/** … */) carries no break and still needs one,
+        // which is why the question is asked of the trivia text rather than of its kind (issue #592).
+        if (EndsLine(comment) == false)
+        {
+            trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+        }
     }
 
     /// <summary>
@@ -228,92 +239,87 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         }
 
         var updatedMembers = new List<MemberDeclarationSyntax>(members.Count);
-        var lineBreakTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(_context.EndOfLine));
 
         foreach (var member in members)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
             if (member is not FieldDeclarationSyntax fieldDeclaration
-                || fieldDeclaration.Declaration.Variables.Count <= 1)
+                || fieldDeclaration.Declaration.Variables.Count <= 1
+                || CarriesDirective(fieldDeclaration))
             {
                 updatedMembers.Add(member);
 
                 continue;
             }
 
-            // Splitting rebuilds each generated field's trivia from comments only. A preprocessor
-            // directive or disabled text entangled with the declarators or separators would be dropped,
-            // so leave a directive-bearing field declaration intact rather than losing the directive.
-            if (CarriesDirective(fieldDeclaration))
-            {
-                updatedMembers.Add(member);
-
-                continue;
-            }
-
-            var indentationTrivia = GetMemberIndentationTrivia(fieldDeclaration.GetLeadingTrivia());
-            var variables = fieldDeclaration.Declaration.Variables;
-
-            for (var variableIndex = 0; variableIndex < variables.Count; variableIndex++)
-            {
-                var variable = variables[variableIndex];
-
-                // Only a later declarator's leading trivia is dropped, because BuildLeadingTrivia rebuilds it below.
-                // The first declarator is carried over unchanged: the generated field's own leading trivia comes from
-                // the declaration rather than from BuildLeadingTrivia, so nothing would read the first declarator's
-                // leading trivia and a comment written between the type and the declarator would be deleted outright
-                // (issue #636). Keeping the declarator node itself is the narrowest way to preserve that slot: the
-                // alternative of stripping it and re-attaching the trivia to the generated field would collide with
-                // the field's own leading trivia, which the branch below sets.
-                // A declarator's trailing trivia is what the author wrote between the declarator and its terminator,
-                // so it stays on the declarator - carrying it over to the semicolon instead would move an ordinary
-                // comment into a leading position the blank-line phase separates onto its own line (issue #625).
-                var declarator = variableIndex == 0
-                                     ? variable
-                                     : variable.WithoutTrivia()
-                                               .WithTrailingTrivia(variable.GetTrailingTrivia());
-
-                var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(declarator)));
-
-                if (variableIndex == 0)
-                {
-                    updatedField = updatedField.WithLeadingTrivia(fieldDeclaration.GetLeadingTrivia());
-                }
-                else
-                {
-                    updatedField = updatedField.WithLeadingTrivia(BuildLeadingTrivia(indentationTrivia, variable.GetLeadingTrivia()));
-                }
-
-                // The terminator the author wrote for this declarator becomes the generated field's semicolon: the
-                // separator for every declarator but the last, and the declaration's own semicolon for the last.
-                // Everything written between the declarator and that terminator therefore stays in front of the
-                // generated semicolon, and everything written after it stays behind it. Reusing the declaration's
-                // semicolon token through WithDeclaration above would otherwise copy its leading trivia onto every
-                // generated field, and the separator's leading trivia would be discarded with the separator
-                // (issues #624, #625).
-                var terminator = variableIndex == variables.Count - 1
-                                     ? fieldDeclaration.SemicolonToken
-                                     : variables.GetSeparator(variableIndex);
-
-                if (variableIndex == variables.Count - 1)
-                {
-                    updatedField = updatedField.WithTrailingTrivia(fieldDeclaration.GetTrailingTrivia());
-                }
-                else
-                {
-                    var trailingComments = GetComments(terminator.TrailingTrivia).ToList();
-
-                    updatedField = updatedField.WithTrailingTrivia(BuildTrailingTrivia(trailingComments, lineBreakTrivia));
-                }
-
-                updatedField = updatedField.WithSemicolonToken(updatedField.SemicolonToken.WithLeadingTrivia(terminator.LeadingTrivia));
-
-                updatedMembers.Add(updatedField);
-            }
+            // Splitting rebuilds each generated field's trivia from comments only. A preprocessor directive or
+            // disabled text entangled with the declarators or separators would be dropped, so the guard above leaves
+            // directive-bearing declarations intact.
+            updatedMembers.AddRange(SplitField(fieldDeclaration));
         }
 
         return SyntaxFactory.List(updatedMembers);
+    }
+
+    /// <summary>
+    /// Splits one eligible field declaration into single-declarator fields
+    /// </summary>
+    /// <param name="fieldDeclaration">Field declaration to split</param>
+    /// <returns>The generated single-declarator fields</returns>
+    private IEnumerable<FieldDeclarationSyntax> SplitField(FieldDeclarationSyntax fieldDeclaration)
+    {
+        var variables = fieldDeclaration.Declaration.Variables;
+        var indentationTrivia = GetMemberIndentationTrivia(fieldDeclaration.GetLeadingTrivia());
+        var lineBreakTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(_context.EndOfLine));
+
+        return variables.Select((_, variableIndex) => CreateSplitField(fieldDeclaration,
+                                                                       variableIndex,
+                                                                       indentationTrivia,
+                                                                       lineBreakTrivia));
+    }
+
+    /// <summary>
+    /// Creates the generated field for one declarator while preserving its trivia slots
+    /// </summary>
+    /// <param name="fieldDeclaration">Original field declaration</param>
+    /// <param name="variableIndex">Index of the declarator to emit</param>
+    /// <param name="indentationTrivia">Indentation for later generated fields</param>
+    /// <param name="lineBreakTrivia">Line break appended after non-final fields</param>
+    /// <returns>The generated single-declarator field</returns>
+    private FieldDeclarationSyntax CreateSplitField(FieldDeclarationSyntax fieldDeclaration,
+                                                    int variableIndex,
+                                                    SyntaxTriviaList indentationTrivia,
+                                                    SyntaxTriviaList lineBreakTrivia)
+    {
+        var variables = fieldDeclaration.Declaration.Variables;
+        var variable = variables[variableIndex];
+
+        // Only a later declarator's leading trivia is dropped, because BuildLeadingTrivia rebuilds it below. The
+        // first declarator is carried over unchanged so comments between the type and declarator remain in that slot.
+        // Trailing trivia stays on its declarator so comments are not moved into a leading position (issues #625,
+        // #636).
+        var declarator = variableIndex == 0
+                             ? variable
+                             : variable.WithoutTrivia()
+                                       .WithTrailingTrivia(variable.GetTrailingTrivia());
+        var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(declarator)));
+
+        updatedField = variableIndex == 0
+                           ? updatedField.WithLeadingTrivia(fieldDeclaration.GetLeadingTrivia())
+                           : updatedField.WithLeadingTrivia(BuildLeadingTrivia(indentationTrivia, variable.GetLeadingTrivia()));
+
+        // The separator for every non-final declarator and the declaration semicolon for the final declarator become
+        // the generated field's terminator. Trivia before and after that token remains on the same side (issues #624,
+        // #625).
+        var isFinalVariable = variableIndex == variables.Count - 1;
+        var terminator = isFinalVariable ? fieldDeclaration.SemicolonToken : variables.GetSeparator(variableIndex);
+
+        updatedField = isFinalVariable
+                           ? updatedField.WithTrailingTrivia(fieldDeclaration.GetTrailingTrivia())
+                           : updatedField.WithTrailingTrivia(BuildTrailingTrivia(GetComments(terminator.TrailingTrivia).ToList(), lineBreakTrivia));
+
+        return updatedField.WithSemicolonToken(updatedField.SemicolonToken.WithLeadingTrivia(terminator.LeadingTrivia));
     }
 
     #endregion // Methods

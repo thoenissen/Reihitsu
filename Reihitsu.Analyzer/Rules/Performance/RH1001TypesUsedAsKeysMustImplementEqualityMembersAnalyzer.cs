@@ -127,15 +127,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
             && variableDeclaration.Type.Span.Contains(typeReference.Span)
             && variableDeclaration.Variables.Count > 0)
         {
-            foreach (var variable in variableDeclaration.Variables)
-            {
-                if (HasExplicitEqualityComparerInitializer(semanticModel, variable.Initializer?.Value, collectionType) == false)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return variableDeclaration.Variables.All(variable => HasExplicitEqualityComparerInitializer(semanticModel, variable.Initializer?.Value, collectionType));
         }
 
         if (typeReference.FirstAncestorOrSelf<PropertyDeclarationSyntax>() is { } propertyDeclaration
@@ -228,15 +220,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     /// <returns><see langword="true"/> if every arm constructs the collection with a custom comparer</returns>
     private static bool AreSwitchExpressionArmsUsingExplicitEqualityComparers(SemanticModel semanticModel, SwitchExpressionSyntax switchExpression, INamedTypeSymbol expectedType)
     {
-        foreach (var arm in switchExpression.Arms)
-        {
-            if (HasExplicitEqualityComparerInitializer(semanticModel, arm.Expression, expectedType) == false)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return switchExpression.Arms.All(arm => HasExplicitEqualityComparerInitializer(semanticModel, arm.Expression, expectedType));
     }
 
     /// <summary>

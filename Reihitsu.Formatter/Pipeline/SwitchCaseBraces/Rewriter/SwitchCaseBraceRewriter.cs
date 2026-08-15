@@ -125,15 +125,13 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     {
         var labelSections = new Dictionary<string, SwitchSectionSyntax>();
 
-        foreach (var section in node.Sections)
+        foreach (var (section, labeledStatement) in node.Sections.SelectMany(section => GetExecutableScopeDescendants(section).OfType<LabeledStatementSyntax>()
+                                                                                                                              .Where(labeledStatement => labeledStatement.Ancestors()
+                                                                                                                                                                         .OfType<SwitchSectionSyntax>()
+                                                                                                                                                                         .FirstOrDefault() == section)
+                                                                                                                              .Select(labeledStatement => (section, labeledStatement))))
         {
-            foreach (var labeledStatement in GetExecutableScopeDescendants(section).OfType<LabeledStatementSyntax>())
-            {
-                if (labeledStatement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault() == section)
-                {
-                    labelSections[labeledStatement.Identifier.ValueText] = section;
-                }
-            }
+            labelSections[labeledStatement.Identifier.ValueText] = section;
         }
 
         foreach (var section in node.Sections)
@@ -399,25 +397,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the section carries a directive or disabled text; otherwise, <see langword="false"/></returns>
     private static bool SectionCarriesDirectives(SwitchSectionSyntax section)
     {
-        foreach (var label in section.Labels)
-        {
-            if (label.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
-                || label.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia))
-            {
-                return true;
-            }
-        }
-
-        foreach (var statement in section.Statements)
-        {
-            if (statement.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
-                || statement.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return section.Labels.Cast<SyntaxNode>()
+                             .Concat(section.Statements)
+                             .Any(static node => node.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
+                                                 || node.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia));
     }
 
     /// <summary>

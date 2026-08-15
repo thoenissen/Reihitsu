@@ -87,7 +87,9 @@ public static class FixtureLineEndings
         var lines = new List<string>();
         var builder = new StringBuilder();
 
-        for (var index = 0; index < text.Length; index++)
+        var index = 0;
+
+        while (index < text.Length)
         {
             var character = text[index];
 
@@ -110,6 +112,8 @@ public static class FixtureLineEndings
             {
                 builder.Append(character);
             }
+
+            index++;
         }
 
         if (builder.Length > 0)
@@ -131,7 +135,9 @@ public static class FixtureLineEndings
         var lineFeed = 0;
         var carriageReturn = 0;
 
-        for (var index = 0; index < text.Length; index++)
+        var index = 0;
+
+        while (index < text.Length)
         {
             if (text[index] == '\r')
             {
@@ -149,6 +155,8 @@ public static class FixtureLineEndings
             {
                 lineFeed++;
             }
+
+            index++;
         }
 
         return (carriageReturnLineFeed, lineFeed, carriageReturn);

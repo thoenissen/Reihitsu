@@ -375,7 +375,7 @@ public class SyntaxNodeUtilitiesTests
     /// </summary>
     /// <param name="source">Source text</param>
     /// <returns>The attribute lists</returns>
-    private static IReadOnlyList<AttributeListSyntax> GetAttributeLists(string source)
+    private static List<AttributeListSyntax> GetAttributeLists(string source)
     {
         return CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n" + source)
                                    .DescendantNodes()

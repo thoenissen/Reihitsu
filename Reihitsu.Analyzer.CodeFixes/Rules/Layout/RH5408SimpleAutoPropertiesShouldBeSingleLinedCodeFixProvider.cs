@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -59,85 +60,75 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
     private static bool CanApplyCodeFix(PropertyDeclarationSyntax propertyDeclaration)
     {
-        // The guard is interior-scoped to match the formatter's collapse: a comment trailing the accessor
-        // list's closing brace is never crossed, so it must not block the fix (see issue #604).
-        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.AccessorList))
+        return propertyDeclaration.AccessorList != null
+               && propertyDeclaration.AccessorList.Accessors.All(static accessor => accessor.Body == null && accessor.ExpressionBody == null)
+               && IsSignatureCollapsible(propertyDeclaration)
+               && IsInitializerCollapsible(propertyDeclaration);
+    }
+
+    /// <summary>
+    /// Determines whether the property signature and accessor-list opener can be joined safely
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> when the signature can be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsSignatureCollapsible(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var accessorList = propertyDeclaration.AccessorList;
+
+        if (accessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(accessorList))
         {
             return false;
         }
 
-        foreach (var accessor in propertyDeclaration.AccessorList.Accessors)
-        {
-            if (accessor.Body != null || accessor.ExpressionBody != null)
-            {
-                return false;
-            }
-        }
-
-        var tokenBeforeOpenBrace = propertyDeclaration.AccessorList.OpenBraceToken.GetPreviousToken();
+        var tokenBeforeOpenBrace = accessorList.OpenBraceToken.GetPreviousToken();
         var signatureStartToken = GetSingleLineSignatureStartToken(propertyDeclaration);
 
-        if (signatureStartToken == default
-            || signatureStartToken.IsKind(SyntaxKind.None)
-            || tokenBeforeOpenBrace == default
-            || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
+        return signatureStartToken != default
+               && signatureStartToken.IsKind(SyntaxKind.None) == false
+               && tokenBeforeOpenBrace != default
+               && tokenBeforeOpenBrace.IsKind(SyntaxKind.None) == false
+               && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, accessorList.OpenBraceToken) == false
+               && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End));
+    }
+
+    /// <summary>
+    /// Determines whether the optional initializer and semicolon can be joined safely
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> when the initializer can be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsInitializerCollapsible(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var initializer = propertyDeclaration.Initializer;
+
+        if (initializer == null)
         {
-            return false;
+            return true;
         }
 
-        // A comment or directive in the gap between the signature and the accessor brace makes the formatter
-        // refuse the collapse, so registering the fix here would produce a no-op action. Guard the same gap.
-        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, propertyDeclaration.AccessorList.OpenBraceToken))
-        {
-            return false;
-        }
+        var accessorList = propertyDeclaration.AccessorList;
+        var initializerGapSpan = TextSpan.FromBounds(accessorList.CloseBraceToken.Span.End, initializer.EqualsToken.SpanStart);
 
-        if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
-        {
-            return false;
-        }
+        return SyntaxNodeUtilities.InteriorContainsCommentOrDirective(initializer) == false
+               && (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializerGapSpan)
+                   || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(accessorList.CloseBraceToken, initializer.EqualsToken) == false)
+               && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializer.Value.Span)
+               && IsSemicolonGapCollapsible(propertyDeclaration);
+    }
 
-        if (propertyDeclaration.Initializer != null)
-        {
-            // Only the initializer's own span is inspected, matching the analyzer's predicate exactly. The two must
-            // stay identical: a shape the analyzer reports and this predicate rejects is a diagnostic with no
-            // available action, which is the failure mode the gap guards below were introduced to avoid.
-            if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(propertyDeclaration.Initializer))
-            {
-                return false;
-            }
+    /// <summary>
+    /// Determines whether a line break before the terminating semicolon can be joined safely
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> when the semicolon gap can be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsSemicolonGapCollapsible(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var semicolon = propertyDeclaration.SemicolonToken;
+        var tokenBeforeSemicolon = semicolon.GetPreviousToken();
 
-            // A comment or directive between the accessor list and an initializer that starts on a later line makes
-            // the formatter refuse to join the initializer, so registering the fix here would produce a no-op
-            // action. Guard the same gap, and only when the gap actually spans lines.
-            var initializerGapSpan = TextSpan.FromBounds(propertyDeclaration.AccessorList.CloseBraceToken.Span.End, propertyDeclaration.Initializer.EqualsToken.SpanStart);
-
-            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, initializerGapSpan) == false
-                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(propertyDeclaration.AccessorList.CloseBraceToken, propertyDeclaration.Initializer.EqualsToken))
-            {
-                return false;
-            }
-
-            if (SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
-            {
-                return false;
-            }
-
-            // A comment or directive between the initializer value and a terminating semicolon that sits on its own
-            // line makes the formatter refuse to join the semicolon, so registering the fix here would produce a
-            // no-op action. Guard the same gap, and only when the gap actually spans lines.
-            var tokenBeforeSemicolon = propertyDeclaration.SemicolonToken.GetPreviousToken();
-
-            if (propertyDeclaration.SemicolonToken.IsMissing == false
-                && tokenBeforeSemicolon.IsKind(SyntaxKind.None) == false
-                && SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(tokenBeforeSemicolon.Span.End, propertyDeclaration.SemicolonToken.SpanStart)) == false
-                && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeSemicolon, propertyDeclaration.SemicolonToken))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return semicolon.IsMissing
+               || tokenBeforeSemicolon.IsKind(SyntaxKind.None)
+               || SyntaxNodeUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(tokenBeforeSemicolon.Span.End, semicolon.SpanStart))
+               || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeSemicolon, semicolon) == false;
     }
 
     #endregion // Methods

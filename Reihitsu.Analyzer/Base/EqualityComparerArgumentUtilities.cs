@@ -95,74 +95,37 @@ internal static class EqualityComparerArgumentUtilities
             return true;
         }
 
-        while (operation != null)
+        operation = UnwrapOperation(operation);
+
+        return operation switch
+               {
+                   ICoalesceOperation coalesce => IsDefinitelyNonCustomEqualityComparerOperation(coalesce.Value, equalityComparerType)
+                                                  && IsDefinitelyNonCustomEqualityComparerOperation(coalesce.WhenNull, equalityComparerType),
+                   IConditionalOperation conditional => IsDefinitelyNonCustomConditional(conditional, equalityComparerType),
+                   ISwitchExpressionOperation { Arms.Length: > 0 } switchExpression => switchExpression.Arms.All(arm => IsDefinitelyNonCustomEqualityComparerOperation(arm.Value, equalityComparerType)),
+                   IConditionalAccessOperation conditionalAccess => IsNullLikeOperation(conditionalAccess.Operation)
+                                                                    || IsDefinitelyNonCustomEqualityComparerOperation(conditionalAccess.WhenNotNull, equalityComparerType),
+                   _ => false
+               };
+    }
+
+    /// <summary>
+    /// Determines whether every reachable branch of a conditional operation is non-custom
+    /// </summary>
+    /// <param name="conditional">Conditional operation</param>
+    /// <param name="equalityComparerType">Unbound <c>EqualityComparer&lt;T&gt;</c> type</param>
+    /// <returns><see langword="true"/> when every reachable branch is non-custom; otherwise, <see langword="false"/></returns>
+    private static bool IsDefinitelyNonCustomConditional(IConditionalOperation conditional, INamedTypeSymbol equalityComparerType)
+    {
+        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
         {
-            switch (operation)
-            {
-                case IConversionOperation conversion when conversion.Conversion.IsUserDefined == false:
-                    {
-                        operation = conversion.Operand;
-                    }
-                    break;
+            var reachableBranch = conditionValue ? conditional.WhenTrue : conditional.WhenFalse;
 
-                case IParenthesizedOperation parenthesized:
-                    {
-                        operation = parenthesized.Operand;
-                    }
-                    break;
-
-                case ICoalesceOperation coalesce:
-                    {
-                        return IsDefinitelyNonCustomEqualityComparerOperation(coalesce.Value, equalityComparerType)
-                               && IsDefinitelyNonCustomEqualityComparerOperation(coalesce.WhenNull, equalityComparerType);
-                    }
-
-                case IConditionalOperation conditional:
-                    {
-                        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
-                        {
-                            return IsDefinitelyNonCustomEqualityComparerOperation(conditionValue
-                                                                                      ? conditional.WhenTrue
-                                                                                      : conditional.WhenFalse,
-                                                                                  equalityComparerType);
-                        }
-
-                        return IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
-                               && IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
-                    }
-
-                case ISwitchExpressionOperation switchExpression:
-                    {
-                        if (switchExpression.Arms.Length == 0)
-                        {
-                            return false;
-                        }
-
-                        foreach (var arm in switchExpression.Arms)
-                        {
-                            if (IsDefinitelyNonCustomEqualityComparerOperation(arm.Value, equalityComparerType) == false)
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }
-
-                case IConditionalAccessOperation conditionalAccess:
-                    {
-                        return IsNullLikeOperation(conditionalAccess.Operation)
-                               || IsDefinitelyNonCustomEqualityComparerOperation(conditionalAccess.WhenNotNull, equalityComparerType);
-                    }
-
-                default:
-                    {
-                        return false;
-                    }
-            }
+            return IsDefinitelyNonCustomEqualityComparerOperation(reachableBranch, equalityComparerType);
         }
 
-        return false;
+        return IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
+               && IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
     }
 
     /// <summary>
@@ -194,83 +157,45 @@ internal static class EqualityComparerArgumentUtilities
     /// <returns><see langword="true"/> if the operation is null-like</returns>
     private static bool IsNullLikeOperation(IOperation operation)
     {
-        while (operation != null)
+        operation = UnwrapOperation(operation);
+
+        if (operation == null)
         {
-            if (operation.ConstantValue.HasValue)
-            {
-                return operation.ConstantValue.Value == null;
-            }
-
-            switch (operation)
-            {
-                case IConversionOperation conversion when conversion.Conversion.IsUserDefined == false:
-                    {
-                        operation = conversion.Operand;
-                    }
-                    break;
-
-                case IParenthesizedOperation parenthesized:
-                    {
-                        operation = parenthesized.Operand;
-                    }
-                    break;
-
-                case IDefaultValueOperation defaultValue:
-                    {
-                        return IsNullLikeDefaultType(defaultValue.Type);
-                    }
-
-                case ICoalesceOperation coalesce:
-                    {
-                        return IsNullLikeOperation(coalesce.Value)
-                               && IsNullLikeOperation(coalesce.WhenNull);
-                    }
-
-                case IConditionalOperation conditional:
-                    {
-                        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
-                        {
-                            return IsNullLikeOperation(conditionValue
-                                                           ? conditional.WhenTrue
-                                                           : conditional.WhenFalse);
-                        }
-
-                        return IsNullLikeOperation(conditional.WhenTrue)
-                               && IsNullLikeOperation(conditional.WhenFalse);
-                    }
-
-                case ISwitchExpressionOperation switchExpression:
-                    {
-                        if (switchExpression.Arms.Length == 0)
-                        {
-                            return false;
-                        }
-
-                        foreach (var arm in switchExpression.Arms)
-                        {
-                            if (IsNullLikeOperation(arm.Value) == false)
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }
-
-                case IConditionalAccessOperation conditionalAccess:
-                    {
-                        return IsNullLikeOperation(conditionalAccess.Operation)
-                               || IsNullLikeOperation(conditionalAccess.WhenNotNull);
-                    }
-
-                default:
-                    {
-                        return false;
-                    }
-            }
+            return false;
         }
 
-        return false;
+        if (operation.ConstantValue.HasValue)
+        {
+            return operation.ConstantValue.Value == null;
+        }
+
+        return operation switch
+               {
+                   IDefaultValueOperation defaultValue => IsNullLikeDefaultType(defaultValue.Type),
+                   ICoalesceOperation coalesce => IsNullLikeOperation(coalesce.Value) && IsNullLikeOperation(coalesce.WhenNull),
+                   IConditionalOperation conditional => IsNullLikeConditional(conditional),
+                   ISwitchExpressionOperation { Arms.Length: > 0 } switchExpression => switchExpression.Arms.All(static arm => IsNullLikeOperation(arm.Value)),
+                   IConditionalAccessOperation conditionalAccess => IsNullLikeOperation(conditionalAccess.Operation)
+                                                                    || IsNullLikeOperation(conditionalAccess.WhenNotNull),
+                   _ => false
+               };
+    }
+
+    /// <summary>
+    /// Determines whether every reachable branch of a conditional operation is null-like
+    /// </summary>
+    /// <param name="conditional">Conditional operation</param>
+    /// <returns><see langword="true"/> when every reachable branch is null-like; otherwise, <see langword="false"/></returns>
+    private static bool IsNullLikeConditional(IConditionalOperation conditional)
+    {
+        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
+        {
+            var reachableBranch = conditionValue ? conditional.WhenTrue : conditional.WhenFalse;
+
+            return IsNullLikeOperation(reachableBranch);
+        }
+
+        return IsNullLikeOperation(conditional.WhenTrue) && IsNullLikeOperation(conditional.WhenFalse);
     }
 
     /// <summary>
@@ -346,82 +271,63 @@ internal static class EqualityComparerArgumentUtilities
     /// <returns><see langword="true"/> if the operation produces the framework default comparer</returns>
     private static bool IsFrameworkDefaultEqualityComparerOperation(IOperation operation, INamedTypeSymbol equalityComparerType)
     {
-        while (operation != null)
+        operation = UnwrapOperation(operation);
+
+        return operation switch
+               {
+                   IPropertyReferenceOperation
+                   {
+                       Property:
+                       {
+                           IsStatic: true,
+                           Name: "Default",
+                           ContainingType: { IsGenericType: true } containingType
+                       }
+                   } => SymbolEqualityComparer.Default.Equals(containingType.ConstructUnboundGenericType(), equalityComparerType),
+                   ICoalesceOperation coalesce => IsFrameworkDefaultEqualityComparerOperation(coalesce.Value, equalityComparerType)
+                                                  || (IsNullLikeOperation(coalesce.Value)
+                                                      && IsFrameworkDefaultEqualityComparerOperation(coalesce.WhenNull, equalityComparerType)),
+                   IConditionalOperation conditional => IsFrameworkDefaultConditional(conditional, equalityComparerType),
+                   ISwitchExpressionOperation { Arms.Length: > 0 } switchExpression => switchExpression.Arms.All(arm => IsFrameworkDefaultEqualityComparerOperation(arm.Value, equalityComparerType)),
+                   _ => false
+               };
+    }
+
+    /// <summary>
+    /// Determines whether every reachable branch of a conditional operation is the framework default comparer
+    /// </summary>
+    /// <param name="conditional">Conditional operation</param>
+    /// <param name="equalityComparerType">Unbound <c>EqualityComparer&lt;T&gt;</c> type</param>
+    /// <returns><see langword="true"/> when every reachable branch is the framework default; otherwise, <see langword="false"/></returns>
+    private static bool IsFrameworkDefaultConditional(IConditionalOperation conditional, INamedTypeSymbol equalityComparerType)
+    {
+        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
         {
-            switch (operation)
-            {
-                case IConversionOperation conversion when conversion.Conversion.IsUserDefined == false:
-                    {
-                        operation = conversion.Operand;
-                    }
-                    break;
+            var reachableBranch = conditionValue ? conditional.WhenTrue : conditional.WhenFalse;
 
-                case IParenthesizedOperation parenthesized:
-                    {
-                        operation = parenthesized.Operand;
-                    }
-                    break;
-
-                case IPropertyReferenceOperation
-                     {
-                         Property:
-                         {
-                             IsStatic: true,
-                             Name: "Default",
-                             ContainingType: { IsGenericType: true } containingType
-                         }
-                     }:
-                    {
-                        return SymbolEqualityComparer.Default.Equals(containingType.ConstructUnboundGenericType(), equalityComparerType);
-                    }
-
-                case ICoalesceOperation coalesce:
-                    {
-                        return IsFrameworkDefaultEqualityComparerOperation(coalesce.Value, equalityComparerType)
-                               || (IsNullLikeOperation(coalesce.Value)
-                                   && IsFrameworkDefaultEqualityComparerOperation(coalesce.WhenNull, equalityComparerType));
-                    }
-
-                case IConditionalOperation conditional:
-                    {
-                        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
-                        {
-                            return IsFrameworkDefaultEqualityComparerOperation(conditionValue
-                                                                                   ? conditional.WhenTrue
-                                                                                   : conditional.WhenFalse,
-                                                                               equalityComparerType);
-                        }
-
-                        return IsFrameworkDefaultEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
-                               && IsFrameworkDefaultEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
-                    }
-
-                case ISwitchExpressionOperation switchExpression:
-                    {
-                        if (switchExpression.Arms.Length == 0)
-                        {
-                            return false;
-                        }
-
-                        foreach (var arm in switchExpression.Arms)
-                        {
-                            if (IsFrameworkDefaultEqualityComparerOperation(arm.Value, equalityComparerType) == false)
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }
-
-                default:
-                    {
-                        return false;
-                    }
-            }
+            return IsFrameworkDefaultEqualityComparerOperation(reachableBranch, equalityComparerType);
         }
 
-        return false;
+        return IsFrameworkDefaultEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
+               && IsFrameworkDefaultEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
+    }
+
+    /// <summary>
+    /// Removes parentheses and built-in conversions that do not change comparer semantics
+    /// </summary>
+    /// <param name="operation">Operation to unwrap</param>
+    /// <returns>The first operation whose wrapper can affect comparer semantics</returns>
+    private static IOperation UnwrapOperation(IOperation operation)
+    {
+        while (operation is IConversionOperation { Conversion.IsUserDefined: false }
+               || operation is IParenthesizedOperation)
+        {
+            operation = operation is IConversionOperation conversionOperation
+                            ? conversionOperation.Operand
+                            : ((IParenthesizedOperation)operation).Operand;
+        }
+
+        return operation;
     }
 
     /// <summary>

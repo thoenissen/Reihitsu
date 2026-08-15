@@ -21,6 +21,7 @@ reihitsu_repo_root()
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
     cd "$script_dir/../.." && pwd
+    return $?
 }
 
 # Succeeds when a dotnet on PATH reports an SDK of the required major version.
@@ -58,6 +59,7 @@ reihitsu_ensure_dotnet()
         case "$argument" in
             --no-install) allow_install=0 ;;
             --quiet) quiet=1 ;;
+            *) : ;;
         esac
     done
 

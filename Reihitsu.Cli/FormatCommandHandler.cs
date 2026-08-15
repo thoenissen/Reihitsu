@@ -29,7 +29,7 @@ internal sealed class FormatCommandHandler
     /// <summary>
     /// UTF-8 encoding with a byte order mark used when encoding normalization is enabled
     /// </summary>
-    private static readonly Encoding _utf8BomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+    private static readonly UTF8Encoding _utf8BomEncoding = new(encoderShouldEmitUTF8Identifier: true);
 
     /// <summary>
     /// Paths passed to the format command
@@ -159,40 +159,7 @@ internal sealed class FormatCommandHandler
             return confirmationExitCode.Value;
         }
 
-        var totalFiles = 0;
-        var changedFiles = 0;
-        var skippedSyntaxErrors = 0;
-        var skippedEncoding = 0;
-        var skippedGenerated = 0;
-        var errorFiles = 0;
-
-        foreach (var filePath in files)
-        {
-            if (GeneratedFileUtilities.IsGeneratedFile(filePath))
-            {
-                skippedGenerated++;
-
-                if (_verbose)
-                {
-                    _console.WriteLine($"Skipped (generated): {filePath}");
-                }
-
-                continue;
-            }
-
-            var processResult = await ProcessFileAsync(filePath, cancellationToken).ConfigureAwait(false);
-
-            if (processResult.SkippedGeneratedCount == 0)
-            {
-                totalFiles++;
-            }
-
-            changedFiles += processResult.ChangedFileCount;
-            skippedSyntaxErrors += processResult.SkippedSyntaxErrorCount;
-            skippedEncoding += processResult.SkippedEncodingCount;
-            skippedGenerated += processResult.SkippedGeneratedCount;
-            errorFiles += processResult.ErrorFileCount;
-        }
+        var (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles) = await ProcessFilesAsync(files, cancellationToken).ConfigureAwait(false);
 
         PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles);
 
@@ -258,6 +225,49 @@ internal sealed class FormatCommandHandler
         {
             files.Add(fullPath);
         }
+    }
+
+    /// <summary>
+    /// Processes the collected files and aggregates their result counters
+    /// </summary>
+    /// <param name="files">Files to process</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The aggregate file-processing counters</returns>
+    private async Task<(int TotalFiles, int ChangedFiles, int SkippedSyntaxErrors, int SkippedEncoding, int SkippedGenerated, int ErrorFiles)> ProcessFilesAsync(IReadOnlyList<string> files,
+                                                                                                                                                                 CancellationToken cancellationToken)
+    {
+        var totalFiles = 0;
+        var changedFiles = 0;
+        var skippedSyntaxErrors = 0;
+        var skippedEncoding = 0;
+        var skippedGenerated = 0;
+        var errorFiles = 0;
+
+        foreach (var filePath in files)
+        {
+            if (GeneratedFileUtilities.IsGeneratedFile(filePath))
+            {
+                skippedGenerated++;
+
+                if (_verbose)
+                {
+                    _console.WriteLine($"Skipped (generated): {filePath}");
+                }
+
+                continue;
+            }
+
+            var result = await ProcessFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+
+            totalFiles += result.SkippedGeneratedCount == 0 ? 1 : 0;
+            changedFiles += result.ChangedFileCount;
+            skippedSyntaxErrors += result.SkippedSyntaxErrorCount;
+            skippedEncoding += result.SkippedEncodingCount;
+            skippedGenerated += result.SkippedGeneratedCount;
+            errorFiles += result.ErrorFileCount;
+        }
+
+        return (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles);
     }
 
     /// <summary>

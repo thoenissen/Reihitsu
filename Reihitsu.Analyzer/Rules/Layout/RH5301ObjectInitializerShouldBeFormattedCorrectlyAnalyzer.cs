@@ -87,25 +87,15 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// <returns>Are all braces valid?</returns>
     private bool CheckBraces(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, SyntaxNode diagnosticNode, InitializerExpressionSyntax objectInitializer)
     {
-        var isValid = true;
-
-        if (InitializerLayoutAnalysisUtilities.IsAlignedAt(objectInitializer.OpenBraceToken, newKeywordPosition.Character) == false)
+        if (InitializerLayoutAnalysisUtilities.IsAlignedAt(objectInitializer.OpenBraceToken, newKeywordPosition.Character)
+            && InitializerLayoutAnalysisUtilities.IsAlignedAt(objectInitializer.CloseBraceToken, newKeywordPosition.Character))
         {
-            context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
-
-            isValid = false;
-        }
-        else
-        {
-            if (InitializerLayoutAnalysisUtilities.IsAlignedAt(objectInitializer.CloseBraceToken, newKeywordPosition.Character) == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
-
-                isValid = false;
-            }
+            return true;
         }
 
-        return isValid;
+        context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
+
+        return false;
     }
 
     /// <summary>

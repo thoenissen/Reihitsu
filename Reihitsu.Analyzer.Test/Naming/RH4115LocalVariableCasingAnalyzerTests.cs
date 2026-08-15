@@ -1494,7 +1494,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     ImmutableArray<string> FixedSources,
     ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
     ImmutableArray<Diagnostic> CompilerErrors)> ApplyOrdinaryFixAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
-                                                                                     CodeFixProvider provider,
+                                                                                     RH4002ClassNameCasingCodeFixProvider provider,
                                                                                      params string[] sources)
     {
         using (var workspace = new AdhocWorkspace())
@@ -1579,7 +1579,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
     ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
     ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
-                                                                                CodeFixProvider provider,
+                                                                                RH4002ClassNameCasingCodeFixProvider provider,
                                                                                 params string[] sources)
     {
         using (var workspace = new AdhocWorkspace())

@@ -58,10 +58,10 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     {
         var line = sourceText.Lines.GetLineFromPosition(documentationCommentTrivia.FullSpan.Start);
 
-        foreach (var leadingTrivia in documentationCommentTrivia.Token.LeadingTrivia)
+        foreach (var leadingSpan in documentationCommentTrivia.Token.LeadingTrivia.Select(static leadingTrivia => leadingTrivia.FullSpan))
         {
-            var overlapStart = Math.Max(line.Start, leadingTrivia.FullSpan.Start);
-            var overlapEnd = Math.Min(documentationCommentTrivia.FullSpan.Start, leadingTrivia.FullSpan.End);
+            var overlapStart = Math.Max(line.Start, leadingSpan.Start);
+            var overlapEnd = Math.Min(documentationCommentTrivia.FullSpan.Start, leadingSpan.End);
 
             if (overlapStart >= overlapEnd)
             {
@@ -126,50 +126,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
-                || IsAfterSourceOnSameLine(trivia, sourceText) == false)
-            {
-                continue;
-            }
-
-            var owningToken = trivia.Token;
-
-            // Relocating the comment above its owning token is what makes it document that token. When the owner
-            // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
-            // '}' - so moving it changes the author's layout without making the comment mean anything, and the
-            // compiler reports CS1587 either way. Leave it where it was written (issues #591, #625).
-            if (ReihitsuFormatterHelpers.DocumentsFollowingCode(owningToken) == false)
-            {
-                continue;
-            }
-
-            var previousToken = owningToken.GetPreviousToken(includeZeroWidth: true);
-
-            while (previousToken.RawKind != 0 && previousToken.IsMissing)
-            {
-                previousToken = previousToken.GetPreviousToken(includeZeroWidth: true);
-            }
-
-            var shouldSplitOwningTrivia = HasOwningLeadingSourceOnSameLine(trivia, sourceText)
-                                          || previousToken.RawKind == 0
-                                          || TokenLocator.ContainsToken(root, previousToken) == false;
-
-            if (shouldSplitOwningTrivia)
-            {
-                if (owningRelocations.TryGetValue(owningToken, out var documentationTrivia) == false)
-                {
-                    documentationTrivia = [];
-                    owningRelocations[owningToken] = documentationTrivia;
-                }
-
-                documentationTrivia.Add(trivia);
-
-                continue;
-            }
-
-            previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
-            previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+            RegisterRelocation(root, trivia, sourceText, owningRelocations, previousTokenRelocationCounts);
         }
 
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
@@ -200,6 +157,88 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         return replacements.Count == 0
                    ? root
                    : root.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Classifies and registers one off-position documentation comment relocation
+    /// </summary>
+    /// <param name="root">Root node</param>
+    /// <param name="trivia">Trivia candidate</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="owningRelocations">Relocations that split the owning token's leading trivia</param>
+    /// <param name="previousTokenRelocationCounts">Line breaks to append to previous tokens</param>
+    private static void RegisterRelocation(SyntaxNode root,
+                                           SyntaxTrivia trivia,
+                                           SourceText sourceText,
+                                           IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
+                                           Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
+    {
+        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
+            || IsAfterSourceOnSameLine(trivia, sourceText) == false)
+        {
+            return;
+        }
+
+        var owningToken = trivia.Token;
+
+        // Relocating the comment above its owning token is what makes it document that token. When the owner
+        // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
+        // '}' - so moving it changes the author's layout without making the comment mean anything, and the
+        // compiler reports CS1587 either way. Leave it where it was written (issues #591, #625).
+        if (ReihitsuFormatterHelpers.DocumentsFollowingCode(owningToken) == false)
+        {
+            return;
+        }
+
+        var previousToken = GetPreviousPresentToken(owningToken);
+
+        if (HasOwningLeadingSourceOnSameLine(trivia, sourceText)
+            || previousToken.RawKind == 0
+            || TokenLocator.ContainsToken(root, previousToken) == false)
+        {
+            AddOwningRelocation(owningRelocations, owningToken, trivia);
+
+            return;
+        }
+
+        previousTokenRelocationCounts.TryGetValue(previousToken, out var relocationCount);
+        previousTokenRelocationCounts[previousToken] = relocationCount + 1;
+    }
+
+    /// <summary>
+    /// Locates the previous non-missing token
+    /// </summary>
+    /// <param name="owningToken">Token that owns the documentation trivia</param>
+    /// <returns>The previous non-missing token, or the default token when none exists</returns>
+    private static SyntaxToken GetPreviousPresentToken(SyntaxToken owningToken)
+    {
+        var previousToken = owningToken.GetPreviousToken(includeZeroWidth: true);
+
+        while (previousToken.RawKind != 0 && previousToken.IsMissing)
+        {
+            previousToken = previousToken.GetPreviousToken(includeZeroWidth: true);
+        }
+
+        return previousToken;
+    }
+
+    /// <summary>
+    /// Adds a documentation trivia item to the relocations for its owning token
+    /// </summary>
+    /// <param name="owningRelocations">Relocations grouped by owning token</param>
+    /// <param name="owningToken">Owning token</param>
+    /// <param name="trivia">Documentation trivia</param>
+    private static void AddOwningRelocation(IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
+                                            SyntaxToken owningToken,
+                                            SyntaxTrivia trivia)
+    {
+        if (owningRelocations.TryGetValue(owningToken, out var documentationTrivia) == false)
+        {
+            documentationTrivia = [];
+            owningRelocations[owningToken] = documentationTrivia;
+        }
+
+        documentationTrivia.Add(trivia);
     }
 
     /// <summary>

@@ -215,15 +215,7 @@ public static class SyntaxNodeUtilities
     public static bool AreAllSingleLine<TNode>(IEnumerable<TNode> nodes)
         where TNode : SyntaxNode
     {
-        foreach (var node in nodes)
-        {
-            if (CoversSingleLine(node.GetLocation().GetLineSpan()) == false)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return nodes.All(static node => CoversSingleLine(node.GetLocation().GetLineSpan()));
     }
 
     /// <summary>

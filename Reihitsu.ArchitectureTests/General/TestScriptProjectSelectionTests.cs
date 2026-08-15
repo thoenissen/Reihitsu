@@ -145,9 +145,10 @@ public sealed class TestScriptProjectSelectionTests
     /// <returns>Project paths in source order</returns>
     private static string[] ProjectPaths(string text)
     {
-        return Regex.Matches(text, @"[""'](?<path>Reihitsu\.[^""']+\.csproj)[""']")
-                    .Select(match => match.Groups["path"].Value)
-                    .ToArray();
+        return text.Split(['\'', '"'], StringSplitOptions.RemoveEmptyEntries)
+                   .Where(segment => segment.StartsWith("Reihitsu.", StringComparison.Ordinal)
+                                     && segment.EndsWith(".csproj", StringComparison.Ordinal))
+                   .ToArray();
     }
 
     /// <summary>
@@ -159,11 +160,12 @@ public sealed class TestScriptProjectSelectionTests
     {
         var solution = File.ReadAllText(Path.Combine(repositoryRoot, "Reihitsu.sln"));
 
-        return Regex.Matches(solution, @"""(?<path>[^""]+\.csproj)""")
-                    .Select(match => match.Groups["path"].Value.Replace('\\', '/'))
-                    .Where(path => File.ReadAllText(Path.Combine(repositoryRoot, path.Replace('/', Path.DirectorySeparatorChar)))
-                                       .Contains("Microsoft.NET.Test.Sdk", StringComparison.Ordinal))
-                    .ToArray();
+        return solution.Split('"')
+                       .Where(segment => segment.EndsWith(".csproj", StringComparison.Ordinal))
+                       .Select(path => path.Replace('\\', '/'))
+                       .Where(path => File.ReadAllText(Path.Combine(repositoryRoot, path.Replace('/', Path.DirectorySeparatorChar)))
+                                          .Contains("Microsoft.NET.Test.Sdk", StringComparison.Ordinal))
+                       .ToArray();
     }
 
     /// <summary>

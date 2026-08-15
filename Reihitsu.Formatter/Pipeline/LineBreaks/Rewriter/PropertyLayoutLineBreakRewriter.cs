@@ -24,11 +24,6 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     private readonly CancellationToken _cancellationToken;
 
     /// <summary>
-    /// The token gap normalizer
-    /// </summary>
-    private readonly TokenGapNormalizer _gapNormalizer;
-
-    /// <summary>
     /// The brace placer
     /// </summary>
     private readonly BracePlacer _bracePlacer;
@@ -40,15 +35,12 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="gapNormalizer">The token gap normalizer</param>
     /// <param name="bracePlacer">The brace placer</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public PropertyLayoutLineBreakRewriter(TokenGapNormalizer gapNormalizer,
-                                           BracePlacer bracePlacer,
+    public PropertyLayoutLineBreakRewriter(BracePlacer bracePlacer,
                                            CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
-        _gapNormalizer = gapNormalizer;
         _bracePlacer = bracePlacer;
     }
 

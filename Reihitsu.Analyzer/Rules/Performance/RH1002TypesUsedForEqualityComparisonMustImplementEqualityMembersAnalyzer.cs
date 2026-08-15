@@ -131,15 +131,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// <returns><see langword="true"/> if the containing type is relevant to this rule</returns>
     private static bool IsRelevantContainingType(Compilation compilation, INamedTypeSymbol containingType)
     {
-        foreach (var typeName in _relevantContainingTypes)
-        {
-            if (SymbolEqualityComparer.Default.Equals(containingType, compilation.GetTypeByMetadataName(typeName)))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return Array.Exists(_relevantContainingTypes, typeName => SymbolEqualityComparer.Default.Equals(containingType, compilation.GetTypeByMetadataName(typeName)));
     }
 
     /// <summary>
@@ -171,15 +163,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// <returns>The key-selector parameter, or <see langword="null"/> if the overload does not have one</returns>
     private static IParameterSymbol FindKeySelectorParameter(IMethodSymbol methodSymbol)
     {
-        foreach (var parameter in methodSymbol.Parameters)
-        {
-            if (parameter.Name is "keySelector" or "outerKeySelector")
-            {
-                return parameter;
-            }
-        }
-
-        return null;
+        return methodSymbol.Parameters.FirstOrDefault(static parameter => parameter.Name is "keySelector" or "outerKeySelector");
     }
 
     /// <summary>
