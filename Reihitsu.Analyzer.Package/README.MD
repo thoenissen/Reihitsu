@@ -16,7 +16,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 |--------|-----------------------------------------------------------------------|:--------:|:--------:|:--------:|
 || **Analyzer**||||
 | [RH0001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0001.md)| reihitsu.json configuration must be valid.| ✔| ❌| ❌|
-| [RH0002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0002.md)| Documentation rules are currently not active for this project.| ✔| ❌| ❌|
+| [RH0002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0002.md)| Documentation rules are not active for this project.| ✔| ❌| ❌|
 || **Performance**||||
 | [RH1001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH1001.md)| Types used as dictionary keys or in hash sets must implement equality members.| ✔| ❌| ❌|
 | [RH1002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH1002.md)| Types used for equality comparison must implement equality members.| ✔| ❌| ❌|
@@ -84,9 +84,9 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4113.md)| Internal property names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4114.md)| Public property names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4115.md)| Local variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH4116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4116.md)| Tuple element names should be in camelCase.| ✔| ❌| ❌|
+| [RH4116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4116.md)| Named tuple elements should be in PascalCase.| ✔| ❌| ❌|
 | [RH4117](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4117.md)| Deconstruction variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ❌| ❌|
+| [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Named tuple argument names should be in PascalCase.| ✔| ❌| ❌|
 | [RH4120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4120.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4121](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4121.md)| Type parameter names should start with an uppercase 'T'.| ✔| ✔| ❌|
 | [RH4122](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4122.md)| Single-letter parameter names should not be used.| ✔| ❌| ❌|
@@ -106,7 +106,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5008.md)| return-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5009.md)| goto-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5010.md)| break-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH5011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5011.md)| break statement should be followed by a blank line.| ✔| ✔| ✔|
+| [RH5011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5011.md)| break-Statement should be followed by a blank line.| ✔| ✔| ✔|
 | [RH5012](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5012.md)| continue-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5013](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5013.md)| throw-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5014](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5014.md)| switch-Statement should be preceded by a blank line.| ✔| ✔| ✔|
@@ -162,7 +162,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5405](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5405.md)| Braces must not be omitted.| ✔| ✔| ✔|
 | [RH5406](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5406.md)| Braces must not be omitted from multi-line child statements.| ✔| ✔| ✔|
 | [RH5407](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5407.md)| Use braces consistently.| ✔| ✔| ✔|
-| [RH5408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5408.md)| Auto-properties should be single lined.| ✔| ✔| ✔|
+| [RH5408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5408.md)| Simple auto-properties should be single lined.| ✔| ✔| ✔|
 | [RH5409](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5409.md)| Final enum members must not have trailing commas.| ✔| ✔| ✔|
 | [RH5410](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5410.md)| Final array initializer items must not have trailing commas.| ✔| ✔| ✔|
 | [RH5411](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5411.md)| Final collection initializer items must not have trailing commas.| ✔| ✔| ✔|
@@ -325,8 +325,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH8110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8110.md)| Generic type parameter documentation must declare parameter name.| ✔| ❌| ❌|
 | [RH8111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8111.md)| Generic type parameter documentation must have text.| ✔| ❌| ❌|
 | [RH8201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8201.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
-| [RH8202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8202.md)| \<value> tag must not be used.| ✔| ✔| ❌|
-| [RH8203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8203.md)| \<inheritdoc> must be used with inheriting class.| ✔| ❌| ❌|
+| [RH8202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8202.md)| `<value>` tag must not be used.| ✔| ✔| ❌|
+| [RH8203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8203.md)| `<inheritdoc>` must be used with inheriting class.| ✔| ❌| ❌|
 | [RH8204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8204.md)| Do not use placeholder elements.| ✔| ✔| ❌|
 | [RH8301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8301.md)| Documentation lines must begin with single space.| ✔| ✔| ✔|
 | [RH8302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8302.md)| Element documentation headers must not be followed by blank line.| ✔| ✔| ✔|
