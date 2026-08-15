@@ -1508,5 +1508,56 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the initializer-adjacent anchor correction does not mix columns from two
+    /// different source lines when the chain's first collected dot sits on an initializer's closing
+    /// brace line but the anchor link itself wraps onto a later line; the correction must only apply
+    /// when the anchor shares the brace's own line, or a second formatter pass changes the result
+    /// (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAnchorOnLaterLineThanInitializerCloseBraceStaysIdempotent()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Request
+                                             {
+                                                 Choices = data
+                                             }.
+                                                 Choices?.Select(item => new Wrapper
+                                                                         {
+                                                                             Value = item
+                                                                         })
+                                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new Request
+                                                {
+                                                    Choices = data
+                                                }.
+                                        Choices?.Select(item => new Wrapper
+                                                                {
+                                                                    Value = item
+                                                                })
+                                               .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

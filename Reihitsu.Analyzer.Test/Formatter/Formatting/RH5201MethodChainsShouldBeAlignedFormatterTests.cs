@@ -134,5 +134,88 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                                                Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter's own output for a wrapped chain whose first invoked link is
+    /// introduced by <c>!.</c> after a plain (non-invoked) property access satisfies RH5201 and stays
+    /// stable on a second pass. <c>!.</c> selects a different anchor token than <c>?.</c>
+    /// (<see cref="Reihitsu.Core.FluentChainUtilities.GetInvokedLinkOperator"/> returns the <c>!</c>,
+    /// not the following <c>.</c>), so this is the arm most able to drift from the analyzer (issue #680)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesNullForgivingAfterPlainPropertyAccessViolation()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+                             using System.Linq;
+
+                             internal sealed class Example
+                             {
+                                 internal sealed class Choice
+                                 {
+                                     public string Name { get; set; }
+                                 }
+
+                                 internal sealed class Option
+                                 {
+                                     public string Name { get; set; }
+                                 }
+
+                                 internal sealed class Request
+                                 {
+                                     public IEnumerable<Choice> Choices { get; set; }
+                                 }
+
+                                 internal static List<Option> Convert(Request request)
+                                 {
+                                     var options = request.Choices!.Select(choice => new Option
+                                                                                     {
+                                                                                         Name = choice.Name
+                                                                                     })
+                                                          {|#0:.|}ToList();
+
+                                     return options;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 internal sealed class Example
+                                 {
+                                     internal sealed class Choice
+                                     {
+                                         public string Name { get; set; }
+                                     }
+
+                                     internal sealed class Option
+                                     {
+                                         public string Name { get; set; }
+                                     }
+
+                                     internal sealed class Request
+                                     {
+                                         public IEnumerable<Choice> Choices { get; set; }
+                                     }
+
+                                     internal static List<Option> Convert(Request request)
+                                     {
+                                         var options = request.Choices!.Select(choice => new Option
+                                                                                         {
+                                                                                             Name = choice.Name
+                                                                                         })
+                                                                      .ToList();
+
+                                         return options;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -22,7 +22,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
     /// <summary>
     /// Determines the anchor column for a method chain. The anchor is the first collected dot that
-    /// is itself a chain link — a plain dot on an invoked member access, a conditional-access
+    /// is itself an invoked chain link — a plain dot on an invoked member access, a conditional-access
     /// operator, or a null-forgiving operator introducing an invoked link. If no such link precedes
     /// the first wrapped dot, the anchor falls back to the first collected dot
     /// </summary>
@@ -38,7 +38,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
                 break;
             }
 
-            if (IsChainLinkDot(dot))
+            if (ChainWalker.IsInvokedLinkDot(dot))
             {
                 return GetChainAnchorColumn(dot, dots[0], model);
             }
@@ -48,38 +48,15 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Determines whether a collected chain dot is a chain link: a conditional-access operator, a
-    /// null-forgiving operator whose postfix expression is the receiver of an invoked member access,
-    /// or a plain dot on a directly invoked member access. This mirrors
-    /// <see cref="Reihitsu.Core.FluentChainUtilities.GetInvokedLinkOperator"/>'s definition of an
-    /// invoked link so the anchor always agrees with the RH5201 analyzer's reference column
-    /// </summary>
-    /// <param name="dot">The collected dot token to classify</param>
-    /// <returns><see langword="true"/> if the token is a chain link; otherwise, <see langword="false"/></returns>
-    private static bool IsChainLinkDot(SyntaxToken dot)
-    {
-        if (dot.Parent is ConditionalAccessExpressionSyntax)
-        {
-            return true;
-        }
-
-        if (dot.Parent is PostfixUnaryExpressionSyntax postfixUnary)
-        {
-            return postfixUnary.Parent is MemberAccessExpressionSyntax postfixMemberAccess
-                   && postfixMemberAccess.Parent is InvocationExpressionSyntax;
-        }
-
-        return dot.Parent is MemberAccessExpressionSyntax memberAccess
-               && memberAccess.Parent is InvocationExpressionSyntax;
-    }
-
-    /// <summary>
     /// Computes the alignment column for the chain anchor. When the chain's first collected dot
     /// shares a line with a closing brace of an initializer expression, the initializer contributor
-    /// may not have adjusted that line yet (due to pre-order traversal). In that case, the column is
-    /// computed directly from the creation expression's <c>new</c> keyword position, preserving the
-    /// anchor's original source offset from the closing brace — even when the anchor is a later link
-    /// separated from the brace by a non-link prefix dot
+    /// may not have adjusted that line yet (due to pre-order traversal). In that case, and only when
+    /// the anchor itself is still on that same source line, the column is computed directly from the
+    /// creation expression's <c>new</c> keyword position, preserving the anchor's original source
+    /// offset from the closing brace — even when the anchor is a later link separated from the brace
+    /// by a non-link prefix dot. An anchor that wraps onto a later line has no such fixed offset from
+    /// the brace, so it falls back to the ordinary adjusted-column lookup, which resolves the anchor's
+    /// own line through the layout model instead of mixing columns from two different lines
     /// </summary>
     /// <param name="anchorDot">The chain-link token chosen as the alignment anchor</param>
     /// <param name="firstDot">The chain's first collected dot, used to detect an initializer-rooted chain</param>
@@ -90,7 +67,8 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         var prevToken = firstDot.GetPreviousToken();
 
         if (prevToken.IsKind(SyntaxKind.CloseBraceToken)
-            && prevToken.Parent is InitializerExpressionSyntax initExpr)
+            && prevToken.Parent is InitializerExpressionSyntax initExpr
+            && LayoutComputer.GetLine(anchorDot) == LayoutComputer.GetLine(prevToken))
         {
             var newKeyword = GetCreationNewKeyword(initExpr.Parent);
 
