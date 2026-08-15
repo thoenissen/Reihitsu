@@ -45,7 +45,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>
@@ -204,7 +204,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
         await Verify(testCode,
                      fixedCode,
                      onConfigure: config => config.NumberOfFixAllIterations = 2,
-                     Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses.", 2));
+                     Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
     }
 
     /// <summary>
@@ -276,7 +276,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>
@@ -316,7 +316,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>
@@ -348,7 +348,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
     /// <summary>

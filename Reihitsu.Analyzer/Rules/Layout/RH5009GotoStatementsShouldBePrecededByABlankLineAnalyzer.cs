@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5009: The goto-Statement should be preceded by a blank line
+/// RH5009: goto-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<GotoStatementSyntax>

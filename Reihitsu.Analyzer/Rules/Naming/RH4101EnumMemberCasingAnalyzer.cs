@@ -12,7 +12,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// RH4101: Enumeration members names should be in PascalCase
+/// RH4101: Enum member names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH4101EnumMemberCasingAnalyzer : CasingAnalyzerBase

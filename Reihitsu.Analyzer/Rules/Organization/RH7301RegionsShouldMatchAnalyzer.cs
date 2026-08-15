@@ -12,7 +12,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Organization;
 
 /// <summary>
-/// RH7301: The description of the #region and #endregion should match
+/// RH7301: #region and #endregion descriptions should match
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH7301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase

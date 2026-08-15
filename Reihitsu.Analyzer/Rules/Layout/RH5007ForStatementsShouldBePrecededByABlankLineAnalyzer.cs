@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5007: The for-Statement should be preceded by a blank line
+/// RH5007: for-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ForStatementSyntax>

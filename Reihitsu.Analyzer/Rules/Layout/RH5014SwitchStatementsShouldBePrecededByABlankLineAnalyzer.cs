@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5014: The switch-Statement should be preceded by a blank line
+/// RH5014: switch-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<SwitchStatementSyntax>

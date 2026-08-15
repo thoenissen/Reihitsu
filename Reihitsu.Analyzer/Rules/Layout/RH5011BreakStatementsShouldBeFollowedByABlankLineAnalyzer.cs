@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5011: The break-Statement should be followed by a blank line
+/// RH5011: break-Statement should be followed by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer : StatementShouldBeFollowedByABlankLineAnalyzerBase<BreakStatementSyntax>
