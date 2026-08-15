@@ -1096,5 +1096,86 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped chain whose first invoked link is introduced by <c>?.</c> and is
+    /// preceded by a plain (non-invoked) property access aligns continuation dots to that
+    /// <c>?.</c>-invoked link (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAfterPlainPropertyAccessAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+                             using System.Linq;
+
+                             internal sealed class Example
+                             {
+                                 internal sealed class Choice
+                                 {
+                                     public string Name { get; set; }
+                                 }
+
+                                 internal sealed class Option
+                                 {
+                                     public string Name { get; set; }
+                                 }
+
+                                 internal sealed class Request
+                                 {
+                                     public IEnumerable Choices { get; set; }
+                                 }
+
+                                 internal static List Convert(Request request)
+                                 {
+                                     var options = request.Choices?.Select(choice => new Option
+                                     {
+                                         Name = choice.Name
+                                     })
+                                                           .ToList();
+
+                                     return options;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    internal sealed class Choice
+                                    {
+                                        public string Name { get; set; }
+                                    }
+
+                                    internal sealed class Option
+                                    {
+                                        public string Name { get; set; }
+                                    }
+
+                                    internal sealed class Request
+                                    {
+                                        public IEnumerable Choices { get; set; }
+                                    }
+
+                                    internal static List Convert(Request request)
+                                    {
+                                        var options = request.Choices?.Select(choice => new Option
+                                                                                        {
+                                                                                            Name = choice.Name
+                                                                                        })
+                                                                     .ToList();
+
+                                        return options;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
