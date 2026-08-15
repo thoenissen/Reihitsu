@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using Reihitsu.Cli.Abstractions;
@@ -33,6 +34,13 @@ internal static class Program
         if (result.ShowHelp)
         {
             PrintUsage(Console.Out);
+
+            return ExitCodes.Success;
+        }
+
+        if (result.ShowVersion)
+        {
+            Console.Out.WriteLine($"reihitsu-format {GetVersion()}");
 
             return ExitCodes.Success;
         }
@@ -109,6 +117,7 @@ internal static class Program
         var force = false;
         var utf8Bom = false;
         var showHelp = false;
+        var showVersion = false;
         var paths = new List<string>();
         string unknownOption = null;
         var pathsOnly = false;
@@ -168,6 +177,12 @@ internal static class Program
                     }
                     break;
 
+                case "--version":
+                    {
+                        showVersion = true;
+                    }
+                    break;
+
                 default:
                     {
                         if (arg.StartsWith('-'))
@@ -183,7 +198,7 @@ internal static class Program
             }
         }
 
-        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, showHelp, paths, unknownOption);
+        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, showHelp, showVersion, paths, unknownOption);
     }
 
     /// <summary>
@@ -204,7 +219,19 @@ internal static class Program
         writer.WriteLine($"  --force      Skip the confirmation prompt shown when more than {FormatCommandHandler.LargeRunConfirmationThreshold} files would be formatted");
         writer.WriteLine("  --utf8-bom   Write processed files as UTF-8 with a byte order mark");
         writer.WriteLine("  --help, -h   Show this help message");
+        writer.WriteLine("  --version    Show version information");
         writer.WriteLine("  --           Treat all following arguments as paths");
+    }
+
+    /// <summary>
+    /// Gets the CLI's version string
+    /// </summary>
+    /// <returns>The informational version reported by <c>--version</c></returns>
+    private static string GetVersion()
+    {
+        var assembly = typeof(Program).Assembly;
+
+        return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? assembly.GetName().Version?.ToString() ?? "unknown";
     }
 
     #endregion // Methods

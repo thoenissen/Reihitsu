@@ -32,6 +32,7 @@ reihitsu-format [options] [<paths>...]
 | `--force`   | Skip the confirmation prompt that is shown when a run would format more than 25 files. Required for large runs when standard input is not interactive (e.g. CI). |
 | `--utf8-bom` | Normalize processed files to UTF-8 with a byte order mark. Encoding-only changes are reported in `--check` and `--dry-run` modes. |
 | `--help`    | Show help message.                                                 |
+| `--version` | Show version information.                                          |
 
 ### Exit Codes
 

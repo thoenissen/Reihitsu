@@ -25,6 +25,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -43,6 +44,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -61,6 +63,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -79,6 +82,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -97,6 +101,7 @@ public class ProgramTests
         Assert.IsTrue(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -115,6 +120,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsTrue(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -133,6 +139,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsTrue(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -151,6 +158,26 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsTrue(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
+        Assert.IsEmpty(result.Paths);
+        Assert.IsNull(result.UnknownOption);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--version</c> sets <see cref="ParseResult.ShowVersion"/> to <see langword="true"/>
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsVersionFlagSetsShowVersion()
+    {
+        var result = Program.ParseArguments(["--version"]);
+
+        Assert.IsFalse(result.CheckOnly);
+        Assert.IsFalse(result.DryRun);
+        Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
+        Assert.IsFalse(result.ShowHelp);
+        Assert.IsTrue(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -180,6 +207,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsTrue(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
     }
@@ -201,6 +229,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.IsNull(result.UnknownOption);
     }
 
@@ -218,6 +247,7 @@ public class ProgramTests
         Assert.IsFalse(result.Force);
         Assert.IsFalse(result.Utf8Bom);
         Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
         Assert.HasCount(1, result.Paths);
         Assert.AreEqual("file.cs", result.Paths[0]);
         Assert.IsNull(result.UnknownOption);
