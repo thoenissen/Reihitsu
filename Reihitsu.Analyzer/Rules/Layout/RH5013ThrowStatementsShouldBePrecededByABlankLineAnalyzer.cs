@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5013: The throw-Statement should be preceded by a blank line
+/// RH5013: throw-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ThrowStatementSyntax>

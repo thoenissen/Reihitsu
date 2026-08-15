@@ -10,7 +10,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5601: Use tabs correctly
+/// RH5601: Tab characters must not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase

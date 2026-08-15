@@ -10,7 +10,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5010: The break-Statement should be preceded by a blank line
+/// RH5010: break-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<BreakStatementSyntax>

@@ -14,7 +14,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5303: The collection initializer should be formatted correctly
+/// RH5303: Collection initializer should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase

@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Performance;
 
 /// <summary>
-/// RH1001: Types used as keys must implement equality members
+/// RH1001: Types used as dictionary keys or in hash sets must implement equality members
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructEqualityPerformanceAnalyzerBase

@@ -45,6 +45,11 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>The formatter test class diagnostic ID regex</returns>
     private static readonly Regex _formatterTestClassDiagnosticIdRegex = new(@"^(RH\d{4}(?:[A-Z](?=[A-Z]))?)", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
+    /// <summary>
+    /// Regex that detects numbered message-format placeholders such as <c>{0}</c>
+    /// </summary>
+    private static readonly Regex _messageFormatPlaceholderRegex = new(@"\{\d+\}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+
     #endregion // Fields
 
     #region Methods
@@ -170,6 +175,18 @@ internal static class AnalyzerMetadataDiscovery
         return _whitespaceCollapseRegex.Replace(normalizedValue, " ")
                                        .Trim()
                                        .TrimEnd('.');
+    }
+
+    /// <summary>
+    /// Determines whether a message format string contains a numbered placeholder
+    /// </summary>
+    /// <param name="messageFormat">Message format to inspect</param>
+    /// <returns><see langword="true"/> when the message format contains a placeholder such as <c>{0}</c>; otherwise, <see langword="false"/></returns>
+    internal static bool ContainsPlaceholder(string messageFormat)
+    {
+        ArgumentNullException.ThrowIfNull(messageFormat);
+
+        return _messageFormatPlaceholderRegex.IsMatch(messageFormat);
     }
 
     /// <summary>

@@ -8,7 +8,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Organization;
 
 /// <summary>
-/// RH7303: Regions must not be placed within elements
+/// RH7303: Do not place regions within elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH7303DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerBase

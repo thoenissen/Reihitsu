@@ -12,7 +12,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5301: The object initializer should be formatted correctly
+/// RH5301: Object initializer should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase

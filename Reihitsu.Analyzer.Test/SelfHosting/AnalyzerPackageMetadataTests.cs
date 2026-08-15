@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer;
 
 namespace Reihitsu.Analyzer.Test.SelfHosting;
 
@@ -11,6 +14,98 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 [TestClass]
 public class AnalyzerPackageMetadataTests
 {
+    #region Fields
+
+    /// <summary>
+    /// Diagnostic IDs whose message format is intentionally more specific than their title - naming a concrete
+    /// remediation step, XML tag, disambiguating direction, or the singular subject a diagnostic instance
+    /// actually points at - so equalizing it with the title would remove information rather than redundancy
+    /// </summary>
+    private static readonly HashSet<string> _messageFormatIntentionallyDiffersFromTitle = new(StringComparer.Ordinal)
+                                                                                          {
+                                                                                              // Message states a concrete remediation step or configuration pointer the title omits
+                                                                                              "RH0002",
+                                                                                              "RH2109",
+                                                                                              "RH4009",
+                                                                                              "RH7004",
+                                                                                              "RH7501",
+
+                                                                                              // Message disambiguates an order or scope the title leaves ambiguous or under-specifies
+                                                                                              "RH5111",
+                                                                                              "RH5113",
+                                                                                              "RH5205",
+                                                                                              "RH7110",
+                                                                                              "RH7205",
+                                                                                              "RH7207",
+
+                                                                                              // Title states the general plural rule; message names the singular element a diagnostic instance
+                                                                                              // actually points at (documentation-coverage rule family)
+                                                                                              "RH8001",
+                                                                                              "RH8002",
+                                                                                              "RH8003",
+                                                                                              "RH8004",
+                                                                                              "RH8005",
+                                                                                              "RH8006",
+                                                                                              "RH8007",
+                                                                                              "RH8008",
+                                                                                              "RH8009",
+                                                                                              "RH8010",
+                                                                                              "RH8011",
+                                                                                              "RH8012",
+                                                                                              "RH8013",
+                                                                                              "RH8014",
+                                                                                              "RH8015",
+                                                                                              "RH8016",
+                                                                                              "RH8017",
+                                                                                              "RH8018",
+                                                                                              "RH8019",
+                                                                                              "RH8020",
+                                                                                              "RH8021",
+                                                                                              "RH8022",
+                                                                                              "RH8023",
+                                                                                              "RH8024",
+                                                                                              "RH8025",
+                                                                                              "RH8026",
+                                                                                              "RH8027",
+                                                                                              "RH8028",
+                                                                                              "RH8029",
+                                                                                              "RH8402",
+
+                                                                                              // Message names the concrete XML documentation tag the title only describes generically
+                                                                                              "RH8030",
+                                                                                              "RH8031",
+                                                                                              "RH8032",
+                                                                                              "RH8033",
+                                                                                              "RH8101",
+                                                                                              "RH8102",
+                                                                                              "RH8103",
+                                                                                              "RH8104",
+                                                                                              "RH8105",
+                                                                                              "RH8106",
+                                                                                              "RH8107",
+                                                                                              "RH8108",
+                                                                                              "RH8109",
+                                                                                              "RH8110",
+                                                                                              "RH8111",
+                                                                                              "RH8204",
+
+                                                                                              // Title carries a markdown code span copied from the rule document; the message is plain runtime text
+                                                                                              "RH3003",
+                                                                                              "RH3101",
+                                                                                              "RH3105",
+                                                                                              "RH8202",
+                                                                                              "RH8203",
+
+                                                                                              // Message covers a second, independently checked modifier pair the title's single example does not name
+                                                                                              "RH7106",
+
+                                                                                              // Message names the actual, narrower element kind the analyzer checks; the title matches the rule
+                                                                                              // document's own heading, which is outside the scope of this test to rewrite
+                                                                                              "RH7109"
+                                                                                          };
+
+    #endregion // Fields
+
     #region Tests
 
     /// <summary>
@@ -146,6 +241,62 @@ public class AnalyzerPackageMetadataTests
                                   .ToArray();
 
         Assert.IsEmpty(mismatches, $"The analyzer package README descriptions must match the rule documentation titles.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
+    }
+
+    /// <summary>
+    /// Verifies every analyzer's title resource matches its rule documentation title
+    /// </summary>
+    [TestMethod]
+    public void AnalyzerTitleResourcesMatchRuleDocumentationTitles()
+    {
+        var analyzers = AnalyzerMetadataDiscovery.DiscoverAnalyzers();
+        var documentedRules = AnalyzerMetadataDiscovery.ParseRuleDocumentationTitles();
+
+        var mismatches = analyzers.Select(analyzer => new
+                                                      {
+                                                          Analyzer = analyzer,
+                                                          TitleResource = AnalyzerResources.ResourceManager.GetString($"{analyzer.DiagnosticId}Title"),
+                                                          DocumentedRule = documentedRules.SingleOrDefault(rule => rule.DiagnosticId == analyzer.DiagnosticId)
+                                                      })
+                                  .Where(entry => entry.TitleResource == null
+                                                  || entry.DocumentedRule == null
+                                                  || string.Equals(AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.TitleResource),
+                                                                   AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.DocumentedRule.Title),
+                                                                   StringComparison.OrdinalIgnoreCase) is false)
+                                  .Select(entry => entry.TitleResource == null
+                                                       ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) has no '{entry.Analyzer.DiagnosticId}Title' resource string."
+                                                       : entry.DocumentedRule == null
+                                                           ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation."
+                                                           : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) title resource '{entry.TitleResource}' does not match rule title '{entry.DocumentedRule.Title}'.")
+                                  .ToArray();
+
+        Assert.IsEmpty(mismatches, $"Every analyzer title resource must match its rule documentation title.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
+    }
+
+    /// <summary>
+    /// Verifies every analyzer's message format resource matches its title resource when the message format
+    /// contains no placeholders, except for the documented cases where the divergence is intentional
+    /// </summary>
+    [TestMethod]
+    public void MessageFormatResourcesMatchTitleWhenNoPlaceholders()
+    {
+        var analyzers = AnalyzerMetadataDiscovery.DiscoverAnalyzers();
+
+        var mismatches = analyzers.Select(analyzer => new
+                                                      {
+                                                          Analyzer = analyzer,
+                                                          TitleResource = AnalyzerResources.ResourceManager.GetString($"{analyzer.DiagnosticId}Title"),
+                                                          MessageFormatResource = AnalyzerResources.ResourceManager.GetString($"{analyzer.DiagnosticId}MessageFormat")
+                                                      })
+                                  .Where(entry => entry.TitleResource != null
+                                                  && entry.MessageFormatResource != null
+                                                  && AnalyzerMetadataDiscovery.ContainsPlaceholder(entry.MessageFormatResource) is false
+                                                  && _messageFormatIntentionallyDiffersFromTitle.Contains(entry.Analyzer.DiagnosticId) is false
+                                                  && string.Equals(entry.MessageFormatResource, entry.TitleResource, StringComparison.Ordinal) is false)
+                                  .Select(entry => $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) message format '{entry.MessageFormatResource}' does not match title '{entry.TitleResource}'.")
+                                  .ToArray();
+
+        Assert.IsEmpty(mismatches, $"Every analyzer message format without placeholders must match its title resource, unless listed in {nameof(_messageFormatIntentionallyDiffersFromTitle)}.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
     }
 
     /// <summary>

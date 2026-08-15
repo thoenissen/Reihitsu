@@ -12,7 +12,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// RH4103: Method members names should be in PascalCase
+/// RH4103: Method names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH4103MethodNameCasingAnalyzer : CasingAnalyzerBase
