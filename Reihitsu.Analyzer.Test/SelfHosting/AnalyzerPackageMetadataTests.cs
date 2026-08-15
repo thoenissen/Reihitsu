@@ -18,8 +18,9 @@ public class AnalyzerPackageMetadataTests
 
     /// <summary>
     /// Diagnostic IDs whose message format is intentionally more specific than their title - naming a concrete
-    /// remediation step, XML tag, disambiguating direction, or the singular subject a diagnostic instance
-    /// actually points at - so equalizing it with the title would remove information rather than redundancy
+    /// remediation step, XML tag, or disambiguating detail the title omits - once markdown code spans are
+    /// ignored, so equalizing it with the title would remove information or force ungrammatical wording
+    /// rather than removing redundancy
     /// </summary>
     private static readonly HashSet<string> _messageFormatIntentionallyDiffersFromTitle = new(StringComparer.Ordinal)
                                                                                           {
@@ -37,39 +38,6 @@ public class AnalyzerPackageMetadataTests
                                                                                               "RH7110",
                                                                                               "RH7205",
                                                                                               "RH7207",
-
-                                                                                              // Title states the general plural rule; message names the singular element a diagnostic instance
-                                                                                              // actually points at (documentation-coverage rule family)
-                                                                                              "RH8001",
-                                                                                              "RH8002",
-                                                                                              "RH8003",
-                                                                                              "RH8004",
-                                                                                              "RH8005",
-                                                                                              "RH8006",
-                                                                                              "RH8007",
-                                                                                              "RH8008",
-                                                                                              "RH8009",
-                                                                                              "RH8010",
-                                                                                              "RH8011",
-                                                                                              "RH8012",
-                                                                                              "RH8013",
-                                                                                              "RH8014",
-                                                                                              "RH8015",
-                                                                                              "RH8016",
-                                                                                              "RH8017",
-                                                                                              "RH8018",
-                                                                                              "RH8019",
-                                                                                              "RH8020",
-                                                                                              "RH8021",
-                                                                                              "RH8022",
-                                                                                              "RH8023",
-                                                                                              "RH8024",
-                                                                                              "RH8025",
-                                                                                              "RH8026",
-                                                                                              "RH8027",
-                                                                                              "RH8028",
-                                                                                              "RH8029",
-                                                                                              "RH8402",
 
                                                                                               // Message names the concrete XML documentation tag the title only describes generically
                                                                                               "RH8030",
@@ -89,11 +57,12 @@ public class AnalyzerPackageMetadataTests
                                                                                               "RH8111",
                                                                                               "RH8204",
 
-                                                                                              // Title carries a markdown code span copied from the rule document; the message is plain runtime text
-                                                                                              "RH3003",
+                                                                                              // Message cannot be derived by stripping the title's markdown code span - the span sits mid-sentence,
+                                                                                              // so stripping it breaks the grammar instead of just removing formatting
                                                                                               "RH3101",
-                                                                                              "RH3105",
-                                                                                              "RH8202",
+
+                                                                                              // Message states a broader scope (also covers interface implementation) that the title's "inheriting
+                                                                                              // class" wording omits
                                                                                               "RH8203",
 
                                                                                               // Message covers a second, independently checked modifier pair the title's single example does not name
@@ -105,6 +74,21 @@ public class AnalyzerPackageMetadataTests
                                                                                           };
 
     #endregion // Fields
+
+    #region Methods
+
+    /// <summary>
+    /// Removes markdown code-span backticks and a trailing sentence period, so a title's markdown and a message
+    /// format's plain runtime text can be compared for the same underlying wording
+    /// </summary>
+    /// <param name="value">Resource text to normalize</param>
+    /// <returns>The value without backticks or a trailing period</returns>
+    private static string IgnoreMarkdownCodeSpans(string value)
+    {
+        return value.Replace("`", string.Empty, StringComparison.Ordinal).TrimEnd('.');
+    }
+
+    #endregion // Methods
 
     #region Tests
 
@@ -292,7 +276,9 @@ public class AnalyzerPackageMetadataTests
                                                   && entry.MessageFormatResource != null
                                                   && AnalyzerMetadataDiscovery.ContainsPlaceholder(entry.MessageFormatResource) is false
                                                   && _messageFormatIntentionallyDiffersFromTitle.Contains(entry.Analyzer.DiagnosticId) is false
-                                                  && string.Equals(entry.MessageFormatResource, entry.TitleResource, StringComparison.Ordinal) is false)
+                                                  && string.Equals(IgnoreMarkdownCodeSpans(entry.MessageFormatResource),
+                                                                   IgnoreMarkdownCodeSpans(entry.TitleResource),
+                                                                   StringComparison.Ordinal) is false)
                                   .Select(entry => $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) message format '{entry.MessageFormatResource}' does not match title '{entry.TitleResource}'.")
                                   .ToArray();
 

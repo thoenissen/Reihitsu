@@ -59,7 +59,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base. Unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base. Unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base. Unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
     }
 
     /// <summary>
@@ -246,7 +246,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base. Unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
     }
 
     /// <summary>
@@ -286,7 +286,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base. Unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
     }
 
     /// <summary>
@@ -332,7 +332,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base. Unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
     }
 
     /// <summary>

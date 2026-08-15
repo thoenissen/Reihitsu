@@ -124,7 +124,7 @@
     <value>Not operator should not be used</value>
   </data>
   <data name="RH3101MessageFormat" xml:space="preserve">
-    <value>Do not prefix calls with base. Unless a local implementation exists.</value>
+    <value>Do not prefix calls with base unless a local implementation exists.</value>
   </data>
   <data name="RH3101Title" xml:space="preserve">
     <value>Do not prefix calls with `base.` unless a local implementation exists</value>
@@ -1429,7 +1429,7 @@
     <value>Files must start with configured copyright header</value>
   </data>
   <data name="RH8402MessageFormat" xml:space="preserve">
-    <value>The file must start with the configured copyright header.</value>
+    <value>Files must start with configured copyright header</value>
   </data>
   <data name="RH8031Title" xml:space="preserve">
     <value>Extension declarations must have summary text</value>
@@ -1540,175 +1540,175 @@
     <value>The inheritdoc tag should be used if possible</value>
   </data>
   <data name="RH8001MessageFormat" xml:space="preserve">
-    <value>Non-private class must be documented.</value>
+    <value>Non-private classes must be documented</value>
   </data>
   <data name="RH8001Title" xml:space="preserve">
     <value>Non-private classes must be documented</value>
   </data>
   <data name="RH8002MessageFormat" xml:space="preserve">
-    <value>Private class must be documented.</value>
+    <value>Private classes must be documented</value>
   </data>
   <data name="RH8002Title" xml:space="preserve">
     <value>Private classes must be documented</value>
   </data>
   <data name="RH8003MessageFormat" xml:space="preserve">
-    <value>Non-private struct must be documented.</value>
+    <value>Non-private structs must be documented</value>
   </data>
   <data name="RH8003Title" xml:space="preserve">
     <value>Non-private structs must be documented</value>
   </data>
   <data name="RH8004MessageFormat" xml:space="preserve">
-    <value>Private struct must be documented.</value>
+    <value>Private structs must be documented</value>
   </data>
   <data name="RH8004Title" xml:space="preserve">
     <value>Private structs must be documented</value>
   </data>
   <data name="RH8005MessageFormat" xml:space="preserve">
-    <value>Non-private interface must be documented.</value>
+    <value>Non-private interfaces must be documented</value>
   </data>
   <data name="RH8005Title" xml:space="preserve">
     <value>Non-private interfaces must be documented</value>
   </data>
   <data name="RH8006MessageFormat" xml:space="preserve">
-    <value>Private interface must be documented.</value>
+    <value>Private interfaces must be documented</value>
   </data>
   <data name="RH8006Title" xml:space="preserve">
     <value>Private interfaces must be documented</value>
   </data>
   <data name="RH8007MessageFormat" xml:space="preserve">
-    <value>Non-private record must be documented.</value>
+    <value>Non-private records must be documented</value>
   </data>
   <data name="RH8007Title" xml:space="preserve">
     <value>Non-private records must be documented</value>
   </data>
   <data name="RH8008MessageFormat" xml:space="preserve">
-    <value>Private record must be documented.</value>
+    <value>Private records must be documented</value>
   </data>
   <data name="RH8008Title" xml:space="preserve">
     <value>Private records must be documented</value>
   </data>
   <data name="RH8009MessageFormat" xml:space="preserve">
-    <value>Non-private record struct must be documented.</value>
+    <value>Non-private record structs must be documented</value>
   </data>
   <data name="RH8009Title" xml:space="preserve">
     <value>Non-private record structs must be documented</value>
   </data>
   <data name="RH8010MessageFormat" xml:space="preserve">
-    <value>Private record struct must be documented.</value>
+    <value>Private record structs must be documented</value>
   </data>
   <data name="RH8010Title" xml:space="preserve">
     <value>Private record structs must be documented</value>
   </data>
   <data name="RH8011MessageFormat" xml:space="preserve">
-    <value>Non-private enum must be documented.</value>
+    <value>Non-private enums must be documented</value>
   </data>
   <data name="RH8011Title" xml:space="preserve">
     <value>Non-private enums must be documented</value>
   </data>
   <data name="RH8012MessageFormat" xml:space="preserve">
-    <value>Private enum must be documented.</value>
+    <value>Private enums must be documented</value>
   </data>
   <data name="RH8012Title" xml:space="preserve">
     <value>Private enums must be documented</value>
   </data>
   <data name="RH8013MessageFormat" xml:space="preserve">
-    <value>Enum member in non-private enum must be documented.</value>
+    <value>Enum members in non-private enums must be documented</value>
   </data>
   <data name="RH8013Title" xml:space="preserve">
     <value>Enum members in non-private enums must be documented</value>
   </data>
   <data name="RH8014MessageFormat" xml:space="preserve">
-    <value>Enum member in private enum must be documented.</value>
+    <value>Enum members in private enums must be documented</value>
   </data>
   <data name="RH8014Title" xml:space="preserve">
     <value>Enum members in private enums must be documented</value>
   </data>
   <data name="RH8015MessageFormat" xml:space="preserve">
-    <value>Non-private delegate must be documented.</value>
+    <value>Non-private delegates must be documented</value>
   </data>
   <data name="RH8015Title" xml:space="preserve">
     <value>Non-private delegates must be documented</value>
   </data>
   <data name="RH8016MessageFormat" xml:space="preserve">
-    <value>Private delegate must be documented.</value>
+    <value>Private delegates must be documented</value>
   </data>
   <data name="RH8016Title" xml:space="preserve">
     <value>Private delegates must be documented</value>
   </data>
   <data name="RH8017MessageFormat" xml:space="preserve">
-    <value>Non-private constructor must be documented.</value>
+    <value>Non-private constructors must be documented</value>
   </data>
   <data name="RH8017Title" xml:space="preserve">
     <value>Non-private constructors must be documented</value>
   </data>
   <data name="RH8018MessageFormat" xml:space="preserve">
-    <value>Private constructor must be documented.</value>
+    <value>Private constructors must be documented</value>
   </data>
   <data name="RH8018Title" xml:space="preserve">
     <value>Private constructors must be documented</value>
   </data>
   <data name="RH8019MessageFormat" xml:space="preserve">
-    <value>Destructor must be documented.</value>
+    <value>Destructors must be documented</value>
   </data>
   <data name="RH8019Title" xml:space="preserve">
     <value>Destructors must be documented</value>
   </data>
   <data name="RH8020MessageFormat" xml:space="preserve">
-    <value>Non-private method must be documented.</value>
+    <value>Non-private methods must be documented</value>
   </data>
   <data name="RH8020Title" xml:space="preserve">
     <value>Non-private methods must be documented</value>
   </data>
   <data name="RH8021MessageFormat" xml:space="preserve">
-    <value>Private method must be documented.</value>
+    <value>Private methods must be documented</value>
   </data>
   <data name="RH8021Title" xml:space="preserve">
     <value>Private methods must be documented</value>
   </data>
   <data name="RH8022MessageFormat" xml:space="preserve">
-    <value>Non-private property must be documented.</value>
+    <value>Non-private properties must be documented</value>
   </data>
   <data name="RH8022Title" xml:space="preserve">
     <value>Non-private properties must be documented</value>
   </data>
   <data name="RH8023MessageFormat" xml:space="preserve">
-    <value>Private property must be documented.</value>
+    <value>Private properties must be documented</value>
   </data>
   <data name="RH8023Title" xml:space="preserve">
     <value>Private properties must be documented</value>
   </data>
   <data name="RH8024MessageFormat" xml:space="preserve">
-    <value>Non-private indexer must be documented.</value>
+    <value>Non-private indexers must be documented</value>
   </data>
   <data name="RH8024Title" xml:space="preserve">
     <value>Non-private indexers must be documented</value>
   </data>
   <data name="RH8025MessageFormat" xml:space="preserve">
-    <value>Private indexer must be documented.</value>
+    <value>Private indexers must be documented</value>
   </data>
   <data name="RH8025Title" xml:space="preserve">
     <value>Private indexers must be documented</value>
   </data>
   <data name="RH8026MessageFormat" xml:space="preserve">
-    <value>Non-private field must be documented.</value>
+    <value>Non-private fields must be documented</value>
   </data>
   <data name="RH8026Title" xml:space="preserve">
     <value>Non-private fields must be documented</value>
   </data>
   <data name="RH8027MessageFormat" xml:space="preserve">
-    <value>Private field must be documented.</value>
+    <value>Private fields must be documented</value>
   </data>
   <data name="RH8027Title" xml:space="preserve">
     <value>Private fields must be documented</value>
   </data>
   <data name="RH8028MessageFormat" xml:space="preserve">
-    <value>Non-private event must be documented.</value>
+    <value>Non-private events must be documented</value>
   </data>
   <data name="RH8028Title" xml:space="preserve">
     <value>Non-private events must be documented</value>
   </data>
   <data name="RH8029MessageFormat" xml:space="preserve">
-    <value>Private event must be documented.</value>
+    <value>Private events must be documented</value>
   </data>
   <data name="RH8029Title" xml:space="preserve">
     <value>Private events must be documented</value>
@@ -1720,7 +1720,7 @@
     <value>Element documentation must have summary text</value>
   </data>
   <data name="RH8202MessageFormat" xml:space="preserve">
-    <value>Do not use the &lt;value&gt; tag.</value>
+    <value>&lt;value&gt; tag must not be used.</value>
   </data>
   <data name="RH8202Title" xml:space="preserve">
     <value>`&lt;value&gt;` tag must not be used</value>

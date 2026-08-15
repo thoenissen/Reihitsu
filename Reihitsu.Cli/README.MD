@@ -1,5 +1,7 @@
 ﻿# Reihitsu.Cli
 
+> 麗筆 (reihitsu, [ɾeːçitsɯ]) — beautiful brushwork
+
 A command-line formatting tool for C# source files, powered by the Reihitsu formatter engine.
 
 ## Installation

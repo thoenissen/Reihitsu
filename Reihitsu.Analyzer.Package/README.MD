@@ -1,5 +1,7 @@
 ﻿# Reihitsu.Analyzer
 
+> 麗筆 (reihitsu, [ɾeːçitsɯ]) — beautiful brushwork
+
 A Roslyn-based C# analyzer package that enforces coding rules across multiple categories: Analyzer, Performance, Design, Clarity, Naming, Layout, Spacing, Organization, and Documentation.
 
 ## Installation

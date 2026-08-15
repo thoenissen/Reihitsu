@@ -1,5 +1,7 @@
 # Reihitsu
 
+> 麗筆 (reihitsu, [ɾeːçitsɯ]) — beautiful brushwork
+
 A collection of C# development tools built on the Roslyn compiler platform, including a code analyzer with code fixes and a standalone formatting CLI tool.
 
 ## Packages
