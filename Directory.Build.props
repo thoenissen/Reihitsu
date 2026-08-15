@@ -3,16 +3,20 @@
       <LangVersion>latest</LangVersion>
 
       <VersionPrefix>1.0.0</VersionPrefix>
-      <!-- Prerelease counter; leave empty for a stable release -->
-      <PreReleaseNumber>6</PreReleaseNumber>
+      <!-- Beta counter; leave empty for a stable release -->
+      <BetaNumber></BetaNumber>
+      <!-- Release candidate counter; leave empty for a stable release -->
+      <ReleaseCandidateNumber>1</ReleaseCandidateNumber>
 
       <!-- Numeric identity: unique per prerelease so Visual Studio reloads the analyzer instead of serving a cached copy -->
-      <AssemblyVersion Condition="'$(PreReleaseNumber)' != ''">$(VersionPrefix).$(PreReleaseNumber)</AssemblyVersion>
-      <AssemblyVersion Condition="'$(PreReleaseNumber)' == ''">$(VersionPrefix).0</AssemblyVersion>
+      <AssemblyVersion Condition="'$(BetaNumber)' != ''">$(VersionPrefix).$(BetaNumber)</AssemblyVersion>
+      <AssemblyVersion Condition="'$(ReleaseCandidateNumber)' != ''">$(VersionPrefix).$(ReleaseCandidateNumber)00</AssemblyVersion>
+      <AssemblyVersion Condition="'$(BetaNumber)' == '' AND '$(ReleaseCandidateNumber)' == ''">$(VersionPrefix).0</AssemblyVersion>
       <FileVersion>$(AssemblyVersion)</FileVersion>
 
       <!-- Display and package version keep the beta label -->
-      <VersionSuffix Condition="'$(PreReleaseNumber)' != ''">beta$(PreReleaseNumber)</VersionSuffix>
+      <VersionSuffix Condition="'$(BetaNumber)' != ''">beta$(BetaNumber)</VersionSuffix>
+      <VersionSuffix Condition="'$(ReleaseCandidateNumber)' != ''">rc$(ReleaseCandidateNumber)</VersionSuffix>
       <Version Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</Version>
       <Version Condition="'$(VersionSuffix)' == ''">$(VersionPrefix)</Version>
       <PackageVersion>$(Version)</PackageVersion>
