@@ -12,17 +12,19 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Aligns dots in method chains so that continuation dots align to the first dot's column.
-/// Conditional access operators (<c>?.</c>) are treated as chain links
+/// Aligns dots in method chains so that continuation dots align to the first chain link's column.
+/// Conditional access operators (<c>?.</c>) and null-forgiving operators introducing an invoked
+/// link (<c>!.</c>) are treated as chain links, matching the RH5201 analyzer's definition
 /// </summary>
 internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 {
     #region Methods
 
     /// <summary>
-    /// Determines the anchor column for a method chain. If the first dot in the chain is part of
-    /// a qualified name prefix (e.g., <c>System.Linq.Enumerable</c>), the anchor is the first
-    /// invocation dot that remains on the root line. Otherwise, the anchor is the first dot
+    /// Determines the anchor column for a method chain. The anchor is the first collected dot that
+    /// is itself an invoked chain link — a plain dot on an invoked member access, a conditional-access
+    /// operator, or a null-forgiving operator introducing an invoked link. If no such link precedes
+    /// the first wrapped dot, the anchor falls back to the first collected dot
     /// </summary>
     /// <param name="dots">The collected chain dots</param>
     /// <param name="model">The layout model</param>
@@ -36,46 +38,52 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
                 break;
             }
 
-            var isInvocationDot = dot.Parent is MemberAccessExpressionSyntax memberAccess
-                                  && memberAccess.Parent is InvocationExpressionSyntax;
-
-            if (isInvocationDot)
+            if (ChainWalker.IsInvokedLinkDot(dot))
             {
-                return GetChainAnchorColumn(dot, model);
+                return GetChainAnchorColumn(dot, dots[0], model);
             }
         }
 
-        return GetChainAnchorColumn(dots[0], model);
+        return GetChainAnchorColumn(dots[0], dots[0], model);
     }
 
     /// <summary>
-    /// Computes the alignment column for the first dot in a chain. When the first dot shares
-    /// a line with a closing brace of an initializer expression, the initializer contributor
-    /// may not have adjusted that line yet (due to pre-order traversal). In that case, the
-    /// column is computed directly from the creation expression's <c>new</c> keyword position
+    /// Computes the alignment column for the chain anchor. When the chain's first collected dot
+    /// directly follows a closing brace of an initializer expression, the initializer contributor may
+    /// not have adjusted that brace's line yet (due to pre-order traversal) — regardless of whether
+    /// the first dot itself was wrapped onto its own line. In that case, and only when the anchor is
+    /// still on the first dot's own line, the column is computed directly from the creation
+    /// expression's <c>new</c> keyword position, preserving the anchor's original source offset from
+    /// the closing brace — even when the anchor is a later link separated from the first dot by a
+    /// non-link prefix dot. An anchor that wraps onto a later line than the first dot has no such
+    /// fixed offset from the brace, so it falls back to the ordinary adjusted-column lookup, which
+    /// resolves the anchor's own line through the layout model instead of mixing columns from
+    /// unrelated lines
     /// </summary>
-    /// <param name="firstDot">The first dot token in the chain</param>
+    /// <param name="anchorDot">The chain-link token chosen as the alignment anchor</param>
+    /// <param name="firstDot">The chain's first collected dot, used to detect an initializer-rooted chain</param>
     /// <param name="model">The layout model</param>
     /// <returns>The adjusted column for the chain anchor</returns>
-    private static int GetChainAnchorColumn(SyntaxToken firstDot, LayoutModel model)
+    private static int GetChainAnchorColumn(SyntaxToken anchorDot, SyntaxToken firstDot, LayoutModel model)
     {
         var prevToken = firstDot.GetPreviousToken();
 
         if (prevToken.IsKind(SyntaxKind.CloseBraceToken)
-            && prevToken.Parent is InitializerExpressionSyntax initExpr)
+            && prevToken.Parent is InitializerExpressionSyntax initExpr
+            && LayoutComputer.GetLine(anchorDot) == LayoutComputer.GetLine(firstDot))
         {
             var newKeyword = GetCreationNewKeyword(initExpr.Parent);
 
             if (newKeyword != default)
             {
-                var dotOffset = LayoutComputer.GetColumn(firstDot) - LayoutComputer.GetColumn(prevToken);
+                var dotOffset = LayoutComputer.GetColumn(anchorDot) - LayoutComputer.GetColumn(prevToken);
                 var newColumn = LayoutComputer.GetAdjustedColumn(newKeyword, model);
 
                 return newColumn + dotOffset;
             }
         }
 
-        return LayoutComputer.GetAdjustedColumn(firstDot, model);
+        return LayoutComputer.GetAdjustedColumn(anchorDot, model);
     }
 
     /// <summary>
