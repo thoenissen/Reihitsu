@@ -58,7 +58,14 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// non-link prefix dot. An anchor that wraps onto a later line than the first dot has no such
     /// fixed offset from the brace, so it falls back to the ordinary adjusted-column lookup, which
     /// resolves the anchor's own line through the layout model instead of mixing columns from
-    /// unrelated lines
+    /// unrelated lines.
+    /// Rebasing onto the <c>new</c> keyword is only valid when the closing brace itself ends up at
+    /// that keyword's column, which happens exactly when the brace starts its own line — the same
+    /// condition <see cref="ObjectInitializerContributor"/> uses before it moves the brace there. A
+    /// brace that shares its line with earlier content (<c>new[] { 1, 2, 3 }.Select(…)</c>, or a
+    /// multi-line initializer closed by <c>2 }</c>) keeps its own line's indentation, so the rebase
+    /// would shift the anchor by the initializer's printed width; such a chain falls back to the
+    /// ordinary lookup instead (issue #684)
     /// </summary>
     /// <param name="anchorDot">The chain-link token chosen as the alignment anchor</param>
     /// <param name="firstDot">The chain's first collected dot, used to detect an initializer-rooted chain</param>
@@ -70,6 +77,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
         if (prevToken.IsKind(SyntaxKind.CloseBraceToken)
             && prevToken.Parent is InitializerExpressionSyntax initExpr
+            && LayoutComputer.IsFirstOnLine(prevToken)
             && LayoutComputer.GetLine(anchorDot) == LayoutComputer.GetLine(firstDot))
         {
             var newKeyword = GetCreationNewKeyword(initExpr.Parent);

@@ -1443,12 +1443,14 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a chain whose first collected dot is itself wrapped onto its own line keeps its
-    /// current alignment; issue #680's fix does not reach this shape, which has an independent,
-    /// pre-existing divergence from RH5201 tracked separately
+    /// Verifies that a chain whose own first dot is wrapped onto its own line collapses that dot back
+    /// onto the chain root, so the remaining continuation dots align to the first invoked link's
+    /// column — the column RH5201 computes — instead of to block indentation. The dot is a plain,
+    /// non-invoked property access, which the line-break phase's invoked-link-only view never
+    /// considered (issue #683)
     /// </summary>
     [TestMethod]
-    public void WrappedFirstChainDotKeepsCurrentAlignment()
+    public void WrappedFirstChainDotCollapsesOntoChainRoot()
     {
         // Arrange
         const string input = """
@@ -1463,8 +1465,19 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                              }
                              """;
 
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop?.Call()
+                                                      .Then();
+                                    }
+                                }
+                                """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1509,14 +1522,15 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the initializer-adjacent anchor correction does not mix columns from two
-    /// different source lines when the chain's first collected dot sits on an initializer's closing
-    /// brace line but the anchor link itself wraps onto a later line; the correction must only apply
-    /// when the anchor shares the first collected dot's own line, or a second formatter pass changes
-    /// the result (issue #680)
+    /// Verifies that a member-access dot immediately followed by a line break rejoins its own member
+    /// name, so the name is no longer left orphaned on a continuation line at block indentation. The
+    /// break lives in the dot's trailing trivia, which no chain predicate inspected (issue #685). The
+    /// rejoined result is byte-identical to the expected output of
+    /// <see cref="ConditionalAccessAfterInitializerCloseBraceAndPropertyAlignsToInvokedLink"/>, whose
+    /// input writes the same chain with its initializer on one line
     /// </summary>
     [TestMethod]
-    public void ConditionalAccessAnchorOnLaterLineThanInitializerCloseBraceStaysIdempotent()
+    public void TrailingDotAfterInitializerCloseBraceRejoinsItsMemberName()
     {
         // Arrange
         const string input = """
@@ -1545,7 +1559,68 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                         var x = new Request
                                                 {
                                                     Choices = data
+                                                }.Choices?.Select(item => new Wrapper
+                                                                          {
+                                                                              Value = item
+                                                                          })
+                                                         .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the initializer-adjacent anchor correction does not mix columns from two
+    /// different source lines when the chain's first collected dot sits on an initializer's closing
+    /// brace line but the anchor link itself wraps onto a later line; the correction must only apply
+    /// when the anchor shares the first collected dot's own line, or a second formatter pass changes
+    /// the result (issue #680).
+    /// <para>
+    /// A comment between the dot and its member name is what keeps the two on separate lines here:
+    /// it blocks the rejoin that <see cref="TrailingDotAfterInitializerCloseBraceRejoinsItsMemberName"/>
+    /// performs, which is the only remaining way to reach the correction's unequal-line branch. The
+    /// blank line and the comment's own indentation in the expected output are pre-existing behavior
+    /// of the surrounding phases, unchanged by issues #683, #684 and #685, and are not what this test
+    /// guards
+    /// </para>
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAnchorOnLaterLineThanInitializerCloseBraceStaysIdempotent()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Request
+                                             {
+                                                 Choices = data
+                                             }.
+                                                 // keep
+                                                 Choices?.Select(item => new Wrapper
+                                                                         {
+                                                                             Value = item
+                                                                         })
+                                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new Request
+                                                {
+                                                    Choices = data
                                                 }.
+
+                                        // keep
                                         Choices?.Select(item => new Wrapper
                                                                 {
                                                                     Value = item

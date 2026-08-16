@@ -654,7 +654,7 @@ public class LayoutComputerTests
         Assert.IsTrue(model.TryGetLayout(6, out var where), "Line 6 (.Where) should have a layout entry.");
         Assert.IsTrue(model.TryGetLayout(7, out var select), "Line 7 (.Select) should have a layout entry.");
         Assert.AreEqual(8, where.Column, "Chained LINQ .Where should be at block indentation column.");
-        Assert.AreEqual(0, select.Column, "Chained LINQ .Select should be aligned to the chain anchor column.");
+        Assert.AreEqual(8, select.Column, "Chained LINQ .Select should be aligned to .Where, the chain's first invoked link.");
     }
 
     /// <summary>

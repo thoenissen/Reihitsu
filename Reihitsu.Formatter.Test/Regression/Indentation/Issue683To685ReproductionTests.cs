@@ -1,5 +1,3 @@
-using System;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -154,10 +152,15 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
 
     /// <summary>
     /// Issue #685 — the second, initializer-rooted fixture from the issue: a conditional-access dot
-    /// immediately followed by a line break (<c>}.</c> ⏎ <c>Choices</c>) should not leave
-    /// <c>Choices</c> orphaned on its own continuation line separated from its own dot. The issue does
-    /// not give a full target shape for this fixture, so this test checks only that stated minimum
-    /// rather than a specific alignment column
+    /// immediately followed by a line break (<c>}.</c> ⏎ <c>Choices</c>) must not leave
+    /// <c>Choices</c> orphaned on its own continuation line separated from its own dot.
+    /// <para>
+    /// The issue states no full target shape for this fixture, only that minimum. The expected output
+    /// below is derived from the chain's reference column — <c>.ToList()</c> aligns to the <c>?</c> of
+    /// the first invoked link, the same column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c>
+    /// computes — and is byte-identical to the expected output the repository already asserts for the
+    /// same chain written with its initializer on one line
+    /// </para>
     /// </summary>
     [TestMethod]
     public void Issue685TrailingDotAfterInitializerCloseBraceDoesNotOrphanMemberName()
@@ -181,40 +184,25 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
                              }
                              """;
 
-        // Act
-        var actual = ApplyRule(input, "\n");
-        var lines = actual.Split('\n');
-        var braceDotLineIndex = Array.FindIndex(lines, IsTrailingDotLine);
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new Request
+                                                {
+                                                    Choices = data
+                                                }.Choices?.Select(item => new Wrapper
+                                                                          {
+                                                                              Value = item
+                                                                          })
+                                                         .ToList();
+                                    }
+                                }
+                                """;
 
-        // Assert — the "}." line must exist and "Choices" must be joined onto it, not left as the
-        // sole content of the following continuation line (issue #685's stated minimum)
-        Assert.IsGreaterThanOrEqualTo(0, braceDotLineIndex, "Expected to find a line ending in '}.'.");
-
-        var nextLine = lines[braceDotLineIndex + 1].TrimStart();
-
-        Assert.IsFalse(nextLine.StartsWith("Choices", StringComparison.Ordinal), FormatOrphanMessage(lines[braceDotLineIndex], nextLine));
-    }
-
-    /// <summary>
-    /// Determines whether the given line's trailing content ends with a member-access dot with no
-    /// following name on the same line — the shape issue #685 reports as not being rejoined
-    /// </summary>
-    /// <param name="line">The candidate line</param>
-    /// <returns><see langword="true"/> when the trimmed line ends with a bare <c>.</c></returns>
-    private static bool IsTrailingDotLine(string line)
-    {
-        return line.TrimEnd().EndsWith("}.", StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Builds the failure message for the orphaned-member-name assertion
-    /// </summary>
-    /// <param name="dotLine">The line ending in the trailing dot</param>
-    /// <param name="nextLine">The following, trimmed line</param>
-    /// <returns>The assertion failure message</returns>
-    private static string FormatOrphanMessage(string dotLine, string nextLine)
-    {
-        return $"Expected 'Choices' not to be orphaned on its own continuation line separated from its own '.'. Dot line: '{dotLine}', next line: '{nextLine}'.";
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
