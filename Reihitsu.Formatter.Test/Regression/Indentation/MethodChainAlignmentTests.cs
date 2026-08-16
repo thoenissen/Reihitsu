@@ -1096,5 +1096,468 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped chain whose first invoked link is introduced by <c>?.</c> and is
+    /// preceded by a plain (non-invoked) property access aligns continuation dots to that
+    /// <c>?.</c>-invoked link (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAfterPlainPropertyAccessAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+                             using System.Linq;
+
+                             internal sealed class Example
+                             {
+                                 internal sealed class Choice
+                                 {
+                                     public string Name { get; set; }
+                                 }
+
+                                 internal sealed class Option
+                                 {
+                                     public string Name { get; set; }
+                                 }
+
+                                 internal sealed class Request
+                                 {
+                                     public IEnumerable Choices { get; set; }
+                                 }
+
+                                 internal static List Convert(Request request)
+                                 {
+                                     var options = request.Choices?.Select(choice => new Option
+                                     {
+                                         Name = choice.Name
+                                     })
+                                                           .ToList();
+
+                                     return options;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    internal sealed class Choice
+                                    {
+                                        public string Name { get; set; }
+                                    }
+
+                                    internal sealed class Option
+                                    {
+                                        public string Name { get; set; }
+                                    }
+
+                                    internal sealed class Request
+                                    {
+                                        public IEnumerable Choices { get; set; }
+                                    }
+
+                                    internal static List Convert(Request request)
+                                    {
+                                        var options = request.Choices?.Select(choice => new Option
+                                                                                        {
+                                                                                            Name = choice.Name
+                                                                                        })
+                                                                     .ToList();
+
+                                        return options;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped chain whose first invoked link is introduced by <c>!.</c> and is
+    /// preceded by a plain (non-invoked) property access aligns continuation dots to that
+    /// <c>!.</c>-invoked link (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void NullForgivingAfterPlainPropertyAccessAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var options = request.Choices!.Select(choice => new Option
+                                     {
+                                         Name = choice.Name
+                                     })
+                                                           .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var options = request.Choices!.Select(choice => new Option
+                                                                                        {
+                                                                                            Name = choice.Name
+                                                                                        })
+                                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a null-forgiving operator on a non-invoked member access is not treated as a
+    /// chain link: the anchor stays the first plain invoked dot, unaffected by issue #680's fix
+    /// </summary>
+    [TestMethod]
+    public void NonInvokedNullForgivingIsNotTheChainAnchor()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var options = request!.Choices.Select(choice => new Option
+                                                                                     {
+                                                                                         Name = choice.Name
+                                                                                     })
+                                                                   .ToList();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped chain whose first invoked link is introduced by <c>?.</c> aligns to
+    /// that link even when two plain (non-invoked) property accesses precede it (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void DeepPlainPrefixBeforeConditionalAccessAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.B.C?.Select(item => new Wrapper
+                                     {
+                                         Value = item
+                                     })
+                                               .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.B.C?.Select(item => new Wrapper
+                                                                      {
+                                                                          Value = item
+                                                                      })
+                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that when a wrapped chain has two <c>?.</c>-invoked links, continuation dots align
+    /// to the first one rather than to a plain (non-invoked) property access before it (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void MultipleConditionalAccessLinksAlignToFirstLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop?.Select(item => new Wrapper
+                                     {
+                                         Value = item
+                                     })
+                                              ?.Where(item => item != null)
+                                               .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop?.Select(item => new Wrapper
+                                                                       {
+                                                                           Value = item
+                                                                       })
+                                                      ?.Where(item => item != null)
+                                                      .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a non-invoked trailing property access at the end of a wrapped chain aligns to
+    /// the same <c>?.</c>-invoked link as the rest of the chain (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void TrailingPropertyAfterConditionalAccessChainAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var count = a.Choices?.Select(item => new Wrapper
+                                     {
+                                         Value = item
+                                     })
+                                                   .ToList()
+                                                   .Count;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var count = a.Choices?.Select(item => new Wrapper
+                                                                              {
+                                                                                  Value = item
+                                                                              })
+                                                             .ToList()
+                                                             .Count;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>?.</c> link directly after a collection initializer's closing brace keeps
+    /// anchoring correctly, unaffected by issue #680's fix for a non-invoked prefix dot between them
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessDirectlyAfterInitializerCloseBraceKeepsAnchor()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new List<string>
+                                             {
+                                                 "a",
+                                                 "b"
+                                             }?.Select(item => new Wrapper
+                                                               {
+                                                                   Value = item
+                                                               })
+                                              .ToList();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>?.</c> link aligns correctly when it is separated from an initializer's
+    /// closing brace by a plain (non-invoked) property access, so the anchor's column is still
+    /// derived from the creation expression's <c>new</c> keyword rather than left unadjusted (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAfterInitializerCloseBraceAndPropertyAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Request { Choices = data }.Choices?.Select(item => new Wrapper
+                                     {
+                                         Value = item
+                                     })
+                                                                            .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new Request
+                                                {
+                                                    Choices = data
+                                                }.Choices?.Select(item => new Wrapper
+                                                                          {
+                                                                              Value = item
+                                                                          })
+                                                         .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose first collected dot is itself wrapped onto its own line keeps its
+    /// current alignment; issue #680's fix does not reach this shape, which has an independent,
+    /// pre-existing divergence from RH5201 tracked separately
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotKeepsCurrentAlignment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                     .Prop?.Call()
+                                     .Then();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment between a plain (non-invoked) property access and its following
+    /// <c>?.</c>-invoked link does not shift the anchor: continuation dots still align to the link's
+    /// own column, which sits to the right of the comment (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void BlockCommentBeforeConditionalAccessLinkDoesNotShiftAnchor()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop /* keep */ ?.Select(item => new Wrapper
+                                     {
+                                         Value = item
+                                     })
+                                               .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop /* keep */?.Select(item => new Wrapper
+                                                                                  {
+                                                                                      Value = item
+                                                                                  })
+                                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the initializer-adjacent anchor correction does not mix columns from two
+    /// different source lines when the chain's first collected dot sits on an initializer's closing
+    /// brace line but the anchor link itself wraps onto a later line; the correction must only apply
+    /// when the anchor shares the first collected dot's own line, or a second formatter pass changes
+    /// the result (issue #680)
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAnchorOnLaterLineThanInitializerCloseBraceStaysIdempotent()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Request
+                                             {
+                                                 Choices = data
+                                             }.
+                                                 Choices?.Select(item => new Wrapper
+                                                                         {
+                                                                             Value = item
+                                                                         })
+                                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new Request
+                                                {
+                                                    Choices = data
+                                                }.
+                                        Choices?.Select(item => new Wrapper
+                                                                {
+                                                                    Value = item
+                                                                })
+                                               .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

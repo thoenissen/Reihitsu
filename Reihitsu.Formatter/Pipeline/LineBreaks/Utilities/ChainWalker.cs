@@ -130,6 +130,34 @@ internal static class ChainWalker
     }
 
     /// <summary>
+    /// Determines whether a chain dot collected by <see cref="CollectAlignmentDots"/> is an invoked
+    /// chain link: a conditional-access operator, a null-forgiving operator whose postfix expression
+    /// is the receiver of an invoked member access, or a plain dot on a directly invoked member
+    /// access. These are the same three token shapes <see cref="CollectInvokedLinkDots"/> collects
+    /// from the tree, and they mirror <see cref="FluentChainUtilities.GetInvokedLinkOperator"/>'s
+    /// definition of an invoked link, so a caller classifying an already-collected dot and a caller
+    /// walking the tree from scratch agree on the same link set
+    /// </summary>
+    /// <param name="dot">The collected dot token to classify</param>
+    /// <returns><see langword="true"/> if the token is an invoked chain link; otherwise, <see langword="false"/></returns>
+    public static bool IsInvokedLinkDot(SyntaxToken dot)
+    {
+        if (dot.Parent is ConditionalAccessExpressionSyntax)
+        {
+            return true;
+        }
+
+        if (dot.Parent is PostfixUnaryExpressionSyntax postfixUnary)
+        {
+            return postfixUnary.Parent is MemberAccessExpressionSyntax postfixMemberAccess
+                   && postfixMemberAccess.Parent is InvocationExpressionSyntax;
+        }
+
+        return dot.Parent is MemberAccessExpressionSyntax memberAccess
+               && memberAccess.Parent is InvocationExpressionSyntax;
+    }
+
+    /// <summary>
     /// Determines whether an invocation expression is the outermost node in a method chain.
     /// An invocation is outermost if it is not an inner link of a larger chain
     /// and not nested inside a conditional access expression
