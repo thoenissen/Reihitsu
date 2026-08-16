@@ -2285,5 +2285,108 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verify that a wrapped null-conditional chain whose continuations sit on the chain-root dot is
+    /// realigned to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void NullConditionalChainMisalignedToChainRootDotIsRealignedToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object metadata)
+                                 {
+                                     var filePath = metadata.Media?.FirstOrDefault()
+                                                    ?.Part
+                                                    ?.FirstOrDefault()
+                                                    ?.File;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object metadata)
+                                    {
+                                        var filePath = metadata.Media?.FirstOrDefault()
+                                                                     ?.Part
+                                                                     ?.FirstOrDefault()
+                                                                     ?.File;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a top-level null-conditional chain misaligned to the chain-root dot is realigned to
+    /// the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void TopLevelNullConditionalChainMisalignedToChainRootDotIsRealignedToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             var filePath = metadata.Media?.FirstOrDefault()
+                                            ?.Part
+                                            ?.FirstOrDefault()
+                                            ?.File;
+                             """;
+
+        const string expected = """
+                                var filePath = metadata.Media?.FirstOrDefault()
+                                                             ?.Part
+                                                             ?.FirstOrDefault()
+                                                             ?.File;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a null-conditional chain whose root is split across lines rejoins the non-invoked
+    /// first dot onto its root and aligns the continuations to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void NullConditionalChainWithSplitRootRejoinsAndAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object metadata)
+                                 {
+                                     var filePath = metadata
+                                                    .Media?.FirstOrDefault()
+                                                          ?.Part
+                                                          ?.FirstOrDefault()
+                                                          ?.File;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object metadata)
+                                    {
+                                        var filePath = metadata.Media?.FirstOrDefault()
+                                                                     ?.Part
+                                                                     ?.FirstOrDefault()
+                                                                     ?.File;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
