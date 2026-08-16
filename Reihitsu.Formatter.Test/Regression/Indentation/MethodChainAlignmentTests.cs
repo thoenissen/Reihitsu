@@ -2177,6 +2177,212 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verify that an argument list nested under a chain continuation line is aligned against the
+    /// chain's final column rather than the column the chain held before its anchor was resolved
+    /// </summary>
+    [TestMethod]
+    public void ArgumentListUnderChainContinuationLineFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1,
+                                         2 }.Select(item => item)
+                                            .Where(alpha,
+                                                beta)
+                                            .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1,
+                                                    2 }.Select(item => item)
+                                                       .Where(alpha,
+                                                              beta)
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that an argument list nested under the continuation line of a chain rooted in a
+    /// parenthesized <c>with</c> expression follows the chain's resolved column
+    /// </summary>
+    [TestMethod]
+    public void ArgumentListUnderWithExpressionChainContinuationFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(Record r)
+                                 {
+                                     var x = (r with
+                                     {
+                                         Value = 1
+                                     }).Select(item => item)
+                                        .Where(alpha,
+                                            beta)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(Record r)
+                                    {
+                                        var x = (r with
+                                                   {
+                                                       Value = 1
+                                                   }).Select(item => item)
+                                                     .Where(alpha,
+                                                            beta)
+                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a statement lambda nested under a chain continuation line follows the chain's
+    /// resolved column
+    /// </summary>
+    [TestMethod]
+    public void StatementLambdaUnderChainContinuationLineFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1,
+                                         2 }.Select(item =>
+                                             {
+                                                 return item;
+                                             })
+                                            .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1,
+                                                    2 }.Select(item =>
+                                                               {
+                                                                   return item;
+                                                               })
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a ternary nested under a chain continuation line follows the chain's resolved
+    /// column
+    /// </summary>
+    [TestMethod]
+    public void TernaryUnderChainContinuationLineFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1,
+                                         2 }.Select(flag
+                                                 ? one
+                                                 : two)
+                                            .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1,
+                                                    2 }.Select(flag
+                                                                   ? one
+                                                                   : two)
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a directive above the first invoked link leaves the collapse of a wrapped prefix
+    /// dot enabled, unlike the comment arm. The line-break phase's exemption is deliberately
+    /// comment-only; this test pins the directive side of that decision so it cannot drift silently
+    /// </summary>
+    [TestMethod]
+    public void DirectiveAboveFirstInvokedLinkStillCollapsesWrappedPrefixDot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop
+                             #pragma warning disable 1234
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop
+                                #pragma warning disable 1234
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verify that a chain rooted in a multi-line array initializer whose closing brace shares its
     /// line with an element aligns its continuation dot to the first invoked link. The initializer
     /// correction does not apply here (the brace is not first on its line), so the anchor falls back

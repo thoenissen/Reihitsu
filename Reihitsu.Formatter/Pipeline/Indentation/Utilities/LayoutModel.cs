@@ -53,6 +53,48 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
+    /// Captures the current column of every entry, so a later state can be compared against it.
+    /// Only the columns are captured: the <see cref="TokenLayout.Source"/> label is a debug aid and
+    /// two states that differ only in which contributor last wrote the same column are equivalent
+    /// </summary>
+    /// <returns>A snapshot mapping line numbers to their currently desired column</returns>
+    public Dictionary<int, int> CaptureColumns()
+    {
+        var columns = new Dictionary<int, int>(_layouts.Count);
+
+        foreach (var entry in _layouts)
+        {
+            columns[entry.Key] = entry.Value.Column;
+        }
+
+        return columns;
+    }
+
+    /// <summary>
+    /// Determines whether every entry still holds the column it held in the given snapshot
+    /// </summary>
+    /// <param name="columns">A snapshot previously returned by <see cref="CaptureColumns"/></param>
+    /// <returns><see langword="true"/> if no column changed and no entry was added; otherwise, <see langword="false"/></returns>
+    public bool MatchesColumns(Dictionary<int, int> columns)
+    {
+        if (_layouts.Count != columns.Count)
+        {
+            return false;
+        }
+
+        foreach (var entry in _layouts)
+        {
+            if (columns.TryGetValue(entry.Key, out var column) == false
+                || column != entry.Value.Column)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Tries to get the layout for the given token by looking up its line number
     /// </summary>
     /// <param name="token">The syntax token</param>
