@@ -389,7 +389,90 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
                                         var x = a
 
                                                 // keep wrapped
-                                                .Foo().Bar()
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a documentation comment above the first invoked link does not suppress the split
+    /// member name rejoin
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentAboveFirstInvokedLinkDotStillRejoinsSplitMemberName()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         /// keep wrapped
+                                         .Foo().
+                                         Bar()
+                                         .Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                /// keep wrapped
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a block comment on its own line above the first invoked link does not suppress the
+    /// split member name rejoin
+    /// </summary>
+    [TestMethod]
+    public void BlockCommentAboveFirstInvokedLinkDotStillRejoinsSplitMemberName()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         /* keep wrapped */
+                                         .Foo().
+                                         Bar()
+                                         .Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                /* keep wrapped */
+                                                .Foo()
+                                                .Bar()
                                                 .Baz();
                                     }
                                 }

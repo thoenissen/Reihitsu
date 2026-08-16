@@ -394,11 +394,12 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDots[0])
-            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDots[0]))
-        {
-            return node;
-        }
+        // A comment above the chain's first invoked link keeps the chain wrapped the way the author
+        // wrote it, so the collapse must not run. It gates that step alone: the rejoin joins a dot to
+        // its own member name and the continuation-break pass only inserts end-of-line trivia, and
+        // neither touches the gap the comment occupies.
+        var keepsAuthoredWrapping = LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDots[0])
+                                    && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDots[0]);
 
         var firstWrappedDot = FindFirstWrappedChainOperator(node, chainDots[0]);
         var hasWrappedCandidate = firstWrappedDot.IsKind(SyntaxKind.None) == false;
@@ -410,7 +411,8 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         // rejoin or the continuation-break pass, which do not touch the commented gap. Only a comment
         // above the chain's first invoked link keeps the whole chain as the author wrote it, and that
         // is the pre-existing bail above.
-        if (hasWrappedCandidate
+        if (keepsAuthoredWrapping == false
+            && hasWrappedCandidate
             && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(firstWrappedDot) == false)
         {
             TryCollapseFirstChainDot(firstWrappedDot, replacements);

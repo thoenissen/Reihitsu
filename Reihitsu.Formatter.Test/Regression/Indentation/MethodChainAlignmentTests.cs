@@ -2286,6 +2286,250 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verify that a comment above a conditional-access first invoked link keeps the chain wrapped
+    /// while every invoked link still starts its own line
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveConditionalAccessChainRootKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         ?.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                ?.Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a non-invoked prefix dot on the chain root line keeps the anchor column while the
+    /// invoked links are broken onto their own lines
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveChainWithPrefixDotOnRootLineBreaksLinksAtAnchorColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop
+
+                                                 // keep wrapped
+                                                 .Foo()
+                                                 .Bar()
+                                                 .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a conditional-access prefix whose binding is not invoked still breaks every
+    /// following invoked link onto its own line
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveChainWithNonInvokedConditionalPrefixBreaksEveryInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         ?.Prop.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                ?.Prop
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a comment above the first invoked link still suppresses the collapse of a
+    /// separately wrapped non-invoked prefix dot
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveFirstInvokedLinkKeepsWrappedPrefixDotUncollapsed()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                        .Prop
+
+                                        // keep wrapped
+                                        .Foo()
+                                        .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a pragma directive above the first invoked link leaves every invoked link on its
+    /// own line
+    /// </summary>
+    [TestMethod]
+    public void PragmaAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #pragma warning disable 1234
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #pragma warning disable 1234
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that disabled text above the first invoked link leaves every invoked link on its own
+    /// line
+    /// </summary>
+    [TestMethod]
+    public void DisabledTextAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #if false
+                                     .Nope()
+                             #endif
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #if false
+                                        .Nope()
+                                #endif
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verify that a wrapped null-conditional chain whose continuations sit on the chain-root dot is
     /// realigned to the first invoked link
     /// </summary>
