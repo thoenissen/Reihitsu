@@ -378,7 +378,12 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// #683). The member-name rejoin walks the spine's trailing trivia, which no other step inspects
     /// (issue #685). Whether every continuation link must start its own line stays a question about
     /// the <em>invoked</em> links alone: a chain that only wrapped a non-invoked prefix dot collapses
-    /// back onto one line and must not have breaks inserted into it
+    /// back onto one line and must not have breaks inserted into it.
+    /// </para>
+    /// <para>
+    /// A comment above the first invoked link is likewise a decision about one of the three, not
+    /// about the chain as a whole: it keeps the author's wrapping by suppressing the collapse, and
+    /// leaves the rejoin and the continuation breaks to their own trivia guards (issues #685, #689)
     /// </para>
     /// </summary>
     /// <param name="node">The outermost chain node (invocation or conditional access)</param>

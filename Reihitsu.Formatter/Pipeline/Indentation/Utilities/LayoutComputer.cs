@@ -44,7 +44,13 @@ internal static class LayoutComputer
         // every other contributor has written its entries. A chain anchored on a line that a
         // construct nested inside the chain root owns (a multi-line initializer closed by "2 }", a
         // parenthesized initializer or switch expression) would otherwise be measured against that
-        // line's pass-1 block indentation, which the owning contributor overwrites above
+        // line's pass-1 block indentation, which the owning contributor overwrites above.
+        // The contributor deliberately stays registered in pass 2 as well, and the repetition is
+        // load-bearing rather than redundant: pass 2 keeps the chain's entries in their established
+        // priority order against the contributors that follow it, while this pass only corrects the
+        // anchor column those entries were measured from. Dropping either one changes layout —
+        // removing the pass-2 registration regresses the chain/argument and chain/initializer
+        // priority on shared lines
         var chainContributor = new MethodChainAlignmentContributor();
 
         foreach (var node in root.DescendantNodesAndSelf())
