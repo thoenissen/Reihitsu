@@ -241,9 +241,13 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses the first chain dot onto the root line when it starts on a continuation line
+    /// Collapses the chain's leading dot onto the line before it when that dot starts a continuation
+    /// line. The caller decides which dot that is — see <see cref="FindFirstWrappedChainOperator"/> —
+    /// and this method only refuses the join: a dot whose own receiver is another member or
+    /// conditional access belongs to a fluent chain that stays wrapped, and a comment, directive, or
+    /// disabled text in the gap keeps the two tokens on separate lines
     /// </summary>
-    /// <param name="firstDot">The first chain dot token</param>
+    /// <param name="firstDot">The chain dot to collapse</param>
     /// <param name="replacements">The token replacement map to populate</param>
     private static void TryCollapseFirstChainDot(SyntaxToken firstDot,
                                                  Dictionary<SyntaxToken, SyntaxToken> replacements)
