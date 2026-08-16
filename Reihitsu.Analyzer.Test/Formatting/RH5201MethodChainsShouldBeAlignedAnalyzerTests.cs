@@ -686,15 +686,15 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
-    /// Verifies issue #690's reported input: a method chain rooted in a parenthesized <c>with</c>
-    /// expression. The formatter's own output for this input (produced directly through
-    /// <see cref="FormattingPipeline"/>, the same engine <c>reihitsu-format</c> uses) is fed to the
-    /// analyzer as-is, and it reports the diagnostic on the continuation dot — the formatter's own
-    /// output is not RH5201-clean for this shape
+    /// Verifies that the formatter's own output for a method chain rooted in a parenthesized
+    /// <c>with</c> expression is RH5201-clean. The output is produced directly through
+    /// <see cref="FormattingPipeline"/> — the same engine <c>reihitsu-format</c> uses — and fed to the
+    /// analyzer as-is, so the two surfaces are checked against each other rather than against a
+    /// hand-written expectation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterOutputForChainRootedInParenthesizedWithExpressionReportsDiagnostic()
+    public async Task VerifyFormatterOutputForChainRootedInParenthesizedWithExpressionIsClean()
     {
         const string rawInput = """
                                 class C
@@ -712,10 +712,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
 
         var formatted = FormatWithLineFeed(rawInput);
 
-        await Verify(formatted,
-                     test => test.CompilerDiagnostics = CompilerDiagnostics.None,
-                     Diagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId).WithSpan(9, 11, 9, 12)
-                                                                                       .WithMessage(AnalyzerResources.RH5201MessageFormat));
+        await Verify(formatted, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     /// <summary>

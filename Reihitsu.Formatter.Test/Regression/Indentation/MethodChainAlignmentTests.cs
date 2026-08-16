@@ -2177,21 +2177,17 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Characterizes a shape that issues #683, #684 and #685 do <b>not</b> fix: a multi-line array
-    /// initializer whose closing brace shares its line with an element. The initializer correction
-    /// correctly no longer applies (the brace is not first on its line), but the fallback reads the
-    /// brace line's layout before <c>ObjectInitializerContributor</c> rebases it, so the continuation
-    /// dot still diverges from the column RH5201 computes. That contributor-ordering defect is a
-    /// separate mechanism, tracked as follow-up work; this test exists so the shape cannot drift
-    /// silently while it is open.
+    /// Verify that a chain rooted in a multi-line array initializer whose closing brace shares its
+    /// line with an element aligns its continuation dot to the first invoked link. The initializer
+    /// correction does not apply here (the brace is not first on its line), so the anchor falls back
+    /// to the adjusted-column lookup — which is resolved after the initializer has claimed its own
+    /// line, rather than against that line's block indentation.
     /// <para>
-    /// The expected output is a <b>changed</b> baseline, not a preserved one: before issue #684's fix
-    /// the continuation dot sat at column 17, and it now sits at column 11. Both diverge from the
-    /// column RH5201 computes for this shape, so neither is correct
+    /// The initializer's own layout is deliberately left untouched: only the continuation dot moves
     /// </para>
     /// </summary>
     [TestMethod]
-    public void MultiLineArrayInitializerWithTrailingCloseBraceKeepsKnownDivergence()
+    public void MultiLineArrayInitializerWithTrailingCloseBraceAlignsToInvokedLink()
     {
         // Arrange
         const string input = """
@@ -2213,7 +2209,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                     {
                                         var x = new int[] { 1,
                                                     2 }.Select(item => item)
-                                           .ToList();
+                                                       .ToList();
                                     }
                                 }
                                 """;
@@ -2277,6 +2273,278 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                                 .Foo()
                                                 .Bar()
                                                 .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a multi-line implicit array initializer whose closing brace
+    /// shares its line with an element aligns its continuation dot to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void MultiLineImplicitArrayInitializerWithTrailingCloseBraceAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new[] { 1,
+                                         2 }.Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new[] { 1,
+                                                    2 }.Select(item => item)
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized <c>with</c> expression aligns its continuation
+    /// dot to the first invoked link while the initializer braces stay on the <c>with</c> keyword
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedWithExpressionAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(Record r)
+                                 {
+                                     var x = (r with
+                                     {
+                                         Value = 1
+                                     }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(Record r)
+                                    {
+                                        var x = (r with
+                                                   {
+                                                       Value = 1
+                                                   }).Select(item => item)
+                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized object creation aligns its continuation dot to
+    /// the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedObjectCreationAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = (new Wrapper
+                                     {
+                                         Value = 1
+                                     }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = (new Wrapper
+                                                 {
+                                                     Value = 1
+                                                 }).Select(item => item)
+                                                   .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized array creation whose closing brace shares its
+    /// line with an element aligns its continuation dot to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedArrayCreationAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = (new int[] { 1,
+                                         2 }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = (new int[] { 1,
+                                                     2 }).Select(item => item)
+                                                         .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a collection expression aligns its continuation dot to the first
+    /// invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInCollectionExpressionAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = [1,
+                                         2 ].Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = [
+                                                    1,
+                                                    2
+                                                ].Select(item => item)
+                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in an anonymous object creation aligns its continuation dot to the
+    /// first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInAnonymousObjectAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new
+                                     {
+                                         Value = 1
+                                     }.ToString()
+                                      .Trim();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new
+                                                {
+                                                    Value = 1
+                                                }.ToString()
+                                                 .Trim();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized switch expression aligns its continuation dot to
+    /// the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedSwitchExpressionAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int i)
+                                 {
+                                     var x = (i switch
+                                     {
+                                         1 => "a",
+                                         _ => "b"
+                                     }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(int i)
+                                    {
+                                        var x = (i switch
+                                                 {
+                                                     1 => "a",
+                                                     _ => "b"
+                                                 }).Select(item => item)
+                                                   .ToList();
                                     }
                                 }
                                 """;

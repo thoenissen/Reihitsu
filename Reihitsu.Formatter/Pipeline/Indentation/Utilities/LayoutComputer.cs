@@ -40,6 +40,18 @@ internal static class LayoutComputer
             }
         }
 
+        // Pass 2b: Chain alignment — re-resolve the continuation columns of method chains now that
+        // every other contributor has written its entries. A chain anchored on a line that a
+        // construct nested inside the chain root owns (a multi-line initializer closed by "2 }", a
+        // parenthesized initializer or switch expression) would otherwise be measured against that
+        // line's pass-1 block indentation, which the owning contributor overwrites above
+        var chainContributor = new MethodChainAlignmentContributor();
+
+        foreach (var node in root.DescendantNodesAndSelf())
+        {
+            chainContributor.Contribute(node, model, context);
+        }
+
         // Pass 3: Comment alignment — align comments to the code they precede
         var commentContributor = new CommentIndentationContributor();
 
