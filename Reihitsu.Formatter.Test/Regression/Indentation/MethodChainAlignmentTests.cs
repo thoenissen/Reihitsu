@@ -1877,6 +1877,89 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a null-forgiving operator on the chain <b>root</b> is treated as part of that
+    /// root rather than as the chain's first dot, so the wrapped <c>.Prop</c> behind it is still the
+    /// collapse candidate. Every other null-forgiving fixture places the <c>!</c> after an
+    /// invocation, which never reaches this decision (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotAfterNullForgivingRootCollapsesOntoChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a!
+                                         .Prop
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a!.Prop
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment above the collapse candidate refuses only that join: the chain stays
+    /// wrapped at the commented dot, but the continuation links still each start their own line, so
+    /// the output remains RH5201-clean. Aborting the whole normalization here would leave a trailing
+    /// link sharing its predecessor's line (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveCollapseCandidateStillBreaksContinuationLinks()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                             // keep this chain wrapped
+                                             .Prop
+                                             .Foo()
+                                             .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep this chain wrapped
+                                                .Prop
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a chain rooted in a single-line implicit array initializer aligns its
     /// continuation dot to the first invoked link. The closing brace shares its line with the
     /// initializer's elements, so rebasing the anchor onto the <c>new</c> keyword would shift it left
@@ -2100,7 +2183,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// brace line's layout before <c>ObjectInitializerContributor</c> rebases it, so the continuation
     /// dot still diverges from the column RH5201 computes. That contributor-ordering defect is a
     /// separate mechanism, tracked as follow-up work; this test exists so the shape cannot drift
-    /// silently while it is open
+    /// silently while it is open.
+    /// <para>
+    /// The expected output is a <b>changed</b> baseline, not a preserved one: before issue #684's fix
+    /// the continuation dot sat at column 17, and it now sits at column 11. Both diverge from the
+    /// column RH5201 computes for this shape, so neither is correct
+    /// </para>
     /// </summary>
     [TestMethod]
     public void MultiLineArrayInitializerWithTrailingCloseBraceKeepsKnownDivergence()

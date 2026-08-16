@@ -394,20 +394,24 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var firstWrappedDot = FindFirstWrappedChainOperator(node, chainDots[0]);
-        var hasWrappedCandidate = firstWrappedDot.IsKind(SyntaxKind.None) == false;
-
-        if (hasWrappedCandidate
-            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(firstWrappedDot))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDots[0])
+            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDots[0]))
         {
             return node;
         }
 
+        var firstWrappedDot = FindFirstWrappedChainOperator(node, chainDots[0]);
+        var hasWrappedCandidate = firstWrappedDot.IsKind(SyntaxKind.None) == false;
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         CollectMemberNameRejoinReplacements(node, replacements);
 
-        if (hasWrappedCandidate)
+        // A comment above the collapse candidate refuses that one join; it must not suppress the
+        // rejoin or the continuation-break pass, which do not touch the commented gap. Only a comment
+        // above the chain's first invoked link keeps the whole chain as the author wrote it, and that
+        // is the pre-existing bail above.
+        if (hasWrappedCandidate
+            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(firstWrappedDot) == false)
         {
             TryCollapseFirstChainDot(firstWrappedDot, replacements);
         }

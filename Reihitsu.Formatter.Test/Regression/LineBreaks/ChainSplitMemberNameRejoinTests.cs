@@ -248,12 +248,9 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block comment ending the dot's own line also keeps the split. Both this and
-    /// <see cref="CommentBetweenDotAndMemberNameKeepsSplit"/> exercise the single
-    /// <c>WouldJoinAcrossUnjoinableTrivia</c> call site that decides the refusal for every unjoinable
-    /// trivia kind — comment, preprocessor directive, and disabled text alike — without branching per
-    /// kind, so the directive and disabled-text arms are covered by that shared guard rather than by
-    /// their own fixtures
+    /// Verifies that a block comment ending the dot's own line also keeps the split. Together with
+    /// <see cref="CommentBetweenDotAndMemberNameKeepsSplit"/> this covers the refusal predicate's
+    /// first disjunct, which inspects the <b>dot's trailing</b> trivia
     /// </summary>
     [TestMethod]
     public void BlockCommentBetweenDotAndMemberNameKeepsSplit()
@@ -272,6 +269,92 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on its own line before the member name keeps the split. This covers
+    /// the refusal predicate's <b>second</b> disjunct, which inspects the <b>name token's leading</b>
+    /// trivia — the only one a directive or an own-line comment can reach, and the one the two
+    /// trailing-trivia fixtures above never exercise. The blank line in the expected output is
+    /// pre-existing behavior of the surrounding phases and is not what this test guards
+    /// </summary>
+    [TestMethod]
+    public void OwnLineCommentBeforeMemberNameKeepsSplit()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a1 = a.
+                                         // keep
+                                         Prop.Call();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a1 = a.
+
+                                        // keep
+                                        Prop.Call();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive between the dot and its member name keeps the split:
+    /// removing the end-of-line that terminates the directive's line would invalidate it. The
+    /// directive reaches the same name-token leading-trivia disjunct as
+    /// <see cref="OwnLineCommentBeforeMemberNameKeepsSplit"/>, with a trivia kind a comment-only
+    /// guard would miss. The indentation of the inactive branch is pre-existing behavior of the
+    /// surrounding phases and is not what this test guards
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBetweenDotAndMemberNameKeepsSplit()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a1 = a.
+                             #if DEBUG
+                                         Prop.Call();
+                             #else
+                                         Other.Call();
+                             #endif
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a1 = a.
+                                #if DEBUG
+                                            Prop.Call();
+                                #else
+                                        Other.Call();
+                                #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
