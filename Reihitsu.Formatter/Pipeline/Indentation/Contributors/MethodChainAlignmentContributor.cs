@@ -53,12 +53,12 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// not have adjusted that brace's line yet (due to pre-order traversal) — regardless of whether
     /// the first dot itself was wrapped onto its own line. In that case, and only when the anchor is
     /// still on the first dot's own line, the column is computed directly from the creation
-    /// expression's <c>new</c> keyword position, preserving the first dot's original source offset
-    /// from the closing brace and applying it to the anchor — even when the anchor is a later link
-    /// separated from the first dot by a non-link prefix dot. An anchor that wraps onto a later line
-    /// than the first dot has no such fixed offset from the brace, so it falls back to the ordinary
-    /// adjusted-column lookup, which resolves the anchor's own line through the layout model instead
-    /// of mixing columns from unrelated lines
+    /// expression's <c>new</c> keyword position, preserving the anchor's original source offset from
+    /// the closing brace — even when the anchor is a later link separated from the first dot by a
+    /// non-link prefix dot. An anchor that wraps onto a later line than the first dot has no such
+    /// fixed offset from the brace, so it falls back to the ordinary adjusted-column lookup, which
+    /// resolves the anchor's own line through the layout model instead of mixing columns from
+    /// unrelated lines
     /// </summary>
     /// <param name="anchorDot">The chain-link token chosen as the alignment anchor</param>
     /// <param name="firstDot">The chain's first collected dot, used to detect an initializer-rooted chain</param>
