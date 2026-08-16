@@ -93,28 +93,161 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes a chain containing a single dot token
+    /// Returns the pending replacement recorded for a token, or the token itself when none exists.
+    /// The chain normalization steps write into one shared replacement map, and more than one step
+    /// can legitimately touch the same token — rejoining a member name onto its dot clears that dot's
+    /// trailing end-of-line, and a later collapse may still need to clear the same token's leading
+    /// trivia. Composing on the pending token keeps the steps order-independent instead of letting
+    /// the last writer silently discard an earlier edit
     /// </summary>
-    /// <param name="node">The chain node</param>
-    /// <param name="chainDot">The chain dot token</param>
-    /// <returns>The updated chain node</returns>
-    private static SyntaxNode NormalizeSingleChainDot(SyntaxNode node,
-                                                      SyntaxToken chainDot)
+    /// <param name="token">The original token to look up</param>
+    /// <param name="replacements">The token replacement map built so far</param>
+    /// <returns>The pending replacement, or <paramref name="token"/> when it has not been replaced</returns>
+    private static SyntaxToken GetPendingToken(SyntaxToken token,
+                                               Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDot)
-            && ChainWalker.DotHasIntermediateMemberAccess(chainDot) == false
-            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDot) == false)
-        {
-            return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, chainDot);
-        }
-
-        return node;
+        return replacements.TryGetValue(token, out var pending)
+                   ? pending
+                   : token;
     }
 
     /// <summary>
-    /// Collapses the first chain dot onto the root line when it starts on a continuation line
+    /// Chooses the dot the first-link collapse should consider: the chain's own first dot when the
+    /// chain wraps at that dot, and otherwise the first invoked link, exactly as before.
+    /// <para>
+    /// <see cref="ChainWalker.CollectInvokedLinkDots"/> reports invoked links only, so a chain whose
+    /// own first dot is a plain, non-invoked property access (<c>a</c> ⏎ <c>.Prop?.ToString()</c>)
+    /// never offered that dot to the collapse at all, and the chain stayed split at a boundary no
+    /// predicate ever tested (issue #683). Taking the first dot from the wider alignment set — the
+    /// same set <c>MethodChainAlignmentContributor</c> aligns against — closes that gap.
+    /// </para>
+    /// <para>
+    /// The substitution is deliberately confined to the chain's <em>own first</em> dot. A chain that
+    /// already starts on its root line has made a wrapping choice further along, and pulling that
+    /// later link back would undo it — so such a chain still answers with its first invoked link and
+    /// keeps today's behavior, including the intermediate-member-access refusal that keeps a fluent
+    /// chain wrapped.
+    /// </para>
+    /// <para>
+    /// A postfix null-forgiving operator is not a chain dot: <c>a!</c> is the chain's root, not its
+    /// first link, so the search skips it and considers the <c>.</c> that follows
+    /// </para>
     /// </summary>
-    /// <param name="firstDot">The first chain dot token</param>
+    /// <param name="node">The outermost chain node</param>
+    /// <param name="firstInvokedDot">The chain's first invoked link dot, used as the fallback</param>
+    /// <returns>The dot token the collapse should consider</returns>
+    private static SyntaxToken FindFirstWrappedChainOperator(SyntaxNode node,
+                                                             SyntaxToken firstInvokedDot)
+    {
+        if (node is not ExpressionSyntax expression)
+        {
+            return firstInvokedDot;
+        }
+
+        var spineDots = new List<SyntaxToken>();
+
+        ChainWalker.CollectAlignmentDots(expression, spineDots);
+
+        var firstChainDot = spineDots.Find(static dot => dot.Parent is not PostfixUnaryExpressionSyntax);
+
+        if (firstChainDot.IsKind(SyntaxKind.None) == false
+            && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstChainDot))
+        {
+            return firstChainDot;
+        }
+
+        return firstInvokedDot;
+    }
+
+    /// <summary>
+    /// Records the replacements that rejoin a member name onto its own member-access or
+    /// member-binding dot when a line break separates the two (<c>x.</c> ⏎ <c>Name</c>).
+    /// <para>
+    /// That break lives in the dot's <em>trailing</em> trivia, which no chain predicate inspects:
+    /// every other chain decision tests a token's leading trivia, so the split survives untouched and
+    /// the orphaned name is later re-indented to block level. The only existing code that clears the
+    /// slot is <see cref="CollapseChainToSingleLine"/>, which a chain reaches only while
+    /// <see cref="IsCollapsibleChain"/> holds (issue #685).
+    /// </para>
+    /// <para>
+    /// The dot is always immediately followed by its own name token, so the pair being joined is the
+    /// pair the unjoinable-trivia guard inspects. A comment, preprocessor directive, or disabled text
+    /// between the two keeps the split
+    /// </para>
+    /// </summary>
+    /// <param name="node">The outermost chain node</param>
+    /// <param name="replacements">The token replacement map to populate</param>
+    private static void CollectMemberNameRejoinReplacements(SyntaxNode node,
+                                                            Dictionary<SyntaxToken, SyntaxToken> replacements)
+    {
+        if (node is not ExpressionSyntax expression)
+        {
+            return;
+        }
+
+        var operatorTokens = new List<SyntaxToken>();
+        var otherTokens = new List<SyntaxToken>();
+
+        ChainWalker.CollectSpineTokens(expression, operatorTokens, otherTokens);
+
+        foreach (var operatorToken in operatorTokens)
+        {
+            if (operatorToken.Parent is not MemberAccessExpressionSyntax
+                && operatorToken.Parent is not MemberBindingExpressionSyntax)
+            {
+                continue;
+            }
+
+            var nameToken = operatorToken.GetNextToken();
+
+            if (nameToken == default
+                || nameToken.IsKind(SyntaxKind.None)
+                || LineBreakTriviaUtilities.HasLeadingEndOfLine(nameToken) == false
+                || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(operatorToken, nameToken))
+            {
+                continue;
+            }
+
+            replacements[nameToken] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetPendingToken(nameToken, replacements));
+
+            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(operatorToken))
+            {
+                var pendingOperator = GetPendingToken(operatorToken, replacements);
+
+                replacements[operatorToken] = pendingOperator.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(pendingOperator.TrailingTrivia));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Rejoins split member names on a chain that no other normalization step visits, so the
+    /// <c>x.</c> ⏎ <c>Name</c> split is closed on member-access chains as well as on the invoked
+    /// chains <see cref="NormalizeChain"/> handles (issue #685)
+    /// </summary>
+    /// <param name="node">The outermost chain node</param>
+    /// <returns>The node with split member names rejoined</returns>
+    private static SyntaxNode RejoinSplitMemberNames(SyntaxNode node)
+    {
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        CollectMemberNameRejoinReplacements(node, replacements);
+
+        if (replacements.Count == 0)
+        {
+            return node;
+        }
+
+        return node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Collapses the chain's leading dot onto the line before it when that dot starts a continuation
+    /// line. The caller decides which dot that is — see <see cref="FindFirstWrappedChainOperator"/> —
+    /// and this method only refuses the join: a dot whose own receiver is another member or
+    /// conditional access belongs to a fluent chain that stays wrapped, and a comment, directive, or
+    /// disabled text in the gap keeps the two tokens on separate lines
+    /// </summary>
+    /// <param name="firstDot">The chain dot to collapse</param>
     /// <param name="replacements">The token replacement map to populate</param>
     private static void TryCollapseFirstChainDot(SyntaxToken firstDot,
                                                  Dictionary<SyntaxToken, SyntaxToken> replacements)
@@ -134,13 +267,15 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return;
         }
 
-        replacements[firstDot] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(firstDot);
+        replacements[firstDot] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetPendingToken(firstDot, replacements));
 
         if (previousToken != default
             && previousToken.IsKind(SyntaxKind.None) == false
             && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
         {
-            replacements[previousToken] = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+            var pendingPrevious = GetPendingToken(previousToken, replacements);
+
+            replacements[previousToken] = pendingPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(pendingPrevious.TrailingTrivia));
         }
     }
 
@@ -235,7 +370,16 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes a method chain or conditional access chain
+    /// Normalizes a method chain or conditional access chain.
+    /// <para>
+    /// Three decisions are made against three different token sets, and keeping them apart is what
+    /// makes the chain converge. The collapse candidate comes from the wider alignment set bounded by
+    /// the first invoked link, so a wrapped non-invoked property access is considered too (issue
+    /// #683). The member-name rejoin walks the spine's trailing trivia, which no other step inspects
+    /// (issue #685). Whether every continuation link must start its own line stays a question about
+    /// the <em>invoked</em> links alone: a chain that only wrapped a non-invoked prefix dot collapses
+    /// back onto one line and must not have breaks inserted into it
+    /// </para>
     /// </summary>
     /// <param name="node">The outermost chain node (invocation or conditional access)</param>
     /// <returns>The node with normalized chain line breaks</returns>
@@ -250,26 +394,32 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (chainDots.Count == 1)
-        {
-            return NormalizeSingleChainDot(node, chainDots[0]);
-        }
-
-        if (chainDots.Exists(LineBreakTriviaUtilities.HasLeadingEndOfLine) == false)
-        {
-            return node;
-        }
-
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDots[0])
             && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDots[0]))
         {
             return node;
         }
 
+        var firstWrappedDot = FindFirstWrappedChainOperator(node, chainDots[0]);
+        var hasWrappedCandidate = firstWrappedDot.IsKind(SyntaxKind.None) == false;
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
-        TryCollapseFirstChainDot(chainDots[0], replacements);
-        EnsureContinuationDotsStartOnNewLine(chainDots, replacements);
+        CollectMemberNameRejoinReplacements(node, replacements);
+
+        // A comment above the collapse candidate refuses that one join; it must not suppress the
+        // rejoin or the continuation-break pass, which do not touch the commented gap. Only a comment
+        // above the chain's first invoked link keeps the whole chain as the author wrote it, and that
+        // is the pre-existing bail above.
+        if (hasWrappedCandidate
+            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(firstWrappedDot) == false)
+        {
+            TryCollapseFirstChainDot(firstWrappedDot, replacements);
+        }
+
+        if (chainDots.Exists(LineBreakTriviaUtilities.HasLeadingEndOfLine))
+        {
+            EnsureContinuationDotsStartOnNewLine(chainDots, replacements);
+        }
 
         if (replacements.Count == 0)
         {
@@ -296,8 +446,10 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            var newLeading = chainDots[dotIndex].LeadingTrivia.Insert(0, endOfLine);
-            replacements[chainDots[dotIndex]] = chainDots[dotIndex].WithLeadingTrivia(newLeading);
+            var pendingDot = GetPendingToken(chainDots[dotIndex], replacements);
+            var newLeading = pendingDot.LeadingTrivia.Insert(0, endOfLine);
+
+            replacements[chainDots[dotIndex]] = pendingDot.WithLeadingTrivia(newLeading);
 
             var previousToken = chainDots[dotIndex].GetPreviousToken();
 
@@ -372,9 +524,11 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         {
             node = (ConditionalAccessExpressionSyntax)NormalizeChain(node);
             node = CollapseMemberBindingToQuestionToken(node);
+
+            return node;
         }
 
-        return node;
+        return RejoinSplitMemberNames(node);
     }
 
     /// <inheritdoc/>
@@ -391,12 +545,17 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (isOutermost && IsCollapsibleChain(node))
+        if (isOutermost == false)
+        {
+            return node;
+        }
+
+        if (IsCollapsibleChain(node))
         {
             return CollapseChainToSingleLine(node);
         }
 
-        return node;
+        return RejoinSplitMemberNames(node);
     }
 
     #endregion // CSharpSyntaxVisitor

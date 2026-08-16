@@ -9,10 +9,13 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 /// <summary>
 /// Centralizes traversal of method-chain and conditional-access expressions. It collects chain
-/// tokens (invoked-link dots for the line-break side, every member-access/conditional-access/postfix
-/// operator for the alignment side, and the full spine for chain rejoining) and answers chain-shape
-/// queries such as outermost-node detection, spine invocation count, multi-line argument detection,
-/// and intermediate member access
+/// tokens in three widening sets — invoked-link dots, every member-access/conditional-access/postfix
+/// operator, and the full spine including member names — and answers chain-shape queries such as
+/// outermost-node detection, spine invocation count, multi-line argument detection, and intermediate
+/// member access.
+/// The sets are chosen per decision rather than per phase: the line-break and indentation phases both
+/// read the operator set, so that the dot a chain is collapsed at and the dot it is aligned to are
+/// the same token (issue #683)
 /// </summary>
 internal static class ChainWalker
 {
@@ -78,10 +81,12 @@ internal static class ChainWalker
     }
 
     /// <summary>
-    /// Recursively collects all dot operator tokens from a chain expression for alignment.
+    /// Recursively collects every dot operator token from a chain expression, invoked or not.
     /// For conditional access, the <c>?</c> token from the <see cref="ConditionalAccessExpressionSyntax"/>
     /// is collected instead of the <c>.</c> from the <see cref="MemberBindingExpressionSyntax"/>,
-    /// because the <c>?</c> is the first token on a continuation line
+    /// because the <c>?</c> is the first token on a continuation line.
+    /// The indentation phase aligns continuation dots against this set, and the line-break phase picks
+    /// its collapse candidate from it, so both decisions are made about the same tokens (issue #683)
     /// </summary>
     /// <param name="expr">The expression to walk</param>
     /// <param name="dots">The list to accumulate dot tokens into</param>
