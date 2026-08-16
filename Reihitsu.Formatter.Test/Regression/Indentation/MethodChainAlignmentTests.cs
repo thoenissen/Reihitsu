@@ -1634,5 +1634,505 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the wrapped-first-dot collapse does not depend on a conditional-access or
+    /// null-forgiving operator: a chain of plain dots diverges and converges identically (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotWithPlainDotsCollapsesOntoChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop.ToString()
+                                         .Trim();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop.ToString()
+                                                      .Trim();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a null-forgiving operator introducing the first invoked link does not exempt the
+    /// chain from the wrapped-first-dot collapse (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotBeforeNullForgivingLinkCollapsesOntoChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop!.ToString()
+                                         .Trim();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop!.ToString()
+                                                      .Trim();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose only wrapped dot is its own first dot collapses onto one line. No
+    /// invoked link wraps here, so the chain must not gain continuation breaks it never had — the
+    /// boundary that the invoked-link-only early-out used to decide (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotWithNoWrappedLinkCollapsesOntoOneLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop?.ToString().Trim();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop?.ToString().Trim();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the wrapped-first-dot collapse applies inside an argument, so the enclosing
+    /// formatting scope is not a discriminator (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotInsideArgumentCollapsesOntoChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object a)
+                                 {
+                                     Handle(a
+                                         .Prop?.ToString()
+                                         .Trim());
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object a)
+                                    {
+                                        Handle(a.Prop?.ToString()
+                                                     .Trim());
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the collapse boundary: when the chain's own first dot already sits
+    /// on the root line, the wrapped link behind it still collapses exactly as it does today. A
+    /// substitution that simply took the first chain dot instead of the first invoked link would stop
+    /// collapsing this <c>?</c> (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void UnwrappedFirstChainDotStillCollapsesTheWrappedLinkBehindIt()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop
+                                         ?.ToString()
+                                         .Trim();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop?.ToString()
+                                                      .Trim();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a fluent chain whose first dot is already on the root line stays wrapped, so the
+    /// widened collapse does not defeat <c>ChainWalker.ChainHasIntermediateMemberAccess</c>'s
+    /// deliberate keep-wrapped rule (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void FluentChainWithUnwrappedFirstDotStaysWrapped()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop
+                                              .Foo()
+                                              .Bar();
+                                     var y = a.Prop
+                                              .Select(item => item);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a chain with exactly one invoked link collapses its own wrapped first dot too,
+    /// so the same chain formats identically however the author placed the break. The wrapped fluent
+    /// link keeps its line and aligns to the chain's reference column (issue #683)
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotWithSingleInvokedLinkCollapsesOntoChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop
+                                         .Select(item => item);
+                                     var a1 = a
+                                         .Prop.Call();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop
+                                                 .Select(item => item);
+                                        var a1 = a.Prop.Call();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain rooted in a single-line implicit array initializer aligns its
+    /// continuation dot to the first invoked link. The closing brace shares its line with the
+    /// initializer's elements, so rebasing the anchor onto the <c>new</c> keyword would shift it left
+    /// by the initializer's printed width (issue #684)
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInSingleLineImplicitArrayInitializerAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new[] { 1, 2, 3 }.Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new[] { 1, 2, 3 }.Select(item => item)
+                                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the same chain rooted in an explicit single-line array initializer aligns
+    /// identically, so the defect is not specific to the implicit-array arm (issue #684)
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInSingleLineExplicitArrayInitializerAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1, 2, 3 }.Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1, 2, 3 }.Select(item => item)
+                                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the initializer-correction boundary: an initializer whose closing
+    /// brace starts its own line still has its chain anchor rebased onto the creation expression's
+    /// <c>new</c> keyword, which is the arm the correction exists for (issue #684)
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInInitializerWithCloseBraceFirstOnLineKeepsNewKeywordRebase()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Wrapper
+                                     {
+                                         Value = 1
+                                     }.Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new Wrapper
+                                                {
+                                                    Value = 1
+                                                }.Select(item => item)
+                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose first dot wraps after a single-line array initializer both
+    /// collapses that dot and aligns the remaining continuation dot — the shape where issues #683 and
+    /// #684 meet on one input
+    /// </summary>
+    [TestMethod]
+    public void WrappedFirstChainDotAfterSingleLineArrayInitializerCollapsesAndAligns()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new[] { 1, 2, 3 }
+                                         .Select(item => item)
+                                         .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new[] { 1, 2, 3 }.Select(item => item)
+                                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that every continuation dot of a three-link chain rooted in a single-line array
+    /// initializer lands on the same reference column (issue #684)
+    /// </summary>
+    [TestMethod]
+    public void ThreeLinkChainRootedInSingleLineArrayInitializerAlignsEveryContinuationDot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new[] { 1, 2, 3 }.Where(item => item > 0)
+                                        .Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new[] { 1, 2, 3 }.Where(item => item > 0)
+                                                                 .Select(item => item)
+                                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose root ends in a token other than an initializer's closing brace is
+    /// untouched by the initializer correction (issue #684)
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInElementAccessIsUnaffectedByInitializerCorrection()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = arr[0].Foo()
+                                        .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = arr[0].Foo()
+                                                      .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Characterizes a shape that issues #683, #684 and #685 do <b>not</b> fix: a multi-line array
+    /// initializer whose closing brace shares its line with an element. The initializer correction
+    /// correctly no longer applies (the brace is not first on its line), but the fallback reads the
+    /// brace line's layout before <c>ObjectInitializerContributor</c> rebases it, so the continuation
+    /// dot still diverges from the column RH5201 computes. That contributor-ordering defect is a
+    /// separate mechanism, tracked as follow-up work; this test exists so the shape cannot drift
+    /// silently while it is open
+    /// </summary>
+    [TestMethod]
+    public void MultiLineArrayInitializerWithTrailingCloseBraceKeepsKnownDivergence()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1,
+                                         2 }.Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1,
+                                                    2 }.Select(item => item)
+                                           .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

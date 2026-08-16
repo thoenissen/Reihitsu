@@ -217,5 +217,88 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                                                Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter's output for a chain whose own first dot is wrapped is
+    /// RH5201-clean, so the formatter and the analyzer no longer disagree on this shape (issue #683)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterOutputForWrappedFirstChainDotIsClean()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                                  internal string Prop { get; set; }
+
+                                  internal static string Run(Example a)
+                                  {
+                                      return a.Prop?.ToString()
+                                                   .Trim();
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter's output for a chain rooted in a single-line array initializer is
+    /// RH5201-clean, so the code fix no longer moves a column the formatter puts back (issue #684)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterOutputForChainRootedInSingleLineInitializerIsClean()
+    {
+        const string source = """
+                              using System.Linq;
+
+                              internal class Example
+                              {
+                                  internal static int[] Run()
+                                  {
+                                      return new[] { 1, 2, 3 }.Select(item => item)
+                                                              .ToArray();
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter's output for a chain whose member name was split from its own dot
+    /// is RH5201-clean once the name is rejoined (issue #685)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterOutputForRejoinedSplitMemberNameIsClean()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                                  internal Example Prop { get; set; }
+
+                                  internal Example Call()
+                                  {
+                                      return this;
+                                  }
+
+                                  internal Example Then()
+                                  {
+                                      return this;
+                                  }
+
+                                  internal static Example Run(Example a)
+                                  {
+                                      return a?.Prop
+                                              .Call()
+                                              .Then();
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
     #endregion // Tests
 }
