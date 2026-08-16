@@ -2222,5 +2222,68 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies issue #687's reported input: a null-conditional chain whose continuation dots are
+    /// already aligned to the first invoked link (<c>?.FirstOrDefault()</c>) stays unchanged, rather
+    /// than having its continuation indentation reduced
+    /// </summary>
+    [TestMethod]
+    public void NullConditionalChainAlreadyAlignedToFirstInvokedLinkStaysUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             var filePath = metadata.Media?.FirstOrDefault()
+                                                          ?.Part
+                                                          ?.FirstOrDefault()
+                                                          ?.File;
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies issue #689's reported input: a comment above the chain's own first dot keeps the
+    /// chain wrapped, and every remaining invoked link still starts its own line — the arrangement
+    /// <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires. Today the trailing <c>.Bar().Baz()</c>
+    /// stays merged on one line because the same whole-chain bail that keeps the comment's chain
+    /// wrapped also suppresses the continuation-dot line breaks
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveChainRootKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

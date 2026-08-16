@@ -357,5 +357,47 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the remaining arm from issue #685's follow-up comment: a chain whose first invoked
+    /// link dot carries a comment directly above it must still rejoin a split member name elsewhere
+    /// in the chain. The comment sits above <c>.Foo()</c>, nowhere near the <c>.Bar()</c> split, but
+    /// the whole-chain bail for a commented first invoked link runs before the rejoin today
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveFirstInvokedLinkDotStillRejoinsLaterSplitMemberName()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         .Foo().
+                                         Bar()
+                                         .Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                .Foo().Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

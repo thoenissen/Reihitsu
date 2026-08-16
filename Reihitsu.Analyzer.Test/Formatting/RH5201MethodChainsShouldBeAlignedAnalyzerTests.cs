@@ -1,10 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -678,6 +683,53 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies issue #690's reported input: a method chain rooted in a parenthesized <c>with</c>
+    /// expression. The formatter's own output for this input (produced directly through
+    /// <see cref="FormattingPipeline"/>, the same engine <c>reihitsu-format</c> uses) is fed to the
+    /// analyzer as-is, and it reports the diagnostic on the continuation dot — the formatter's own
+    /// output is not RH5201-clean for this shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterOutputForChainRootedInParenthesizedWithExpressionReportsDiagnostic()
+    {
+        const string rawInput = """
+                                class C
+                                {
+                                    void M(Record r)
+                                    {
+                                        var x = (r with
+                                        {
+                                            Value = 1
+                                        }).Select(item => item)
+                                           .ToList();
+                                    }
+                                }
+                                """;
+
+        var formatted = FormatWithLineFeed(rawInput);
+
+        await Verify(formatted,
+                     test => test.CompilerDiagnostics = CompilerDiagnostics.None,
+                     Diagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId).WithSpan(9, 11, 9, 12)
+                                                                                       .WithMessage(AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Formats the given source text through the shared formatting pipeline with LF line endings,
+    /// the same engine <c>reihitsu-format</c> uses, without going through the CLI
+    /// </summary>
+    /// <param name="rawInput">The source text to format</param>
+    /// <returns>The formatted source text</returns>
+    private static string FormatWithLineFeed(string rawInput)
+    {
+        var tree = CSharpSyntaxTree.ParseText(rawInput);
+        var context = new FormattingContext("\n");
+
+        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).ToFullString();
     }
 
     #endregion // Tests
