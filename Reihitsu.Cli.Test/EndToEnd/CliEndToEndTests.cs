@@ -112,6 +112,28 @@ public class CliEndToEndTests
     }
 
     /// <summary>
+    /// Verifies that the --version flag prints the tool name and version, and returns success
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainVersionFlagPrintsVersionAndReturnsSuccess()
+    {
+        // Act
+        int exitCode;
+        string output;
+
+        using (var capture = new ConsoleCapture())
+        {
+            exitCode = await Program.Main(["--version"]);
+            output = capture.StandardOutput;
+        }
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("reihitsu-format", output);
+    }
+
+    /// <summary>
     /// Verifies that an unknown option prints an error message and returns an error exit code
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
