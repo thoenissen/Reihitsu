@@ -461,5 +461,37 @@ public class SwitchCaseBracesTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// No braces should be added to a switch section that contains no statements
+    /// </summary>
+    [TestMethod]
+    public void EmptyCasedShouldNotBeChanged()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 void Check(int x, int y)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                         case 2:
+                                             break;
+
+                                         default:
+                                             {
+                                                 Console.WriteLine("Default case");
+                                             }
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input, input);
+    }
+
     #endregion // Methods
 }
