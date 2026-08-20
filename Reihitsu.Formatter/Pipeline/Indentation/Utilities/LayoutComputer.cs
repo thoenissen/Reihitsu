@@ -17,10 +17,13 @@ internal static class LayoutComputer
     #region Constants
 
     /// <summary>
-    /// Upper bound on the alignment sweeps in pass 2. The sweep normally settles on the second one —
+    /// Upper bound on the alignment sweeps in pass 2. The corrective sweeps settle by the second —
     /// the first resolves every anchor whose own line is already final, the second the anchors that
-    /// depended on those. The bound only guards against a cycle between two contributors that would
-    /// otherwise spin; reaching it leaves the last computed state, which is still deterministic
+    /// depended on those — and a further sweep then observes no change and stops the loop, so the
+    /// shapes this bound exists for run three times. Measured maxima: repository sources two sweeps,
+    /// the repository's own test fixtures three, generated adversarial nesting four. The bound only
+    /// guards against a cycle between two contributors that would otherwise spin; reaching it leaves
+    /// the last computed state, which is still deterministic
     /// </summary>
     private const int MaxAlignmentPasses = 8;
 

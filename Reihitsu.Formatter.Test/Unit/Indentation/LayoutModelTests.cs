@@ -228,5 +228,134 @@ public class LayoutModelTests
         Assert.AreEqual(0, model.Count);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> reports a match when nothing changed
+    /// since the snapshot was captured
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsForUnchangedModelReturnsTrue()
+    {
+        // Arrange
+        var model = new LayoutModel();
+
+        model.Set(1, new TokenLayout(4, "block"));
+        model.Set(2, new TokenLayout(8, "chain"));
+
+        // Act
+        var columns = model.CaptureColumns();
+
+        // Assert
+        Assert.IsTrue(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> reports a mismatch when an existing
+    /// entry is moved to a different column. This is the observation that keeps the alignment sweep
+    /// running for another pass
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsAfterColumnChangeReturnsFalse()
+    {
+        // Arrange
+        var model = new LayoutModel();
+
+        model.Set(1, new TokenLayout(4, "block"));
+
+        var columns = model.CaptureColumns();
+
+        // Act
+        model.Set(1, new TokenLayout(12, "chain"));
+
+        // Assert
+        Assert.IsFalse(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> reports a mismatch when a line gains
+    /// an entry it did not have when the snapshot was captured
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsAfterEntryAddedReturnsFalse()
+    {
+        // Arrange
+        var model = new LayoutModel();
+
+        model.Set(1, new TokenLayout(4, "block"));
+
+        var columns = model.CaptureColumns();
+
+        // Act
+        model.Set(2, new TokenLayout(4, "block"));
+
+        // Assert
+        Assert.IsFalse(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> ignores the
+    /// <see cref="TokenLayout.Source"/> label, so a sweep in which one contributor merely takes
+    /// ownership of a column another already set still counts as settled
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsIgnoresSourceLabelChange()
+    {
+        // Arrange
+        var model = new LayoutModel();
+
+        model.Set(1, new TokenLayout(4, "block"));
+
+        var columns = model.CaptureColumns();
+
+        // Act
+        model.Set(1, new TokenLayout(4, "chain"));
+
+        // Assert
+        Assert.IsTrue(model.MatchesColumns(columns));
+    }
+
+    /// <summary>
+    /// Verifies that a snapshot taken from <see cref="LayoutModel.CaptureColumns"/> is detached from
+    /// the model, so a later mutation cannot retroactively change what the snapshot recorded
+    /// </summary>
+    [TestMethod]
+    public void CaptureColumnsSnapshotIsDetachedFromTheModel()
+    {
+        // Arrange
+        var model = new LayoutModel();
+
+        model.Set(1, new TokenLayout(4, "block"));
+
+        // Act
+        var columns = model.CaptureColumns();
+
+        model.Set(1, new TokenLayout(20, "chain"));
+
+        // Assert
+        Assert.AreEqual(4, columns[1]);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutModel.MatchesColumns"/> reports a mismatch after
+    /// <see cref="LayoutModel.ShiftRange"/> moves entries, since a shift is the one mutation that
+    /// derives a new column from the current one
+    /// </summary>
+    [TestMethod]
+    public void MatchesColumnsAfterShiftRangeReturnsFalse()
+    {
+        // Arrange
+        var model = new LayoutModel();
+
+        model.Set(1, new TokenLayout(4, "block"));
+        model.Set(2, new TokenLayout(8, "block"));
+
+        var columns = model.CaptureColumns();
+
+        // Act
+        model.ShiftRange(1, 2, 6, "shift");
+
+        // Assert
+        Assert.IsFalse(model.MatchesColumns(columns));
+    }
+
     #endregion // Methods
 }
