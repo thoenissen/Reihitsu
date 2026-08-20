@@ -30,7 +30,7 @@ Follow this sequence. The gates exist because rework in this repository is cause
 14. Implement, formatting changed paths and running focused tests as you go.
 15. Run the **local self-review** and record its **admission artifact**.
 16. Synchronize with current `origin/main`.
-17. Decide from `gh-preflight`'s trigger list whether an audit is required, and run it in a `reihitsu-preflight` subagent on that exact synchronized tree when it is.
+17. Decide from `gh-preflight`'s trigger list whether an audit is required, and run it in a `reihitsu-preflight` subagent on that exact synchronized tree when it is; a retry after the repair cycle runs as `reihitsu-preflight-retry`.
 18. Run the complete **full validation** once, in a `reihitsu-validate` subagent.
 19. Push the final non-`[skip ci]` CI trigger and finish the PR.
 
@@ -76,7 +76,8 @@ Every gate below is spawned by **`subagent_type`**, never by an ad-hoc prompt wi
 |---|---|
 | Reproduction gate, and its escalated confirmation | `reihitsu-reproduction` |
 | Behavior Contract gate | `reihitsu-rubber-duck` |
-| Official preflight, attempt 1 and retry | `reihitsu-preflight` |
+| Official preflight, attempt 1 | `reihitsu-preflight` |
+| Official preflight, repair-delta retry | `reihitsu-preflight-retry` |
 | Full validation | `reihitsu-validate` |
 
 The model tier, the effort level, and each agent's tool restrictions come from its definition under
@@ -667,12 +668,25 @@ If `origin/main` moves again **after** a passing preflight: do not enter an unli
 
 ## Official preflight gate — risk-triggered, hard 1 + 1 budget
 
-`gh-preflight` is the final, independent quality gate. Read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings through GitHub MCP. Run it in a fresh, independent subagent of type `reihitsu-preflight` when subagents are available, exactly as that skill's reviewer-isolation section requires, and hand it the same evidence bundle the Rubber Duck received. Its model and effort come from `.claude/agents/reihitsu-preflight.md`; pass no model argument, and give the retry its own fresh instance rather than continuing the first.
+`gh-preflight` is the final, independent quality gate. Read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate, read-only, on the pushed and synchronized head. Do not post its findings through GitHub MCP. Run it in a fresh, independent subagent of type `reihitsu-preflight` when subagents are available, exactly as that skill's reviewer-isolation section requires, and hand it the same evidence bundle the Rubber Duck received. Its model and effort come from `.claude/agents/reihitsu-preflight.md`; pass no model argument. The retry is a different agent type — `reihitsu-preflight-retry`, defined in `.claude/agents/reihitsu-preflight-retry.md`, at a lower effort tier because it is bounded by the repair delta — and it gets its own fresh instance rather than continuing the first.
 
 Add two things to the bundle before the spawn, both derived once by you rather than three times by the agents:
 
 - the `git ls-remote origin refs/heads/main` result from the spawning step and the `scripts/build.sh` result on this head;
 - a **checklist-applicability list**: for each of `gh-review`'s 19 items, `applies` or `N/A` with a one-clause reason from the diff's shape. Six or seven are typically `N/A` — security, error handling, performance, parts of SOLID, coupling — and the reviewer confirms your list rather than rediscovering it. It may overturn any row, and an `N/A` the diff can actually reach comes back as a finding, so state the reason, not just the verdict.
+
+**Hand over conclusions to falsify, not homework to redo.** A spawn prompt that asks the reviewer to
+independently re-derive analysis the parent already performed pays for that analysis twice, and the second
+payment is the expensive one. State what you established and how, so the reviewer can attack the claim
+cheaply and spend its budget on what you did *not* check. "I traced every `ShiftRange` caller and found one,
+which self-corrects — verify" is a claim; "establish whether any contributor accumulates" is the same work
+again from zero. The same applies to measurements: give the number you observed and the method, and let the
+reviewer overturn it.
+
+This is not a licence to steer the audit. Conclusions about the *code* are fair to hand over and are exactly
+what a reviewer should try to break; conclusions about what the reviewer *should find* are the isolation
+breach the bundle rules forbid. Never include a suspected finding, a preferred verdict, or a list of what you
+hope comes back clean — and never ask for a specific verdict, however politely.
 
 **First decide whether an audit is required at all.** That decision belongs to `gh-preflight`'s trigger list, not to this file: an audit is required when the diff changes a predicate, guard, or report condition; which tokens or trivia a rewrite writes; a code-fix registration or applicability; a diagnostic ID, severity, or message; public API; a dependency; a repository script, build property, ruleset, or CI workflow; or adds a rule. It is not required for a diff that only edits comments, documentation, Markdown, skill and command files, or templates — including inside `.cs` — or that only adds tests for behavior that is already correct. Prove the comment-only case with `scripts/verify-text-only.sh` and record the proof line; ask the user (`AskUserQuestion`) when the diff fits neither list. A skipped audit never skips the full validation.
 
@@ -912,7 +926,7 @@ End-state checklist for a finished run:
 - [ ] Local self-review completed against every contract row, including comment and documentation consistency for every changed method
 - [ ] Admission artifact complete — no missing row — before any audit starts
 - [ ] Current `origin/main` merged, conflicts formatted and focused-tested, synchronized head pushed with `[skip ci]`
-- [ ] Preflight decision taken from the trigger list; when required, a passing result from a `reihitsu-preflight` subagent on that exact tree within the 1 + 1 budget; when skipped, the proof line recorded
+- [ ] Preflight decision taken from the trigger list; when required, a passing result on that exact tree within the 1 + 1 budget — `reihitsu-preflight` for attempt 1, `reihitsu-preflight-retry` for the retry; when skipped, the proof line recorded
 - [ ] `scripts/build.sh` + `scripts/test.sh` green on the final tree — run once through `reihitsu-validate`, or recorded as skipped for a diff with no compiled file
 - [ ] Every gate spawned by its `subagent_type` with no model argument, and the tier and effort each ran at recorded in the final report
 - [ ] Trigger commit proven content-free with `git diff --exit-code <audited-sha> HEAD`
