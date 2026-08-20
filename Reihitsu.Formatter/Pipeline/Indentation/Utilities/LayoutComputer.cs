@@ -9,10 +9,26 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
 /// Computes the indentation layout model for a syntax tree.
-/// Uses a three-pass approach: block indentation, alignment overrides, and comment alignment
+/// Applies block indentation, then repeats an alignment sweep until the columns settle, then
+/// aligns comments to the code they precede
 /// </summary>
 internal static class LayoutComputer
 {
+    #region Constants
+
+    /// <summary>
+    /// Upper bound on the alignment sweeps in pass 2. The corrective sweeps settle by the second —
+    /// the first resolves every anchor whose own line is already final, the second the anchors that
+    /// depended on those — and a further sweep then observes no change and stops the loop, so the
+    /// shapes this bound exists for run three times. Measured maxima: repository sources two sweeps,
+    /// the repository's own test fixtures three, generated adversarial nesting four. The bound only
+    /// guards against a cycle between two contributors that would otherwise spin; reaching it leaves
+    /// the last computed state, which is still deterministic
+    /// </summary>
+    private const int MaxAlignmentPasses = 8;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -32,11 +48,29 @@ internal static class LayoutComputer
         // Pass 2: Alignment contributors — override block indentation for specific constructs
         var contributors = CreateContributors();
 
-        foreach (var node in root.DescendantNodesAndSelf())
+        // The sweep repeats until no column changes, because a single ordered sweep cannot satisfy
+        // the dependencies in both directions. A contributor resolves its anchor through
+        // GetAdjustedColumn, which is only correct once that anchor's line is final, and the
+        // dependencies run both ways across the node order: a chain's anchor sits on a line owned by
+        // a construct nested inside the chain root (a multi-line initializer closed by "2 }"), which
+        // the pre-order walk reaches after the chain, while an argument list or lambda nested under a
+        // continuation line depends on the chain's own column and is reached before it is final.
+        // Sweeping once leaves whichever side runs last measuring against a stale column
+        for (var pass = 0; pass < MaxAlignmentPasses; pass++)
         {
-            foreach (var contributor in contributors)
+            var columns = model.CaptureColumns();
+
+            foreach (var node in root.DescendantNodesAndSelf())
             {
-                contributor.Contribute(node, model, context);
+                foreach (var contributor in contributors)
+                {
+                    contributor.Contribute(node, model, context);
+                }
+            }
+
+            if (model.MatchesColumns(columns))
+            {
+                break;
             }
         }
 

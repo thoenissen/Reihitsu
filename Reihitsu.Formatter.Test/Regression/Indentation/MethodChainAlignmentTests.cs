@@ -2177,21 +2177,223 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Characterizes a shape that issues #683, #684 and #685 do <b>not</b> fix: a multi-line array
-    /// initializer whose closing brace shares its line with an element. The initializer correction
-    /// correctly no longer applies (the brace is not first on its line), but the fallback reads the
-    /// brace line's layout before <c>ObjectInitializerContributor</c> rebases it, so the continuation
-    /// dot still diverges from the column RH5201 computes. That contributor-ordering defect is a
-    /// separate mechanism, tracked as follow-up work; this test exists so the shape cannot drift
-    /// silently while it is open.
+    /// Verify that an argument list nested under a chain continuation line is aligned against the
+    /// chain's final column rather than the column the chain held before its anchor was resolved
+    /// </summary>
+    [TestMethod]
+    public void ArgumentListUnderChainContinuationLineFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1,
+                                         2 }.Select(item => item)
+                                            .Where(alpha,
+                                                beta)
+                                            .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1,
+                                                    2 }.Select(item => item)
+                                                       .Where(alpha,
+                                                              beta)
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that an argument list nested under the continuation line of a chain rooted in a
+    /// parenthesized <c>with</c> expression follows the chain's resolved column
+    /// </summary>
+    [TestMethod]
+    public void ArgumentListUnderWithExpressionChainContinuationFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(Record r)
+                                 {
+                                     var x = (r with
+                                     {
+                                         Value = 1
+                                     }).Select(item => item)
+                                        .Where(alpha,
+                                            beta)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(Record r)
+                                    {
+                                        var x = (r with
+                                                   {
+                                                       Value = 1
+                                                   }).Select(item => item)
+                                                     .Where(alpha,
+                                                            beta)
+                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a statement lambda nested under a chain continuation line follows the chain's
+    /// resolved column
+    /// </summary>
+    [TestMethod]
+    public void StatementLambdaUnderChainContinuationLineFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1,
+                                         2 }.Select(item =>
+                                             {
+                                                 return item;
+                                             })
+                                            .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1,
+                                                    2 }.Select(item =>
+                                                               {
+                                                                   return item;
+                                                               })
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a ternary nested under a chain continuation line follows the chain's resolved
+    /// column
+    /// </summary>
+    [TestMethod]
+    public void TernaryUnderChainContinuationLineFollowsTheResolvedChainColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[] { 1,
+                                         2 }.Select(flag
+                                                 ? one
+                                                 : two)
+                                            .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new int[] { 1,
+                                                    2 }.Select(flag
+                                                                   ? one
+                                                                   : two)
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a directive above the first invoked link leaves the collapse of a wrapped prefix
+    /// dot enabled, unlike the comment arm. The line-break phase's exemption is deliberately
+    /// comment-only; this test pins the directive side of that decision so it cannot drift silently
+    /// </summary>
+    [TestMethod]
+    public void DirectiveAboveFirstInvokedLinkStillCollapsesWrappedPrefixDot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop
+                             #pragma warning disable 1234
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop
+                                #pragma warning disable 1234
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a multi-line array initializer whose closing brace shares its
+    /// line with an element aligns its continuation dot to the first invoked link. The initializer
+    /// correction does not apply here (the brace is not first on its line), so the anchor falls back
+    /// to the adjusted-column lookup — which is resolved after the initializer has claimed its own
+    /// line, rather than against that line's block indentation.
     /// <para>
-    /// The expected output is a <b>changed</b> baseline, not a preserved one: before issue #684's fix
-    /// the continuation dot sat at column 17, and it now sits at column 11. Both diverge from the
-    /// column RH5201 computes for this shape, so neither is correct
+    /// The initializer's own layout is deliberately left untouched: only the continuation dot moves
     /// </para>
     /// </summary>
     [TestMethod]
-    public void MultiLineArrayInitializerWithTrailingCloseBraceKeepsKnownDivergence()
+    public void MultiLineArrayInitializerWithTrailingCloseBraceAlignsToInvokedLink()
     {
         // Arrange
         const string input = """
@@ -2213,7 +2415,689 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                     {
                                         var x = new int[] { 1,
                                                     2 }.Select(item => item)
-                                           .ToList();
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies issue #687's reported input: a null-conditional chain whose continuation dots are
+    /// already aligned to the first invoked link (<c>?.FirstOrDefault()</c>) stays unchanged, rather
+    /// than having its continuation indentation reduced
+    /// </summary>
+    [TestMethod]
+    public void NullConditionalChainAlreadyAlignedToFirstInvokedLinkStaysUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             var filePath = metadata.Media?.FirstOrDefault()
+                                                          ?.Part
+                                                          ?.FirstOrDefault()
+                                                          ?.File;
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies issue #689's reported input: a comment above the chain's own first dot keeps the
+    /// chain wrapped, and every remaining invoked link still starts its own line — the arrangement
+    /// <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires. Today the trailing <c>.Bar().Baz()</c>
+    /// stays merged on one line because the same whole-chain bail that keeps the comment's chain
+    /// wrapped also suppresses the continuation-dot line breaks
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveChainRootKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a multi-line implicit array initializer whose closing brace
+    /// shares its line with an element aligns its continuation dot to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void MultiLineImplicitArrayInitializerWithTrailingCloseBraceAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new[] { 1,
+                                         2 }.Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new[] { 1,
+                                                    2 }.Select(item => item)
+                                                       .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized <c>with</c> expression aligns its continuation
+    /// dot to the first invoked link while the initializer braces stay on the <c>with</c> keyword
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedWithExpressionAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(Record r)
+                                 {
+                                     var x = (r with
+                                     {
+                                         Value = 1
+                                     }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(Record r)
+                                    {
+                                        var x = (r with
+                                                   {
+                                                       Value = 1
+                                                   }).Select(item => item)
+                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized object creation aligns its continuation dot to
+    /// the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedObjectCreationAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = (new Wrapper
+                                     {
+                                         Value = 1
+                                     }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = (new Wrapper
+                                                 {
+                                                     Value = 1
+                                                 }).Select(item => item)
+                                                   .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized array creation whose closing brace shares its
+    /// line with an element aligns its continuation dot to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedArrayCreationAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = (new int[] { 1,
+                                         2 }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = (new int[] { 1,
+                                                     2 }).Select(item => item)
+                                                         .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a collection expression aligns its continuation dot to the first
+    /// invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInCollectionExpressionAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = [1,
+                                         2 ].Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = [
+                                                    1,
+                                                    2
+                                                ].Select(item => item)
+                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in an anonymous object creation aligns its continuation dot to the
+    /// first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInAnonymousObjectAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new
+                                     {
+                                         Value = 1
+                                     }.ToString()
+                                      .Trim();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = new
+                                                {
+                                                    Value = 1
+                                                }.ToString()
+                                                 .Trim();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a chain rooted in a parenthesized switch expression aligns its continuation dot to
+    /// the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void ChainRootedInParenthesizedSwitchExpressionAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int i)
+                                 {
+                                     var x = (i switch
+                                     {
+                                         1 => "a",
+                                         _ => "b"
+                                     }).Select(item => item)
+                                        .ToList();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(int i)
+                                    {
+                                        var x = (i switch
+                                                 {
+                                                     1 => "a",
+                                                     _ => "b"
+                                                 }).Select(item => item)
+                                                   .ToList();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a comment above a conditional-access first invoked link keeps the chain wrapped
+    /// while every invoked link still starts its own line
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveConditionalAccessChainRootKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         ?.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                ?.Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a non-invoked prefix dot on the chain root line keeps the anchor column while the
+    /// invoked links are broken onto their own lines
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveChainWithPrefixDotOnRootLineBreaksLinksAtAnchorColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop
+
+                                                 // keep wrapped
+                                                 .Foo()
+                                                 .Bar()
+                                                 .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a conditional-access prefix whose binding is not invoked still breaks every
+    /// following invoked link onto its own line
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveChainWithNonInvokedConditionalPrefixBreaksEveryInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         ?.Prop.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                ?.Prop
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a comment above the first invoked link still suppresses the collapse of a
+    /// separately wrapped non-invoked prefix dot
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveFirstInvokedLinkKeepsWrappedPrefixDotUncollapsed()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                        .Prop
+
+                                        // keep wrapped
+                                        .Foo()
+                                        .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a pragma directive above the first invoked link leaves every invoked link on its
+    /// own line
+    /// </summary>
+    [TestMethod]
+    public void PragmaAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #pragma warning disable 1234
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #pragma warning disable 1234
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that disabled text above the first invoked link leaves every invoked link on its own
+    /// line
+    /// </summary>
+    [TestMethod]
+    public void DisabledTextAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #if false
+                                     .Nope()
+                             #endif
+                                         .Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #if false
+                                        .Nope()
+                                #endif
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a wrapped null-conditional chain whose continuations sit on the chain-root dot is
+    /// realigned to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void NullConditionalChainMisalignedToChainRootDotIsRealignedToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object metadata)
+                                 {
+                                     var filePath = metadata.Media?.FirstOrDefault()
+                                                    ?.Part
+                                                    ?.FirstOrDefault()
+                                                    ?.File;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object metadata)
+                                    {
+                                        var filePath = metadata.Media?.FirstOrDefault()
+                                                                     ?.Part
+                                                                     ?.FirstOrDefault()
+                                                                     ?.File;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a top-level null-conditional chain misaligned to the chain-root dot is realigned to
+    /// the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void TopLevelNullConditionalChainMisalignedToChainRootDotIsRealignedToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             var filePath = metadata.Media?.FirstOrDefault()
+                                            ?.Part
+                                            ?.FirstOrDefault()
+                                            ?.File;
+                             """;
+
+        const string expected = """
+                                var filePath = metadata.Media?.FirstOrDefault()
+                                                             ?.Part
+                                                             ?.FirstOrDefault()
+                                                             ?.File;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a null-conditional chain whose root is split across lines rejoins the non-invoked
+    /// first dot onto its root and aligns the continuations to the first invoked link
+    /// </summary>
+    [TestMethod]
+    public void NullConditionalChainWithSplitRootRejoinsAndAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object metadata)
+                                 {
+                                     var filePath = metadata
+                                                    .Media?.FirstOrDefault()
+                                                          ?.Part
+                                                          ?.FirstOrDefault()
+                                                          ?.File;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object metadata)
+                                    {
+                                        var filePath = metadata.Media?.FirstOrDefault()
+                                                                     ?.Part
+                                                                     ?.FirstOrDefault()
+                                                                     ?.File;
                                     }
                                 }
                                 """;
