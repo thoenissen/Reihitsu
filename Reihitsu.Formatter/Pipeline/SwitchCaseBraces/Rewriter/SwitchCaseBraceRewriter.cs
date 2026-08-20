@@ -89,6 +89,16 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a switch section is empty (contains no statements)
+    /// </summary>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if the section is empty; otherwise, <see langword="false"/></returns>
+    private static bool IsEmptySection(SwitchSectionSyntax section)
+    {
+        return section.Statements.Any(statement => statement.IsKind(SyntaxKind.BreakStatement) == false) == false;
+    }
+
+    /// <summary>
     /// Determines whether a switch section has multiple statements on separate lines and ends in
     /// return or throw. A trailing break is intentionally excluded because it remains outside an
     /// inserted brace block
@@ -560,7 +570,14 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
             if (anyMultiLine)
             {
-                newSections.Add(AddBraces(section));
+                var newSection = section;
+
+                if (IsEmptySection(section) == false)
+                {
+                    newSection = AddBraces(section);
+                }
+
+                newSections.Add(newSection);
             }
             else
             {
