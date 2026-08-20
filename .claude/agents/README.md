@@ -16,7 +16,8 @@ argument, so re-tuning a stage is a one-line frontmatter change here — not an 
 |---|---|---|---|---|
 | `reihitsu-reproduction` | Reproduction gate (`gh-implement`) | `sonnet` | `high` | Writes one test against a helper named in a fixed table and returns a rigid schema. Its cheap verdict is falsified by the next three stages; its terminal verdict is escalated, see below. |
 | `reihitsu-rubber-duck` | Behavior Contract gate | `opus` | `xhigh` | Produces the guard-delta and predicate-boundary tables the workflow treats as load-bearing. A missed defect class here is paid for by a full implement/preflight/review cycle. |
-| `reihitsu-preflight` | Official preflight, attempt 1 and retry | `opus` | `xhigh` | Adversarial audit against ~50 rules; it is the gate that catches a boundary test which cannot falsify the change it guards. |
+| `reihitsu-preflight` | Official preflight, attempt 1 | `opus` | `xhigh` | Adversarial audit against ~50 rules; it is the gate that catches a boundary test which cannot falsify the change it guards. |
+| `reihitsu-preflight-retry` | Official preflight, repair-delta retry | `opus` | `high` | Same audit discipline, bounded by the repair delta: attempt 1 already paid for the breadth, so the retry re-derives only what moved. Kept on `opus` because it still returns a terminal verdict; dropped to `high` because a retry that costs as much as attempt 1 has re-audited rather than delta-audited. |
 | `reihitsu-validate` | Full validation | `haiku` | `low` | Runs two repository scripts and reports pass/fail plus the failing assertions. No judgement, and thousands of output lines that would otherwise land in the orchestrator's context. |
 
 The orchestrator itself is the session agent, not a subagent, so it is not configured here. It stays on the

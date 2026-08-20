@@ -137,7 +137,7 @@ in fact reach is itself a finding, and reporting it costs one line. Independence
 retains the verdict — what it loses is the obligation to rediscover six obvious negatives from scratch. Every
 item still appears in the report with its status, so a silently dropped item stays impossible.
 
-The retry attempt gets its own fresh `reihitsu-preflight` subagent on the exact new head — never a continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be independent — plus the repair-delta inputs below.
+The retry attempt gets its own fresh `reihitsu-preflight-retry` subagent on the exact new head — never a continuation of the first one, which would carry its earlier conclusions into a review that is supposed to be independent — plus the repair-delta inputs below.
 
 If subagents are unavailable, perform the audit locally from GitHub and filesystem evidence. A direct `/gh-preflight` invocation already acts as the reviewer and does not need another agent.
 
@@ -174,6 +174,14 @@ Reporting less is not reporting selectively: **every** previous finding is named
 silently dropped one remains impossible, and any checklist item or axis row the repair touched appears in
 full. A retry that finds a new defect outside the repair delta reports it like any other finding and says
 where it came from.
+
+**The retry should cost materially less than attempt 1.** Attempt 1 pays for breadth: the whole change, the
+full checklist, the complete corpus. The retry pays only for what moved. A retry whose cost approaches or
+exceeds attempt 1's has re-audited rather than delta-audited, whatever its report says — the reuse stopped at
+the derivation and never reached either the work or the output. Treat that as a signal to check the two rules
+above rather than as a sign of thoroughness, and prefer a targeted counterexample over a large sampling run.
+The retry runs as `reihitsu-preflight-retry`, whose lower effort tier reflects this bound; the tier is not a
+licence to skip a moved guard, an untested boundary, or a previous finding's status.
 
 Incremental retry mode becomes **invalid** when the repair expands into an unrelated production surface, changes the accepted contract, or materially enlarges the file set. Then audit the change in full and say in the report that scope grew: that situation needs a new scope decision from the parent, not a silent second implementation review.
 
@@ -230,6 +238,19 @@ one-decision diff gets a narrow corpus. Do not. A narrow corpus on a small diff 
 that misses the boundary finding this gate exists to catch, and the evidence for the change would have to come
 from runs where a scaled-down corpus demonstrably lost nothing — which is data this workflow does not have
 yet. Revisit it when the per-gate metrics from a dozen runs exist; until then, breadth is not the knob.
+
+**Empirical property verification is sampled, not exhausted.** This is a different knob from corpus breadth
+above, and the distinction matters. Breadth is how many *kinds* of shape the audit exercises, and it stays
+flat. Sampling is how many *instances* an audit runs to establish a numeric or universal property — that a
+loop converges, that a rewrite is idempotent, that no output moved. Confidence in a property saturates:
+running two hundred inputs and running twenty thousand answer the same question, and only the first is worth
+paying for. Sample until the property is established or a counterexample appears, then stop and report the
+distribution you observed. If a property genuinely needs an unbounded corpus to hold, that is a finding about
+the change, not a reason to keep sampling.
+
+A targeted counterexample outruns a large corpus in any case. The defects this gate has actually caught came
+from constructing the one input a moved predicate would mishandle, not from the volume behind it — so spend
+the effort on choosing inputs, not on multiplying them.
 
 Limit blocking findings to defects caused by the PR, missing issue requirements, incomplete tests required by the change, and pre-existing behavior that the changed code newly depends on or exposes. Record unrelated pre-existing concerns as hints rather than expanding the PR. Give each confirmed scope hint a defect mechanism and `new mechanism` relation so the parent workflow can preserve it against its scope ledger without treating it as a blocking repair.
 

@@ -71,7 +71,8 @@ The `gh-*` workflows spawn their gates as subagents defined under `.claude/agent
 |---|---|---|
 | `reihitsu-reproduction` | Reproduction gate, and its escalated confirmation | `sonnet` / `high` |
 | `reihitsu-rubber-duck` | Behavior Contract gate | `opus` / `xhigh` |
-| `reihitsu-preflight` | Official preflight, attempt 1 and the retry | `opus` / `xhigh` |
+| `reihitsu-preflight` | Official preflight, attempt 1 | `opus` / `xhigh` |
+| `reihitsu-preflight-retry` | Official preflight, repair-delta retry | `opus` / `high` |
 | `reihitsu-validate` | Full validation | `haiku` / `low` |
 
 Spawn a gate by its `subagent_type` and pass no model argument, so re-tuning a stage stays a one-line frontmatter change rather than an edit spread across three skill files. The one deliberate override is the reproduction gate's escalated confirmation, which re-runs the same agent type at `opus` because `NOT REPRODUCED` is the only gate verdict that ends a run and cannot be falsified by a later stage. The orchestrator is the session agent and is not configured here. `.claude/agents/README.md` records the reasoning and what was deliberately left unconfigured.
