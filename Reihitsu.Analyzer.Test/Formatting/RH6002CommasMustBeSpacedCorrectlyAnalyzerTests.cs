@@ -365,5 +365,116 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
         await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a compact interpolation-alignment comma does not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCompactInterpolationAlignmentCommaDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(string value)
+                                    {
+                                        return $"{value,-10}";
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a space after an interpolation-alignment comma is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySpaceAfterInterpolationAlignmentCommaIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(string value)
+                                    {
+                                        return $"{value{|#0:,|} -10}";
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     string Method(string value)
+                                     {
+                                         return $"{value,-10}";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a space before an interpolation-alignment comma is still detected and fixed, so the
+    /// new zero-after-space owner does not regress coverage of the before-comma gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySpaceBeforeInterpolationAlignmentCommaIsStillDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(string value)
+                                    {
+                                        return $"{value {|#0:,|}-10}";
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     string Method(string value)
+                                     {
+                                         return $"{value,-10}";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All converges two interpolation-alignment commas in one document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleInterpolationAlignmentCommaDiagnosticsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(string a, string b)
+                                    {
+                                        return $"{a{|#0:,|} -10}{b{|#1:,|} 5}";
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     string Method(string a, string b)
+                                     {
+                                         return $"{a,-10}{b,5}";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2));
+    }
+
     #endregion // Tests
 }
