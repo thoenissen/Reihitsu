@@ -684,8 +684,8 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an unbound generic (<c>Dictionary&lt;,&gt;</c>) whose omitted type arguments
-    /// span multiple lines leaves the closing bracket at its pre-existing column instead of aligning
-    /// to a zero-width anchor, since an omitted type argument's token carries no real column
+    /// span multiple lines falls back to the enclosing block's indentation instead of aligning to a
+    /// zero-width anchor, since an omitted type argument's token carries no real column to align to
     /// </summary>
     [TestMethod]
     public void UnboundGenericWithZeroWidthAnchorIsNotAlignedToADegenerateColumn()
@@ -801,6 +801,122 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
                                 {
                                     private List<System.Collections.Generic.Dictionary<string, // note
                                                                                        int>> _items;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a leading-comma type-argument list with more than one separator needing
+    /// collapse joins fully in a single formatter pass, rather than collapsing one separator per run
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommaTypeArgumentListJoinsInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 private Base<T1
+                                              , T2
+                                              , T3
+                                              , T4> _field;
+                             }
+                             """;
+        const string expected = """
+                                public class Sample
+                                {
+                                    private Base<T1, T2, T3, T4> _field;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a leading-comma type-parameter list with more than one separator needing
+    /// collapse joins fully in a single formatter pass
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommaTypeParameterListJoinsInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public void Foo<TA
+                                                 , TB
+                                                 , TC>()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class Sample
+                                {
+                                    public void Foo<TA, TB, TC>()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a leading-comma function-pointer parameter list with more than one separator
+    /// needing collapse joins fully in a single formatter pass
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommaFunctionPointerParameterListJoinsInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             public unsafe class Sample
+                             {
+                                 private delegate*<int
+                                                    , int
+                                                    , void> _pointer;
+                             }
+                             """;
+        const string expected = """
+                                public unsafe class Sample
+                                {
+                                    private delegate*<int, int, void> _pointer;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a refused join (interior comment) with leading, misaligned commas aligns every
+    /// separator to the first type argument's column — not only element first-tokens and the closing
+    /// bracket, which is what a contributor covering only those would miss
+    /// </summary>
+    [TestMethod]
+    public void RefusedJoinWithLeadingCommaAlignsSeparatorsToFirstArgumentColumn()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 private Base<T1 // note
+                             , T2
+                             , T3> _field;
+                             }
+                             """;
+        const string expected = """
+                                public class Sample
+                                {
+                                    private Base<T1 // note
+                                                 , T2
+                                                 , T3> _field;
                                 }
                                 """;
 

@@ -43,8 +43,9 @@ internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
         var anchorToken = elements[0].GetFirstToken();
 
         // An omitted type argument's token is zero-width (an unbound generic such as
-        // "Dictionary<,>"), so it carries no real column to anchor to. Leave the authored
-        // column rather than align to a degenerate position
+        // "Dictionary<,>"), so it carries no real column to anchor to. Leave this list to the
+        // block-indentation fallback pass 1 already computed, rather than align to a degenerate
+        // position
         if (anchorToken.Span.IsEmpty)
         {
             return;
@@ -55,6 +56,11 @@ internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
         for (var elementIndex = 1; elementIndex < elements.Count; elementIndex++)
         {
             LayoutComputer.SetIfFirstOnLine(elements[elementIndex].GetFirstToken(), anchorColumn, "AngleBracketList", model);
+        }
+
+        for (var separatorIndex = 0; separatorIndex < elements.SeparatorCount; separatorIndex++)
+        {
+            LayoutComputer.SetIfFirstOnLine(elements.GetSeparator(separatorIndex), anchorColumn, "AngleBracketList", model);
         }
 
         LayoutComputer.SetIfFirstOnLine(closeToken, anchorColumn, "AngleBracketList", model);

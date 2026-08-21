@@ -133,8 +133,9 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
-    /// Verifies that already analyzer-clean source is rewritten by an unrelated formatter behavior
-    /// and remains analyzer-clean afterward, under LF and CRLF line endings
+    /// Verifies that already analyzer-clean source is rewritten by an unrelated formatter behavior,
+    /// remains analyzer-clean afterward, and is stable on a second formatter pass, under LF and CRLF
+    /// line endings
     /// </summary>
     /// <param name="source">The source text before formatting</param>
     /// <param name="fixedSource">The expected formatted source text</param>
@@ -152,6 +153,10 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
             var formatted = await VerifyFormatterFixCore(normalizedSource, normalizedFixedSource, null, endOfLine);
 
             await Verify(formatted);
+
+            var reformatted = await VerifyFormatterFixCore(formatted, normalizedFixedSource, null, endOfLine);
+
+            await Verify(reformatted);
         }
     }
 

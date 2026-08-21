@@ -246,12 +246,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node))
-        {
-            return false;
-        }
-
-        return node.Arguments.Any(LineBreakDetection.IsMultiLine) == false;
+        return CanSafelyCollapseInteriorList(node, node.Arguments);
     }
 
     /// <summary>
@@ -300,19 +295,20 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether an angle-bracket delimited list can be safely collapsed to one line
+    /// Determines whether a delimited list can be safely collapsed to one line by rewriting only its
+    /// interior gaps
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in the list</typeparam>
     /// <param name="node">The list node</param>
     /// <param name="elements">The list's elements</param>
     /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// Same interior-scoped guard as <see cref="CanSafelyCollapseBracketedArguments"/>, minus its
-    /// owner restriction: every angle-bracket list (type argument, type parameter, function-pointer
-    /// parameter) shares this predicate regardless of where it appears (issue #693)
+    /// Shared by every interior-scoped collapse in this rewriter: bracketed indexer arguments and
+    /// every angle-bracket list (type argument, type parameter, function-pointer parameter). Callers
+    /// that also restrict which owning construct is eligible check that separately before calling this
     /// </remarks>
-    private static bool CanSafelyCollapseAngleBracketList<TElement>(SyntaxNode node,
-                                                                    SeparatedSyntaxList<TElement> elements)
+    private static bool CanSafelyCollapseInteriorList<TElement>(SyntaxNode node,
+                                                                SeparatedSyntaxList<TElement> elements)
         where TElement : SyntaxNode
     {
         if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node))
@@ -340,7 +336,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     {
         var elements = getElements(node);
 
-        if (LineBreakDetection.IsMultiLine(node) == false || CanSafelyCollapseAngleBracketList(node, elements) == false)
+        if (LineBreakDetection.IsMultiLine(node) == false || CanSafelyCollapseInteriorList(node, elements) == false)
         {
             return node;
         }
@@ -369,6 +365,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(separator) || LineBreakTriviaUtilities.HasTrailingEndOfLine(separator))
             {
                 node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, separator);
+                elements = getElements(node);
             }
         }
 
