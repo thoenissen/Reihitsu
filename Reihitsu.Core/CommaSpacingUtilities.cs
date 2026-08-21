@@ -27,6 +27,23 @@ public static class CommaSpacingUtilities
     }
 
     /// <summary>
+    /// Determines the number of spaces required after a comma. Unlike <see cref="IsSpacingExempt"/>, this
+    /// covers commas that stay subject to spacing analysis but whose required spacing after the comma is
+    /// zero rather than one, such as the alignment comma of an interpolated-string alignment component
+    /// </summary>
+    /// <param name="commaToken">Comma token to inspect</param>
+    /// <returns>The number of spaces required after the comma</returns>
+    public static int GetDesiredSpacesAfter(SyntaxToken commaToken)
+    {
+        if (IsSpacingExempt(commaToken))
+        {
+            return 0;
+        }
+
+        return commaToken.Parent is InterpolationAlignmentClauseSyntax ? 0 : 1;
+    }
+
+    /// <summary>
     /// Determines whether an array rank specifier declares only rank without size expressions
     /// </summary>
     /// <param name="arrayRankSpecifier">Array rank specifier to inspect</param>

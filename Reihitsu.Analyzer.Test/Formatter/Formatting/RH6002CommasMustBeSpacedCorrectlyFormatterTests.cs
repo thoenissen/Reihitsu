@@ -121,5 +121,57 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
         await VerifyFormatterStability(testData);
     }
 
+    /// <summary>
+    /// Verifies that a compact interpolation-alignment comma stays unchanged and analyzer-clean (issue #696)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCompactInterpolationAlignmentCommaStaysAnalyzerClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(string value)
+                                    {
+                                        return $"{value,-10}";
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes a space after an interpolation-alignment comma, clears the
+    /// analyzer diagnostic, and remains stable on a second pass (issue #696)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesSpaceAfterInterpolationAlignmentCommaAndIsIdempotent()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(string value)
+                                    {
+                                        return $"{value{|#0:,|} -10}";
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     string Method(string value)
+                                     {
+                                         return $"{value,-10}";
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
     #endregion // Tests
 }
