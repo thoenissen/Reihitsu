@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -299,6 +300,89 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether an angle-bracket delimited list can be safely collapsed to one line
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in the list</typeparam>
+    /// <param name="node">The list node</param>
+    /// <param name="elements">The list's elements</param>
+    /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// Same interior-scoped guard as <see cref="CanSafelyCollapseBracketedArguments"/>, minus its
+    /// owner restriction: every angle-bracket list (type argument, type parameter, function-pointer
+    /// parameter) shares this predicate regardless of where it appears (issue #693)
+    /// </remarks>
+    private static bool CanSafelyCollapseAngleBracketList<TElement>(SyntaxNode node,
+                                                                    SeparatedSyntaxList<TElement> elements)
+        where TElement : SyntaxNode
+    {
+        if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node))
+        {
+            return false;
+        }
+
+        return elements.Any(LineBreakDetection.IsMultiLine) == false;
+    }
+
+    /// <summary>
+    /// Collapses a wrapped angle-bracket delimited list onto a single line when safe
+    /// </summary>
+    /// <typeparam name="TNode">The list syntax node type</typeparam>
+    /// <typeparam name="TElement">The type of the elements in the list</typeparam>
+    /// <param name="node">The list node</param>
+    /// <param name="getElements">Reads the current elements from the (possibly already updated) node</param>
+    /// <param name="getCloseToken">Reads the current closing angle bracket from the (possibly already updated) node</param>
+    /// <returns>The updated list</returns>
+    private static TNode CollapseAngleBracketListToSingleLine<TNode, TElement>(TNode node,
+                                                                               Func<TNode, SeparatedSyntaxList<TElement>> getElements,
+                                                                               Func<TNode, SyntaxToken> getCloseToken)
+        where TNode : SyntaxNode
+        where TElement : SyntaxNode
+    {
+        var elements = getElements(node);
+
+        if (LineBreakDetection.IsMultiLine(node) == false || CanSafelyCollapseAngleBracketList(node, elements) == false)
+        {
+            return node;
+        }
+
+        if (elements.Count > 0)
+        {
+            node = CollapseFirstElementToSameLine(node, elements[0].GetFirstToken());
+            elements = getElements(node);
+        }
+
+        for (var elementIndex = 1; elementIndex < elements.Count; elementIndex++)
+        {
+            var firstToken = elements[elementIndex].GetFirstToken();
+
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken))
+            {
+                node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
+                elements = getElements(node);
+            }
+        }
+
+        for (var separatorIndex = 0; separatorIndex < elements.SeparatorCount; separatorIndex++)
+        {
+            var separator = elements.GetSeparator(separatorIndex);
+
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(separator) || LineBreakTriviaUtilities.HasTrailingEndOfLine(separator))
+            {
+                node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, separator);
+            }
+        }
+
+        var closeToken = getCloseToken(node);
+
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(closeToken))
+        {
+            node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, closeToken);
+        }
+
+        return node;
+    }
+
+    /// <summary>
     /// Ensures that all arguments in a multi-line attribute argument list start on their own line
     /// </summary>
     /// <param name="node">The attribute argument list node</param>
@@ -526,6 +610,48 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         node = CollapseCloseParenToParameterLine(node);
 
         return EnsureParametersOnSeparateLines(node, _context.EndOfLine);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitTypeArgumentList(TypeArgumentListSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (TypeArgumentListSyntax)base.VisitTypeArgumentList(node);
+
+        return node == null
+                   ? null
+                   : CollapseAngleBracketListToSingleLine(node,
+                                                          static typeArgumentList => typeArgumentList.Arguments,
+                                                          static typeArgumentList => typeArgumentList.GreaterThanToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitTypeParameterList(TypeParameterListSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (TypeParameterListSyntax)base.VisitTypeParameterList(node);
+
+        return node == null
+                   ? null
+                   : CollapseAngleBracketListToSingleLine(node,
+                                                          static typeParameterList => typeParameterList.Parameters,
+                                                          static typeParameterList => typeParameterList.GreaterThanToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (FunctionPointerParameterListSyntax)base.VisitFunctionPointerParameterList(node);
+
+        return node == null
+                   ? null
+                   : CollapseAngleBracketListToSingleLine(node,
+                                                          static functionPointerParameterList => functionPointerParameterList.Parameters,
+                                                          static functionPointerParameterList => functionPointerParameterList.GreaterThanToken);
     }
 
     #endregion // CSharpSyntaxVisitor

@@ -738,10 +738,44 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that auto-properties with wrapped signatures are not collapsed to one line
+    /// Verifies that an auto-property whose wrapped generic type refuses the join — an interior
+    /// comment sits inside the type-argument list — keeps its signature wrapped and its accessor
+    /// list expanded, instead of collapsing to one line
     /// </summary>
     [TestMethod]
-    public void DoesNotCollapseAutoPropertyWithWrappedSignature()
+    public void DoesNotCollapseAutoPropertyWithRefusedJoinSignature()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class Foo
+                             {
+                                 public Dictionary<string, // key
+                                                   string> Prop
+                                 {
+                                     get;
+                                     set;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.DoesNotContain("{ get; set; }", result, "A refused join must not collapse the accessor list.");
+        Assert.Contains("Dictionary<string, // key", result, "The interior comment must refuse the join and stay in place.");
+        Assert.Contains("get;", result, "Accessor declarations should be preserved.");
+    }
+
+    /// <summary>
+    /// Verifies that an auto-property whose wrapped generic type can safely join — no interior
+    /// comment or directive — has its signature joined onto one line and its accessor list
+    /// collapsed, since the joined signature becomes single-line (issue #693)
+    /// </summary>
+    [TestMethod]
+    public void CollapsesAutoPropertyWithJoinableWrappedSignature()
     {
         // Arrange
         const string input = """
@@ -762,9 +796,11 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        Assert.DoesNotContain("public Dictionary<string, string> Prop { get; set; }", result, "Wrapped signatures should remain multi-line.");
-        Assert.Contains("string> Prop", result, "The wrapped signature should be preserved.");
-        Assert.Contains("get;", result, "Accessor declarations should be preserved.");
+        // No space after the comma: HorizontalSpacingPhase runs after LineBreakPhase, so this
+        // phase-level result is unspaced. Only the join and the accessor-list collapse belong to
+        // LineBreakPhase; the comma spacing belongs to a later phase and is covered separately by
+        // the full-pipeline regression tests.
+        Assert.Contains("Dictionary<string,string> Prop { get; set; }", result, "A joinable signature should collapse onto one line.");
     }
 
     /// <summary>

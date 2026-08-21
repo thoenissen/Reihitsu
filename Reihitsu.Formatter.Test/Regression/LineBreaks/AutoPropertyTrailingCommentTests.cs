@@ -308,12 +308,43 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a property whose signature spans several lines keeps its existing layout even
-    /// when a comment trails the accessor list, because the collapse is refused for the signature
-    /// rather than for the trivia
+    /// Verifies that a property whose wrapped generic type refuses the join — an interior comment
+    /// sits inside the type-argument list — keeps its signature wrapped and its accessor list
+    /// expanded, and that the trailing comment after the accessor list stays untouched (issue #693)
     /// </summary>
     [TestMethod]
-    public void MultiLineSignatureWithTrailingCommentRemainsUnchanged()
+    public void RefusedJoinSignatureWithTrailingCommentRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public System.Collections.Generic.Dictionary<string, // key
+                                                                              int> Value { get; set; } // explanation
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public System.Collections.Generic.Dictionary<string, // key
+                                                                                 int> Value
+                                    {
+                                        get; set;
+                                    } // explanation
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a property whose wrapped generic type can safely join — no interior comment or
+    /// directive — has its signature joined onto one line and its accessor list collapsed, and that
+    /// the trailing comment after the (now collapsed) accessor list is not crossed (issue #693)
+    /// </summary>
+    [TestMethod]
+    public void JoinableSignatureWithTrailingCommentCollapses()
     {
         // Arrange
         const string input = """
@@ -326,11 +357,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
         const string expected = """
                                 internal class TestClass
                                 {
-                                    public System.Collections.Generic.Dictionary<string,
-                                    int> Value
-                                    {
-                                        get; set;
-                                    } // explanation
+                                    public System.Collections.Generic.Dictionary<string, int> Value { get; set; } // explanation
                                 }
                                 """;
 

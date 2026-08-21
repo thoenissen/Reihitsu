@@ -191,6 +191,7 @@ internal static class LayoutComputer
                    new ConstructorInitializerContributor(),
                    new GenericConstraintContributor(),
                    new BaseTypeListContributor(),
+                   new AngleBracketListAlignmentContributor(),
                    new AnonymousObjectContributor(),
                    new LambdaAlignmentContributor()
                ];
