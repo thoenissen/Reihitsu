@@ -133,6 +133,34 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
+    /// Verifies that already analyzer-clean source is rewritten by an unrelated formatter behavior,
+    /// remains analyzer-clean afterward, and is stable on a second formatter pass, under LF and CRLF
+    /// line endings
+    /// </summary>
+    /// <param name="source">The source text before formatting</param>
+    /// <param name="fixedSource">The expected formatted source text</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyFormatterTransformStaysAnalyzerClean(string source,
+                                                                           string fixedSource)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var normalizedSource = NormalizeLineEndings(source, endOfLine);
+            var normalizedFixedSource = NormalizeLineEndings(fixedSource, endOfLine);
+
+            await Verify(normalizedSource);
+
+            var formatted = await VerifyFormatterFixCore(normalizedSource, normalizedFixedSource, null, endOfLine);
+
+            await Verify(formatted);
+
+            var reformatted = await VerifyFormatterFixCore(formatted, normalizedFixedSource, null, endOfLine);
+
+            await Verify(reformatted);
+        }
+    }
+
+    /// <summary>
     /// Creates an expected diagnostic with an explicit span
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>

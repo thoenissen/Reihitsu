@@ -49,11 +49,13 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
     }
 
     /// <summary>
-    /// Verifies that a continuation-line closing generic bracket remains analyzer-clean with LF and CRLF line endings
+    /// Verifies that a wrapped continuation-line closing generic bracket is joined onto the
+    /// declaration line by the formatter's angle-bracket list join (issue #693), and that the joined
+    /// result remains analyzer-clean with LF and CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyContinuationLineClosingGenericBracketStaysAnalyzerClean()
+    public async Task VerifyContinuationLineClosingGenericBracketJoinsAndStaysAnalyzerClean()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -66,8 +68,18 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
                                     }
                                 }
                                 """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+                                 internal class TestClass
+                                 {
+                                     List<int> Method()
+                                     {
+                                         return new();
+                                     }
+                                 }
+                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatterTransformStaysAnalyzerClean(testData, fixedData);
     }
 
     #endregion // Tests
