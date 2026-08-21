@@ -7,7 +7,8 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rules;
 
 /// <summary>
 /// Requires exactly one space after a comma, except inside a rank-only array specifier such as
-/// <c>int[,]</c> or an unbound generic type such as <c>Dictionary&lt;,&gt;</c> where the commas stay compact
+/// <c>int[,]</c>, an unbound generic type such as <c>Dictionary&lt;,&gt;</c>, or an interpolated-string
+/// alignment component such as <c>$"{value,-10}"</c>, where the commas stay compact
 /// </summary>
 internal sealed class CommaSpacingRule : ISpacingRule
 {
@@ -20,7 +21,7 @@ internal sealed class CommaSpacingRule : ISpacingRule
     /// <returns>The required number of spaces after the comma</returns>
     private static int GetSpacesAfterComma(SyntaxToken current)
     {
-        return CommaSpacingUtilities.IsSpacingExempt(current) ? 0 : 1;
+        return CommaSpacingUtilities.GetDesiredSpacesAfter(current);
     }
 
     #endregion // Methods

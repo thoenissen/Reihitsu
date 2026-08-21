@@ -59,7 +59,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
         if (nextToken.RawKind != 0
             && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken) == false)
         {
-            normalizedCommaToken = SyntaxTriviaUtilities.SetTrailingWhitespace(token, 1);
+            normalizedCommaToken = SyntaxTriviaUtilities.SetTrailingWhitespace(token, CommaSpacingUtilities.GetDesiredSpacesAfter(token));
         }
 
         return (previousToken, normalizedPreviousToken, normalizedCommaToken);
