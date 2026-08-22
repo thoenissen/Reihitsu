@@ -265,5 +265,42 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a documentation comment on its own line before a closing brace is left alone by
+    /// this fix — its blank-line placement is already governed elsewhere (<see cref="Pipeline.BlankLines.BlankLinePhase"/>),
+    /// and folding a structured comment into this fix's decision is out of scope. The blank line
+    /// appears either way, unchanged by this fix (see issue #694)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeClosingBraceIsUnaffected()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Method()
+                                 {
+                                     DoSomething();
+                                     /// trailing note
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Method()
+                                    {
+                                        DoSomething();
+
+                                        /// trailing note
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
