@@ -11,6 +11,8 @@ A collection of C# development tools built on the Roslyn compiler platform, incl
 | **[Reihitsu.Analyzer](Reihitsu.Analyzer.Package/README.MD)** | Roslyn-based analyzer package enforcing coding rules for clarity, design, naming, formatting, documentation, ordering, and performance. | [![NuGet](https://img.shields.io/nuget/v/Reihitsu.Analyzer)](https://www.nuget.org/packages/Reihitsu.Analyzer) |
 | **[Reihitsu.Cli](Reihitsu.Cli/README.MD)** | Command-line formatting tool for C# source files. | [![NuGet](https://img.shields.io/nuget/v/Reihitsu.Cli)](https://www.nuget.org/packages/Reihitsu.Cli) |
 
+Try the formatter in your browser at **[thoenissen.github.io/Reihitsu](https://thoenissen.github.io/Reihitsu/)** — no install required, and it always runs the formatter from the latest commit on `main`.
+
 ## Quick Start
 
 ### Analyzer

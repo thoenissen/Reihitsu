@@ -3,7 +3,7 @@
 #
 #   scripts/test.sh [options] [<extra dotnet test arguments>...]
 #
-#   --project <analyzer|formatter|core|cli|architecture|tooling|all>   default: all
+#   --project <analyzer|formatter|core|cli|architecture|tooling|playground|all>   default: all
 #   --filter <expression>                                              focused run
 #   --no-build                                                         reuse the previous Release build
 #   --no-install                                                       fail instead of installing the SDK
@@ -30,7 +30,7 @@ while [[ "$#" -gt 0 ]]; do
     case "$1" in
         --project)
             if [[ "$#" -lt 2 ]]; then
-                echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, tooling, or all)." >&2
+                echo "test.sh: --project expects a value (analyzer, formatter, core, cli, architecture, tooling, playground, or all)." >&2
                 exit 2
             fi
 
@@ -66,16 +66,18 @@ case "$project" in
     cli) projects=("Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj") ;;
     architecture) projects=("Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj") ;;
     tooling) projects=("Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj") ;;
+    playground) projects=("Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj") ;;
     all)
         projects=("Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj"
                   "Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj"
                   "Reihitsu.Core.Test/Reihitsu.Core.Test.csproj"
                   "Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj"
                   "Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj"
-                  "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj")
+                  "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj"
+                  "Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj")
         ;;
     *)
-        echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, tooling, or all)." >&2
+        echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, tooling, playground, or all)." >&2
         exit 2
         ;;
 esac
