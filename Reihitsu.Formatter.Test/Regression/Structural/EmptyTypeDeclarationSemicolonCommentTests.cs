@@ -26,7 +26,15 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        const string expected = """
+                                public class C
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -42,7 +50,15 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        const string expected = """
+                                public struct S
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -58,7 +74,15 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        const string expected = """
+                                public interface I
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -74,7 +98,15 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        const string expected = """
+                                public record R
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -90,7 +122,15 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        const string expected = """
+                                public record struct RS
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

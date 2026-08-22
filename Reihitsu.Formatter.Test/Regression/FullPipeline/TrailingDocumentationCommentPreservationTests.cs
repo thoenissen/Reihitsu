@@ -740,9 +740,10 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an ordinary comment before a closing brace is handled exactly as before. The exemption is
-    /// scoped to documentation comments, which are the ones the compiler rejects in a position that documents
-    /// nothing, so an ordinary comment in the same slot must be unaffected by it
+    /// Verifies that an ordinary comment before a closing brace is not relocated. The exemption from relocation
+    /// is scoped to documentation comments, which are the ones the compiler rejects in a position that documents
+    /// nothing, so an ordinary comment in the same slot must be unaffected by it — it only gains the blank line
+    /// every trailing scope comment is preceded by (issue #694)
     /// </summary>
     [TestMethod]
     public void KeepsOrdinaryCommentHandlingAtBlockEnd()
@@ -755,7 +756,16 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+
+                                    // trailing note
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

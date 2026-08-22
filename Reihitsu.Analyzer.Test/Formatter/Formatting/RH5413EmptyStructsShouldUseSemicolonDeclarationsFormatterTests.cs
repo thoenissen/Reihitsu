@@ -60,12 +60,19 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsFormatterTests : Fo
                              {
                              }
                              """;
+        const string expected = """
+                                internal struct Example
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
                                       .GetRoot(TestContext.CancellationToken)
                                       .ToFullString();
 
-        Assert.AreEqual(input, actual);
+        Assert.AreEqual(expected, actual);
     }
 
     #endregion // Tests

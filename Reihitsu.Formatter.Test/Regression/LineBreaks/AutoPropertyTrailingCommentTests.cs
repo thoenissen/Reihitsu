@@ -296,6 +296,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     public int Value
+
                                     // note
                                     {
                                         get; set;
