@@ -90,7 +90,14 @@ internal sealed class TokenGapNormalizer
             trailingRun.Add(token.LeadingTrivia[triviaIndex]);
         }
 
-        var normalizedTrailingRun = NormalizeTrailingRun(trailingRun);
+        // A requested blank-line count of zero is a placement requirement — no blank line directly
+        // adjacent to the token, the way RH5024/RH5025 require for a delimiter. A requested count of one
+        // or more is a statement-separation budget, not an adjacency requirement, so the comment's own
+        // positioning relative to the statement it may or may not document is the author's call, already
+        // settled by BlankLinePhase; this method does not spend that budget on the comment→token run
+        var normalizedTrailingRun = blankLineCount == 0
+                                        ? NormalizeTrailingRun(trailingRun)
+                                        : trailingRun;
 
         var newLeadingTrivia = new List<SyntaxTrivia>(preservedPrefix.Count + normalizedTrailingRun.Count);
 
@@ -449,11 +456,11 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Normalizes the run of line breaks and indentation between a comment and the token that follows it so the
-    /// comment stays directly attached to that token — exactly one line break, never a blank line. The comment
-    /// documents what follows it, so any blank-line budget the caller requested belongs above the comment,
-    /// where <see cref="Pipeline.BlankLines.BlankLinePhase"/> already owns it; spending it here would insert a
-    /// blank line the author never wrote and detach the comment from what it explains
+    /// Normalizes the run of line breaks and indentation between a comment and a token that requires zero
+    /// blank lines directly adjacent to it, so the comment stays directly attached — exactly one line
+    /// break, never a blank line. Called only when the requested blank-line count is zero; a caller with a
+    /// wider statement-separation budget leaves this run untouched instead, since it is not requiring
+    /// adjacency and the comment's own positioning is the author's call
     /// </summary>
     /// <param name="trailingRun">
     /// The trivia between the last content and the token. Always contains at least one end-of-line trivia,
