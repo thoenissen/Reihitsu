@@ -140,6 +140,44 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the last significant trivia index skips whitespace and end-of-line trivia
+    /// </summary>
+    [TestMethod]
+    public void FindLastSignificantTriviaIndexSkipsWhitespaceAndEndOfLineTrivia()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Comment("// note"),
+                                              SyntaxFactory.EndOfLine("\n"),
+                                              SyntaxFactory.Whitespace("    "));
+
+        Assert.AreEqual(0, SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that the last significant trivia index finds the later of two content entries
+    /// </summary>
+    [TestMethod]
+    public void FindLastSignificantTriviaIndexReturnsLastOfSeveralContentEntries()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Comment("// first"),
+                                              SyntaxFactory.EndOfLine("\n"),
+                                              SyntaxFactory.Comment("// second"),
+                                              SyntaxFactory.EndOfLine("\n"));
+
+        Assert.AreEqual(2, SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that no significant trivia index is returned for whitespace-only trivia
+    /// </summary>
+    [TestMethod]
+    public void FindLastSignificantTriviaIndexReturnsMinusOneForWhitespaceOnlyTrivia()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.AreEqual(-1, SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(trivia));
+    }
+
+    /// <summary>
     /// Verifies that comments prevent adjacent tokens from being joined
     /// </summary>
     [TestMethod]

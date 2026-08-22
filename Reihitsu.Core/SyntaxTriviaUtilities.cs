@@ -124,6 +124,30 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Finds the index of the last trivia that is neither whitespace nor an end-of-line marker
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns>The index of the last significant trivia, or -1 when none exists</returns>
+    public static int FindLastSignificantTriviaIndex(SyntaxTriviaList triviaList)
+    {
+        var lastSignificantIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < triviaList.Count; triviaIndex++)
+        {
+            var trivia = triviaList[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            lastSignificantIndex = triviaIndex;
+        }
+
+        return lastSignificantIndex;
+    }
+
+    /// <summary>
     /// Determines whether a trivia list contains a comment, preprocessor directive, or disabled text
     /// that prevents adjacent tokens from being safely joined onto one line
     /// </summary>

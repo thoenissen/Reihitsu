@@ -302,5 +302,179 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a trailing comment following an <c>#if</c>/<c>#endif</c> block between two
+    /// statements stays directly attached to the statement it documents — the fix must not spend the
+    /// statement-separation blank-line budget between the comment and that statement (see issue #694).
+    /// The blank line ahead of the directive doubling is a separate, pre-existing behavior of the
+    /// statement-separation blank-line count across a directive, reproduced identically by
+    /// <c>origin/main</c> on a single pass — this fix neither owns nor changes it
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterDirectiveBlockStaysAttachedToFollowingStatement()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Method()
+                                 {
+                                     DoSomething();
+
+                             #if DEBUG
+                                     DoDebug();
+                             #endif
+
+                                     // Explains next
+                                     DoAnother();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Method()
+                                    {
+                                        DoSomething();
+
+
+                                #if DEBUG
+                                        DoDebug();
+                                #endif
+
+                                        // Explains next
+                                        DoAnother();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a trailing comment following disabled text (an inactive <c>#if</c> branch) between
+    /// two statements stays directly attached to the statement it documents (see issue #694). See
+    /// <see cref="CommentAfterDirectiveBlockStaysAttachedToFollowingStatement"/> for why the blank line
+    /// ahead of the directive doubles — a separate, pre-existing, unowned behavior
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterDisabledTextStaysAttachedToFollowingStatement()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Method()
+                                 {
+                                     DoSomething();
+
+                             #if UNDEFINED_SYMBOL
+                                     DoDebug();
+                             #endif
+
+                                     // Explains next
+                                     DoAnother();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Method()
+                                    {
+                                        DoSomething();
+
+
+                                #if UNDEFINED_SYMBOL
+                                        DoDebug();
+                                #endif
+
+                                        // Explains next
+                                        DoAnother();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a trailing comment following a <c>#pragma</c> directive between two statements
+    /// stays directly attached to the statement it documents (see issue #694). See
+    /// <see cref="CommentAfterDirectiveBlockStaysAttachedToFollowingStatement"/> for why the blank line
+    /// ahead of the directive doubles — a separate, pre-existing, unowned behavior
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterPragmaDirectiveStaysAttachedToFollowingStatement()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Method()
+                                 {
+                                     DoSomething();
+
+                             #pragma warning disable CS0168
+
+                                     // Explains next
+                                     DoAnother();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Method()
+                                    {
+                                        DoSomething();
+
+
+                                #pragma warning disable CS0168
+
+                                        // Explains next
+                                        DoAnother();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a trailing comment following a <c>#pragma</c> directive, immediately before the
+    /// closing brace of the enclosing block, keeps its own blank line while the directive's blank-line
+    /// placement stays exactly as authored — the directive is not owned by this fix (see issue #694)
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterPragmaDirectiveBeforeClosingBraceIsPreserved()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Method()
+                                 {
+                                     DoSomething();
+
+                             #pragma warning restore CS0168
+
+                                     // Comment
+                                 }
+                             }
+                             """;
+
+        const string expected = input;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
