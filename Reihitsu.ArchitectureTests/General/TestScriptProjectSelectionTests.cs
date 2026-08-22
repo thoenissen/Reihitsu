@@ -24,7 +24,8 @@ public sealed class TestScriptProjectSelectionTests
                                                                  "Reihitsu.Core.Test/Reihitsu.Core.Test.csproj",
                                                                  "Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj",
                                                                  "Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj",
-                                                                 "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj"
+                                                                 "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj",
+                                                                 "Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj"
                                                              ];
 
     #endregion // Fields

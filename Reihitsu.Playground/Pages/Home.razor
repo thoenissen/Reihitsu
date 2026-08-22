@@ -1,0 +1,27 @@
+@page "/"
+
+<PageTitle>Reihitsu Playground</PageTitle>
+
+<h1>Reihitsu Playground</h1>
+<p>
+    Paste C# source below and format it with the Reihitsu formatter, built from the latest commit on <code>main</code>.
+    Formatting runs entirely in your browser; nothing is uploaded anywhere.
+</p>
+
+<div class="playground-grid">
+    <div class="playground-column">
+        <label for="playground-input">Input</label>
+        <textarea id="playground-input" spellcheck="false" @bind="_input" @bind:event="oninput"></textarea>
+    </div>
+    <div class="playground-column">
+        <label for="playground-output">Formatted output</label>
+        <textarea id="playground-output" spellcheck="false" readonly value="@_output"></textarea>
+    </div>
+</div>
+
+<button type="button" @onclick="FormatInput">Format</button>
+
+@if (_errorMessage.Length > 0)
+{
+    <p class="playground-message">@_errorMessage</p>
+}
