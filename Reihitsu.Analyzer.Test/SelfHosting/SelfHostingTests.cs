@@ -156,17 +156,43 @@ public class SelfHostingTests
     /// <returns>Discovered projects</returns>
     private static IEnumerable<SelfHostingProject> DiscoverProjects(string solutionRoot)
     {
-        foreach (var projectFile in Directory.EnumerateFiles(solutionRoot, "*.csproj", SearchOption.AllDirectories)
-                                             .Where(path => IsInBuildOutputPath(path) == false)
-                                             .OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
+        var candidateProjects = Directory.EnumerateFiles(solutionRoot, "*.csproj", SearchOption.AllDirectories)
+                                         .Where(path => IsInBuildOutputPath(path) == false)
+                                         .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                                         .Select(SelfHostingProject.Load)
+                                         .ToArray();
+        var unhostableProjectFilePaths = candidateProjects.Where(project => IsSelfHostable(project) == false)
+                                                          .Select(project => project.ProjectFilePath)
+                                                          .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var project in candidateProjects)
         {
-            var project = SelfHostingProject.Load(projectFile);
+            if (unhostableProjectFilePaths.Contains(project.ProjectFilePath))
+            {
+                continue;
+            }
+
+            if (project.ProjectReferencePaths.Any(unhostableProjectFilePaths.Contains))
+            {
+                continue;
+            }
 
             if (EnumerateSourceFiles(project.ProjectDirectoryPath, solutionRoot).Any())
             {
                 yield return project;
             }
         }
+    }
+
+    /// <summary>
+    /// Determines whether a project's real compilation can be modeled by this harness, which parses raw source
+    /// files and literal project-file metadata without running MSBuild targets or source generators
+    /// </summary>
+    /// <param name="project">Project metadata</param>
+    /// <returns><see langword="true"/> if the project uses the plain C# SDK; otherwise, <see langword="false"/></returns>
+    private static bool IsSelfHostable(SelfHostingProject project)
+    {
+        return string.Equals(project.Sdk, "Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

@@ -24,6 +24,7 @@ internal sealed class SelfHostingProject
     /// <param name="assemblyName">Assembly name</param>
     /// <param name="targetFramework">Target framework</param>
     /// <param name="outputKind">Compilation output kind</param>
+    /// <param name="sdk">The project's Sdk attribute value</param>
     /// <param name="projectReferencePaths">Project reference paths</param>
     private SelfHostingProject(string projectFilePath,
                                string projectDirectoryPath,
@@ -31,6 +32,7 @@ internal sealed class SelfHostingProject
                                string assemblyName,
                                string targetFramework,
                                OutputKind outputKind,
+                               string sdk,
                                ImmutableArray<string> projectReferencePaths)
     {
         ArgumentNullException.ThrowIfNull(projectFilePath);
@@ -38,6 +40,7 @@ internal sealed class SelfHostingProject
         ArgumentNullException.ThrowIfNull(projectName);
         ArgumentNullException.ThrowIfNull(assemblyName);
         ArgumentNullException.ThrowIfNull(targetFramework);
+        ArgumentNullException.ThrowIfNull(sdk);
 
         ProjectFilePath = projectFilePath;
         ProjectDirectoryPath = projectDirectoryPath;
@@ -45,6 +48,7 @@ internal sealed class SelfHostingProject
         AssemblyName = assemblyName;
         TargetFramework = targetFramework;
         OutputKind = outputKind;
+        Sdk = sdk;
         ProjectReferencePaths = projectReferencePaths;
     }
 
@@ -83,6 +87,11 @@ internal sealed class SelfHostingProject
     internal OutputKind OutputKind { get; }
 
     /// <summary>
+    /// The project's Sdk attribute value
+    /// </summary>
+    internal string Sdk { get; }
+
+    /// <summary>
     /// Absolute project reference paths
     /// </summary>
     internal ImmutableArray<string> ProjectReferencePaths { get; }
@@ -116,6 +125,7 @@ internal sealed class SelfHostingProject
         var assemblyName = GetPropertyValue(projectElement, namespaceName + "AssemblyName") ?? projectName;
         var targetFramework = GetTargetFramework(projectElement, namespaceName, fullProjectFilePath);
         var outputKind = ParseOutputKind(GetPropertyValue(projectElement, namespaceName + "OutputType"));
+        var sdk = projectElement.Attribute("Sdk")?.Value ?? string.Empty;
         var projectReferencePaths = projectElement.Descendants(namespaceName + "ProjectReference")
                                                   .Select(projectReference => projectReference.Attribute("Include")?.Value)
                                                   .Where(projectReferencePath => string.IsNullOrWhiteSpace(projectReferencePath) == false)
@@ -129,6 +139,7 @@ internal sealed class SelfHostingProject
                                       assemblyName,
                                       targetFramework,
                                       outputKind,
+                                      sdk,
                                       projectReferencePaths);
     }
 
