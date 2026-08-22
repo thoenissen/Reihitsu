@@ -305,10 +305,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a trailing comment following an <c>#if</c>/<c>#endif</c> block between two
     /// statements stays directly attached to the statement it documents — the fix must not spend the
-    /// statement-separation blank-line budget between the comment and that statement (see issue #694).
-    /// The blank line ahead of the directive doubling is a separate, pre-existing behavior of the
-    /// statement-separation blank-line count across a directive, reproduced identically by
-    /// <c>origin/main</c> on a single pass — this fix neither owns nor changes it
+    /// statement-separation blank-line budget between the comment and that statement (see issue #694),
+    /// and the single blank line ahead of the directive is preserved rather than doubled (issue #695)
     /// </summary>
     [TestMethod]
     public void CommentAfterDirectiveBlockStaysAttachedToFollowingStatement()
@@ -338,7 +336,6 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                                     {
                                         DoSomething();
 
-
                                 #if DEBUG
                                         DoDebug();
                                 #endif
@@ -355,9 +352,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a trailing comment following disabled text (an inactive <c>#if</c> branch) between
-    /// two statements stays directly attached to the statement it documents (see issue #694). See
-    /// <see cref="CommentAfterDirectiveBlockStaysAttachedToFollowingStatement"/> for why the blank line
-    /// ahead of the directive doubles — a separate, pre-existing, unowned behavior
+    /// two statements stays directly attached to the statement it documents (see issue #694), and the
+    /// single blank line ahead of the directive is preserved rather than doubled (issue #695)
     /// </summary>
     [TestMethod]
     public void CommentAfterDisabledTextStaysAttachedToFollowingStatement()
@@ -387,7 +383,6 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                                     {
                                         DoSomething();
 
-
                                 #if UNDEFINED_SYMBOL
                                         DoDebug();
                                 #endif
@@ -404,9 +399,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a trailing comment following a <c>#pragma</c> directive between two statements
-    /// stays directly attached to the statement it documents (see issue #694). See
-    /// <see cref="CommentAfterDirectiveBlockStaysAttachedToFollowingStatement"/> for why the blank line
-    /// ahead of the directive doubles — a separate, pre-existing, unowned behavior
+    /// stays directly attached to the statement it documents (see issue #694), and the single blank
+    /// line ahead of the directive is preserved rather than doubled (issue #695)
     /// </summary>
     [TestMethod]
     public void CommentAfterPragmaDirectiveStaysAttachedToFollowingStatement()
@@ -433,7 +427,6 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                                     public void Method()
                                     {
                                         DoSomething();
-
 
                                 #pragma warning disable CS0168
 

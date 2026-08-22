@@ -570,7 +570,6 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
                                             return 1;
                                         }
 
-
                                         #endregion // Local
 
                                         return Local();

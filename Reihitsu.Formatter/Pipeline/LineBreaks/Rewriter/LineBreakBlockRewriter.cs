@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -53,6 +54,42 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether the gap between two adjacent statement tokens carries a preprocessor directive or
+    /// disabled text
+    /// </summary>
+    /// <param name="previousToken">The token that ends the preceding statement</param>
+    /// <param name="currentToken">The token that starts the following statement</param>
+    /// <returns><see langword="true"/> if the gap contains a directive or disabled-text trivia; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// A directive splits the gap into independent blank-line runs on either side of it, which
+    /// <see cref="Pipeline.BlankLines.BlankLinePhase"/> already collapses correctly, one run at a time.
+    /// <see cref="TokenGapUtilities.CountBlankLinesBetween"/> sums the blank lines on both sides into one
+    /// number, so a single blank line on each side is miscounted as two — exactly the excess this method's
+    /// caller is trying to detect. Withholding the correction here leaves the earlier, run-aware phase's
+    /// answer standing instead of adding a blank line the gap never actually had (issue #695)
+    /// </remarks>
+    private static bool GapCarriesDirectiveOrDisabledText(SyntaxToken previousToken, SyntaxToken currentToken)
+    {
+        foreach (var trivia in previousToken.TrailingTrivia)
+        {
+            if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia))
+            {
+                return true;
+            }
+        }
+
+        foreach (var trivia in currentToken.LeadingTrivia)
+        {
+            if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Ensures sibling statements in a block start on separate lines
     /// </summary>
     /// <param name="node">The block node</param>
@@ -86,7 +123,8 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
+            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1
+                && GapCarriesDirectiveOrDisabledText(previousToken, currentToken) == false)
             {
                 statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
@@ -132,7 +170,8 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
+            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1
+                && GapCarriesDirectiveOrDisabledText(previousToken, currentToken) == false)
             {
                 statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
