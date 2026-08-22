@@ -8,15 +8,15 @@
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
       <PackageReference Include="MSTest.TestAdapter" Version="4.3.3" />
       <PackageReference Include="MSTest.TestFramework" Version="4.3.3" />
-      <PackageReference Include="Microsoft.CodeAnalysis" Version="5.6.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis" Version="5.9.0" />
       <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4" />
       <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4" />
       <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="1.1.4" />
       <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="1.1.4" />
       <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="1.1.4" />
       <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="1.1.4" />
-      <PackageReference Include="TngTech.ArchUnitNET" Version="0.13.3" />
-      <PackageReference Include="TngTech.ArchUnitNET.MSTestV4" Version="0.13.3" />
+      <PackageReference Include="TngTech.ArchUnitNET" Version="0.13.4" />
+      <PackageReference Include="TngTech.ArchUnitNET.MSTestV4" Version="0.13.4" />
    </ItemGroup>
    <ItemGroup>
       <ProjectReference Include="..\Reihitsu.Analyzer.CodeFixes\Reihitsu.Analyzer.CodeFixes.csproj" />
