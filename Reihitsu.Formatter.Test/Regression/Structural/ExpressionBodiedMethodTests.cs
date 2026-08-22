@@ -295,6 +295,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
                                 class C
                                 {
                                     int M()
+
                                     // note
                                     {
                                         return 42;

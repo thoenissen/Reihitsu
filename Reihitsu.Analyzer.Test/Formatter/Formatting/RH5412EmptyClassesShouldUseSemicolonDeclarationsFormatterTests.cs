@@ -80,12 +80,19 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsFormatterTests : Fo
                              {
                              }
                              """;
+        const string expected = """
+                                internal class Example
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
                                       .GetRoot(TestContext.CancellationToken)
                                       .ToFullString();
 
-        Assert.AreEqual(input, actual);
+        Assert.AreEqual(expected, actual);
     }
 
     /// <summary>

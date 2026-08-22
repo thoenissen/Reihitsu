@@ -60,12 +60,19 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsFormatterTests :
                              {
                              }
                              """;
+        const string expected = """
+                                internal interface IExample
+
+                                // why this type is empty
+                                {
+                                }
+                                """;
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
                                       .GetRoot(TestContext.CancellationToken)
                                       .ToFullString();
 
-        Assert.AreEqual(input, actual);
+        Assert.AreEqual(expected, actual);
     }
 
     #endregion // Tests

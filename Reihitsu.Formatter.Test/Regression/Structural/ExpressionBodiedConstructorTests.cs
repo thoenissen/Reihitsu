@@ -177,6 +177,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
                        {
                            private int _x;
                            C()
+
                            // note
                            {
                                _x = 1;

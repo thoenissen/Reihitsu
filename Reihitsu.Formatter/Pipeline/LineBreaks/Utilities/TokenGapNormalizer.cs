@@ -62,7 +62,7 @@ internal sealed class TokenGapNormalizer
                                            int blankLineCount,
                                            bool previousProvidesLineBreak)
     {
-        if (HasOwnLineTrailingContent(token.LeadingTrivia) == false)
+        if (HasOwnLineTrailingComment(token.LeadingTrivia) == false)
         {
             // Either there is no comment in the gap, or the comment shares the token's own line (for
             // example a block comment glued to a closing brace). Either way, the token's blank-line
@@ -153,7 +153,7 @@ internal sealed class TokenGapNormalizer
 
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (HasOwnLineTrailingContent(token.LeadingTrivia))
+        if (HasOwnLineTrailingComment(token.LeadingTrivia))
         {
             // A comment on its own line sits in the gap; it owns the blank line above it, so that
             // token's own trailing trivia stays untouched.
@@ -226,7 +226,7 @@ internal sealed class TokenGapNormalizer
 
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (HasOwnLineTrailingContent(token.LeadingTrivia))
+        if (HasOwnLineTrailingComment(token.LeadingTrivia))
         {
             // A comment on its own line sits in the gap; it owns the blank line above it, so that
             // token's own trailing trivia stays untouched.
@@ -292,7 +292,7 @@ internal sealed class TokenGapNormalizer
 
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (HasOwnLineTrailingContent(token.LeadingTrivia))
+        if (HasOwnLineTrailingComment(token.LeadingTrivia))
         {
             // A comment on its own line sits in the gap; it owns the blank line above it, so that
             // token's own trailing trivia stays untouched.
@@ -338,18 +338,22 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Determines whether a token's leading gap carries a comment that sits on its own line, separate from
-    /// the token. A comment glued to the token — for example a block comment directly before a closing brace
-    /// on the same physical line — does not count: it forms one visual line with the token, so the token's
-    /// own blank-line policy governs the whole run instead of the comment owning a policy of its own
+    /// Determines whether a token's leading gap carries an ordinary <c>//</c> or <c>/* … */</c> comment that
+    /// sits on its own line, separate from the token. A comment glued to the token — for example a block
+    /// comment directly before a closing brace on the same physical line — does not count: it forms one
+    /// visual line with the token, so the token's own blank-line policy governs the whole run instead of the
+    /// comment owning a policy of its own. A documentation comment or a preprocessor directive (including
+    /// <c>#region</c>/<c>#endregion</c>) does not count either: both are structured trivia whose own blank-line
+    /// placement is governed elsewhere, and folding them into this decision double-counts the blank lines on
+    /// either side of them
     /// </summary>
     /// <param name="leadingTrivia">The leading trivia to inspect</param>
-    /// <returns><see langword="true"/> if a comment on its own line precedes the token; otherwise, <see langword="false"/></returns>
-    private static bool HasOwnLineTrailingContent(SyntaxTriviaList leadingTrivia)
+    /// <returns><see langword="true"/> if an ordinary comment on its own line precedes the token; otherwise, <see langword="false"/></returns>
+    private static bool HasOwnLineTrailingComment(SyntaxTriviaList leadingTrivia)
     {
         var lastContentIndex = FindLastSignificantTriviaIndex(leadingTrivia);
 
-        if (lastContentIndex < 0)
+        if (lastContentIndex < 0 || IsOrdinaryComment(leadingTrivia[lastContentIndex]) == false)
         {
             return false;
         }
@@ -363,6 +367,16 @@ internal sealed class TokenGapNormalizer
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether a trivia is an ordinary, non-documentation <c>//</c> or <c>/* … */</c> comment
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is an ordinary comment; otherwise, <see langword="false"/></returns>
+    private static bool IsOrdinaryComment(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
     }
 
     /// <summary>
