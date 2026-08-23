@@ -1,3 +1,21 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-@Body
+<div class="app-shell">
+    <header class="app-header">
+        <div class="app-header-inner">
+            <span class="app-title">Reihitsu Playground</span>
+        </div>
+    </header>
+
+    <main class="app-main">
+        @Body
+    </main>
+
+    <footer class="app-footer">
+        <span>Reihitsu</span>
+        <span class="app-footer-sep">&middot;</span>
+        <span>v@(PlaygroundVersion.FormatterVersion)</span>
+        <span class="app-footer-sep">&middot;</span>
+        <span>&copy; 2026 Seth (thoenissen)</span>
+    </footer>
+</div>

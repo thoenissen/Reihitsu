@@ -70,23 +70,8 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     /// </remarks>
     private static bool GapCarriesDirectiveOrDisabledText(SyntaxToken previousToken, SyntaxToken currentToken)
     {
-        foreach (var trivia in previousToken.TrailingTrivia)
-        {
-            if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia))
-            {
-                return true;
-            }
-        }
-
-        foreach (var trivia in currentToken.LeadingTrivia)
-        {
-            if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return previousToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia)
+               || currentToken.LeadingTrivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
     }
 
     /// <summary>

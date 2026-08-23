@@ -366,15 +366,7 @@ internal sealed class TokenGapNormalizer
     /// <returns><see langword="true"/> if a directive or disabled text is present; otherwise, <see langword="false"/></returns>
     private static bool ContainsDirectiveOrDisabledText(SyntaxTriviaList triviaList)
     {
-        foreach (var trivia in triviaList)
-        {
-            if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return triviaList.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
     }
 
     /// <summary>
