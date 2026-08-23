@@ -64,7 +64,7 @@ internal sealed class TokenGapNormalizer
                                            int blankLineCount,
                                            bool previousProvidesLineBreak)
     {
-        if (HasOwnLineTrailingComment(token.LeadingTrivia) == false)
+        if (HasOwnLinePlacementOwner(token.LeadingTrivia) == false)
         {
             // Either there is nothing but whitespace and line breaks in the gap, the content is a
             // comment that shares the token's own line (for example a block comment glued to a closing
@@ -164,7 +164,7 @@ internal sealed class TokenGapNormalizer
 
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (HasOwnLineTrailingComment(token.LeadingTrivia))
+        if (HasOwnLinePlacementOwner(token.LeadingTrivia))
         {
             // A comment or directive on its own line sits in the gap; it owns the blank line above it,
             // so that token's own trailing trivia stays untouched.
@@ -237,7 +237,7 @@ internal sealed class TokenGapNormalizer
 
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (HasOwnLineTrailingComment(token.LeadingTrivia))
+        if (HasOwnLinePlacementOwner(token.LeadingTrivia))
         {
             // A comment or directive on its own line sits in the gap; it owns the blank line above it,
             // so that token's own trailing trivia stays untouched.
@@ -303,7 +303,7 @@ internal sealed class TokenGapNormalizer
 
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (HasOwnLineTrailingComment(token.LeadingTrivia))
+        if (HasOwnLinePlacementOwner(token.LeadingTrivia))
         {
             // A comment or directive on its own line sits in the gap; it owns the blank line above it,
             // so that token's own trailing trivia stays untouched.
@@ -341,7 +341,7 @@ internal sealed class TokenGapNormalizer
     /// </summary>
     /// <param name="leadingTrivia">The leading trivia to inspect</param>
     /// <returns><see langword="true"/> if the gap carries content that owns its own blank-line placement; otherwise, <see langword="false"/></returns>
-    private static bool HasOwnLineTrailingComment(SyntaxTriviaList leadingTrivia)
+    private static bool HasOwnLinePlacementOwner(SyntaxTriviaList leadingTrivia)
     {
         var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(leadingTrivia);
 

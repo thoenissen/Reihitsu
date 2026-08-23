@@ -218,13 +218,55 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        // The #endregion directive trivia carries its own trailing line break, so any
+        return RemoveExcessBlankLinesAfterIndex(token, endRegionIndex);
+    }
+
+    /// <summary>
+    /// Removes blank lines that appear between a trailing, non-region directive or disabled-text
+    /// block — the last significant trivia in the leading trivia — and the anchor token itself. Unlike
+    /// <see cref="RemoveBlankLinesAfterTrailingEndRegion"/>, which owns the region-specific case, this
+    /// method is the counterpart that lets an anchor token whose own adjacent run <see cref="CollapseLeadingBlankLines"/>
+    /// cannot reach — because a directive or disabled-text block sits between the run it inspects and
+    /// the token — still enforce the "no blank line directly adjacent" rule RH5024/RH5025/RH5026/RH5027
+    /// require, for every anchor kind including the chained keywords <c>else</c>/<c>catch</c>/<c>finally</c>/
+    /// <c>while</c> that <see cref="Pipeline.LineBreaks.Utilities.TokenGapNormalizer"/>'s node-scoped calls
+    /// cannot reach (issue #711)
+    /// </summary>
+    /// <param name="token">The token to update</param>
+    /// <returns>The updated token</returns>
+    private static SyntaxToken RemoveBlankLinesAfterTrailingDirective(SyntaxToken token)
+    {
+        var trivia = token.LeadingTrivia;
+        var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(trivia);
+
+        if (lastContentIndex < 0)
+        {
+            return token;
+        }
+
+        return RemoveExcessBlankLinesAfterIndex(token, lastContentIndex);
+    }
+
+    /// <summary>
+    /// Removes blank lines that appear between the trivia at <paramref name="anchorIndex"/> and the
+    /// token itself, leaving exactly the line break the anchor trivia's own termination requires — zero
+    /// when it already embeds one (see <see cref="BlankLineTriviaUtilities.EndsWithLineBreak"/>), one
+    /// otherwise
+    /// </summary>
+    /// <param name="token">The token to update</param>
+    /// <param name="anchorIndex">The leading-trivia index whose trailing run should be normalized</param>
+    /// <returns>The updated token</returns>
+    private static SyntaxToken RemoveExcessBlankLinesAfterIndex(SyntaxToken token, int anchorIndex)
+    {
+        var trivia = token.LeadingTrivia;
+
+        // The anchor trivia may carry its own trailing line break (a directive or #endregion), so any
         // end-of-line trivia that follows it in the list represents a blank line
         var endOfLineCount = 0;
         var endOfLineText = Environment.NewLine;
         var indentationTrivia = new List<SyntaxTrivia>();
 
-        for (var triviaIndex = endRegionIndex + 1; triviaIndex < trivia.Count; triviaIndex++)
+        for (var triviaIndex = anchorIndex + 1; triviaIndex < trivia.Count; triviaIndex++)
         {
             if (trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
             {
@@ -238,22 +280,22 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             }
             else
             {
-                // A comment or other directive sits between the #endregion and the token — leave it alone
+                // A comment or other directive sits between the anchor trivia and the token — leave it alone
                 return token;
             }
         }
 
-        var endRegionEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(trivia[endRegionIndex]);
-        var requiredLineBreaks = endRegionEndsWithLineBreak ? 0 : 1;
+        var anchorEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(trivia[anchorIndex]);
+        var requiredLineBreaks = anchorEndsWithLineBreak ? 0 : 1;
 
         if (endOfLineCount <= requiredLineBreaks)
         {
             return token;
         }
 
-        var newTrivia = new List<SyntaxTrivia>(endRegionIndex + 1 + requiredLineBreaks + indentationTrivia.Count);
+        var newTrivia = new List<SyntaxTrivia>(anchorIndex + 1 + requiredLineBreaks + indentationTrivia.Count);
 
-        for (var triviaIndex = 0; triviaIndex <= endRegionIndex; triviaIndex++)
+        for (var triviaIndex = 0; triviaIndex <= anchorIndex; triviaIndex++)
         {
             newTrivia.Add(trivia[triviaIndex]);
         }
@@ -421,21 +463,41 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             token = RemoveLeadingBlankLines(token);
         }
 
-        // CollapseLeadingBlankLines only inspects the run starting at the first leading trivia, which is
-        // the token's own adjacent line only when nothing else precedes it. When a directive or disabled
-        // text interposes, that run is the author's separator in front of the directive, not a blank line
-        // adjacent to this token — collapsing it would delete a blank line RH5024/25/26/27 do not report.
-        // TokenGapNormalizer owns the region that is actually adjacent to the token in that case (issue #711)
-        if ((token.IsKind(SyntaxKind.OpenBraceToken)
-             || token.IsKind(SyntaxKind.CloseBraceToken)
-             || token.IsKind(SyntaxKind.ElseKeyword)
-             || token.IsKind(SyntaxKind.CatchKeyword)
-             || token.IsKind(SyntaxKind.FinallyKeyword)
-             || token.IsKind(SyntaxKind.WhileKeyword))
-            && token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia) == false)
+        if (token.IsKind(SyntaxKind.OpenBraceToken)
+            || token.IsKind(SyntaxKind.CloseBraceToken)
+            || token.IsKind(SyntaxKind.ElseKeyword)
+            || token.IsKind(SyntaxKind.CatchKeyword)
+            || token.IsKind(SyntaxKind.FinallyKeyword)
+            || token.IsKind(SyntaxKind.WhileKeyword))
         {
-            var keepSingleLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false;
-            token = CollapseLeadingBlankLines(token, keepSingleLineBreak);
+            // These are two independent questions, not alternatives: a non-region directive or disabled
+            // text anywhere in the leading trivia means the run CollapseLeadingBlankLines inspects — the
+            // one starting at the first leading trivia — is the author's separator in front of that
+            // directive, not a blank line adjacent to this token, so collapsing it would delete a blank
+            // line RH5024/25/26/27 do not report; that run must be left alone whenever such a directive
+            // is present anywhere, however far from the token. Separately, when the *last* significant
+            // trivia specifically is a non-region directive, the run that genuinely is adjacent to the
+            // token sits after it, and RemoveBlankLinesAfterTrailingDirective is what enforces the "no
+            // blank line directly adjacent" rule there — including for the chained keywords `else`/
+            // `catch`/`finally`/`while` that TokenGapNormalizer's node-scoped calls cannot reach (issue #711)
+            var hasNonRegionDirective = token.LeadingTrivia.Any(static trivia => SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)
+                                                                                 && SyntaxTriviaUtilities.IsRegionDirective(trivia) == false);
+
+            if (hasNonRegionDirective == false)
+            {
+                var keepSingleLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false;
+                token = CollapseLeadingBlankLines(token, keepSingleLineBreak);
+            }
+
+            var lastSignificantIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(token.LeadingTrivia);
+            var lastSignificantIsNonRegionDirective = lastSignificantIndex >= 0
+                                                      && SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(token.LeadingTrivia[lastSignificantIndex])
+                                                      && SyntaxTriviaUtilities.IsRegionDirective(token.LeadingTrivia[lastSignificantIndex]) == false;
+
+            if (lastSignificantIsNonRegionDirective)
+            {
+                token = RemoveBlankLinesAfterTrailingDirective(token);
+            }
         }
 
         if (token.IsKind(SyntaxKind.CloseBraceToken))

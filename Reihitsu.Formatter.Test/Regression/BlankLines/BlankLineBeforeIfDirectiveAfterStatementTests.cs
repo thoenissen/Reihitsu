@@ -1147,6 +1147,185 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a blank line directly above a chained <c>else</c> keyword, after a trailing
+    /// directive, is removed — the same rule as <see cref="BlankLineOnlyAfterTrailingDirectiveWritesNeitherBlankLine"/>,
+    /// but for an anchor that <see cref="Pipeline.LineBreaks.Utilities.TokenGapNormalizer"/>'s node-scoped
+    /// calls cannot reach, so <see cref="Pipeline.BlankLines.Rewriter.BlankLineTokenCleanupRewriter"/> must
+    /// enforce it directly (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineOnlyAfterTrailingDirectiveBeforeElseIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                     }
+                             #pragma warning disable CA1801
+
+                                     else
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start(bool flag)
+                                    {
+                                        if (flag)
+                                        {
+                                        }
+                                #pragma warning disable CA1801
+                                        else
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line directly above a chained <c>catch</c> keyword, after a trailing
+    /// directive, is removed (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineOnlyAfterTrailingDirectiveBeforeCatchIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     try
+                                     {
+                                     }
+                             #pragma warning disable CA1801
+
+                                     catch
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        try
+                                        {
+                                        }
+                                #pragma warning disable CA1801
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line directly above a chained <c>finally</c> keyword, after a trailing
+    /// directive, is removed (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineOnlyAfterTrailingDirectiveBeforeFinallyIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     try
+                                     {
+                                     }
+                             #pragma warning disable CA1801
+
+                                     finally
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        try
+                                        {
+                                        }
+                                #pragma warning disable CA1801
+                                        finally
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line directly above a do-<c>while</c> footer, after a trailing directive,
+    /// is removed (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineOnlyAfterTrailingDirectiveBeforeDoWhileFooterIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     do
+                                     {
+                                     }
+                             #pragma warning disable CA1801
+
+                                     while (true);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        do
+                                        {
+                                        }
+                                #pragma warning disable CA1801
+                                        while (true);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of a type declaration's closing
     /// brace is preserved — the same guard reached through a different owning rewriter (issue #711)
     /// </summary>
@@ -1193,6 +1372,51 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
                                     Green
 
                                 #pragma warning restore CA1008
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies a gap that carries both a trailing directive and, after it, an own-line ordinary
+    /// comment: the blank line before the directive is preserved (this fix's own rule), and the blank
+    /// line between the comment and the closing brace is removed — the comment stays directly attached,
+    /// matching <see cref="BlankLineBeforeTrailingScopeCommentTests.BlankLineDirectlyBeforeClosingBraceIsRemovedWhenTrailingCommentPrecedesIt"/>.
+    /// Neither behavior is owned by this fix: the leading blank survives because a directive precedes
+    /// it anywhere in the gap, and the trailing blank is removed by the pre-existing own-line-comment
+    /// rule, which the last significant trivia here — the comment, not the directive — still reaches
+    /// (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineBeforeDirectiveThenOwnLineCommentKeepsLeadingBlankRemovesTrailingBlank()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var bar = "foo1";
+
+                             #pragma warning disable CA1801
+                                     // trailing note
+
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        var bar = "foo1";
+
+                                #pragma warning disable CA1801
+                                        // trailing note
+                                    }
                                 }
                                 """;
 

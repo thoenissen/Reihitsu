@@ -97,7 +97,7 @@ public class TokenGapNormalizerTests
         var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
 
         // Assert
-        Assert.Contains("\n\n#pragma", result.ToFullString(), "The blank line ahead of the directive must be preserved.");
+        Assert.AreEqual("\n\n#pragma warning disable CA1801\n}", result.ToFullString(), "The blank line ahead of the directive must be preserved.");
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public class TokenGapNormalizerTests
         var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
 
         // Assert
-        Assert.DoesNotContain("\n\n", result.ToFullString(), "No blank line should remain directly above the token when the directive already ends its own line.");
+        Assert.AreEqual("#pragma warning disable CA1801\n}", result.ToFullString(), "No blank line should remain directly above the token when the directive already ends its own line.");
     }
 
     #endregion // Methods
