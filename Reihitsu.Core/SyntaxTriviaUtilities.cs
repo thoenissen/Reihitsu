@@ -387,6 +387,38 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the specified span contains a conditional-compilation directive (<c>#if</c>,
+    /// <c>#elif</c>, <c>#else</c>, <c>#endif</c>) or disabled text. A rewrite that deletes a trailing separator
+    /// because the parsed, active syntax list makes the preceding element look final is only valid for the
+    /// preprocessor-symbol configuration in effect when the tree was parsed — under a different configuration,
+    /// text the parser disabled can become active and follow that element without a separator. The predicate
+    /// is deliberately textual: it does not evaluate which branch is reachable, because that case-by-case
+    /// reasoning about symbol configurations is what let the unsafe removal through in the first place.
+    /// <see cref="ContainsPositionSensitiveDirectives"/> and <see cref="ContainsRegionDirectives"/> are excluded on
+    /// purpose — neither a region directive nor <c>#pragma</c>/<c>#nullable</c>/<c>#line</c> can introduce a
+    /// further list element under any symbol configuration, so a caller that used them here would withhold a
+    /// safe removal
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains a conditional-compilation directive or disabled text, or when
+    /// <paramref name="root"/> is <see langword="null"/> and the span therefore cannot be inspected; otherwise,
+    /// <see langword="false"/>
+    /// </returns>
+    public static bool ContainsConditionalCompilationBoundary(SyntaxNode root, TextSpan span)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        return root.DescendantTrivia(span, descendIntoTrivia: true)
+                   .Any(trivia => span.Contains(trivia.SpanStart)
+                                  && (IsConditionalDirective(trivia) || trivia.IsKind(SyntaxKind.DisabledTextTrivia)));
+    }
+
+    /// <summary>
     /// Sets the trailing whitespace of a token to the specified number of spaces while preserving non-whitespace trivia
     /// </summary>
     /// <param name="token">Token whose trailing whitespace to normalize</param>

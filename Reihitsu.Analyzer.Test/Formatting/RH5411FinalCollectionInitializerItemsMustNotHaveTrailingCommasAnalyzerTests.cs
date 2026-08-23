@@ -167,5 +167,34 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the trailing comma is not flagged when a conditional-compilation block carrying a further
+    /// item follows the final active item, since the formatter withholds its own removal for the same shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCollectionWithConditionalBlockAfterFinalItemIsNotFlagged()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>
+                                        {
+                                            1,
+                                #if SYMBOL
+                                            2,
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
