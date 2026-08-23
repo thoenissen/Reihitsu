@@ -66,17 +66,18 @@ internal sealed class TokenGapNormalizer
     {
         if (HasOwnLineTrailingComment(token.LeadingTrivia) == false)
         {
-            // Either there is no comment in the gap, or the comment shares the token's own line (for
-            // example a block comment glued to a closing brace). Either way, the token's blank-line
-            // policy governs the whole run up to that point, exactly as if no comment were present.
+            // Either there is nothing but whitespace and line breaks in the gap, the content is a
+            // comment that shares the token's own line (for example a block comment glued to a closing
+            // brace), or it is a region directive (a separate, dedicated owner). Either way, the token's
+            // blank-line policy governs the whole run up to that point, exactly as if it were empty.
             return NormalizeLeadingGapWithoutContent(token, blankLineCount, previousProvidesLineBreak);
         }
 
         var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(token.LeadingTrivia);
 
-        // The comment sits on its own line, separate from the token, so it owns the blank-line decision
-        // above it. Preserve everything through that comment unchanged; only the run between the comment
-        // and the token itself is a placement decision this method owns
+        // The comment or directive sits on its own line, separate from the token, so it owns the
+        // blank-line decision above it. Preserve everything through it unchanged; only the run between
+        // it and the token itself is a placement decision this method owns
         var preservedPrefix = new List<SyntaxTrivia>(lastContentIndex + 1);
 
         for (var triviaIndex = 0; triviaIndex <= lastContentIndex; triviaIndex++)
@@ -92,10 +93,11 @@ internal sealed class TokenGapNormalizer
         }
 
         // A requested blank-line count of zero is a placement requirement — no blank line directly
-        // adjacent to the token, the way RH5024/RH5025 require for a delimiter. A requested count of one
-        // or more is a statement-separation budget, not an adjacency requirement, so the comment's own
-        // positioning relative to the statement it may or may not document is the author's call, already
-        // settled by BlankLinePhase; this method does not spend that budget on the comment→token run
+        // adjacent to the token, the way RH5022/RH5024/RH5025/RH5026/RH5027 require for a delimiter. A
+        // requested count of one or more is a statement-separation budget, not an adjacency requirement,
+        // so the content's own positioning relative to the statement it may or may not document is the
+        // author's call, already settled by BlankLinePhase; this method does not spend that budget on
+        // the content→token run
         var normalizedTrailingRun = blankLineCount == 0
                                         ? NormalizeTrailingRun(trailingRun, BlankLineTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]))
                                         : trailingRun;
@@ -164,8 +166,8 @@ internal sealed class TokenGapNormalizer
 
         if (HasOwnLineTrailingComment(token.LeadingTrivia))
         {
-            // A comment on its own line sits in the gap; it owns the blank line above it, so that
-            // token's own trailing trivia stays untouched.
+            // A comment or directive on its own line sits in the gap; it owns the blank line above it,
+            // so that token's own trailing trivia stays untouched.
             return withToken(node, newToken);
         }
 
@@ -237,8 +239,8 @@ internal sealed class TokenGapNormalizer
 
         if (HasOwnLineTrailingComment(token.LeadingTrivia))
         {
-            // A comment on its own line sits in the gap; it owns the blank line above it, so that
-            // token's own trailing trivia stays untouched.
+            // A comment or directive on its own line sits in the gap; it owns the blank line above it,
+            // so that token's own trailing trivia stays untouched.
             return withToken(node, newToken);
         }
 
@@ -303,8 +305,8 @@ internal sealed class TokenGapNormalizer
 
         if (HasOwnLineTrailingComment(token.LeadingTrivia))
         {
-            // A comment on its own line sits in the gap; it owns the blank line above it, so that
-            // token's own trailing trivia stays untouched.
+            // A comment or directive on its own line sits in the gap; it owns the blank line above it,
+            // so that token's own trailing trivia stays untouched.
             return node.ReplaceToken(token, newToken);
         }
 
