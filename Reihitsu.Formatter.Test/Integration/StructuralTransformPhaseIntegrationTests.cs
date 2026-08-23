@@ -375,6 +375,366 @@ public class StructuralTransformPhaseIntegrationTests
     }
 
     /// <summary>
+    /// Verifies that the trailing comma before an "#if" conditional block carrying a further element is preserved
+    /// in an array initializer, using the issue's exact reported input (SYMBOL undefined, top-level statement)
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaBeforeConditionalBlockInArrayInitializer()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                                 1,
+                             #if SYMBOL
+                                 2,
+                             #endif
+                             };
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma before an "#if false" disabled block is preserved, since the guard is
+    /// textual and never evaluates the condition
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaBeforeDisabledConditionalBlockInArrayInitializer()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                                 1,
+                             #if false
+                                 2,
+                             #endif
+                             };
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a nested array initializer preserves its own trailing comma when a conditional block follows
+    /// it, while the outer initializer's clean trailing comma is still removed
+    /// </summary>
+    [TestMethod]
+    public void PreservesInnerTrailingCommaInNestedArrayInitializerWhileRemovingOuter()
+    {
+        // Arrange
+        const string input = """
+                             var array = new int[][]
+                             {
+                                 new[]
+                                 {
+                                     1,
+                             #if SYMBOL
+                                     2,
+                             #endif
+                                 },
+                                 new[] { 3 },
+                             };
+
+                             """;
+        const string expected = """
+                                var array = new int[][]
+                                {
+                                    new[]
+                                    {
+                                        1,
+                                #if SYMBOL
+                                        2,
+                                #endif
+                                    },
+                                    new[] { 3 }
+                                };
+
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma before an "#if" conditional block carrying a further element is preserved
+    /// in a collection initializer
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaBeforeConditionalBlockInCollectionInitializer()
+    {
+        // Arrange
+        const string input = """
+                             var values = new List<int>
+                             {
+                                 1,
+                             #if SYMBOL
+                                 2,
+                             #endif
+                             };
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma before an "#if" conditional block carrying a further member is preserved
+    /// on the final enum member
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaBeforeConditionalBlockInFinalEnumMember()
+    {
+        // Arrange
+        const string input = """
+                             internal enum Status
+                             {
+                                 Ready,
+                             #if SYMBOL
+                                 Completed,
+                             #endif
+                             }
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma is still removed when the conditional block sits before the final active
+    /// element rather than after it, since the gap to the closing delimiter is clean
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaWhenConditionalBlockPrecedesFinalElement()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                             #if SYMBOL
+                                 1,
+                             #endif
+                                 2,
+                             };
+
+                             """;
+        const string expected = """
+                                var array = new[]
+                                {
+                                #if SYMBOL
+                                    1,
+                                #endif
+                                    2
+                                };
+
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma is still removed when a "#region"/"#endregion" pair follows the final
+    /// element, since a region directive can never introduce a further list element
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaWhenRegionDirectiveFollowsFinalElement()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                                 1,
+                                 2,
+                             #region Trailer
+                             #endregion
+                             };
+
+                             """;
+        const string expected = """
+                                var array = new[]
+                                {
+                                    1,
+                                    2
+                                #region Trailer
+                                #endregion
+                                };
+
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma is still removed when a "#pragma" directive follows the final element,
+    /// since it can never introduce a further list element
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaWhenPragmaDirectiveFollowsFinalElement()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                                 1,
+                                 2,
+                             #pragma warning restore CS0169
+                             };
+
+                             """;
+        const string expected = """
+                                var array = new[]
+                                {
+                                    1,
+                                    2
+                                #pragma warning restore CS0169
+                                };
+
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma is preserved when the gap holds only the closing "#endif" of an
+    /// "#if"/"#else"/"#endif" chain, even though the active "#else" branch's own comma is provably final in
+    /// every symbol configuration. The guard is textual and withholds on the directive's presence alone
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaWhenElseBranchFollowsFinalElement()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                                 1,
+                             #if SYMBOL
+                                 2,
+                             #else
+                                 3,
+                             #endif
+                             };
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma is preserved when an active "#if true" branch follows the final element,
+    /// even though the branch is always taken and the comma is therefore provably final
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaWhenActiveIfTrueBranchFollowsFinalElement()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                                 1,
+                             #if true
+                                 2,
+                             #endif
+                             };
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma is preserved when an element-free conditional region follows the final
+    /// element, since the guard does not check whether an element could actually appear inside it
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaWhenElementFreeConditionalRegionFollowsFinalElement()
+    {
+        // Arrange
+        const string input = """
+                             var array = new[]
+                             {
+                                 1,
+                             #if SYMBOL
+                             #endif
+                             };
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma on the final enum member is preserved when an active "#if true" branch
+    /// follows it
+    /// </summary>
+    [TestMethod]
+    public void PreservesTrailingCommaInEnumWhenActiveIfTrueBranchFollowsFinalMember()
+    {
+        // Arrange
+        const string input = """
+                             internal enum Status
+                             {
+                                 Ready,
+                             #if true
+                                 Completed,
+                             #endif
+                             }
+
+                             """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
     /// Executes the <see cref="StructuralTransformPhase"/> on the given input
     /// </summary>
     /// <param name="input">The C# source text</param>

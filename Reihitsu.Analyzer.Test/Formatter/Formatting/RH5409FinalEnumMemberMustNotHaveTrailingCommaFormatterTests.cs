@@ -67,5 +67,27 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaFormatterTests : Forma
                                  Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the trailing comma before a conditional-compilation block carrying a further member stays
+    /// analyzer-clean and formatter-stable under LF and CRLF, since the formatter and the analyzer withhold in
+    /// lock-step
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEnumWithConditionalBlockAfterFinalMemberIsFormatterStable()
+    {
+        const string input = """
+                             internal enum RH5409
+                             {
+                                 First,
+                             #if SYMBOL
+                                 Second,
+                             #endif
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
     #endregion // Tests
 }

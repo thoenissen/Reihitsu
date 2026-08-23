@@ -79,5 +79,33 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
                                  Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5410MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the trailing comma before a conditional-compilation block carrying a further element stays
+    /// analyzer-clean and formatter-stable under LF and CRLF, since the formatter and the analyzer withhold in
+    /// lock-step
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsFormatterStable()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 private static void Method()
+                                 {
+                                     var values = new[]
+                                                  {
+                                                      1,
+                             #if SYMBOL
+                                         2,
+                             #endif
+                                                  };
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
     #endregion // Tests
 }

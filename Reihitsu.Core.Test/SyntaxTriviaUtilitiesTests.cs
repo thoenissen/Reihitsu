@@ -556,6 +556,106 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a complete "#if"/"#endif" pair carrying a disabled element is reported as a conditional-compilation boundary
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsTrueForIfEndIfWithDisabledElement()
+    {
+        const string source = "var a = new[] { 1,\n#if SYMBOL\n2,\n#endif\n};\n";
+
+        Assert.IsTrue(ContainsConditionalCompilationBoundary(source, source.IndexOf(",", StringComparison.Ordinal) + 1, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a gap holding only the closing "#endif" of an "#if"/"#else"/"#endif" chain is reported,
+    /// even though the branch that reaches the gap sits before the separator and no disabled text lies inside it
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsTrueForBareEndIf()
+    {
+        const string source = "var a = new[] { 1,\n#if SYMBOL\n2,\n#else\n3,\n#endif\n};\n";
+        var start = source.LastIndexOf(",", StringComparison.Ordinal) + 1;
+
+        Assert.IsTrue(ContainsConditionalCompilationBoundary(source, start, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an "#if true" active branch is reported, even though its body already contributes an active element
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsTrueForActiveIfTrueBranch()
+    {
+        const string source = "var a = new[] { 1,\n#if true\n2,\n#endif\n};\n";
+
+        Assert.IsTrue(ContainsConditionalCompilationBoundary(source, source.IndexOf(",", StringComparison.Ordinal) + 1, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an element-free conditional region is still reported, since the predicate is textual and does not check whether an element could follow
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsTrueForElementFreeConditionalRegion()
+    {
+        const string source = "var a = new[] { 1,\n#if SYMBOL\n#endif\n};\n";
+
+        Assert.IsTrue(ContainsConditionalCompilationBoundary(source, source.IndexOf(",", StringComparison.Ordinal) + 1, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a "#region"/"#endregion" pair in the gap is not reported, since a region cannot introduce a further list element
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsFalseForRegionDirectives()
+    {
+        const string source = "var a = new[] { 1,\n#region Values\n#endregion\n};\n";
+
+        Assert.IsFalse(ContainsConditionalCompilationBoundary(source, source.IndexOf(",", StringComparison.Ordinal) + 1, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a "#pragma" directive in the gap is not reported, since it cannot introduce a further list element
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsFalseForPragmaDirective()
+    {
+        const string source = "var a = new[] { 1,\n#pragma warning disable CS0169\n};\n";
+
+        Assert.IsFalse(ContainsConditionalCompilationBoundary(source, source.IndexOf(",", StringComparison.Ordinal) + 1, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a gap without any directive is not reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsFalseWithoutAnyDirective()
+    {
+        const string source = "var a = new[] { 1,\n2 };\n";
+
+        Assert.IsFalse(ContainsConditionalCompilationBoundary(source, source.IndexOf(",", StringComparison.Ordinal) + 1, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a directive outside the inspected span is not reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsFalseForDirectiveOutsideTheSpan()
+    {
+        const string source = "var a = new[] { 1,\n#if SYMBOL\n2,\n#endif\n};\n";
+        var start = source.IndexOf("};", StringComparison.Ordinal);
+
+        Assert.IsFalse(ContainsConditionalCompilationBoundary(source, start, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an unusable root refuses the removal instead of reporting a boundary-free span
+    /// </summary>
+    [TestMethod]
+    public void ContainsConditionalCompilationBoundaryReturnsTrueForMissingRoot()
+    {
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(null, TextSpan.FromBounds(0, 1)));
+    }
+
+    /// <summary>
     /// Verifies that the insertion index stays at zero when no directive is present
     /// </summary>
     [TestMethod]
@@ -773,6 +873,18 @@ public class SyntaxTriviaUtilitiesTests
     private static bool ContainsPositionSensitiveDirectives(string source, int start, int end)
     {
         return SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
+    }
+
+    /// <summary>
+    /// Parses the source and checks the requested span for a conditional-compilation boundary
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="start">Start of the span to inspect</param>
+    /// <param name="end">End of the span to inspect</param>
+    /// <returns><see langword="true"/> if the span contains a conditional-compilation directive or disabled text</returns>
+    private static bool ContainsConditionalCompilationBoundary(string source, int start, int end)
+    {
+        return SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(GetRoot(source), TextSpan.FromBounds(start, end));
     }
 
     /// <summary>

@@ -2,9 +2,11 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -57,10 +59,20 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer :
 
         var lastItem = expressionsAndSeparators[expressionsAndSeparators.Count - 1];
 
-        if (lastItem.IsToken && lastItem.AsToken().IsKind(SyntaxKind.CommaToken))
+        if (lastItem.IsToken == false || lastItem.AsToken().IsKind(SyntaxKind.CommaToken) == false)
         {
-            context.ReportDiagnostic(CreateDiagnostic(lastItem.AsToken().GetLocation()));
+            return;
         }
+
+        var lastSeparator = lastItem.AsToken();
+        var gap = TextSpan.FromBounds(lastSeparator.Span.End, initializer.CloseBraceToken.SpanStart);
+
+        if (SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(initializer, gap))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(lastSeparator.GetLocation()));
     }
 
     #endregion // Methods

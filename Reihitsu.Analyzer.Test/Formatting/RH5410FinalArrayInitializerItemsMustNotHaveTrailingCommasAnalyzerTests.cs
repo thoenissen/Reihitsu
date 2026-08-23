@@ -169,5 +169,74 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the trailing comma is not flagged when a conditional-compilation block carrying a further
+    /// element follows the final active item, since the formatter withholds its own removal for the same shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsNotFlagged()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new[]
+                                        {
+                                            1,
+                                #if SYMBOL
+                                            2,
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma is still flagged when a "#region"/"#endregion" pair follows the final
+    /// item, since a region directive can never introduce a further list element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyArrayWithRegionDirectiveAfterFinalItemIsStillFlagged()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new[]
+                                        {
+                                            1,
+                                            2{|#0:,|}
+                                #region Trailer
+                                #endregion
+                                        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var values = new[]
+                                         {
+                                             1,
+                                             2
+                                 #region Trailer
+                                 #endregion
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5410MessageFormat));
+    }
+
     #endregion // Tests
 }

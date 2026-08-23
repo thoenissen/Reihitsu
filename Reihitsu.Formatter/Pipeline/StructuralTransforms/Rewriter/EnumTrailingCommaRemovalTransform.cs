@@ -1,7 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
@@ -47,8 +49,15 @@ internal sealed class EnumTrailingCommaRemovalTransform : CSharpSyntaxRewriter
             return node;
         }
 
-        var lastMember = node.Members[node.Members.Count - 1];
         var lastSeparator = node.Members.GetSeparator(node.Members.SeparatorCount - 1);
+        var gap = TextSpan.FromBounds(lastSeparator.Span.End, node.CloseBraceToken.SpanStart);
+
+        if (SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(node, gap))
+        {
+            return node;
+        }
+
+        var lastMember = node.Members[node.Members.Count - 1];
         var updatedLastMember = TrailingCommaRemovalUtilities.PreserveTrailingTrivia(lastMember, TrailingCommaRemovalUtilities.GetTriviaToPreserve(lastSeparator));
         var updatedMembers = node.Members.Replace(lastMember, updatedLastMember);
         var updatedMembersAndSeparators = updatedMembers.GetWithSeparators().RemoveAt(updatedMembers.GetWithSeparators().Count - 1);

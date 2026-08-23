@@ -202,5 +202,26 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : Analyz
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the trailing comma is not flagged when a conditional-compilation block carrying a further
+    /// member follows the final active member, since the formatter withholds its own removal for the same shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEnumWithConditionalBlockAfterFinalMemberIsNotFlagged()
+    {
+        const string testData = """
+                                internal enum RH5409
+                                {
+                                    First,
+                                #if SYMBOL
+                                    Second,
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
