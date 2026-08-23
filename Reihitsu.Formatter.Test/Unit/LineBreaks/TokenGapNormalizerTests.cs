@@ -79,5 +79,46 @@ public class TokenGapNormalizerTests
         Assert.Contains("\n", result.ToFullString(), "A line break should be inserted before the second statement.");
     }
 
+    /// <summary>
+    /// Verifies that a directive gap whose last significant trivia embeds its own terminating line
+    /// break (a directive always ends its own line, unlike a comment) still keeps the blank-line run
+    /// preceding it, since that run belongs to the directive's own placement, not to the token's
+    /// adjacency requirement (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void NormalizeLeadingGapPreservesBlankLineBeforeDirective()
+    {
+        // Arrange
+        var leadingTrivia = SyntaxFactory.ParseLeadingTrivia("\n\n#pragma warning disable CA1801\n");
+        var token = SyntaxFactory.Token(leadingTrivia, SyntaxKind.CloseBraceToken, SyntaxFactory.TriviaList());
+        var normalizer = new TokenGapNormalizer("\n");
+
+        // Act
+        var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
+
+        // Assert
+        Assert.Contains("\n\n#pragma", result.ToFullString(), "The blank line ahead of the directive must be preserved.");
+    }
+
+    /// <summary>
+    /// Verifies that a directive gap emits no further line break after the directive's own embedded
+    /// terminating newline — emitting one unconditionally would recreate a blank line directly adjacent
+    /// to the token that this fix's guard exists to remove (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void NormalizeLeadingGapEmitsNoExtraBreakAfterDirective()
+    {
+        // Arrange
+        var leadingTrivia = SyntaxFactory.ParseLeadingTrivia("#pragma warning disable CA1801\n\n");
+        var token = SyntaxFactory.Token(leadingTrivia, SyntaxKind.CloseBraceToken, SyntaxFactory.TriviaList());
+        var normalizer = new TokenGapNormalizer("\n");
+
+        // Act
+        var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
+
+        // Assert
+        Assert.DoesNotContain("\n\n", result.ToFullString(), "No blank line should remain directly above the token when the directive already ends its own line.");
+    }
+
     #endregion // Methods
 }

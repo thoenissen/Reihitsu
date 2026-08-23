@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
@@ -96,7 +97,7 @@ internal sealed class TokenGapNormalizer
         // positioning relative to the statement it may or may not document is the author's call, already
         // settled by BlankLinePhase; this method does not spend that budget on the comment→token run
         var normalizedTrailingRun = blankLineCount == 0
-                                        ? NormalizeTrailingRun(trailingRun)
+                                        ? NormalizeTrailingRun(trailingRun, BlankLineTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]))
                                         : trailingRun;
 
         var newLeadingTrivia = new List<SyntaxTrivia>(preservedPrefix.Count + normalizedTrailingRun.Count);
@@ -322,28 +323,40 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Determines whether a token's leading gap carries an ordinary <c>//</c> or <c>/* … */</c> comment that
-    /// sits on its own line, separate from the token. A comment glued to the token — for example a block
-    /// comment directly before a closing brace on the same physical line — does not count: it forms one
-    /// visual line with the token, so the token's own blank-line policy governs the whole run instead of the
-    /// comment owning a policy of its own. A documentation comment does not count either: it is structured
-    /// trivia whose own blank-line placement is governed elsewhere. A gap that carries a preprocessor
-    /// directive or disabled text anywhere — even alongside an ordinary comment — does not count either:
-    /// that family's blank-line placement is a separate, pre-existing concern this fix does not own, and
-    /// folding a directive into this decision would change behavior this fix has no mandate to touch
+    /// Determines whether a token's leading gap carries content that owns its own blank-line placement
+    /// decision, separate from the token's adjacency policy: an ordinary <c>//</c> or <c>/* … */</c> comment
+    /// on its own line, or a preprocessor directive or disabled-text block other than <c>#region</c>/
+    /// <c>#endregion</c> (which, unlike a comment, always occupies its own line and so always owns the
+    /// decision above it, whether or not it embeds an explicit trailing end-of-line trivia — see
+    /// <see cref="BlankLineTriviaUtilities.EndsWithLineBreak"/>). A region directive is excluded: its
+    /// blank-line placement already has a dedicated owner (<see cref="Pipeline.BlankLines.Rewriter.BlankLineRegionDirectiveRewriter"/>,
+    /// <see cref="Pipeline.BlankLines.Rewriter.BlankLineTriviaBoundaryRewriter"/>) with its own exemption rules, and folding it
+    /// into this decision would fight that owner instead of leaving it in sole control. A comment glued to
+    /// the token — for example a block comment directly before a closing brace on the same physical line —
+    /// does not count: it forms one visual line with the token, so the token's own blank-line policy governs
+    /// the whole run instead. A documentation comment does not count either: it is structured trivia whose
+    /// own blank-line placement is governed elsewhere
     /// </summary>
     /// <param name="leadingTrivia">The leading trivia to inspect</param>
-    /// <returns><see langword="true"/> if an ordinary comment on its own line precedes the token; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if the gap carries content that owns its own blank-line placement; otherwise, <see langword="false"/></returns>
     private static bool HasOwnLineTrailingComment(SyntaxTriviaList leadingTrivia)
     {
-        if (ContainsDirectiveOrDisabledText(leadingTrivia))
+        var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(leadingTrivia);
+
+        if (lastContentIndex < 0)
         {
             return false;
         }
 
-        var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(leadingTrivia);
+        var lastContent = leadingTrivia[lastContentIndex];
 
-        if (lastContentIndex < 0 || IsOrdinaryComment(leadingTrivia[lastContentIndex]) == false)
+        if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(lastContent)
+            && SyntaxTriviaUtilities.IsRegionDirective(lastContent) == false)
+        {
+            return true;
+        }
+
+        if (IsOrdinaryComment(lastContent) == false)
         {
             return false;
         }
@@ -357,16 +370,6 @@ internal sealed class TokenGapNormalizer
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether a trivia list contains a preprocessor directive or disabled text anywhere
-    /// </summary>
-    /// <param name="triviaList">The trivia list to inspect</param>
-    /// <returns><see langword="true"/> if a directive or disabled text is present; otherwise, <see langword="false"/></returns>
-    private static bool ContainsDirectiveOrDisabledText(SyntaxTriviaList triviaList)
-    {
-        return triviaList.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
     }
 
     /// <summary>
@@ -448,18 +451,22 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Normalizes the run of line breaks and indentation between a comment and a token that requires zero
-    /// blank lines directly adjacent to it, so the comment stays directly attached — exactly one line
-    /// break, never a blank line. Called only when the requested blank-line count is zero; a caller with a
-    /// wider statement-separation budget leaves this run untouched instead, since it is not requiring
-    /// adjacency and the comment's own positioning is the author's call
+    /// Normalizes the run of line breaks and indentation between the gap's last significant trivia and a
+    /// token that requires zero blank lines directly adjacent to it, so that content stays directly
+    /// attached — exactly one line break, never a blank line. Called only when the requested blank-line
+    /// count is zero; a caller with a wider statement-separation budget leaves this run untouched instead,
+    /// since it is not requiring adjacency and the content's own positioning is the author's call
     /// </summary>
-    /// <param name="trailingRun">
-    /// The trivia between the last content and the token. Always contains at least one end-of-line trivia,
-    /// because the caller only reaches this method after confirming one is present
+    /// <param name="trailingRun">The trivia between the last content and the token</param>
+    /// <param name="lastContentEndsWithLineBreak">
+    /// Whether the gap's last significant trivia already embeds its own terminating line break — true for a
+    /// directive or disabled-text block, which always ends its own line, false for an ordinary comment. When
+    /// true, the run's own line break already separates that content from the token, so no further line
+    /// break is emitted here; emitting one unconditionally would recreate a blank line the guard exists to
+    /// remove
     /// </param>
     /// <returns>The normalized trailing run</returns>
-    private List<SyntaxTrivia> NormalizeTrailingRun(List<SyntaxTrivia> trailingRun)
+    private List<SyntaxTrivia> NormalizeTrailingRun(List<SyntaxTrivia> trailingRun, bool lastContentEndsWithLineBreak)
     {
         var lastEndOfLineIndex = -1;
 
@@ -478,10 +485,14 @@ internal sealed class TokenGapNormalizer
             preservedTrailing.Add(trailingRun[triviaIndex]);
         }
 
-        var normalizedRun = new List<SyntaxTrivia>(1 + preservedTrailing.Count)
-                            {
-                                SyntaxFactory.EndOfLine(_endOfLine)
-                            };
+        var requiredLineBreakCount = lastContentEndsWithLineBreak ? 0 : 1;
+
+        var normalizedRun = new List<SyntaxTrivia>(requiredLineBreakCount + preservedTrailing.Count);
+
+        for (var lineBreakIndex = 0; lineBreakIndex < requiredLineBreakCount; lineBreakIndex++)
+        {
+            normalizedRun.Add(SyntaxFactory.EndOfLine(_endOfLine));
+        }
 
         normalizedRun.AddRange(preservedTrailing);
 

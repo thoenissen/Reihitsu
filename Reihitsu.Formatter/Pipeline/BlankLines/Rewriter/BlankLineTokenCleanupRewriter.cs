@@ -421,12 +421,18 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             token = RemoveLeadingBlankLines(token);
         }
 
-        if (token.IsKind(SyntaxKind.OpenBraceToken)
-            || token.IsKind(SyntaxKind.CloseBraceToken)
-            || token.IsKind(SyntaxKind.ElseKeyword)
-            || token.IsKind(SyntaxKind.CatchKeyword)
-            || token.IsKind(SyntaxKind.FinallyKeyword)
-            || token.IsKind(SyntaxKind.WhileKeyword))
+        // CollapseLeadingBlankLines only inspects the run starting at the first leading trivia, which is
+        // the token's own adjacent line only when nothing else precedes it. When a directive or disabled
+        // text interposes, that run is the author's separator in front of the directive, not a blank line
+        // adjacent to this token — collapsing it would delete a blank line RH5024/25/26/27 do not report.
+        // TokenGapNormalizer owns the region that is actually adjacent to the token in that case (issue #711)
+        if ((token.IsKind(SyntaxKind.OpenBraceToken)
+             || token.IsKind(SyntaxKind.CloseBraceToken)
+             || token.IsKind(SyntaxKind.ElseKeyword)
+             || token.IsKind(SyntaxKind.CatchKeyword)
+             || token.IsKind(SyntaxKind.FinallyKeyword)
+             || token.IsKind(SyntaxKind.WhileKeyword))
+            && token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia) == false)
         {
             var keepSingleLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false;
             token = CollapseLeadingBlankLines(token, keepSingleLineBreak);

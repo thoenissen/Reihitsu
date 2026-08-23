@@ -717,12 +717,12 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive block that is the last content of a block still loses the blank line
-    /// above it — a separate, pre-existing behavior of <see cref="Pipeline.BlankLines.Rewriter.BlankLineTokenCleanupRewriter"/>
-    /// that issue #695 does not own or change, frozen here so a future change cannot alter it silently
+    /// Verifies that a blank line before a directive block that is the last content of a block is
+    /// preserved, matching the "blank lines are preserved unless there's a reason to change them"
+    /// policy applied everywhere else in the formatter (issue #711)
     /// </summary>
     [TestMethod]
-    public void TrailingDirectiveWithNoFollowingStatementStillLosesItsBlankLine()
+    public void TrailingDirectiveWithNoFollowingStatementKeepsItsBlankLine()
     {
         // Arrange
         const string input = """
@@ -739,6 +739,396 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
                              }
                              """;
 
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a directive that is the last content ahead of an opening
+    /// brace is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeOpenBraceKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+
+                             #pragma warning disable CA1801
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a directive that is the last content ahead of an <c>else</c>
+    /// keyword is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeElseKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                     }
+
+                             #pragma warning disable CA1801
+                                     else
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a directive that is the last content ahead of a <c>catch</c>
+    /// keyword is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeCatchKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     try
+                                     {
+                                     }
+
+                             #pragma warning disable CA1801
+                                     catch
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a directive that is the last content ahead of a
+    /// <c>finally</c> keyword is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeFinallyKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     try
+                                     {
+                                     }
+
+                             #pragma warning disable CA1801
+                                     finally
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a directive that is the last content ahead of a do-<c>while</c>
+    /// footer is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeDoWhileFooterKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     do
+                                     {
+                                     }
+
+                             #pragma warning disable CA1801
+                                     while (true);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before disabled text (an inactive <c>#if false</c> branch) that is
+    /// the last content of a block is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDisabledTextWithNoFollowingStatementKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var bar = "foo1";
+
+                             #if false
+                                     bar = "foo2";
+                             #endif
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a <c>#nullable</c> directive that is the last content of a
+    /// block is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingNullableDirectiveWithNoFollowingStatementKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var bar = "foo1";
+
+                             #nullable disable
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that two blank lines before a trailing directive collapse to one rather than to zero
+    /// (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void ExcessBlankLinesBeforeTrailingDirectiveCollapseToOne()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var bar = "foo1";
+
+
+                             #if DEBUG
+                                     bar = "foo2";
+                             #endif
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        var bar = "foo1";
+
+                                #if DEBUG
+                                        bar = "foo2";
+                                #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line directly above a closing brace, with no directive interposed, is
+    /// still removed — the guard's non-exempt boundary, matching RH5024 (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineDirectlyAboveClosingBraceWithNoDirectiveIsStillRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var bar = "foo1";
+
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        var bar = "foo1";
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line directly after an opening brace, ahead of a directive block that is
+    /// the block's only content, is still removed — RH5022's region, untouched by this fix (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineAfterOpenBraceBeforeDirectiveBlockIsStillRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+
+                             #if DEBUG
+                                     var bar = "foo1";
+                             #endif
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                #if DEBUG
+                                        var bar = "foo1";
+                                #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line at the very start of the file, ahead of a directive, is still
+    /// removed — RH5028's region, untouched by this fix (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineAtFileStartBeforeDirectiveIsStillRemoved()
+    {
+        // Arrange
+        const string input = """
+
+                             #pragma warning disable CA1801
+                             var bar = "foo1";
+                             """;
+
+        const string expected = """
+                                #pragma warning disable CA1801
+                                var bar = "foo1";
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that when a blank line precedes a trailing directive and another blank line follows it
+    /// directly above the closing brace, the first is preserved and the second is removed — the two
+    /// owners of this fix now agree with each other and with RH5024 (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineBeforeAndAfterTrailingDirectiveKeepsOnlyTheFirst()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var bar = "foo1";
+
+                             #if DEBUG
+                                     bar = "foo2";
+                             #endif
+
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        var bar = "foo1";
+
+                                #if DEBUG
+                                        bar = "foo2";
+                                #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that when no blank line precedes a trailing directive but one follows it directly
+    /// above the closing brace, neither blank line is written — no unauthored insertion, and the
+    /// RH5024-flagged blank line is removed (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineOnlyAfterTrailingDirectiveWritesNeitherBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var bar = "foo1";
+                             #if DEBUG
+                                     bar = "foo2";
+                             #endif
+
+                                 }
+                             }
+                             """;
+
         const string expected = """
                                 public class Implementation
                                 {
@@ -748,6 +1138,221 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
                                 #if DEBUG
                                         bar = "foo2";
                                 #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a trailing directive ahead of a type declaration's closing
+    /// brace is preserved — the same guard reached through a different owning rewriter (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeTypeDeclarationClosingBraceKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 private int _a;
+
+                             #pragma warning restore CA1802
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a trailing directive ahead of an enum's closing brace is
+    /// preserved — the trailing comma on the last member is a separate, pre-existing structural
+    /// decision this fix does not own (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeEnumClosingBraceKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public enum Color
+                             {
+                                 Red,
+                                 Green,
+
+                             #pragma warning restore CA1008
+                             }
+                             """;
+
+        const string expected = """
+                                public enum Color
+                                {
+                                    Red,
+                                    Green
+
+                                #pragma warning restore CA1008
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a trailing directive ahead of a property accessor list's
+    /// closing brace is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforePropertyAccessorListClosingBraceKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public int Value
+                                 {
+                                     get
+                                     {
+                                         return _value;
+                                     }
+
+                             #pragma warning restore CA1822
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a trailing directive ahead of an object initializer's closing
+    /// brace is preserved (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeInitializerClosingBraceKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     var data = new Data
+                                     {
+                                         Value = 1
+
+                             #pragma warning restore CA1861
+                                     };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        var data = new Data
+                                                   {
+                                                       Value = 1
+
+                                #pragma warning restore CA1861
+                                                   };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a trailing directive ahead of a closing bracket is left
+    /// unchanged — a closing bracket is not one of this fix's anchor tokens (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeCloseBracketIsUnaffected()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     int[] values =
+                                     [
+                                         1,
+                                         2
+
+                             #pragma warning restore CA1861
+                                     ];
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        int[] values = [
+                                                           1,
+                                                           2
+
+                                #pragma warning restore CA1861
+                                                       ];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a trailing directive ahead of a closing parenthesis is left
+    /// unchanged — a closing parenthesis is not one of this fix's anchor tokens (issue #711)
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveBeforeCloseParenIsUnaffected()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public void Start()
+                                 {
+                                     Method(
+                                         1,
+                                         2
+
+                             #pragma warning restore CA1861
+                                     );
+                                 }
+
+                                 private static void Method(int a, int b)
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public void Start()
+                                    {
+                                        Method(1,
+                                               2
+
+                                #pragma warning restore CA1861
+                                               );
+                                    }
+
+                                    private static void Method(int a, int b)
+                                    {
                                     }
                                 }
                                 """;
