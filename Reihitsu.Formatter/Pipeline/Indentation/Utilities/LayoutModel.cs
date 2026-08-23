@@ -53,6 +53,19 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
+    /// Tries to get the layout for the given token by looking up its line number
+    /// </summary>
+    /// <param name="token">The syntax token</param>
+    /// <param name="layout">The layout if found</param>
+    /// <returns><see langword="true"/> if a layout was found; otherwise, <see langword="false"/></returns>
+    public bool TryGetLayout(SyntaxToken token, out TokenLayout layout)
+    {
+        var lineNumber = token.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        return _layouts.TryGetValue(lineNumber, out layout);
+    }
+
+    /// <summary>
     /// Captures the current column of every entry, so a later state can be compared against it.
     /// Only the columns are captured: the <see cref="TokenLayout.Source"/> label is a debug aid and
     /// two states that differ only in which contributor last wrote the same column are equivalent
@@ -92,19 +105,6 @@ internal sealed class LayoutModel
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Tries to get the layout for the given token by looking up its line number
-    /// </summary>
-    /// <param name="token">The syntax token</param>
-    /// <param name="layout">The layout if found</param>
-    /// <returns><see langword="true"/> if a layout was found; otherwise, <see langword="false"/></returns>
-    public bool TryGetLayout(SyntaxToken token, out TokenLayout layout)
-    {
-        var lineNumber = token.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        return _layouts.TryGetValue(lineNumber, out layout);
     }
 
     /// <summary>

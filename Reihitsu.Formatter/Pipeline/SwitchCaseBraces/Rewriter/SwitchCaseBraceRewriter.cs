@@ -414,6 +414,29 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether any non-fall-through section in the switch spans multiple lines
+    /// </summary>
+    /// <param name="sections">The switch sections to inspect</param>
+    /// <returns><see langword="true"/> if at least one non-fall-through section is multi-line; otherwise, <see langword="false"/></returns>
+    private static bool HasAnyMultiLineSection(SyntaxList<SwitchSectionSyntax> sections)
+    {
+        foreach (var section in sections)
+        {
+            if (IsFallThroughSection(section))
+            {
+                continue;
+            }
+
+            if (IsMultiLineSection(section))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Adds braces around the non-terminal statements of a switch section.
     /// If braces already exist, the section is returned as-is
     /// </summary>
@@ -512,6 +535,45 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         return section.WithStatements(SyntaxFactory.List(sectionStatements));
     }
 
+    /// <summary>
+    /// Builds the rewritten sections for a switch statement, adding or removing braces as appropriate
+    /// </summary>
+    /// <param name="sections">The original switch sections</param>
+    /// <param name="anyMultiLine">Whether any non-fall-through section in the switch is multi-line</param>
+    /// <returns>The rewritten sections</returns>
+    private List<SwitchSectionSyntax> BuildSections(SyntaxList<SwitchSectionSyntax> sections, bool anyMultiLine)
+    {
+        var newSections = new List<SwitchSectionSyntax>(sections.Count);
+
+        foreach (var section in sections)
+        {
+            newSections.Add(BuildSection(section, anyMultiLine));
+        }
+
+        return newSections;
+    }
+
+    /// <summary>
+    /// Builds the rewritten form of a single switch section
+    /// </summary>
+    /// <param name="section">The original switch section</param>
+    /// <param name="anyMultiLine">Whether any non-fall-through section in the switch is multi-line</param>
+    /// <returns>The rewritten section</returns>
+    private SwitchSectionSyntax BuildSection(SwitchSectionSyntax section, bool anyMultiLine)
+    {
+        if (IsFallThroughSection(section))
+        {
+            return section;
+        }
+
+        if (anyMultiLine == false)
+        {
+            return RemoveBraces(section);
+        }
+
+        return IsEmptySection(section) ? section : AddBraces(section);
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -535,55 +597,14 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var anyMultiLine = false;
-
-        foreach (var section in sections)
-        {
-            if (IsFallThroughSection(section))
-            {
-                continue;
-            }
-
-            if (IsMultiLineSection(section))
-            {
-                anyMultiLine = true;
-
-                break;
-            }
-        }
+        var anyMultiLine = HasAnyMultiLineSection(sections);
 
         if (anyMultiLine && HasCrossSectionGotoTarget(node))
         {
             return node;
         }
 
-        var newSections = new List<SwitchSectionSyntax>(sections.Count);
-
-        foreach (var section in sections)
-        {
-            if (IsFallThroughSection(section))
-            {
-                newSections.Add(section);
-
-                continue;
-            }
-
-            if (anyMultiLine)
-            {
-                var newSection = section;
-
-                if (IsEmptySection(section) == false)
-                {
-                    newSection = AddBraces(section);
-                }
-
-                newSections.Add(newSection);
-            }
-            else
-            {
-                newSections.Add(RemoveBraces(section));
-            }
-        }
+        var newSections = BuildSections(sections, anyMultiLine);
 
         return node.WithSections(SyntaxFactory.List(newSections));
     }

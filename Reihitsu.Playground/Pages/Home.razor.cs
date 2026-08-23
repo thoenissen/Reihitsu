@@ -8,9 +8,14 @@ public partial class Home
     #region Fields
 
     /// <summary>
+    /// Example C# source shown on first load, before the user edits it
+    /// </summary>
+    private const string ExampleSource = "public class Sample{public int Add(int a,int b){return a+b;}}";
+
+    /// <summary>
     /// The user-entered C# source
     /// </summary>
-    private string _input = string.Empty;
+    private string _input = ExampleSource;
 
     /// <summary>
     /// The most recently formatted output
@@ -38,4 +43,14 @@ public partial class Home
     }
 
     #endregion // Methods
+
+    #region ComponentBase
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        FormatInput();
+    }
+
+    #endregion // ComponentBase
 }

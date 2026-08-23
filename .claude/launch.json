@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "reihitsu-playground",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "Reihitsu.Playground/Reihitsu.Playground.csproj", "--launch-profile", "http"],
+      "port": 5110
+    }
+  ]
+}
