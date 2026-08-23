@@ -6,7 +6,7 @@
       <!-- Beta counter; leave empty for a stable release -->
       <BetaNumber></BetaNumber>
       <!-- Release candidate counter; leave empty for a stable release -->
-      <ReleaseCandidateNumber>1</ReleaseCandidateNumber>
+      <ReleaseCandidateNumber>2</ReleaseCandidateNumber>
 
       <!-- Numeric identity: unique per prerelease so Visual Studio reloads the analyzer instead of serving a cached copy -->
       <AssemblyVersion Condition="'$(BetaNumber)' != ''">$(VersionPrefix).$(BetaNumber)</AssemblyVersion>
