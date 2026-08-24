@@ -129,15 +129,17 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// chain wrapped.
     /// </para>
     /// <para>
-    /// A postfix null-forgiving operator on the chain root (<c>a!</c>) is not itself a candidate — the
-    /// search skips it and considers the next collected dot. When that root's invoked link is a
-    /// directly-invoked member access (<c>a!.Foo()</c>), <c>!</c> stands in for the whole link and no
-    /// dot for <c>.Foo()</c> is ever collected, so the next entry the search would otherwise land on is
-    /// already a <em>later</em> link (<c>.Bar()</c>), not the chain's own first dot. Returning it would
-    /// let the collapse join across a link the rest of the chain still treats as wrapped, which never
-    /// settles (issue #699's escaped guard). The position check below refuses any candidate that does
-    /// not sit at or before <paramref name="firstInvokedDot"/> and falls back to it instead — for
-    /// <c>a!.Foo()</c> that fallback is <c>!</c> itself, matching the shape's own first invoked link
+    /// The candidate is the first collected spine token that is itself wrapped onto its own line,
+    /// including a postfix null-forgiving operator (<c>a</c> ⏎ <c>!.Prop.Foo()</c> wraps at <c>!</c>,
+    /// the same way <c>a</c> ⏎ <c>.Prop.Foo()</c> wraps at the dot before <c>.Prop</c>) — a plain dot
+    /// and a null-forgiving operator standing in for a non-invoked prefix are the same kind of
+    /// candidate (issue #719). When the null-forgiving operator instead stands in for a
+    /// directly-invoked link (<c>a</c> ⏎ <c>!.Foo()</c>), it is already <paramref name="firstInvokedDot"/>
+    /// itself, so finding it here and returning it changes nothing. The position check below still
+    /// refuses any candidate that does not sit at or before <paramref name="firstInvokedDot"/> and
+    /// falls back to it instead, so a wrap that lands on a later link (past the chain's own first dot)
+    /// never joins across a link the rest of the chain still treats as wrapped, which never settles
+    /// (issue #699's escaped guard)
     /// </para>
     /// </summary>
     /// <param name="node">The outermost chain node</param>
@@ -155,10 +157,9 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         ChainWalker.CollectAlignmentDots(expression, spineDots);
 
-        var firstChainDot = spineDots.Find(static dot => dot.Parent is not PostfixUnaryExpressionSyntax);
+        var firstChainDot = spineDots.Find(static dot => LineBreakTriviaUtilities.HasLeadingEndOfLine(dot));
 
         if (firstChainDot.IsKind(SyntaxKind.None) == false
-            && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstChainDot)
             && firstChainDot.SpanStart <= firstInvokedDot.SpanStart)
         {
             return firstChainDot;
