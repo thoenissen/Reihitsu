@@ -76,7 +76,7 @@ internal static class FluentChainAnalysisHelper
     /// <summary>
     /// Determines whether the first invoked chain link is preceded by intermediate member access. A
     /// null-forgiving operator is checked through its own operand the same way, since <c>a.Prop!.Foo()</c>
-    /// is the same intermediate-access shape as <c>a.Prop.Foo()</c> (issue #721 review)
+    /// is the same intermediate-access shape as <c>a.Prop.Foo()</c> (PR #721)
     /// </summary>
     /// <param name="token">The chain link token</param>
     /// <returns><c>true</c> if intermediate member access precedes the invocation; otherwise <c>false</c></returns>

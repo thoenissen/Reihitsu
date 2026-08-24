@@ -3695,10 +3695,53 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a wrapped, non-invoked prefix dot behind an attached (unwrapped) null-forgiving
+    /// operator is refused as a collapse candidate on a second formatter pass the same way it is on
+    /// the first: the candidate search stays confined to the chain's own first spine token and never
+    /// advances past it to a later dot, so <c>a.Prop1!</c> collapsing onto <c>a</c> in one pass does
+    /// not newly expose <c>.Prop2</c> to a wrongful collapse across the intermediate <c>.Prop1</c>
+    /// access in the next (preflight finding for PR #721)
+    /// </summary>
+    [TestMethod]
+    public void WrappedDotBehindAttachedNullForgivingPrefixStaysStableAcrossPasses()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop1!
+                                         .Prop2
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop1!
+                                                 .Prop2
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verify that a <c>#pragma</c> directive directly above a wrapped null-forgiving prefix leaves
     /// every invoked link on its own line, mirroring
     /// <see cref="PragmaAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
-    /// null-forgiving-prefix candidate class (issue #721 review)
+    /// null-forgiving-prefix candidate class (PR #721)
     /// </summary>
     [TestMethod]
     public void PragmaAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()
@@ -3739,7 +3782,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// Verify that disabled text directly above a wrapped null-forgiving prefix leaves every invoked
     /// link on its own line, mirroring
     /// <see cref="DisabledTextAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
-    /// null-forgiving-prefix candidate class (issue #721 review)
+    /// null-forgiving-prefix candidate class (PR #721)
     /// </summary>
     [TestMethod]
     public void DisabledTextAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()

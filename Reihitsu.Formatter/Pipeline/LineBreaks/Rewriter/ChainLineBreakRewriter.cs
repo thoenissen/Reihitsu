@@ -129,17 +129,20 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// chain wrapped.
     /// </para>
     /// <para>
-    /// The candidate is the first collected spine token that is itself wrapped onto its own line,
-    /// including a postfix null-forgiving operator (<c>a</c> ⏎ <c>!.Prop.Foo()</c> wraps at <c>!</c>,
-    /// the same way <c>a</c> ⏎ <c>.Prop.Foo()</c> wraps at the dot before <c>.Prop</c>) — a plain dot
-    /// and a null-forgiving operator standing in for a non-invoked prefix are the same kind of
-    /// candidate (issue #719). When the null-forgiving operator instead stands in for a
-    /// directly-invoked link (<c>a</c> ⏎ <c>!.Foo()</c>), it is already <paramref name="firstInvokedDot"/>
-    /// itself, so finding it here and returning it changes nothing. The position check below still
-    /// refuses any candidate that does not sit at or before <paramref name="firstInvokedDot"/> and
-    /// falls back to it instead, so a wrap that lands on a later link (past the chain's own first dot)
-    /// never joins across a link the rest of the chain still treats as wrapped, which never settles
-    /// (issue #699's escaped guard)
+    /// The candidate stays confined to the chain's own first spine token — never a later one, so a
+    /// chain with more than one non-invoked prefix still only ever tests its very first dot and keeps
+    /// today's behavior for every shape without a null-forgiving operator. The one exception is a
+    /// leading null-forgiving operator that is <em>not</em> itself wrapped (<c>a!</c> ⏎ <c>.Prop...</c>):
+    /// such an operator is attached to the root rather than starting its own line, so it is skipped and
+    /// the dot right after it is tested instead — the shape #683 already handles. When that leading
+    /// operator <em>is</em> wrapped instead (<c>a</c> ⏎ <c>!.Prop.Foo()</c>), it is not skipped and
+    /// becomes the candidate itself, the same way a plain wrapped prefix dot already is (issue #719).
+    /// When the null-forgiving operator stands in for a directly-invoked link (<c>a</c> ⏎ <c>!.Foo()</c>),
+    /// it is already <paramref name="firstInvokedDot"/> itself, so finding it here and returning it
+    /// changes nothing. The position check below still refuses a candidate that does not sit at or
+    /// before <paramref name="firstInvokedDot"/> and falls back to it instead, so a wrap that lands on
+    /// a later link never joins across a link the rest of the chain still treats as wrapped, which
+    /// never settles (issue #699's escaped guard)
     /// </para>
     /// </summary>
     /// <param name="node">The outermost chain node</param>
@@ -157,9 +160,19 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         ChainWalker.CollectAlignmentDots(expression, spineDots);
 
-        var firstChainDot = spineDots.Find(static dot => LineBreakTriviaUtilities.HasLeadingEndOfLine(dot));
+        var candidateIndex = 0;
+
+        while (candidateIndex < spineDots.Count
+               && spineDots[candidateIndex].Parent is PostfixUnaryExpressionSyntax
+               && LineBreakTriviaUtilities.HasLeadingEndOfLine(spineDots[candidateIndex]) == false)
+        {
+            candidateIndex++;
+        }
+
+        var firstChainDot = candidateIndex < spineDots.Count ? spineDots[candidateIndex] : default;
 
         if (firstChainDot.IsKind(SyntaxKind.None) == false
+            && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstChainDot)
             && firstChainDot.SpanStart <= firstInvokedDot.SpanStart)
         {
             return firstChainDot;
@@ -254,7 +267,10 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// line. The caller decides which dot that is — see <see cref="FindFirstWrappedChainOperator"/> —
     /// and this method only refuses the join: a dot whose own receiver is another member or
     /// conditional access belongs to a fluent chain that stays wrapped, and a comment, directive, or
-    /// disabled text in the gap keeps the two tokens on separate lines
+    /// disabled text in the gap keeps the two tokens on separate lines. Checking one level of receiver
+    /// is enough: <see cref="FindFirstWrappedChainOperator"/> never hands this method a dot deeper than
+    /// the chain's own first spine token, so a hidden intermediate access further up the receiver
+    /// chain is never reachable here in the first place
     /// </summary>
     /// <param name="firstDot">The chain dot to collapse</param>
     /// <param name="replacements">The token replacement map to populate</param>
