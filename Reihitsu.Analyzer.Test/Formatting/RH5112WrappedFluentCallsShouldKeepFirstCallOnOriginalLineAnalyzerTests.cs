@@ -312,5 +312,50 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that RH5112 does not report when the first invoked link is introduced by a
+    /// null-forgiving operator whose own receiver is an intermediate member access, matching the
+    /// existing exemption for a plain dot in the same position (issue #721 review)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenNullForgivingLinkHasIntermediateMemberAccess()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static object Create(Builder builder)
+                                    {
+                                        return builder.Inner
+                                            !.UseLogging()
+                                            .Build();
+                                    }
+
+                                    private sealed class Builder
+                                    {
+                                        public Builder Inner
+                                        {
+                                            get
+                                            {
+                                                return this;
+                                            }
+                                        }
+
+                                        public Builder UseLogging()
+                                        {
+                                            return this;
+                                        }
+
+                                        public object Build()
+                                        {
+                                            return new object();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

@@ -3694,5 +3694,91 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verify that a <c>#pragma</c> directive directly above a wrapped null-forgiving prefix leaves
+    /// every invoked link on its own line, mirroring
+    /// <see cref="PragmaAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
+    /// null-forgiving-prefix candidate class (issue #721 review)
+    /// </summary>
+    [TestMethod]
+    public void PragmaAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #pragma warning disable 1234
+                                         !.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #pragma warning disable 1234
+                                                !.Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that disabled text directly above a wrapped null-forgiving prefix leaves every invoked
+    /// link on its own line, mirroring
+    /// <see cref="DisabledTextAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
+    /// null-forgiving-prefix candidate class (issue #721 review)
+    /// </summary>
+    [TestMethod]
+    public void DisabledTextAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #if false
+                                     .Nope()
+                             #endif
+                                         !.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #if false
+                                        .Nope()
+                                #endif
+                                                !.Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
