@@ -381,9 +381,12 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// back onto one line and must not have breaks inserted into it.
     /// </para>
     /// <para>
-    /// A comment above the first invoked link is likewise a decision about one of the three, not
-    /// about the chain as a whole: it keeps the author's wrapping by suppressing the collapse, and
-    /// leaves the rejoin and the continuation breaks to their own trivia guards (issues #685, #689)
+    /// A comment directly above the collapse candidate is likewise a decision about one of the three,
+    /// not about the chain as a whole: it refuses that one join, and leaves the rejoin and the
+    /// continuation breaks to their own trivia guards (issues #685, #689). A comment further down the
+    /// chain — for example above the first invoked link, while an earlier, uncommented non-invoked
+    /// prefix dot is the actual collapse candidate — no longer suppresses the collapse (issue #699):
+    /// the gap it occupies is never the one <see cref="TryCollapseFirstChainDot"/> would join across.
     /// </para>
     /// </summary>
     /// <param name="node">The outermost chain node (invocation or conditional access)</param>
@@ -399,32 +402,20 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        // A comment above the chain's first invoked link keeps the chain wrapped the way the author
-        // wrote it, so the collapse must not run. It gates that step alone: the rejoin joins a dot to
-        // its own member name and the continuation-break pass only inserts end-of-line trivia, and
-        // neither touches the gap the comment occupies.
-        // The predicate stays comment-only and deliberately does not use the wider
-        // WouldJoinAcrossUnjoinableTrivia that the alignment phase applies (issue #489). Widening it
-        // would newly suppress the collapse for a chain carrying a directive above its first invoked
-        // link, which today collapses a wrapped prefix dot and aligns the remaining links under it —
-        // a strictly better layout than the block-level one the comment arm produces. Issues #685 and
-        // #689 asked for the divergence to be settled; it is settled here in favour of leaving the
-        // directive arm alone, and both arms are pinned by tests.
-        var keepsAuthoredWrapping = LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDots[0])
-                                    && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDots[0]);
-
         var firstWrappedDot = FindFirstWrappedChainOperator(node, chainDots[0]);
         var hasWrappedCandidate = firstWrappedDot.IsKind(SyntaxKind.None) == false;
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         CollectMemberNameRejoinReplacements(node, replacements);
 
-        // A comment above the collapse candidate refuses that one join; it must not suppress the
-        // rejoin or the continuation-break pass, which do not touch the commented gap. Only a comment
-        // above the chain's first invoked link keeps the whole chain as the author wrote it, and that
-        // is the pre-existing bail above.
-        if (keepsAuthoredWrapping == false
-            && hasWrappedCandidate
+        // A comment directly above the collapse candidate refuses that one join; it must not
+        // suppress the rejoin or the continuation-break pass, which do not touch the commented gap.
+        // The predicate stays comment-only and deliberately does not use the wider
+        // WouldJoinAcrossUnjoinableTrivia that the alignment phase applies (issue #489): widening it
+        // would newly suppress the collapse for a chain carrying a directive above the candidate,
+        // which today collapses the wrapped prefix dot and aligns the remaining links under it — a
+        // strictly better layout than leaving it wrapped at block indentation.
+        if (hasWrappedCandidate
             && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(firstWrappedDot) == false)
         {
             TryCollapseFirstChainDot(firstWrappedDot, replacements);
