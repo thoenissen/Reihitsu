@@ -79,5 +79,85 @@ public class RH5201Issue698ReproductionTests : FormatterTestsBase<RH5201MethodCh
         await Verify(formatted);
     }
 
+    /// <summary>
+    /// Verifies the full round trip: the raw, as-typed source reports <c>RH5201</c> on the two
+    /// invoked links that do not match the first invoked link's column, the formatter's fixed
+    /// output clears the diagnostic by aligning every continuation dot to that first invoked
+    /// link's own rendered column (not the chain-root column), and a second formatter pass is a
+    /// no-op under both LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesCommentExemptChainWithNonInvokedPrefixAndStaysIdempotent()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                                  internal Example Prop { get; set; }
+
+                                  internal Example Foo()
+                                  {
+                                      return this;
+                                  }
+
+                                  internal Example Bar()
+                                  {
+                                      return this;
+                                  }
+
+                                  internal Example Baz()
+                                  {
+                                      return this;
+                                  }
+
+                                  internal static Example Run(Example a)
+                                  {
+                                      var x = a
+                                          // keep wrapped
+                                          .Prop.Foo()
+                                          {|#0:.|}Bar(){|#1:.|}Baz();
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   internal class Example
+                                   {
+                                       internal Example Prop { get; set; }
+
+                                       internal Example Foo()
+                                       {
+                                           return this;
+                                       }
+
+                                       internal Example Bar()
+                                       {
+                                           return this;
+                                       }
+
+                                       internal Example Baz()
+                                       {
+                                           return this;
+                                       }
+
+                                       internal static Example Run(Example a)
+                                       {
+                                           var x = a
+
+                                                   // keep wrapped
+                                                   .Prop.Foo()
+                                                        .Bar()
+                                                        .Baz();
+
+                                           return x;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyFormatterFixAndIdempotency(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Method chains should be aligned.", 2));
+    }
+
     #endregion // Tests
 }

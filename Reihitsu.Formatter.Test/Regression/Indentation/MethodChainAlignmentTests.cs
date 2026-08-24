@@ -2488,6 +2488,178 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verify that a comment-exempt chain whose first collected dot is a non-invoked prefix sharing
+    /// its line with the first invoked link aligns every later continuation dot to that invoked
+    /// link's own rendered column instead of the chain-root column, matching
+    /// <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c>'s reference column (issue #698)
+    /// </summary>
+    [TestMethod]
+    public void CommentExemptChainWithPrefixSharingFirstInvokedLinkLineAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         .Prop.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                .Prop.Foo()
+                                                     .Bar()
+                                                     .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that the exempt-chain fix in <see cref="CommentExemptChainWithPrefixSharingFirstInvokedLinkLineAlignsToInvokedLink"/>
+    /// also applies to a trailing non-invoked property after the first invoked link — parity with
+    /// <see cref="TrailingPropertyAfterConditionalAccessChainAlignsToInvokedLink"/>, even though
+    /// RH5201 itself stays silent for a single invoked link (issue #698)
+    /// </summary>
+    [TestMethod]
+    public void CommentExemptChainWithTrailingNonInvokedPropertyAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         .Prop.Foo()
+                                         .Result;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                .Prop.Foo()
+                                                     .Result;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that the exempt-chain anchor fix applies regardless of which unjoinable-trivia kind
+    /// keeps the chain's first dot wrapped — a <c>#region</c> directive here rather than a comment
+    /// (issue #698, mirroring issue #489's trivia-kind-agnostic exemption)
+    /// </summary>
+    [TestMethod]
+    public void RegionAboveCommentExemptChainWithSharedInvokedLinkLineAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         #region Chain
+                                         .Prop.Foo()
+                                         .Bar().Baz();
+                                         #endregion
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                        #region Chain
+
+                                                .Prop.Foo()
+                                                     .Bar()
+                                                     .Baz();
+
+                                        #endregion // Chain
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that the exempt-chain anchor fix applies above disabled text (an <c>#if false</c>
+    /// body), which also counts as unjoinable trivia for the exemption (issue #698, mirroring
+    /// issue #489)
+    /// </summary>
+    [TestMethod]
+    public void DisabledTextAboveCommentExemptChainWithSharedInvokedLinkLineAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #if false
+                                         .Disabled()
+                             #endif
+                                         .Prop.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #if false
+                                            .Disabled()
+                                #endif
+                                                .Prop.Foo()
+                                                     .Bar()
+                                                     .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verify that a chain rooted in a multi-line implicit array initializer whose closing brace
     /// shares its line with an element aligns its continuation dot to the first invoked link
     /// </summary>
@@ -2881,11 +3053,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that a comment above the first invoked link still suppresses the collapse of a
-    /// separately wrapped non-invoked prefix dot
+    /// Verify that a comment above the first invoked link no longer suppresses the collapse of an
+    /// uncommented, separately wrapped non-invoked prefix dot (issue #699). The bail now inspects
+    /// the trivia above the collapse candidate itself, matching the directive arm below
     /// </summary>
     [TestMethod]
-    public void CommentAboveFirstInvokedLinkKeepsWrappedPrefixDotUncollapsed()
+    public void CommentAboveFirstInvokedLinkStillCollapsesWrappedPrefixDot()
     {
         // Arrange
         const string input = """
@@ -2907,12 +3080,54 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = a
-                                        .Prop
+                                        var x = a.Prop
 
-                                        // keep wrapped
-                                        .Foo()
-                                        .Bar();
+                                                 // keep wrapped
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that only the chain's own first wrapped dot collapses onto the root line when a comment
+    /// sits above the first invoked link and more than one non-invoked prefix dot is wrapped; the
+    /// remaining prefix stays on its own line but aligns to the anchor column (issue #699)
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveFirstInvokedLinkCollapsesOnlyFirstOfTwoWrappedPrefixDots()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop
+                                         .Other
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop
+                                                 .Other
+
+                                                 // keep wrapped
+                                                 .Foo()
+                                                 .Bar();
                                     }
                                 }
                                 """;
