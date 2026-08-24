@@ -129,8 +129,15 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// chain wrapped.
     /// </para>
     /// <para>
-    /// A postfix null-forgiving operator is not a chain dot: <c>a!</c> is the chain's root, not its
-    /// first link, so the search skips it and considers the <c>.</c> that follows
+    /// A postfix null-forgiving operator on the chain root (<c>a!</c>) is not itself a candidate — the
+    /// search skips it and considers the next collected dot. When that root's invoked link is a
+    /// directly-invoked member access (<c>a!.Foo()</c>), <c>!</c> stands in for the whole link and no
+    /// dot for <c>.Foo()</c> is ever collected, so the next entry the search would otherwise land on is
+    /// already a <em>later</em> link (<c>.Bar()</c>), not the chain's own first dot. Returning it would
+    /// let the collapse join across a link the rest of the chain still treats as wrapped, which never
+    /// settles (issue #699's escaped guard). The position check below refuses any candidate that does
+    /// not sit at or before <paramref name="firstInvokedDot"/> and falls back to it instead — for
+    /// <c>a!.Foo()</c> that fallback is <c>!</c> itself, matching the shape's own first invoked link
     /// </para>
     /// </summary>
     /// <param name="node">The outermost chain node</param>
@@ -151,7 +158,8 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         var firstChainDot = spineDots.Find(static dot => dot.Parent is not PostfixUnaryExpressionSyntax);
 
         if (firstChainDot.IsKind(SyntaxKind.None) == false
-            && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstChainDot))
+            && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstChainDot)
+            && firstChainDot.SpanStart <= firstInvokedDot.SpanStart)
         {
             return firstChainDot;
         }

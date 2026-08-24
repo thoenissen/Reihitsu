@@ -2660,6 +2660,86 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verify that the exempt-chain anchor fix applies when the first invoked link sharing the
+    /// commented line is a conditional-access operator rather than a plain dot (issue #698 coverage)
+    /// </summary>
+    [TestMethod]
+    public void CommentExemptChainWithConditionalAccessSharingFirstInvokedLinkLineAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         .Prop?.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                .Prop?.Foo()
+                                                     .Bar()
+                                                     .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that the exempt-chain anchor fix applies when the first invoked link sharing the
+    /// commented line is a null-forgiving link rather than a plain dot (issue #698 coverage)
+    /// </summary>
+    [TestMethod]
+    public void CommentExemptChainWithNullForgivingLinkSharingFirstInvokedLinkLineAlignsToInvokedLink()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         .Prop!.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                .Prop!.Foo()
+                                                     .Bar()
+                                                     .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verify that a chain rooted in a multi-line implicit array initializer whose closing brace
     /// shares its line with an element aligns its continuation dot to the first invoked link
     /// </summary>
@@ -3128,6 +3208,131 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                                  // keep wrapped
                                                  .Foo()
                                                  .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a comment above a wrapped null-forgiving operator on the chain root refuses the
+    /// collapse and leaves every invoked link on its own line, the same way a comment above any other
+    /// collapse candidate does. Regression for the collapse-candidate search returning a link past
+    /// the wrapped null-forgiving operator, which never terminates (issue #699 repair)
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveWrappedNullForgivingRootRefusesCollapseWithTwoLinks()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         !
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                !.Foo()
+                                                .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Same as <see cref="CommentAboveWrappedNullForgivingRootRefusesCollapseWithTwoLinks"/> with a
+    /// third invoked link, so the search has more than one later link to (incorrectly) return before
+    /// the fix (issue #699 repair)
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveWrappedNullForgivingRootRefusesCollapseWithThreeLinks()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         // keep wrapped
+                                         !
+                                         .Foo()
+                                         .Bar()
+                                         .Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+
+                                                // keep wrapped
+                                                !.Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that an uncommented, wrapped null-forgiving operator on the chain root still collapses
+    /// onto the root line, and the remaining invoked links align to its own column — the other side
+    /// of the boundary from the two tests above, proving the fix refuses only the commented case
+    /// rather than every null-forgiving-root chain (issue #699 repair)
+    /// </summary>
+    [TestMethod]
+    public void WrappedNullForgivingRootWithoutCommentStillCollapsesOntoChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         !
+                                         .Foo()
+                                         .Bar()
+                                         .Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a!.Foo()
+                                                 .Bar()
+                                                 .Baz();
                                     }
                                 }
                                 """;

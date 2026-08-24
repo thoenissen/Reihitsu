@@ -123,13 +123,15 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
     /// <summary>
     /// Computes the starting continuation column for a chain that a preceding comment keeps wrapped.
-    /// The chain's own collected dots up to and including the first invoked link have no anchor to
-    /// their left, so they line up with the chain root token itself. Measuring from the root rather
-    /// than from the continuation line's block indentation keeps the chain under its root even when
-    /// the root sits far into the line, for example inside an argument or a lambda body. Once the
-    /// first invoked link is reached, it does have an anchor — itself — so every collected dot after
-    /// it aligns to that link's own rendered column instead, matching the column
-    /// <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires (issue #698)
+    /// The chain's collected dots that precede the first invoked link have no anchor to their left, so
+    /// they line up with the chain root token itself; the first invoked link takes this same root
+    /// column only when it starts its own line — when it instead shares a line with an earlier,
+    /// non-invoked prefix dot, it is never itself moved and simply renders wherever that prefix left
+    /// it. Measuring from the root rather than from the continuation line's block indentation keeps
+    /// the chain under its root even when the root sits far into the line, for example inside an
+    /// argument or a lambda body. Once the first invoked link's own line is final, it does have an
+    /// anchor — itself — so every collected dot after it aligns to that link's own rendered column
+    /// instead, matching the column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires (issue #698)
     /// </summary>
     /// <param name="node">The chain node being laid out</param>
     /// <param name="model">The layout model</param>
