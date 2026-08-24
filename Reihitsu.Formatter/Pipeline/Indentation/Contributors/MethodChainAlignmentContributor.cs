@@ -122,15 +122,20 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Computes the continuation column for a chain that a preceding comment keeps wrapped. Such a
-    /// chain has no first dot to align against, so the continuation dots line up with the chain root
-    /// token itself. Measuring from the root rather than from the continuation line's block
-    /// indentation keeps the chain under its root even when the root sits far into the line, for
-    /// example inside an argument or a lambda body
+    /// Computes the starting continuation column for a chain that a preceding comment keeps wrapped.
+    /// The chain's collected dots that precede the first invoked link have no anchor to their left, so
+    /// they line up with the chain root token itself; the first invoked link takes this same root
+    /// column only when it starts its own line — when it instead shares a line with an earlier,
+    /// non-invoked prefix dot, it is never itself moved and simply renders wherever that prefix left
+    /// it. Measuring from the root rather than from the continuation line's block indentation keeps
+    /// the chain under its root even when the root sits far into the line, for example inside an
+    /// argument or a lambda body. Once the first invoked link's own line is final, it does have an
+    /// anchor — itself — so every collected dot after it aligns to that link's own rendered column
+    /// instead, matching the column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires (issue #698)
     /// </summary>
     /// <param name="node">The chain node being laid out</param>
     /// <param name="model">The layout model</param>
-    /// <returns>The column for the chain's continuation lines</returns>
+    /// <returns>The column for the chain's leading continuation lines, up to the first invoked link</returns>
     private static int GetCommentExemptContinuationColumn(SyntaxNode node, LayoutModel model)
     {
         return LayoutComputer.GetAdjustedColumn(node.GetFirstToken(), model);
@@ -153,10 +158,22 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         if (ShouldKeepFirstWrappedCallOnContinuationLine(dots[0]))
         {
             var continuationColumn = GetCommentExemptContinuationColumn(node, model);
+            var passedFirstInvokedLink = false;
 
             foreach (var dot in dots)
             {
                 LayoutComputer.SetIfFirstOnLine(dot, continuationColumn, "MethodChainCommentExempt", model);
+
+                // Once the first invoked link is set (or, if it already shared a line with an
+                // earlier collected dot, resolved through that dot's now-final line), it becomes the
+                // anchor for every dot after it — the same "first invoked link" column RH5201 measures,
+                // rather than the chain-root column used up to this point (issue #698)
+                if (passedFirstInvokedLink == false
+                    && ChainWalker.IsInvokedLinkDot(dot))
+                {
+                    passedFirstInvokedLink = true;
+                    continuationColumn = LayoutComputer.GetAdjustedColumn(dot, model);
+                }
             }
 
             return;
