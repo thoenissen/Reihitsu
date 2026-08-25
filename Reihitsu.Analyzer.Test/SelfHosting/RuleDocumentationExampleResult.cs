@@ -1,3 +1,5 @@
+using Reihitsu.Analyzer.Test.SelfHosting.Enumerations;
+
 namespace Reihitsu.Analyzer.Test.SelfHosting;
 
 /// <summary>

@@ -1,4 +1,4 @@
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+namespace Reihitsu.Analyzer.Test.SelfHosting.Enumerations;
 
 /// <summary>
 /// Outcome of verifying a single rule document's violation/correction example

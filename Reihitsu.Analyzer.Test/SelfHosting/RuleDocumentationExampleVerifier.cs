@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.Test.SelfHosting.Enumerations;
+
 namespace Reihitsu.Analyzer.Test.SelfHosting;
 
 /// <summary>
