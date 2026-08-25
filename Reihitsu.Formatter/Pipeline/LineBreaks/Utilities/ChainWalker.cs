@@ -257,9 +257,11 @@ internal static class ChainWalker
 
     /// <summary>
     /// Determines whether a single chain dot token has an intermediate member access between
-    /// the dot and the chain root
+    /// the dot and the chain root. A postfix null-forgiving operator is checked the same way, through
+    /// its own operand, since <c>a.Prop!.Foo()</c> belongs to the same fluent chain the plain-dot check
+    /// keeps wrapped for <c>a.Prop.Foo()</c> (issue #719)
     /// </summary>
-    /// <param name="dotToken">The dot token from a member access expression</param>
+    /// <param name="dotToken">The dot or null-forgiving operator token from a chain link</param>
     /// <returns><see langword="true"/> if there is an intermediate member access; otherwise, <see langword="false"/></returns>
     public static bool DotHasIntermediateMemberAccess(SyntaxToken dotToken)
     {
@@ -267,6 +269,12 @@ internal static class ChainWalker
         {
             return memberAccess.Expression is MemberAccessExpressionSyntax
                    || memberAccess.Expression is ConditionalAccessExpressionSyntax;
+        }
+
+        if (dotToken.Parent is PostfixUnaryExpressionSyntax postfixUnary)
+        {
+            return postfixUnary.Operand is MemberAccessExpressionSyntax
+                   || postfixUnary.Operand is ConditionalAccessExpressionSyntax;
         }
 
         return false;

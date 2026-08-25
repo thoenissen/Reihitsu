@@ -3526,5 +3526,347 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped null-forgiving operator introducing a non-invoked prefix
+    /// (<c>!.Prop</c>) collapses onto the chain root line the same way a plain non-invoked prefix dot
+    /// does, and the following invoked links align to the resulting column (issue #719)
+    /// </summary>
+    [TestMethod]
+    public void WrappedNullForgivingNonInvokedPrefixCollapsesOntoChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         !.Prop
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a!.Prop
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the exact shape reported in issue #719: a comment above the chain's first invoked
+    /// link pins the chain at block indentation unless the earlier, uncommented, wrapped
+    /// null-forgiving prefix (<c>!.Prop</c>) is recognized as the collapse candidate — mirroring
+    /// <see cref="CommentAboveFirstInvokedLinkStillCollapsesWrappedPrefixDot"/> for a plain prefix dot
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveFirstInvokedLinkStillCollapsesWrappedNullForgivingPrefixDot()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         !.Prop
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a!.Prop
+
+                                                 // keep wrapped
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that only the chain's own first wrapped token collapses onto the root line when a
+    /// null-forgiving prefix is followed by a second, plain non-invoked prefix dot before a comment
+    /// above the first invoked link; the remaining prefix stays on its own line but aligns to the
+    /// anchor column, mirroring <see cref="CommentAboveFirstInvokedLinkCollapsesOnlyFirstOfTwoWrappedPrefixDots"/>
+    /// (issue #719)
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveFirstInvokedLinkCollapsesOnlyFirstOfTwoWrappedPrefixDotsWithNullForgivingPrefix()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         !.Prop
+                                         .Other
+                                         // keep wrapped
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a!.Prop
+                                                 .Other
+
+                                                 // keep wrapped
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped null-forgiving operator introducing a non-invoked prefix is refused as
+    /// a collapse candidate when its own receiver is another member access: <c>a.Prop1!.Prop2.Foo()</c>
+    /// is a fluent chain with an intermediate member access the same way <c>a.Prop1.Prop2.Foo()</c> is,
+    /// and both must stay wrapped rather than joining across the link. The candidate search never
+    /// reaches this <c>!</c> — it falls back to <c>.Foo</c>'s own dot, whose receiver <c>.Prop2</c> is
+    /// directly a member access — so this pins the plain <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax"/> arm
+    /// of <see cref="Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.ChainWalker.DotHasIntermediateMemberAccess"/>
+    /// staying correct once a null-forgiving link sits in the receiver chain; see
+    /// <see cref="WrappedNullForgivingInvokedLinkWithIntermediateMemberAccessStaysWrapped"/> for the
+    /// shape that pins the method's own <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.PostfixUnaryExpressionSyntax"/> arm (PR #721 retry)
+    /// </summary>
+    [TestMethod]
+    public void NullForgivingPrefixWithIntermediateMemberAccessStaysWrapped()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop1
+                                         !.Prop2
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop1
+                                                 !.Prop2
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped null-forgiving operator standing in for a directly-invoked link is
+    /// refused as a collapse candidate when its own operand is another member access: this is the one
+    /// shape the confined candidate search still hands to
+    /// <see cref="Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.ChainWalker.DotHasIntermediateMemberAccess"/>'s
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.PostfixUnaryExpressionSyntax"/> arm — the fallback to the chain's first invoked link
+    /// resolves to <c>!</c> itself here, because <c>!.Foo()</c> is the directly-invoked link — so it
+    /// pins that arm staying reachable and correct after the search was narrowed to fix a preflight
+    /// finding on PR #721
+    /// </summary>
+    [TestMethod]
+    public void WrappedNullForgivingInvokedLinkWithIntermediateMemberAccessStaysWrapped()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop1
+                                         !.Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop1
+                                                 !.Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped, non-invoked prefix dot behind an attached (unwrapped) null-forgiving
+    /// operator is refused as a collapse candidate on a second formatter pass the same way it is on
+    /// the first: the candidate search stays confined to the chain's own first spine token and never
+    /// advances past it to a later dot, so <c>a.Prop1!</c> collapsing onto <c>a</c> in one pass does
+    /// not newly expose <c>.Prop2</c> to a wrongful collapse across the intermediate <c>.Prop1</c>
+    /// access in the next (preflight finding for PR #721)
+    /// </summary>
+    [TestMethod]
+    public void WrappedDotBehindAttachedNullForgivingPrefixStaysStableAcrossPasses()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                         .Prop1!
+                                         .Prop2
+                                         .Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop1!
+                                                 .Prop2
+                                                 .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that a <c>#pragma</c> directive directly above a wrapped null-forgiving prefix leaves
+    /// every invoked link on its own line, mirroring
+    /// <see cref="PragmaAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
+    /// null-forgiving-prefix candidate class (PR #721)
+    /// </summary>
+    [TestMethod]
+    public void PragmaAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #pragma warning disable 1234
+                                         !.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #pragma warning disable 1234
+                                                !.Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verify that disabled text directly above a wrapped null-forgiving prefix leaves every invoked
+    /// link on its own line, mirroring
+    /// <see cref="DisabledTextAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
+    /// null-forgiving-prefix candidate class (PR #721)
+    /// </summary>
+    [TestMethod]
+    public void DisabledTextAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                             #if false
+                                     .Nope()
+                             #endif
+                                         !.Foo()
+                                         .Bar().Baz();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a
+                                #if false
+                                        .Nope()
+                                #endif
+                                                !.Foo()
+                                                .Bar()
+                                                .Baz();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

@@ -74,7 +74,9 @@ internal static class FluentChainAnalysisHelper
     }
 
     /// <summary>
-    /// Determines whether the first invoked chain link is preceded by intermediate member access
+    /// Determines whether the first invoked chain link is preceded by intermediate member access. A
+    /// null-forgiving operator is checked through its own operand the same way, since <c>a.Prop!.Foo()</c>
+    /// is the same intermediate-access shape as <c>a.Prop.Foo()</c> (PR #721)
     /// </summary>
     /// <param name="token">The chain link token</param>
     /// <returns><c>true</c> if intermediate member access precedes the invocation; otherwise <c>false</c></returns>
@@ -86,6 +88,8 @@ internal static class FluentChainAnalysisHelper
                                                                                         or ConditionalAccessExpressionSyntax,
                    ConditionalAccessExpressionSyntax conditionalAccess => conditionalAccess.Expression is MemberAccessExpressionSyntax
                                                                                                        or ConditionalAccessExpressionSyntax,
+                   PostfixUnaryExpressionSyntax postfixUnary => postfixUnary.Operand is MemberAccessExpressionSyntax
+                                                                                     or ConditionalAccessExpressionSyntax,
                    _ => false,
                };
     }

@@ -312,5 +312,112 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that RH5112 does not report when the first invoked link is introduced by a
+    /// null-forgiving operator whose own receiver is an intermediate member access, matching the
+    /// existing exemption for a plain dot in the same position (PR #721)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenNullForgivingLinkHasIntermediateMemberAccess()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static object Create(Builder builder)
+                                    {
+                                        return builder.Inner
+                                            !.UseLogging()
+                                            .Build();
+                                    }
+
+                                    private sealed class Builder
+                                    {
+                                        public Builder Inner
+                                        {
+                                            get
+                                            {
+                                                return this;
+                                            }
+                                        }
+
+                                        public Builder UseLogging()
+                                        {
+                                            return this;
+                                        }
+
+                                        public object Build()
+                                        {
+                                            return new object();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the intermediate-member-access boundary: RH5112 still reports, and
+    /// its code fix still converges, when the first invoked link is introduced by a null-forgiving
+    /// operator whose own receiver is <em>not</em> an intermediate member access (PR #721)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixWhenNullForgivingLinkHasNoIntermediateMemberAccess()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static object Create(Builder builder)
+                                    {
+                                        return builder
+                                            {|#0:!|}.UseLogging()
+                                            .Build();
+                                    }
+
+                                    private sealed class Builder
+                                    {
+                                        public Builder UseLogging()
+                                        {
+                                            return this;
+                                        }
+
+                                        public object Build()
+                                        {
+                                            return new object();
+                                        }
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal sealed class Example
+                                  {
+                                      private static object Create(Builder builder)
+                                      {
+                                          return builder!.UseLogging()
+                                                        .Build();
+                                      }
+
+                                      private sealed class Builder
+                                      {
+                                          public Builder UseLogging()
+                                          {
+                                              return this;
+                                          }
+
+                                          public object Build()
+                                          {
+                                              return new object();
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
     #endregion // Tests
 }
