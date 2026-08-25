@@ -268,9 +268,11 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// and this method only refuses the join: a dot whose own receiver is another member or
     /// conditional access belongs to a fluent chain that stays wrapped, and a comment, directive, or
     /// disabled text in the gap keeps the two tokens on separate lines. Checking one level of receiver
-    /// is enough: <see cref="FindFirstWrappedChainOperator"/> never hands this method a dot deeper than
-    /// the chain's own first spine token, so a hidden intermediate access further up the receiver
-    /// chain is never reachable here in the first place
+    /// is enough: the token this method receives is either the chain's own confined first-spine
+    /// candidate — whose receiver, if any, already contributed its own token to the alignment set
+    /// before this one, so a hidden deeper access there would already have surfaced as its own
+    /// candidate — or the first-invoked-link fallback, whose receiver is exactly the one level this
+    /// method inspects
     /// </summary>
     /// <param name="firstDot">The chain dot to collapse</param>
     /// <param name="replacements">The token replacement map to populate</param>

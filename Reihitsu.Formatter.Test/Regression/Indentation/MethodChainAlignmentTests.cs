@@ -3652,13 +3652,16 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a wrapped null-forgiving operator is refused as a collapse candidate when its own
-    /// receiver is another member access: <c>a.Prop1!.Prop2.Foo()</c> is a fluent chain with an
-    /// intermediate member access the same way <c>a.Prop1.Prop2.Foo()</c> is, and both must stay
-    /// wrapped rather than joining across the link (guard-delta for issue #719's widened candidate
-    /// search — <see cref="Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.ChainWalker.DotHasIntermediateMemberAccess"/>
-    /// now checks a null-forgiving operator's own operand the same way it already checked a plain
-    /// dot's receiver)
+    /// Verifies that a wrapped null-forgiving operator introducing a non-invoked prefix is refused as
+    /// a collapse candidate when its own receiver is another member access: <c>a.Prop1!.Prop2.Foo()</c>
+    /// is a fluent chain with an intermediate member access the same way <c>a.Prop1.Prop2.Foo()</c> is,
+    /// and both must stay wrapped rather than joining across the link. The candidate search never
+    /// reaches this <c>!</c> — it falls back to <c>.Foo</c>'s own dot, whose receiver <c>.Prop2</c> is
+    /// directly a member access — so this pins the plain <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax"/> arm
+    /// of <see cref="Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.ChainWalker.DotHasIntermediateMemberAccess"/>
+    /// staying correct once a null-forgiving link sits in the receiver chain; see
+    /// <see cref="WrappedNullForgivingInvokedLinkWithIntermediateMemberAccessStaysWrapped"/> for the
+    /// shape that pins the method's own <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.PostfixUnaryExpressionSyntax"/> arm (PR #721 retry)
     /// </summary>
     [TestMethod]
     public void NullForgivingPrefixWithIntermediateMemberAccessStaysWrapped()
@@ -3685,6 +3688,48 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                         var x = a.Prop1
                                                  !.Prop2
                                                  .Foo()
+                                                 .Bar();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped null-forgiving operator standing in for a directly-invoked link is
+    /// refused as a collapse candidate when its own operand is another member access: this is the one
+    /// shape the confined candidate search still hands to
+    /// <see cref="Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.ChainWalker.DotHasIntermediateMemberAccess"/>'s
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.PostfixUnaryExpressionSyntax"/> arm — the fallback to the chain's first invoked link
+    /// resolves to <c>!</c> itself here, because <c>!.Foo()</c> is the directly-invoked link — so it
+    /// pins that arm staying reachable and correct after the search was narrowed to fix a preflight
+    /// finding on PR #721
+    /// </summary>
+    [TestMethod]
+    public void WrappedNullForgivingInvokedLinkWithIntermediateMemberAccessStaysWrapped()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a.Prop1
+                                         !.Foo()
+                                         .Bar();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = a.Prop1
+                                                 !.Foo()
                                                  .Bar();
                                     }
                                 }
