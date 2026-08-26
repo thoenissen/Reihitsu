@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 /// <summary>
 /// Reflected code-fix provider metadata

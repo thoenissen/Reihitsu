@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.CodeFixes.Base;
 
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 /// <summary>
 /// Reflection-based discovery helpers for analyzer metadata validation
