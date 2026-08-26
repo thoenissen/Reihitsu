@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Test.SelfHosting.Enumerations;
 
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 /// <summary>
 /// Runs a rule document's violation/correction example against the shipped analyzer and code fix

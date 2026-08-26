@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Analyzer.Test.SelfHosting.Utilities;
+
 namespace Reihitsu.Analyzer.Test.SelfHosting;
 
 /// <summary>

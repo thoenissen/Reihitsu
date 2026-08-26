@@ -1,6 +1,6 @@
-using Reihitsu.Analyzer.Test.SelfHosting.Enumerations;
+﻿using Reihitsu.Analyzer.Test.SelfHosting.Enumerations;
 
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 /// <summary>
 /// Result of verifying a single rule document's violation/correction example

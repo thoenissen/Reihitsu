@@ -1,4 +1,4 @@
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+﻿namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 /// <summary>
 /// A parsed rule document violation/correction example pair

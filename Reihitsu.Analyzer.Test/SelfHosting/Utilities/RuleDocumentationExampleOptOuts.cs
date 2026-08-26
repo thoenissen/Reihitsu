@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 /// <summary>
 /// Rule documents whose <c>### Violation</c> / <c>### Correction</c> examples do not (yet) satisfy every
