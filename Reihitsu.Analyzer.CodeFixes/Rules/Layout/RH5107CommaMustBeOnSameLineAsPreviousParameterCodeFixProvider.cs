@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
@@ -40,18 +41,39 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Cod
             return document;
         }
 
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var token = root.FindToken(diagnosticSpan.Start);
+        var parameterList = token.Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
+
+        if (parameterList == null)
+        {
+            return document;
+        }
+
         var previousToken = token.GetPreviousToken();
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        // The continuation line must align under the parameter list's first parameter, not one column past the
+        // opening parenthesis: unlike RH5109's fix, this one never relocates the first parameter, so when it starts
+        // on its own line (a hanging indent), the parenthesis-derived column would be wrong for it.
+        var anchorToken = parameterList.Parameters[0].GetFirstToken();
+        var anchorLine = sourceText.Lines.GetLineFromPosition(anchorToken.SpanStart);
+        var anchorColumn = anchorToken.SpanStart - anchorLine.Start;
+
+        // The comma is being moved onto the previous line, so its own line's leading whitespace no longer has a
+        // reason to be preserved; replace it — together with the comma and any whitespace run following it — with
+        // the exact column the continuation line needs. The registration guard below has already established that
+        // nothing but whitespace can precede the comma on this line.
+        var commaLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
         var removalEnd = token.Span.End;
 
-        if (removalEnd < sourceText.Length
-            && sourceText[removalEnd] == ' ')
+        while (removalEnd < sourceText.Length
+               && (sourceText[removalEnd] == ' ' || sourceText[removalEnd] == '\t'))
         {
             removalEnd++;
         }
 
-        var updatedText = sourceText.Replace(TextSpan.FromBounds(token.SpanStart, removalEnd), string.Empty);
+        var updatedText = sourceText.Replace(TextSpan.FromBounds(commaLine.Start, removalEnd), new string(' ', anchorColumn));
+
         updatedText = updatedText.Replace(TextSpan.FromBounds(previousToken.Span.End, previousToken.Span.End), ",");
 
         return document.WithText(updatedText);
