@@ -766,7 +766,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
                                                  "a",
                                                  "b"
                                                  ]
-                                             }
+                                             };
                                  }
                              }
                              """;
@@ -784,7 +784,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
                                                             "a",
                                                             "b"
                                                         ]
-                                                }
+                                                };
                                     }
                                 }
                                 """;
