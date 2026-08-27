@@ -27,115 +27,17 @@ public abstract class FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Applies the formatter rule to the given source text using <see cref="Environment.NewLine"/>
-    /// </summary>
-    /// <param name="input">The source text to format</param>
-    /// <returns>The formatted source text</returns>
-    protected static string ApplyRule(string input)
-    {
-        return ApplyRule(input, Environment.NewLine);
-    }
-
-    /// <summary>
-    /// Applies the formatter rule to the given source text, threading the requested end-of-line
-    /// sequence through the pipeline so the chosen ending is honored verbatim
-    /// </summary>
-    /// <param name="input">The source text to format</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    /// <returns>The formatted source text</returns>
-    protected static string ApplyRule(string input, string endOfLine)
-    {
-        return ApplyRule(input, endOfLine, null);
-    }
-
-    /// <summary>
-    /// Applies the formatter rule with the requested end-of-line sequence and parse options. Fixtures
-    /// whose source carries conditional compilation pass the symbols they need here, so the
-    /// line-ending policy stays in this base instead of being restated per test class
-    /// </summary>
-    /// <param name="input">The source text to format</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
-    /// <returns>The formatted source text</returns>
-    protected static string ApplyRule(string input, string endOfLine, CSharpParseOptions parseOptions)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(endOfLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None);
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
     /// Applies the formatter rule and verifies both first-pass and second-pass results under both
     /// LF and CRLF line endings (issue #330)
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
-    protected static void AssertRuleResult(string input, string expected = null)
-    {
-        AssertRuleResult(input, expected, parseOptions: null);
-    }
-
-    /// <summary>
-    /// Applies the formatter rule with the given parse options and verifies both first-pass and
-    /// second-pass results under both LF and CRLF line endings (issue #330)
-    /// </summary>
-    /// <param name="input">The input source text</param>
-    /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
     /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
-    protected static void AssertRuleResult(string input, string expected, CSharpParseOptions parseOptions)
+    protected static void AssertRuleResult(string input, string expected = null, CSharpParseOptions parseOptions = null)
     {
         foreach (var endOfLine in _lineEndings)
         {
             AssertRuleResult(input, expected, endOfLine, parseOptions);
-        }
-    }
-
-    /// <summary>
-    /// Applies the formatter rule with the requested end-of-line sequence and verifies that the
-    /// output matches the expected text, uses the requested ending byte-for-byte, and is idempotent
-    /// </summary>
-    /// <param name="input">The input source text</param>
-    /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    protected static void AssertRuleResult(string input, string expected, string endOfLine)
-    {
-        AssertRuleResult(input, expected, endOfLine, null);
-    }
-
-    /// <summary>
-    /// Applies the formatter rule with the requested end-of-line sequence and parse options, and
-    /// verifies that the output matches the expected text, uses the requested ending byte-for-byte,
-    /// and is idempotent
-    /// </summary>
-    /// <param name="input">The input source text</param>
-    /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
-    protected static void AssertRuleResult(string input, string expected, string endOfLine, CSharpParseOptions parseOptions)
-    {
-        var normalizedInput = NormalizeLineEndings(input, endOfLine);
-        var endingName = DescribeLineEnding(endOfLine);
-
-        if (string.IsNullOrEmpty(expected))
-        {
-            var actual = ApplyRule(normalizedInput, endOfLine, parseOptions);
-
-            Assert.AreEqual(normalizedInput, actual, $"Formatter changed already-formatted source under {endingName} line endings.");
-            AssertUsesLineEnding(actual, endOfLine);
-        }
-        else
-        {
-            var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
-            var actual = ApplyRule(normalizedInput, endOfLine, parseOptions);
-
-            Assert.AreEqual(normalizedExpected, actual, $"Formatter output mismatch under {endingName} line endings.");
-            AssertUsesLineEnding(actual, endOfLine);
-
-            var actualSecondPass = ApplyRule(actual, endOfLine, parseOptions);
-
-            Assert.AreEqual(normalizedExpected, actualSecondPass, $"Formatter is not idempotent under {endingName} line endings.");
         }
     }
 
@@ -179,6 +81,59 @@ public abstract class FormatterTestsBase
     protected static string DescribeLineEnding(string endOfLine)
     {
         return endOfLine == "\n" ? "LF" : "CRLF";
+    }
+
+    /// <summary>
+    /// Applies the formatter rule with the requested end-of-line sequence and parse options, and
+    /// verifies that the output matches the expected text, uses the requested ending byte-for-byte,
+    /// and is idempotent
+    /// </summary>
+    /// <param name="input">The input source text</param>
+    /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>
+    /// <param name="endOfLine">The end-of-line sequence to format with</param>
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    private static void AssertRuleResult(string input, string expected, string endOfLine, CSharpParseOptions parseOptions)
+    {
+        var normalizedInput = NormalizeLineEndings(input, endOfLine);
+        var endingName = DescribeLineEnding(endOfLine);
+
+        if (string.IsNullOrEmpty(expected))
+        {
+            var actual = ApplyRule(normalizedInput, endOfLine, parseOptions);
+
+            Assert.AreEqual(normalizedInput, actual, $"Formatter changed already-formatted source under {endingName} line endings.");
+            AssertUsesLineEnding(actual, endOfLine);
+        }
+        else
+        {
+            var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
+            var actual = ApplyRule(normalizedInput, endOfLine, parseOptions);
+
+            Assert.AreEqual(normalizedExpected, actual, $"Formatter output mismatch under {endingName} line endings.");
+            AssertUsesLineEnding(actual, endOfLine);
+
+            var actualSecondPass = ApplyRule(actual, endOfLine, parseOptions);
+
+            Assert.AreEqual(normalizedExpected, actualSecondPass, $"Formatter is not idempotent under {endingName} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Applies the formatter rule with the requested end-of-line sequence and parse options. Fixtures
+    /// whose source carries conditional compilation pass the symbols they need here, so the
+    /// line-ending policy stays in this base instead of being restated per test class
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <param name="endOfLine">The end-of-line sequence to format with</param>
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    /// <returns>The formatted source text</returns>
+    private static string ApplyRule(string input, string endOfLine, CSharpParseOptions parseOptions = null)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
+        var context = new FormattingContext(endOfLine);
+        var result = FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None);
+
+        return result.ToFullString();
     }
 
     #endregion // Methods
