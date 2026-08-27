@@ -71,6 +71,68 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
     }
 
     /// <summary>
+    /// Reproduction test for issue #724: verifies that the code fix aligns the continuation parameter under the
+    /// first parameter (right after the opening parenthesis) when the original leading comma was indented one
+    /// column past that column, i.e. the issue's literal minimal reproducible example
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssue724OneColumnOffsetIsFixedCorrectly()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                               {|#0:,|}int second)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+    }
+
+    /// <summary>
+    /// Reproduction test for issue #724: verifies that the code fix aligns the continuation parameter under the
+    /// first parameter when the original leading comma sat only 4 spaces in, closer to the block's base
+    /// indentation, i.e. the issue's third reported example
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssue724BaseIndentationOffsetIsFixedCorrectly()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                {|#0:,|}int second)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that no diagnostic is reported and no fix is offered for the conditional-parameter shape from
     /// issue #409, where the comma sits between an <c>#if</c>/<c>#endif</c> pair guarding the next parameter: the
     /// formatter refuses to hoist the comma across the directive boundary, so the analyzer must not flag it (issue #444)
