@@ -61,6 +61,7 @@ Give direct, practical advice.
 - Use ` ```cs ` for code blocks.
 - Keep examples minimal but realistic.
 - Make the correction reflect the actual preferred style in this repository.
+- When a rule has a code fix and accepts several equally valid layouts, the `### Correction` fenced block must show exactly what the shipped code fix produces for the `### Violation` example — this is verified mechanically by `Reihitsu.Analyzer.Test/SelfHosting/RuleDocumentationExampleTests.cs`. Describe the other accepted-but-not-rewritten forms in prose (for example under "Description" or "How to fix it"), or in a separately labeled illustrative snippet outside the verified fence, instead of listing them inside `### Correction`.
 - If the rule has a code fix, mark **Code Fix** as `✓`; otherwise use `❌`.
 - Severity should normally be `Warning` unless the repository clearly uses something else.
 
