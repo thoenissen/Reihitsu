@@ -33,10 +33,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -60,10 +58,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -86,10 +82,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -117,10 +111,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -259,10 +251,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -463,10 +453,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     #endregion // Methods

@@ -85,10 +85,8 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>

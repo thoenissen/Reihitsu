@@ -337,10 +337,8 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -657,10 +655,8 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
