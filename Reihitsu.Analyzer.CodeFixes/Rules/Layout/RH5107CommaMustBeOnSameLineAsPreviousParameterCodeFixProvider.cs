@@ -17,9 +17,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// <summary>
 /// Code fix provider for <see cref="RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer"/>. The fix is withheld
 /// when the gap between the previous parameter and the comma contains a comment or a preprocessor directive, so
-/// hoisting the comma can never move it across a directive boundary and corrupt an undefined-symbol configuration.
-/// It is also withheld when the comma is the last non-whitespace content on its own line, because the continuation
-/// this rule reports on then sits on a further line the fix does not locate or realign
+/// hoisting the comma can never move it across a directive boundary and corrupt an undefined-symbol configuration
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider))]
@@ -54,25 +52,39 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Cod
         var previousToken = token.GetPreviousToken();
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        // The continuation line must align under the parameter list's first parameter's own column, not one column
-        // past the opening parenthesis (the formula RH5109's fix uses). The two anchors coincide whenever the first
-        // parameter immediately follows the opening parenthesis on the same line — the shape every reported example
-        // has — and diverge only when it does not; that remaining shape is already reported by RH5108 (parameter
-        // list must follow declaration) or normalized by the formatter's horizontal-spacing phase, so both anchors
-        // converge on the same formatted output for every shape this fix reaches.
-        var anchorToken = parameterList.Parameters[0].GetFirstToken();
-        var anchorLine = sourceText.Lines.GetLineFromPosition(anchorToken.SpanStart);
-        var anchorColumn = anchorToken.SpanStart - anchorLine.Start;
-
         // The comma is being moved onto the previous line, so its own line's leading whitespace no longer has a
-        // reason to be preserved; replace it — together with the comma and any whitespace run following it — with
-        // the exact column the continuation line needs. The analyzer only reports when this gap would join the
-        // previous parameter and the comma across a comment, a directive, or disabled text
+        // reason to be preserved. The analyzer only reports when this gap would join the previous parameter and the
+        // comma across a comment, a directive, or disabled text
         // (RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer's WouldJoinAcrossUnjoinableTrivia check), so
         // nothing but whitespace can ever precede the comma on this line for a reported diagnostic.
         var commaLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
         var removalEnd = SkipHorizontalWhitespace(sourceText, token.Span.End);
-        var updatedText = sourceText.Replace(TextSpan.FromBounds(commaLine.Start, removalEnd), new string(' ', anchorColumn));
+        SourceText updatedText;
+
+        if (removalEnd >= commaLine.End)
+        {
+            // Nothing but whitespace remains on the comma's line once the comma is gone: removing the whole line,
+            // line break included, avoids leaving a whitespace-only line behind. The element this diagnostic is
+            // about then sits on a further line whose own indentation is not this rule's concern — RH5107 only
+            // requires the comma to move, and no other rule ties a parameter's column to its predecessor's.
+            updatedText = sourceText.Replace(TextSpan.FromBounds(commaLine.Start, commaLine.EndIncludingLineBreak), string.Empty);
+        }
+        else
+        {
+            // Content remains on the comma's line after it (the next element, or a comment): replace the leading
+            // whitespace — together with the comma and any whitespace run following it — with the exact column
+            // the parameter list's first parameter starts at, not one column past the opening parenthesis (the
+            // formula RH5109's fix uses). The two anchors coincide whenever the first parameter immediately follows
+            // the opening parenthesis on the same line — the shape every reported example has — and diverge only
+            // when it does not; that remaining shape is already reported by RH5108 (parameter list must follow
+            // declaration) or normalized by the formatter's horizontal-spacing phase, so both anchors converge on
+            // the same formatted output for every shape this branch reaches.
+            var anchorToken = parameterList.Parameters[0].GetFirstToken();
+            var anchorLine = sourceText.Lines.GetLineFromPosition(anchorToken.SpanStart);
+            var anchorColumn = anchorToken.SpanStart - anchorLine.Start;
+
+            updatedText = sourceText.Replace(TextSpan.FromBounds(commaLine.Start, removalEnd), new string(' ', anchorColumn));
+        }
 
         updatedText = updatedText.Replace(TextSpan.FromBounds(previousToken.Span.End, previousToken.Span.End), ",");
 
@@ -122,8 +134,6 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Cod
             return;
         }
 
-        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
-
         foreach (var diagnostic in context.Diagnostics)
         {
             var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
@@ -131,16 +141,6 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Cod
             var guardSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
 
             if (SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, guardSpan))
-            {
-                continue;
-            }
-
-            // Nothing follows the comma on its own line but whitespace: the parameter this diagnostic is really
-            // about sits on a further line the fix does not locate, so applying it here would only turn the
-            // comma's line into a whitespace-only one without correcting the continuation's alignment.
-            var commaLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
-
-            if (SkipHorizontalWhitespace(sourceText, token.Span.End) >= commaLine.End)
             {
                 continue;
             }

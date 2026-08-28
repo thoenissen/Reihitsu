@@ -278,13 +278,13 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies that the diagnostic still fires but no fix is offered when the comma is the last non-whitespace
-    /// content on its own line: the continuation this rule reports on then sits on a further line the fix does not
-    /// locate, so applying it would only turn the comma's line into a whitespace-only one (issue #724)
+    /// Verifies that when the comma is the last non-whitespace content on its own line, the fix hoists it and
+    /// removes the now-empty line entirely instead of leaving a whitespace-only line behind, and leaves the
+    /// following line's own indentation untouched — aligning it is not this rule's concern (issue #724)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoCodeFixWhenCommaIsAloneOnItsLine()
+    public async Task VerifyEmptyLineIsRemovedWhenCommaIsAloneOnItsLine()
     {
         const string testData = """
                                 internal class TestClass
@@ -296,24 +296,17 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
                                     }
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class TestClass
-                                   {
-                                       void Method(int first
-                                   ,
-                                       int second)
-                                       {
-                                       }
-                                   }
-                                   """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                     int second)
+                                     {
+                                     }
+                                 }
+                                 """;
 
-        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                   RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId,
-                                                   root => GetFirstSeparatorLocation(root));
-
-        Assert.IsEmpty(actions);
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
     }
 
     /// <summary>
