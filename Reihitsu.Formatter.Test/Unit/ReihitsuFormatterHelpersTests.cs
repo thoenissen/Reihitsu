@@ -738,5 +738,35 @@ public class ReihitsuFormatterHelpersTests
         Assert.Contains("void Bar()", resultText, "Method declaration should still be present.");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.AdjustNodeIndentation"/> inserts new leading whitespace,
+    /// rather than dropping the offset, when a line that needs to move right currently starts at column zero and
+    /// carries no whitespace trivia at all for the loop to adjust (issue #725)
+    /// </summary>
+    [TestMethod]
+    public void AdjustNodeIndentationInsertsWhitespaceWhenLineStartsAtColumnZero()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                             {
+                             }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+        // Act
+        var result = ReihitsuFormatterHelpers.AdjustNodeIndentation(methodDecl, 4);
+        var resultText = result.ToFullString();
+
+        // Assert
+        Assert.Contains("\n    {\n    }", resultText, "The unindented brace lines should each gain 4 spaces of leading whitespace.");
+    }
+
     #endregion // Methods
 }

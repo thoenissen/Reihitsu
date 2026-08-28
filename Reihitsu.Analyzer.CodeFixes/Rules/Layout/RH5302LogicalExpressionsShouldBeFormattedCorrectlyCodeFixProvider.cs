@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -26,37 +29,59 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
     /// Applying code fix
     /// </summary>
     /// <param name="document">Document</param>
-    /// <param name="operatorToken">Operator token with diagnostics</param>
+    /// <param name="formattingNode">The outermost logical expression of the chain to reformat</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxToken operatorToken, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, BinaryExpressionSyntax formattingNode, CancellationToken cancellationToken)
     {
-        if (operatorToken.Parent is not BinaryExpressionSyntax binaryExpression)
-        {
-            return document;
-        }
+        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formattingNode, cancellationToken)
+                                      .ConfigureAwait(false);
+    }
 
-        var root = await document.GetSyntaxRootAsync(cancellationToken)
-                                 .ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
-
+    /// <summary>
+    /// Determines whether the operator token trails at the end of its left operand's last line, the shape that
+    /// requires moving a line break rather than only realigning the operator's own indentation
+    /// </summary>
+    /// <param name="binaryExpression">The binary expression whose operator is being checked</param>
+    /// <returns><see langword="true"/> if the operator immediately trails the left operand; otherwise, <see langword="false"/></returns>
+    private static bool IsTrailingOperator(BinaryExpressionSyntax binaryExpression)
+    {
         var leftLineSpan = binaryExpression.Left.SyntaxTree.GetLineSpan(binaryExpression.Left.Span);
-        var targetColumn = leftLineSpan.StartLinePosition.Character;
-        var newLeadingTrivia = default(SyntaxTriviaList);
+        var operatorLineSpan = binaryExpression.OperatorToken.SyntaxTree.GetLineSpan(binaryExpression.OperatorToken.Span);
 
-        foreach (var trivia in operatorToken.LeadingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false))
+        return operatorLineSpan.StartLinePosition.Line == leftLineSpan.EndLinePosition.Line;
+    }
+
+    /// <summary>
+    /// Walks up through enclosing logical <c>&amp;&amp;</c>/<c>||</c> expressions to find the outermost expression of
+    /// the chain, so a single fix reformats every operator in the chain instead of only the one that was reported
+    /// </summary>
+    /// <param name="binaryExpression">A binary expression within the chain</param>
+    /// <returns>The outermost logical expression of the chain</returns>
+    private static BinaryExpressionSyntax GetOutermostLogicalExpression(BinaryExpressionSyntax binaryExpression)
+    {
+        while (binaryExpression.Parent is BinaryExpressionSyntax parentBinary
+               && (parentBinary.IsKind(SyntaxKind.LogicalAndExpression) || parentBinary.IsKind(SyntaxKind.LogicalOrExpression)))
         {
-            newLeadingTrivia = newLeadingTrivia.Add(trivia);
+            binaryExpression = parentBinary;
         }
 
-        newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', targetColumn)));
-        root = root.ReplaceToken(operatorToken, operatorToken.WithLeadingTrivia(newLeadingTrivia));
+        return binaryExpression;
+    }
 
-        return document.WithSyntaxRoot(root);
+    /// <summary>
+    /// Determines whether any operator in the chain rooted at <paramref name="formattingNode"/> has a comment
+    /// directly above it. Reformatting the chain would carry the general-purpose formatting pipeline's own
+    /// blank-line placement around that comment along with the operator move, a side effect outside what this
+    /// diagnostic reports, so the fix withholds itself rather than risk relocating a user-authored comment
+    /// </summary>
+    /// <param name="formattingNode">The outermost logical expression of the chain</param>
+    /// <returns><see langword="true"/> if a comment sits directly above one of the chain's operators; otherwise, <see langword="false"/></returns>
+    private static bool ChainContainsCommentedOperator(BinaryExpressionSyntax formattingNode)
+    {
+        return formattingNode.DescendantNodesAndSelf()
+                             .OfType<BinaryExpressionSyntax>()
+                             .Any(expression => SyntaxTriviaUtilities.HasCommentDirectlyAbove(expression.OperatorToken));
     }
 
     #endregion // Methods
@@ -83,13 +108,28 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
             {
                 var operatorToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
 
-                if (operatorToken.Parent is BinaryExpressionSyntax)
+                if (operatorToken.Parent is not BinaryExpressionSyntax binaryExpression)
                 {
-                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5302Title,
-                                                              cancellationToken => ApplyCodeFixAsync(context.Document, operatorToken, cancellationToken),
-                                                              nameof(RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider)),
-                                            diagnostic);
+                    continue;
                 }
+
+                if (IsTrailingOperator(binaryExpression)
+                    && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(operatorToken, binaryExpression.Right.GetFirstToken()))
+                {
+                    continue;
+                }
+
+                var formattingNode = GetOutermostLogicalExpression(binaryExpression);
+
+                if (ChainContainsCommentedOperator(formattingNode))
+                {
+                    continue;
+                }
+
+                context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5302Title,
+                                                          cancellationToken => ApplyCodeFixAsync(context.Document, formattingNode, cancellationToken),
+                                                          nameof(RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider)),
+                                        diagnostic);
             }
         }
     }

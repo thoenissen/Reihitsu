@@ -51,5 +51,42 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyFormatterTests : 
                                  ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 13, 7, 15, AnalyzerResources.RH5302MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter moves trailing operators to the beginning of the continuation line, matching
+    /// the code fix, and remains stable on a second pass under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterMovesTrailingOperatorsAndIsIdempotent()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     var result = true &&
+                                         false ||
+                                         true;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         var result = true
+                                                      && false
+                                                      || true;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 27, 5, 29, AnalyzerResources.RH5302MessageFormat),
+                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 19, 6, 21, AnalyzerResources.RH5302MessageFormat));
+    }
+
     #endregion // Tests
 }
