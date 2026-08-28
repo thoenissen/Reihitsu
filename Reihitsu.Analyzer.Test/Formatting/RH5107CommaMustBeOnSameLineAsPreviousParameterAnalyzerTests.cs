@@ -259,16 +259,61 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
 
     /// <summary>
     /// Verifies that a tab following the comma is collapsed like any other whitespace, not just the single space
-    /// the previous implementation special-cased (issue #724)
+    /// the previous implementation special-cased, and that the fix preserves the document's carriage-return/
+    /// line-feed end-of-line style rather than introducing a bare line feed. Uses the raw-text code fix helper
+    /// instead of the markup verifier, because that verifier normalizes line endings during comparison and could
+    /// not actually fail on a dropped carriage return (issue #724)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyTabAfterCommaIsCollapsed()
+    public async Task VerifyTabAfterCommaIsCollapsedWithCarriageReturnLineFeedPreserved()
     {
-        const string testData = "internal class TestClass\r\n{\r\n    void Method(int first\r\n                {|#0:,|}\tint second)\r\n    {\r\n    }\r\n}";
-        const string fixedData = "internal class TestClass\r\n{\r\n    void Method(int first,\r\n                int second)\r\n    {\r\n    }\r\n}";
+        const string testData = "internal class TestClass\r\n{\r\n    void Method(int first\r\n                ,\tint second)\r\n    {\r\n    }\r\n}";
+        const string expectedFixedData = "internal class TestClass\r\n{\r\n    void Method(int first,\r\n                int second)\r\n    {\r\n    }\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
+        Assert.AreEqual(expectedFixedData, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic still fires but no fix is offered when the comma is the last non-whitespace
+    /// content on its own line: the continuation this rule reports on then sits on a further line the fix does not
+    /// locate, so applying it would only turn the comma's line into a whitespace-only one (issue #724)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenCommaIsAloneOnItsLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                {|#0:,|}
+                                    int second)
+                                    {
+                                    }
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first
+                                   ,
+                                       int second)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId,
+                                                   root => GetFirstSeparatorLocation(root));
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>
@@ -517,6 +562,34 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
                                                    RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId,
                                                    root => GetFirstSeparatorLocation(root),
                                                    "FEATURE");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported and no fix is offered when a comment sits on the comma's own line,
+    /// immediately before it — the exact region the code fix now widens its rewrite into when it hoists the comma
+    /// (issue #724)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticAndNoCodeFixWhenCommentPrecedesCommaOnSameLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                                /* note */, int second)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId,
+                                                   root => GetFirstSeparatorLocation(root));
 
         Assert.IsEmpty(actions);
     }
