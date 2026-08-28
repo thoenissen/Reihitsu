@@ -1360,10 +1360,8 @@ public class IndentationTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = input;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -1591,8 +1589,8 @@ public class IndentationTests : FormatterTestsBase
                                         if (_store.GetRepository<UserRecordRepository>()
                                                   .Refresh(item => item.Id == current.Id,
                                                            item => item.Token = string.IsNullOrWhiteSpace(token)
-                                                                       ? null
-                                                                       : token))
+                                                                                    ? null
+                                                                                    : token))
                                         {
                                         }
                                     }
@@ -1601,13 +1599,11 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic current;
                                 }
 
-                                class UserRecordRepository
-                                {
-                                }
+                                class UserRecordRepository;
                                 """;
 
         // Act & Assert
-        AssertRuleResult(input, ApplyRule(expected));
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -2656,7 +2652,7 @@ public class IndentationTests : FormatterTestsBase
                                 """;
 
         // Act & Assert
-        AssertRuleResult(input, ApplyRule(expected));
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
