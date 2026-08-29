@@ -41,7 +41,7 @@ internal static class UsingTrailingTriviaBuilder
         {
             var contentPrefix = StripTrailingLayoutTrivia(trailingTrivia);
 
-            if (EndsInUnterminatedSingleLineComment(contentPrefix) && StartsWithLineBreak(originalBlockTerminalTrivia) == false)
+            if (EndsInUnterminatedSingleLineComment(contentPrefix) && ContainsLineBreak(originalBlockTerminalTrivia) == false)
             {
                 return contentPrefix.Add(SyntaxFactory.EndOfLine(endOfLine)).AddRange(originalBlockTerminalTrivia);
             }
@@ -100,15 +100,18 @@ internal static class UsingTrailingTriviaBuilder
     }
 
     /// <summary>
-    /// Determines whether a trivia list begins with an end-of-line trivia. When the block's own
-    /// terminating trivia starts this way, appending it after an unterminated single-line comment already
-    /// closes that comment, so no additional line break needs to be inserted ahead of it
+    /// Determines whether a trivia list contains an end-of-line trivia anywhere in it. Callers pass the
+    /// block's own terminating trivia here, which <see cref="GetTrailingLayoutTrivia"/> guarantees
+    /// contains only whitespace and end-of-line trivia; anything ahead of its first end-of-line is
+    /// therefore whitespace, and re-parsing it directly after an unterminated single-line comment absorbs
+    /// that whitespace into the comment's own text the same way it would have absorbed it originally, so
+    /// the terminal trivia already closes the comment on its own without an additional inserted break
     /// </summary>
     /// <param name="trivia">Trivia list to inspect</param>
-    /// <returns><see langword="true"/> if the list begins with an end-of-line trivia; otherwise, <see langword="false"/></returns>
-    private static bool StartsWithLineBreak(SyntaxTriviaList trivia)
+    /// <returns><see langword="true"/> if the list contains an end-of-line trivia; otherwise, <see langword="false"/></returns>
+    private static bool ContainsLineBreak(SyntaxTriviaList trivia)
     {
-        return trivia.Count > 0 && trivia[0].IsKind(SyntaxKind.EndOfLineTrivia);
+        return trivia.Any(static item => item.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>

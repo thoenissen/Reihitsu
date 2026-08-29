@@ -217,6 +217,24 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that reordering a directive with a trailing single-line comment into the last position
+    /// does not duplicate the line break when the block's own terminator contains one that is not its
+    /// first trivia — trailing whitespace ahead of the terminator's own line break must not be mistaken
+    /// for a terminator that needs a manually inserted break of its own, which would otherwise insert a
+    /// spurious blank line and break idempotency (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void CommentOnDirectiveMovedToLastPositionDoesNotDuplicateALineBreakThatIsNotTheBlockTerminatorsFirstTrivia()
+    {
+        // Arrange
+        const string input = "using System.Linq; // keep\nusing System.Collections.Generic;  \n\nclass C;";
+        const string expected = "using System.Collections.Generic;  \nusing System.Linq; // keep  \n\nclass C;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that conditional directives skip reordering
     /// </summary>
     [TestMethod]
