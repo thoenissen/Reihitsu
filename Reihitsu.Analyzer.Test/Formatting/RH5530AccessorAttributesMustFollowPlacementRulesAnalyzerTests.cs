@@ -273,5 +273,84 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Ana
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the single-line span repair applies to indexers, not only ordinary properties — the
+    /// shared predicate is not property-specific, so an indexer combining a property-level attribute with a
+    /// single-line accessor attribute must be classified the same way (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSingleLineIndexerAccessorAttributeWithPropertyAttribute()
+    {
+        const string testData = """
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ExampleAttribute : System.Attribute
+                                {
+                                }
+                                internal class Example
+                                {
+                                    [Example]
+                                    internal int this[int index] { [First] get { return index; } set { } }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the single-line span repair applies to events with block-bodied single-line accessors. An
+    /// event's <c>Type</c> follows the <c>event</c> keyword, so an anchor built from the first modifier or type
+    /// token — rather than the first token after the last attribute list — would misclassify this shape
+    /// (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSingleLineEventAccessorAttributeWithPropertyAttribute()
+    {
+        const string testData = """
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ExampleAttribute : System.Attribute
+                                {
+                                }
+                                internal class Example
+                                {
+                                    [Example]
+                                    internal event System.EventHandler Changed { [First] add { } remove { } }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the single-line span repair applies to an interface property member, which carries no
+    /// modifiers at all. An anchor that assumes a first modifier token exists would misclassify this shape
+    /// (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSingleLineInterfaceMemberAccessorAttributeWithPropertyAttribute()
+    {
+        const string testData = """
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ExampleAttribute : System.Attribute
+                                {
+                                }
+                                internal interface IExample
+                                {
+                                    [Example]
+                                    int Value { [First] get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
