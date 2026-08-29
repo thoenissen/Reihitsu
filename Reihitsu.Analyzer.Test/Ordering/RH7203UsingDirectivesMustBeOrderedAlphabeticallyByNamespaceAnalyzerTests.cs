@@ -361,5 +361,26 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Reproduction for issue #728: verifies the separator between two same-group reordered usings is
+    /// preserved when the using block is the only content in the file (no following declaration)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UsingOnlyFileSameGroupReorderKeepsNewlineSeparator()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|#0:System.Collections.Generic|};
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
+    }
+
     #endregion // Tests
 }

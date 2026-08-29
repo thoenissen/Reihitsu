@@ -292,5 +292,27 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Reproduction for issue #728: verifies the blank line between two cross-group reordered usings is
+    /// preserved when the using block is the only content in the file (no following declaration)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UsingOnlyFileCrossGroupReorderKeepsBlankLineSeparator()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|#0:System.Linq|};
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 using Microsoft.Win32;
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat));
+    }
+
     #endregion // Tests
 }
