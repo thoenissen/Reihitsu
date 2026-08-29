@@ -426,6 +426,52 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a same-group reorder inside a file-scoped namespace whose using block is the last
+    /// content in the file still separates the reordered directives onto their own lines (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void FileScopedNamespaceUsingOnlyBlockKeepsSeparatorsWhenBlockEndsTheFile()
+    {
+        // Arrange
+        const string input = """
+                             namespace Example;
+
+                             using System.Linq;
+                             using System.Collections.Generic;
+                             """;
+        const string expected = """
+                                namespace Example;
+
+                                using System.Collections.Generic;
+                                using System.Linq;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a same-group reorder of global using directives that make up the whole file still
+    /// separates the reordered directives onto their own lines (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void GlobalUsingOnlyFileSameGroupReorderStaysOnSeparateLines()
+    {
+        // Arrange
+        const string input = """
+                             global using System.Linq;
+                             global using System.Collections.Generic;
+                             """;
+        const string expected = """
+                                global using System.Collections.Generic;
+                                global using System.Linq;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that attached comments remain with non-first namespace usings after reordering
     /// </summary>
     [TestMethod]

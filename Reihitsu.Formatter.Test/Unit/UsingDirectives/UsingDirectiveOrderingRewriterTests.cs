@@ -31,7 +31,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
                              using System.Linq;
                              using System;
                              """;
-        var expected = "using System;using System.Linq;" + Environment.NewLine;
+        var expected = $"using System;{Environment.NewLine}using System.Linq;";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));
@@ -48,7 +48,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
                              using L = System.Linq;
                              using C = System.Collections;
                              """;
-        var expected = "using C = System.Collections;using L = System.Linq;" + Environment.NewLine;
+        var expected = $"using C = System.Collections;{Environment.NewLine}using L = System.Linq;";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));
@@ -65,7 +65,86 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
                              using static System.Math;
                              using static System.Console;
                              """;
-        var expected = "using static System.Console;using static System.Math;" + Environment.NewLine;
+        var expected = $"using static System.Console;{Environment.NewLine}using static System.Math;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that cross-group usings without trivia and with no trailing content receive a blank-line
+    /// separator instead of a single line break, when the using block is the only content in the file (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void CrossGroupUsingsWithoutTriviaAreReordered()
+    {
+        // Arrange
+        const string input = """
+                             using MyProject.Common;
+                             using System;
+                             """;
+        var expected = $"using System;{Environment.NewLine}{Environment.NewLine}using MyProject.Common;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that the block's own terminating line break survives a reorder that moves the originally
+    /// last directive away from the last position (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void RegularUsingsWithoutTriviaButWithTerminatingNewlineKeepTheNewline()
+    {
+        // Arrange
+        const string input = "using System.Linq;\nusing System;\n";
+        var expected = $"using System;{Environment.NewLine}using System.Linq;{Environment.NewLine}";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a trailing line comment on the originally last directive is not silently absorbed
+    /// into the next reordered directive when the block has no terminating newline (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void TrailingCommentOnLastDirectiveIsNotAbsorbedIntoNextDirectiveAfterReorder()
+    {
+        // Arrange
+        const string input = "using System.Linq;\nusing System.Collections.Generic; // tail";
+        var expected = $"using System.Collections.Generic; // tail{Environment.NewLine}using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a leading comment attached to a moved directive starts its own line rather than
+    /// joining the line of a predecessor whose own trailing trivia carried no line break (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommentAfterTerminatingNewlineLessPredecessorStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = "using System.One;\n// note\nusing System.Zeta;\nusing System.Two;";
+        var expected = $"using System.One;{Environment.NewLine}using System.Two;{Environment.NewLine}// note{Environment.NewLine}using System.Zeta;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a reorder which leaves the originally last, terminating-newline-less directive in
+    /// the last position produces the same output as before the fix, since no directive's terminal
+    /// trailing trivia moves (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void TerminatingNewlineLessDirectiveThatStaysLastAfterReorderIsUnaffected()
+    {
+        // Arrange
+        const string input = "using System.Linq;\nusing System.Collections.Generic;\nusing System.Xml;";
+        var expected = $"using System.Collections.Generic;{Environment.NewLine}using System.Linq;{Environment.NewLine}using System.Xml;";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));
