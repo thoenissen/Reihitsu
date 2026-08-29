@@ -25,7 +25,7 @@ public static class AttributeTargetUtilities
     {
         return attributeList.Parent is AccessorDeclarationSyntax accessorDeclaration
                && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
-               && SyntaxNodeUtilities.IsSingleLine(basePropertyDeclaration);
+               && SyntaxNodeUtilities.IsSingleLineExcludingAttributeLists(basePropertyDeclaration);
     }
 
     /// <summary>

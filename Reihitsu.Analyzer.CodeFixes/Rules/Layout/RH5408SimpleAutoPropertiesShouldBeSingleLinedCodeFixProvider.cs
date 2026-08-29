@@ -54,6 +54,26 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     }
 
     /// <summary>
+    /// Determines whether any accessor in the accessor list carries its own attribute list. Mirrors the
+    /// analyzer's identical guard so the code fix never registers for a diagnostic the analyzer no longer
+    /// reports
+    /// </summary>
+    /// <param name="accessorList">The accessor list to inspect</param>
+    /// <returns><see langword="true"/> if at least one accessor carries an attribute list; otherwise, <see langword="false"/></returns>
+    private static bool HasAttributedAccessor(AccessorListSyntax accessorList)
+    {
+        foreach (var accessor in accessorList.Accessors)
+        {
+            if (accessor.AttributeLists.Count > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether the formatter can safely collapse the auto-property to a single line
     /// </summary>
     /// <param name="propertyDeclaration">The property declaration to inspect</param>
@@ -62,6 +82,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     {
         return propertyDeclaration.AccessorList != null
                && propertyDeclaration.AccessorList.Accessors.All(static accessor => accessor.Body == null && accessor.ExpressionBody == null)
+               && HasAttributedAccessor(propertyDeclaration.AccessorList) == false
                && IsSignatureCollapsible(propertyDeclaration)
                && IsInitializerCollapsible(propertyDeclaration);
     }

@@ -169,6 +169,26 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether any accessor in the accessor list carries its own attribute list. Mirrors
+    /// <c>RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.HasAttributedAccessor</c>: such a property is no
+    /// longer simple, and its accessor attribute layout belongs to RH5530/RH5531 instead
+    /// </summary>
+    /// <param name="accessorList">The accessor list to inspect</param>
+    /// <returns><see langword="true"/> if at least one accessor carries an attribute list; otherwise, <see langword="false"/></returns>
+    private static bool HasAttributedAccessor(AccessorListSyntax accessorList)
+    {
+        foreach (var accessor in accessorList.Accessors)
+        {
+            if (accessor.AttributeLists.Count > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Collapses a multi-line auto-property accessor list to a single line
     /// </summary>
     /// <param name="node">The property declaration with an auto-property accessor list</param>
@@ -298,6 +318,17 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.AccessorList != null)
         {
+            // An attribute on an accessor makes the auto-property no longer simple: RH5530/RH5531 own that
+            // accessor's attribute layout instead, so the property is returned unchanged rather than routed
+            // into either arm below. Returning false from CanCollapseAutoPropertyToSingleLine alone would not
+            // be enough here — it would hand the shape to NormalizeOwnedBraces, whose decision (force the
+            // brace, first accessor, and closing brace onto separate lines) is strictly wider than the
+            // collapse it replaces and would force a single-line declaration apart (issue #729).
+            if (LineBreakDetection.IsAutoPropertyAccessorList(node.AccessorList) && HasAttributedAccessor(node.AccessorList))
+            {
+                return node;
+            }
+
             // Collapsing is the only branch specific to an auto-property accessor list; every other
             // accessor list, auto or not, gets the shared brace normalization.
             node = LineBreakDetection.ShouldNormalizeAccessorListBraces(node.AccessorList) == false && CanCollapseAutoPropertyToSingleLine(node)

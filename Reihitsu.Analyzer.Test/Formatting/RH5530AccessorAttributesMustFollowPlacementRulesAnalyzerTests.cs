@@ -104,6 +104,83 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that a single-line accessor attribute remains valid even when the property also carries a
+    /// property-level attribute on its own line. Before the span repair, the shared single-line predicate
+    /// counted the property attribute's own line and misclassified the declaration as multi-line, wrongly
+    /// forcing this compliant accessor attribute apart (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSingleLinePropertyAccessorAttributeWithPropertyAttribute()
+    {
+        const string testData = """
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ExampleAttribute : System.Attribute
+                                {
+                                }
+                                internal class Example
+                                {
+                                    [Example]
+                                    internal int Value { [First] get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a property-level attribute does not exempt a genuinely multi-line property from the
+    /// separate-line placement rule for its own accessor attributes — the span repair only excludes the
+    /// property's own attribute lists, not the accessor list that still spans multiple lines (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForPolicyViolationWithPropertyAttribute()
+    {
+        const string testData = """
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ExampleAttribute : System.Attribute
+                                {
+                                }
+                                internal class Example
+                                {
+                                    [Example]
+                                    internal int Value
+                                    {
+                                        {|#0:[First]|} get;
+                                        set;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ExampleAttribute : System.Attribute
+                                 {
+                                 }
+                                 internal class Example
+                                 {
+                                     [Example]
+                                     internal int Value
+                                     {
+                                         [First]
+                                         get;
+                                         set;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that method attributes are not handled by this accessor rule
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

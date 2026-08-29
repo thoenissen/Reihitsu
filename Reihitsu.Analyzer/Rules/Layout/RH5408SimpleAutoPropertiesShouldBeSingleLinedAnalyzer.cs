@@ -86,6 +86,26 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
     }
 
     /// <summary>
+    /// Determines whether any accessor in the accessor list carries its own attribute list. Such a property is
+    /// no longer simple: RH5530 and RH5531 own the accessor's attribute layout instead, and forcing the
+    /// declaration onto one line would fight whichever layout those rules already produce for it
+    /// </summary>
+    /// <param name="accessorList">The accessor list to inspect</param>
+    /// <returns><see langword="true"/> if at least one accessor carries an attribute list; otherwise, <see langword="false"/></returns>
+    private static bool HasAttributedAccessor(AccessorListSyntax accessorList)
+    {
+        foreach (var accessor in accessorList.Accessors)
+        {
+            if (accessor.AttributeLists.Count > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether the given property can be collapsed to a single line without losing readability
     /// </summary>
     /// <param name="propertyDeclaration">The property declaration to inspect</param>
@@ -93,6 +113,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
     private static bool IsEligibleSimpleAutoProperty(PropertyDeclarationSyntax propertyDeclaration)
     {
         return propertyDeclaration.AccessorList != null
+               && HasAttributedAccessor(propertyDeclaration.AccessorList) == false
                && IsSignatureCollapsible(propertyDeclaration)
                && IsInitializerCollapsible(propertyDeclaration);
     }
