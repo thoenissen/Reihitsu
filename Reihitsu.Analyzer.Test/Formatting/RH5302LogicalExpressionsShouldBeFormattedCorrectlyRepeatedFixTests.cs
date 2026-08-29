@@ -19,7 +19,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests 
 
     /// <summary>
     /// Reproduces the issue's scenario: a single application of the code fix must resolve every trailing
-    /// operator in the chain, and a second application on the already-fixed source must be a no-op
+    /// operator in the chain, leaving no RH5302 diagnostic behind for a second application to act on
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

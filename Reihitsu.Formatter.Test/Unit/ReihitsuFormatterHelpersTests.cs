@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -766,6 +768,37 @@ public class ReihitsuFormatterHelpersTests
 
         // Assert
         Assert.Contains("\n    {\n    }", resultText, "The unindented brace lines should each gain 4 spaces of leading whitespace.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.AdjustNodeIndentation"/> does not insert leading
+    /// whitespace for a node's own first token when that token is not genuinely preceded by a real end-of-line
+    /// — only forced to look like a line start by the first-token special case — while a later token that is
+    /// genuinely preceded by one still gains the offset (issue #725 preflight finding 3)
+    /// </summary>
+    [TestMethod]
+    public void AdjustNodeIndentationDoesNotInsertWhitespaceForFirstTokenNotGenuinelyAfterEndOfLine()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {void Bar()
+                             {
+                             }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+        // Act
+        var result = ReihitsuFormatterHelpers.AdjustNodeIndentation(methodDecl, 4);
+        var resultText = result.ToFullString();
+
+        // Assert
+        Assert.IsTrue(resultText.StartsWith("void Bar()", StringComparison.Ordinal), "The first token is not genuinely preceded by an end-of-line, so it must gain no leading whitespace.");
+        Assert.Contains("\n    {\n    }", resultText, "Tokens that are genuinely preceded by an end-of-line still gain the offset.");
     }
 
     #endregion // Methods

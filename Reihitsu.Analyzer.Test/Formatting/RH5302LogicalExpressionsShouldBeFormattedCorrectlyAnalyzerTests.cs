@@ -1,8 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -323,6 +321,76 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : A
                                         var a = condition1
                                             // comment
                                             && condition2;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<BinaryExpressionSyntax>()
+                                                               .Single()
+                                                               .OperatorToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that no code action is registered when an own-line comment sits above a right operand rather
+    /// than above any operator — reformatting the whole chain would still carry the formatting pipeline's
+    /// unrelated blank-line placement along with the operator move, even though neither operator's own leading
+    /// trivia carries the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOwnLineCommentAboveOperandIsNotFixed()
+    {
+        const string testData = """
+                                internal class RH5302
+                                {
+                                    void Run(bool a, bool b, bool c)
+                                    {
+                                        if (a &&
+                                            // note
+                                            b ||
+                                            c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<BinaryExpressionSyntax>()
+                                                               .First(expression => expression.OperatorToken.Text == "||")
+                                                               .OperatorToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that no code action is registered when a preprocessor directive sits between the operator and
+    /// its right operand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOperatorFollowedByDirectiveIsNotFixed()
+    {
+        const string testData = """
+                                internal class RH5302
+                                {
+                                    void Run(bool condition1, bool condition2)
+                                    {
+                                        if (condition1 &&
+                                #region Note
+                                            condition2)
+                                #endregion
+                                        {
+                                        }
                                     }
                                 }
                                 """;
