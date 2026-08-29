@@ -151,6 +151,39 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that a reorder does not force a line break between directives whose block never had one
+    /// to begin with, so the block stays on the one physical line it was authored on (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void DirectivesSharingOneLineWithNoLineBreakAnywhereInTheBlockStayOnThatLine()
+    {
+        // Arrange
+        const string input = "namespace N { using System.Linq; using System.Collections.Generic; }";
+        const string expected = "namespace N { using System.Collections.Generic; using System.Linq; }";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that reordering a directive into the last position, where the block's own closing brace
+    /// shares its line, preserves the space before that brace instead of gluing the directive to it
+    /// (issue #728). The five-space gap after the first directive is a pre-existing, unrelated quirk of
+    /// this phase's leading-trivia indentation extraction on a directive that no longer starts a fresh
+    /// line, not a defect this fix introduces or is responsible for correcting
+    /// </summary>
+    [TestMethod]
+    public void LastDirectiveSharingItsLineWithTheClosingBraceKeepsTheSpaceBeforeIt()
+    {
+        // Arrange
+        const string input = "namespace N\n{\n    using System.Linq;\n    using System.Collections.Generic; }";
+        const string expected = "namespace N\n{\n    using System.Collections.Generic;     using System.Linq; }";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that conditional directives skip reordering
     /// </summary>
     [TestMethod]
