@@ -366,6 +366,54 @@ public class SyntaxNodeUtilitiesTests
                                                                                                     """)));
     }
 
+    /// <summary>
+    /// Verifies that a property with no attribute lists at all is single line when written on one line
+    /// </summary>
+    [TestMethod]
+    public void IsSingleLineExcludingAttributeListsReturnsTrueForUnattributedSingleLineProperty()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.IsSingleLineExcludingAttributeLists(GetPropertyDeclaration("public int Value { get; set; }")));
+    }
+
+    /// <summary>
+    /// Verifies that a property-level attribute on its own line does not make an otherwise single-line
+    /// declaration look multi-line, which is the defect this predicate exists to close
+    /// </summary>
+    [TestMethod]
+    public void IsSingleLineExcludingAttributeListsReturnsTrueWhenOnlyThePropertyAttributeIsOnItsOwnLine()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.IsSingleLineExcludingAttributeLists(GetPropertyDeclaration("""
+                                                                                                     [Example]
+                                                                                                     public int Value { get; set; }
+                                                                                                     """)));
+    }
+
+    /// <summary>
+    /// Verifies that a property whose declaration proper genuinely spans multiple lines is still reported as
+    /// multi-line, even with a property-level attribute on its own line above it
+    /// </summary>
+    [TestMethod]
+    public void IsSingleLineExcludingAttributeListsReturnsFalseForGenuinelyMultiLineDeclaration()
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.IsSingleLineExcludingAttributeLists(GetPropertyDeclaration("""
+                                                                                                      [Example]
+                                                                                                      public int Value
+                                                                                                      {
+                                                                                                          get;
+                                                                                                          set;
+                                                                                                      }
+                                                                                                      """)));
+    }
+
+    /// <summary>
+    /// Verifies that a missing property declaration is not single line instead of throwing
+    /// </summary>
+    [TestMethod]
+    public void IsSingleLineExcludingAttributeListsReturnsFalseForMissingNode()
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.IsSingleLineExcludingAttributeLists(null));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -393,6 +441,28 @@ public class SyntaxNodeUtilitiesTests
         return CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n" + source)
                                    .DescendantNodes()
                                    .OfType<AttributeListSyntax>()
+                                   .First();
+    }
+
+    /// <summary>
+    /// Parses the source and returns the first property declaration found in a wrapping class
+    /// </summary>
+    /// <param name="propertyDeclaration">Property declaration source text</param>
+    /// <returns>The property declaration</returns>
+    private static PropertyDeclarationSyntax GetPropertyDeclaration(string propertyDeclaration)
+    {
+        var source = $$"""
+                       internal class ExampleAttribute : System.Attribute;
+
+                       internal class TestClass
+                       {
+                       {{propertyDeclaration}}
+                       }
+                       """;
+
+        return CoreSyntaxTestHelper.ParseCompilationUnit(source)
+                                   .DescendantNodes()
+                                   .OfType<PropertyDeclarationSyntax>()
                                    .First();
     }
 

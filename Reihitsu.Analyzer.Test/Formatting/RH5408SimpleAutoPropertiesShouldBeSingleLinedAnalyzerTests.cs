@@ -162,11 +162,13 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifying that a multi-line auto-property with accessor attributes is detected and fixed
+    /// Verifying that a multi-line auto-property with accessor attributes is not flagged, because an accessor
+    /// carrying its own attribute list is no longer considered simple — its layout belongs to RH5530/RH5531
+    /// instead, and RH5408 must not force it onto one line (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyAccessorAttributedAutoPropertyIsDetectedAndFixed()
+    public async Task VerifyAccessorAttributedAutoPropertyIsNotFlagged()
     {
         const string testData = """
                                 sealed class TestAttribute : System.Attribute
@@ -175,29 +177,112 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
 
                                 internal class RH5408
                                 {
-                                    {|#0:public int Value
+                                    public int Value
                                     {
                                         [Test]
                                         get;
                                         [Test]
                                         set;
-                                    }|}
+                                    }
                                 }
                                 """;
-        const string fixedData = """
-                                 sealed class TestAttribute : System.Attribute
-                                 {
-                                 }
 
-                                 internal class RH5408
-                                 {
-                                     public int Value { [Test] get; [Test] set; }
-                                 }
-                                 """;
+        await Verify(testData);
+    }
 
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+    /// <summary>
+    /// Verifying that a multi-line auto-property combining a property-level attribute with accessor-level
+    /// attributes is not flagged. This is the issue's exact reported shape: the shipped code fix could not
+    /// converge on it because the analyzer kept reporting the same location after every fix application
+    /// (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPropertyAndAccessorAttributedAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                sealed class TestAttribute : System.Attribute
+                                {
+                                }
+
+                                internal class RH5408
+                                {
+                                    [Test]
+                                    public int Value
+                                    {
+                                        [Test]
+                                        get;
+                                        [Test]
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a multi-line auto-property is not flagged when only one of its two accessors carries an
+    /// attribute list, so the exemption applies per accessor list rather than requiring every accessor to carry
+    /// one (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleAttributedAccessorAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                sealed class TestAttribute : System.Attribute
+                                {
+                                }
+
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        [Test]
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix action is registered for an auto-property carrying an accessor-level
+    /// attribute, so a diagnostic from an earlier analyzer version or a stale IDE session is never offered a
+    /// fix that would force the accessor-attributed shape onto one line (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAccessorAttributedAutoPropertyIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   sealed class TestAttribute : System.Attribute
+                                   {
+                                   }
+
+                                   internal class RH5408
+                                   {
+                                       public int Value
+                                       {
+                                           [Test]
+                                           get;
+                                           [Test]
+                                           set;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>

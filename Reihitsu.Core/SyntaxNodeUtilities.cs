@@ -3,6 +3,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
@@ -204,6 +205,38 @@ public static class SyntaxNodeUtilities
     public static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
     {
         return CoversSingleLine(syntaxTree.GetLineSpan(span));
+    }
+
+    /// <summary>
+    /// Determines whether a property, indexer, or event declaration is single line once its own attribute
+    /// lists are excluded from the measured span. <see cref="IsSingleLine(SyntaxNode)"/> measures
+    /// <see cref="SyntaxNode.Span"/>, which starts at the first attribute list, so a declaration whose
+    /// property-level attribute occupies a line of its own is otherwise misclassified as multi-line even when
+    /// the declaration proper occupies exactly one line
+    /// </summary>
+    /// <param name="basePropertyDeclaration">The property, indexer, or event declaration to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the declaration is single line once its own attribute lists are excluded;
+    /// otherwise <see langword="false"/>
+    /// </returns>
+    public static bool IsSingleLineExcludingAttributeLists(BasePropertyDeclarationSyntax basePropertyDeclaration)
+    {
+        if (basePropertyDeclaration?.SyntaxTree == null)
+        {
+            return false;
+        }
+
+        var attributeLists = basePropertyDeclaration.AttributeLists;
+        var startToken = attributeLists.Count == 0
+                             ? basePropertyDeclaration.GetFirstToken()
+                             : attributeLists[attributeLists.Count - 1].GetLastToken().GetNextToken();
+
+        if (startToken.IsKind(SyntaxKind.None))
+        {
+            return false;
+        }
+
+        return IsSingleLineSpan(basePropertyDeclaration.SyntaxTree, TextSpan.FromBounds(startToken.SpanStart, basePropertyDeclaration.Span.End));
     }
 
     /// <summary>

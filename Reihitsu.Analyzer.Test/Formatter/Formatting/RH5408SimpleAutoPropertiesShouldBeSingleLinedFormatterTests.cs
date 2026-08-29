@@ -108,38 +108,105 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     }
 
     /// <summary>
-    /// Verifies that the formatter collapses a multi-line accessor-attributed auto-property to one line
+    /// Verifies that the formatter leaves a multi-line accessor-attributed auto-property exactly as written,
+    /// because an accessor carrying its own attribute list is no longer simple and RH5408 must not force it
+    /// onto one line (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterFixesAccessorAttributedAutoProperty()
+    public async Task VerifyFormatterLeavesAccessorAttributedAutoPropertyAsWritten()
     {
         const string input = """
                              sealed class TestAttribute : System.Attribute;
 
                              internal class Example
                              {
-                                 {|#0:internal int Value
+                                 internal int Value
                                  {
                                      [Test]
                                      get;
                                      [Test]
                                      set;
-                                 }|}
+                                 }
                              }
                              """;
-        const string fixedData = """
-                                 sealed class TestAttribute : System.Attribute;
 
-                                 internal class Example
+        await VerifyFormatterStability(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves the issue's exact reported shape — a property-level attribute
+    /// combined with accessor-level attributes, written multi-line — exactly as written under LF and CRLF, and
+    /// stable on a second pass. This is the shape the shipped code fix could not converge on before the fix
+    /// (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterLeavesPropertyAndAccessorAttributedAutoPropertyAsWritten()
+    {
+        const string input = """
+                             sealed class TestAttribute : System.Attribute;
+
+                             internal class Example
+                             {
+                                 [Test]
+                                 internal int Value
                                  {
-                                     internal int Value { [Test] get; [Test] set; }
+                                     [Test]
+                                     get;
+                                     [Test]
+                                     set;
                                  }
-                                 """;
+                             }
+                             """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+        await VerifyFormatterStability(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter never routes a single-line accessor-attributed auto-property into the
+    /// Allman brace-normalization branch. A guard that merely refuses to collapse (rather than bypassing both
+    /// branches) would force this already-correct single-line declaration apart — precisely the forced
+    /// multi-line expansion this fix must not reintroduce (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsSingleLineAccessorAttributedAutoPropertyStable()
+    {
+        const string input = """
+                             sealed class TestAttribute : System.Attribute;
+
+                             internal class Example
+                             {
+                                 internal int Value { [Test] get; [Test] set; }
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter keeps a single-line auto-property stable when it combines a property-level
+    /// attribute on its own line with accessor-level attributes inline. Before the span repair, the shared
+    /// single-line predicate wrongly counted the property attribute's own line and treated the declaration as
+    /// multi-line, which made RH5530 tear the accessor attributes apart on a document RH5408 never touched
+    /// (issue #729)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsSinglePropertyAndAccessorAttributedAutoPropertyStable()
+    {
+        const string input = """
+                             sealed class TestAttribute : System.Attribute;
+
+                             internal class Example
+                             {
+                                 [Test]
+                                 internal int Value { [Test] get; [Test] set; }
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
     }
 
     /// <summary>

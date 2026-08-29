@@ -611,10 +611,12 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-property with accessor attributes collapses to one line
+    /// Verifies that a multi-line auto-property with accessor attributes is left exactly as written. An
+    /// accessor carrying its own attribute list is no longer simple, so RH5408's collapse must not force it
+    /// onto one line (issue #729)
     /// </summary>
     [TestMethod]
-    public void CollapsesAccessorAttributedAutoPropertyToSingleLine()
+    public void LeavesAccessorAttributedAutoPropertyAsWritten()
     {
         // Arrange
         const string input = """
@@ -638,7 +640,17 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert
-        Assert.Contains("public int Prop { [Test] get; [Test] set; }", result, "Accessor-attributed auto-property should be on one line.");
+        Assert.Contains("""
+                        public int Prop
+                            {
+                                [Test]
+                                get;
+                                [Test]
+                                set;
+                            }
+                        """,
+                        result,
+                        "Accessor-attributed auto-property should be left multi-line, as written.");
     }
 
     /// <summary>
