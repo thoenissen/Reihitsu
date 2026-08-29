@@ -184,6 +184,39 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that reordering a directive with a trailing single-line comment into the last position,
+    /// where the block's own terminator has no line break of its own, still terminates that comment
+    /// instead of letting it absorb whatever the transplanted block terminator appends after it
+    /// (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void CommentOnDirectiveMovedToLastPositionIsTerminatedBeforeTheBlockTerminatorIsAppended()
+    {
+        // Arrange
+        const string input = "namespace N { using System.Linq; // keep\nusing System.Collections.Generic; }";
+        const string expected = "namespace N { using System.Collections.Generic; using System.Linq; // keep\n }";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that reordering a directive with a trailing single-line comment into the last position
+    /// does not duplicate the line break when the block's own terminator already starts with one, which
+    /// would otherwise insert a spurious blank line (issue #728)
+    /// </summary>
+    [TestMethod]
+    public void CommentOnDirectiveMovedToLastPositionDoesNotDuplicateAnAlreadyPresentBlockTerminatorLineBreak()
+    {
+        // Arrange
+        const string input = "using global::SYSTEM.Text; // Keep with the case variant\nusing System.Text;\n\nclass C;";
+        const string expected = "using System.Text;\n\nusing global::SYSTEM.Text; // Keep with the case variant\n\nclass C;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that conditional directives skip reordering
     /// </summary>
     [TestMethod]

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -8,12 +8,13 @@ namespace Reihitsu.Formatter.Pipeline.UsingDirectives.Utilities;
 /// The trailing-trivia reconstruction half of the using-directive ordering phase. Reordering carries
 /// each directive's original trailing trivia along with its node, but that trivia was authored for the
 /// directive's old neighbor. It only becomes wrong when the old neighbor relationship it encodes cannot
-/// safely carry over — a directive whose trailing trivia is empty or ends in an unterminated single-line
-/// comment glues onto whatever now follows it, or a directive that inherits the block's own closing
-/// shape needs that shape transplanted rather than reduced to a single flag. Every other shape —
-/// trailing whitespace, an existing line break, a self-terminating block comment — already separates the
-/// directive from its neighbor and is left untouched, so a block whose directives originally shared one
-/// physical line stays on that line after reordering
+/// safely carry over: a directive that ends up with a successor needs a genuine gap between the two —
+/// existing whitespace, an existing line break, or a self-terminating block comment already provide one
+/// and are left untouched, while empty trailing trivia or an unterminated single-line comment do not and
+/// gain exactly one appended line break. A directive that ends up last needs none of that — nothing
+/// follows it within the block — except that an unterminated single-line comment it already carries must
+/// still be closed before the block's own original closing shape (whitespace and/or a line break,
+/// transplanted rather than reduced to a single flag) is appended after it
 /// </summary>
 internal static class UsingTrailingTriviaBuilder
 {
@@ -38,7 +39,14 @@ internal static class UsingTrailingTriviaBuilder
 
         if (isLast)
         {
-            return StripTrailingLayoutTrivia(trailingTrivia).AddRange(originalBlockTerminalTrivia);
+            var contentPrefix = StripTrailingLayoutTrivia(trailingTrivia);
+
+            if (EndsInUnterminatedSingleLineComment(contentPrefix) && StartsWithLineBreak(originalBlockTerminalTrivia) == false)
+            {
+                return contentPrefix.Add(SyntaxFactory.EndOfLine(endOfLine)).AddRange(originalBlockTerminalTrivia);
+            }
+
+            return contentPrefix.AddRange(originalBlockTerminalTrivia);
         }
 
         return RequiresSeparatingLineBreak(trailingTrivia)
@@ -67,14 +75,40 @@ internal static class UsingTrailingTriviaBuilder
     /// <returns><see langword="true"/> if a line break must be added; otherwise, <see langword="false"/></returns>
     private static bool RequiresSeparatingLineBreak(SyntaxTriviaList trailingTrivia)
     {
-        if (trailingTrivia.Count == 0)
+        return trailingTrivia.Count == 0 || EndsInUnterminatedSingleLineComment(trailingTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list ends in a single-line comment that has not been terminated by a
+    /// line break. Such a comment extends to the end of whatever line it sits on, so any content placed
+    /// after it — a transplanted block terminator included — would be silently absorbed into the comment
+    /// unless a line break closes it first. A self-terminating block comment carries no such risk and is
+    /// not covered here
+    /// </summary>
+    /// <param name="trivia">Trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list ends in an unterminated single-line comment; otherwise, <see langword="false"/></returns>
+    private static bool EndsInUnterminatedSingleLineComment(SyntaxTriviaList trivia)
+    {
+        if (trivia.Count == 0)
         {
-            return true;
+            return false;
         }
 
-        var lastTrivia = trailingTrivia[trailingTrivia.Count - 1];
+        var lastTrivia = trivia[trivia.Count - 1];
 
         return lastTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || lastTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list begins with an end-of-line trivia. When the block's own
+    /// terminating trivia starts this way, appending it after an unterminated single-line comment already
+    /// closes that comment, so no additional line break needs to be inserted ahead of it
+    /// </summary>
+    /// <param name="trivia">Trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list begins with an end-of-line trivia; otherwise, <see langword="false"/></returns>
+    private static bool StartsWithLineBreak(SyntaxTriviaList trivia)
+    {
+        return trivia.Count > 0 && trivia[0].IsKind(SyntaxKind.EndOfLineTrivia);
     }
 
     /// <summary>
