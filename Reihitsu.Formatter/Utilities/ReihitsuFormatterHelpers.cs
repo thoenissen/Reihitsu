@@ -120,6 +120,7 @@ internal static class ReihitsuFormatterHelpers
         var firstToken = node.GetFirstToken();
         var tokensToAdjust = new List<SyntaxToken>();
         var afterEndOfLine = new Dictionary<SyntaxToken, bool>();
+        var genuinelyAfterEndOfLine = new Dictionary<SyntaxToken, bool>();
 
         foreach (var token in node.DescendantTokens())
         {
@@ -131,7 +132,11 @@ internal static class ReihitsuFormatterHelpers
             }
 
             tokensToAdjust.Add(token);
-            afterEndOfLine[token] = isFirstToken || IsAfterEndOfLine(token);
+
+            var isAfterEndOfLine = IsAfterEndOfLine(token);
+
+            afterEndOfLine[token] = isFirstToken || isAfterEndOfLine;
+            genuinelyAfterEndOfLine[token] = isAfterEndOfLine;
         }
 
         if (tokensToAdjust.Count == 0)
@@ -140,7 +145,7 @@ internal static class ReihitsuFormatterHelpers
         }
 
         return node.ReplaceTokens(tokensToAdjust,
-                                  (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original]));
+                                  (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original], genuinelyAfterEndOfLine[original]));
     }
 
     /// <summary>
@@ -245,12 +250,21 @@ internal static class ReihitsuFormatterHelpers
     /// <param name="token">The token whose leading whitespace to adjust</param>
     /// <param name="columnOffset">The number of columns to shift (positive = right, negative = left)</param>
     /// <param name="previousEndsWithEndOfLine">Whether the previous token's trailing trivia ends with an end-of-line</param>
+    /// <param name="genuinelyPrecededByEndOfLine">
+    /// Whether the token is genuinely preceded by an end-of-line — the previous token's trailing trivia ends
+    /// with one, regardless of <paramref name="previousEndsWithEndOfLine"/>'s forced <see langword="true"/> for
+    /// the node's own first token. A missing whitespace entry may only be filled in when this is
+    /// <see langword="true"/> (or becomes true from an end-of-line trivia found in this token's own leading
+    /// trivia below); otherwise a first token that never starts a real line — for example one immediately
+    /// following an opening brace on the same line — would gain indentation it never had
+    /// </param>
     /// <returns>A new token with adjusted leading whitespace</returns>
-    private static SyntaxToken AdjustLeadingWhitespace(SyntaxToken token, int columnOffset, bool previousEndsWithEndOfLine)
+    private static SyntaxToken AdjustLeadingWhitespace(SyntaxToken token, int columnOffset, bool previousEndsWithEndOfLine, bool genuinelyPrecededByEndOfLine)
     {
         var leadingTrivia = token.LeadingTrivia;
         var newTrivia = new List<SyntaxTrivia>(leadingTrivia.Count);
         var atLineStart = previousEndsWithEndOfLine;
+        var canInsertMissingWhitespace = genuinelyPrecededByEndOfLine;
 
         foreach (var trivia in leadingTrivia)
         {
@@ -276,7 +290,19 @@ internal static class ReihitsuFormatterHelpers
                               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
                               || (trivia.HasStructure
                                   && trivia.GetStructure() is DirectiveTriviaSyntax);
+
+                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                {
+                    canInsertMissingWhitespace = true;
+                }
             }
+        }
+
+        // A token that already starts at column zero has no whitespace trivia entry for the loop above to
+        // adjust, so a positive offset needs a new one inserted here instead of being silently dropped
+        if (atLineStart && canInsertMissingWhitespace && columnOffset > 0)
+        {
+            newTrivia.Add(SyntaxFactory.Whitespace(new string(' ', columnOffset)));
         }
 
         return token.WithLeadingTrivia(newTrivia);

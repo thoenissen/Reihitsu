@@ -32,9 +32,6 @@ internal static class RuleDocumentationExampleOptOuts
                                                                                ["RH7305A"] = "The analyzer is disabled by default, so it reports nothing without explicit opt-in configuration.",
                                                                                ["RH8402"] = "Example needs a reihitsu.json configuration file describing the copyright header, which is outside a standalone compilation unit.",
 
-                                                                               // Fix declines its own example, throws, or does not converge within the iteration budget
-                                                                               ["RH5302"] = "The code fix never resolves the second (or later) trailing logical operator in a multi-operator condition: each iteration inserts more whitespace before the operator on its own line instead of moving it to the start of the next line, so the diagnostic count never drops and the fix grows the line indefinitely. Reproduced by stepping the fix iteration by iteration. Tracked as a genuine code-fix defect in #725.",
-
                                                                                // Code-fix output differs from the documented correction: an alternative valid form, or a genuine
                                                                                // divergence tracked separately from this issue
                                                                                ["RH5501"] = "The code fix inserts a blank line between the attribute list and the moved declaration; reproduced with several declarations following the attribute, so the fix always adds this line even though the rule's own description only asks for a line break. Tracked as a genuine code-fix defect in #726.",
