@@ -306,12 +306,13 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifying that no code action is registered for a misaligned operator with a comment directly above it,
-    /// since reformatting the chain would carry the pipeline's unrelated blank-line placement along with it
+    /// Verifying that an own-line comment above a misaligned operator does not block the fix. The formatting
+    /// pipeline correctly precedes the comment with the blank line RH5020 requires as part of the same
+    /// reformat — that is desired behavior, not a hazard this fix needs to avoid
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyOperatorWithCommentDirectlyAboveIsNotFixed()
+    public async Task VerifyOperatorWithCommentDirectlyAboveIsFixed()
     {
         const string testData = """
                                 internal class RH5302
@@ -324,27 +325,34 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : A
                                     }
                                 }
                                 """;
+        const string expectedFixedText = """
+                                         internal class RH5302
+                                         {
+                                             void Run(bool condition1, bool condition2)
+                                             {
+                                                 var a = condition1
 
-        var actions = await GetCodeFixActionsAsync(testData,
-                                                   RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<BinaryExpressionSyntax>()
-                                                               .Single()
-                                                               .OperatorToken
-                                                               .GetLocation());
+                                                         // comment
+                                                         && condition2;
+                                             }
+                                         }
+                                         """;
 
-        Assert.IsEmpty(actions);
+        var fixedText = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(expectedFixedText, fixedText);
+        await Verify(fixedText);
     }
 
     /// <summary>
-    /// Verifying that no code action is registered when an own-line comment sits above a right operand rather
-    /// than above any operator — reformatting the whole chain would still carry the formatting pipeline's
-    /// unrelated blank-line placement along with the operator move, even though neither operator's own leading
-    /// trivia carries the comment
+    /// Verifying that an own-line comment above an operand does not block the fix for a sibling operator whose
+    /// own gap is clean, while an operator whose own gap genuinely contains that comment is correctly left
+    /// reported — moving its right operand up would relocate the comment, which the formatting pipeline's own
+    /// join-safety check already refuses regardless of this fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyOwnLineCommentAboveOperandIsNotFixed()
+    public async Task VerifyOwnLineCommentAboveOperandLeavesOnlyItsOwnGapUnfixed()
     {
         const string testData = """
                                 internal class RH5302
@@ -360,16 +368,26 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : A
                                     }
                                 }
                                 """;
+        const string expectedFixedText = """
+                                         internal class RH5302
+                                         {
+                                             void Run(bool a, bool b, bool c)
+                                             {
+                                                 if (a &&
 
-        var actions = await GetCodeFixActionsAsync(testData,
-                                                   RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<BinaryExpressionSyntax>()
-                                                               .First(expression => expression.OperatorToken.Text == "||")
-                                                               .OperatorToken
-                                                               .GetLocation());
+                                                     // note
+                                                     b
+                                                     || c)
+                                                 {
+                                                 }
+                                             }
+                                         }
+                                         """;
 
-        Assert.IsEmpty(actions);
+        var fixedText = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(expectedFixedText, fixedText, "The outer || operator should move while the inner && stays, since its own gap to \"b\" genuinely contains the comment.");
+        await Verify(fixedText, Diagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId).WithSpan(5, 15, 5, 17).WithMessage(AnalyzerResources.RH5302MessageFormat));
     }
 
     /// <summary>

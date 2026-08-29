@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
@@ -70,40 +69,6 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
         return binaryExpression;
     }
 
-    /// <summary>
-    /// Determines whether any comment inside <paramref name="formattingNode"/>'s span occupies its own line —
-    /// nothing but whitespace precedes it on that line, regardless of which token owns the comment as trivia.
-    /// Reformatting the chain would carry the general-purpose formatting pipeline's own blank-line placement
-    /// around that comment along with the operator move, a side effect outside what this diagnostic reports, so
-    /// the fix withholds itself rather than risk relocating a user-authored comment. The check inspects the
-    /// whole span rather than only the operator tokens' own leading trivia, because an own-line comment above an
-    /// operand — not attached to any operator — triggers the same pipeline behavior
-    /// </summary>
-    /// <param name="formattingNode">The outermost logical expression of the chain</param>
-    /// <returns><see langword="true"/> if an own-line comment sits anywhere within the chain's span; otherwise, <see langword="false"/></returns>
-    private static bool ContainsOwnLineComment(BinaryExpressionSyntax formattingNode)
-    {
-        var text = formattingNode.SyntaxTree.GetText();
-
-        foreach (var trivia in formattingNode.DescendantTrivia())
-        {
-            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
-            {
-                continue;
-            }
-
-            var line = text.Lines.GetLineFromPosition(trivia.SpanStart);
-            var beforeComment = text.ToString(TextSpan.FromBounds(line.Start, trivia.SpanStart));
-
-            if (string.IsNullOrWhiteSpace(beforeComment))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     #endregion // Methods
 
     #region CodeFixProvider
@@ -140,11 +105,6 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
                 }
 
                 var formattingNode = GetOutermostLogicalExpression(binaryExpression);
-
-                if (ContainsOwnLineComment(formattingNode))
-                {
-                    continue;
-                }
 
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5302Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, formattingNode, cancellationToken),
