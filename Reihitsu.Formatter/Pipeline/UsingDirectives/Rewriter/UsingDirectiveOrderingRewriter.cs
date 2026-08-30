@@ -12,7 +12,8 @@ namespace Reihitsu.Formatter.Pipeline.UsingDirectives.Rewriter;
 /// <summary>
 /// Rewrites using directive scopes into canonical grouped order. It is thin glue that reads each
 /// scope, orders the directives via <see cref="UsingGrouping"/>, restitches their leading trivia via
-/// <see cref="UsingLeadingTriviaBuilder"/> and writes the result back with <c>WithUsings</c>
+/// <see cref="UsingLeadingTriviaBuilder"/> and their trailing trivia via
+/// <see cref="UsingTrailingTriviaBuilder"/>, and writes the result back with <c>WithUsings</c>
 /// </summary>
 internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 {
@@ -86,6 +87,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             }
         }
 
+        var originalBlockTerminalTrivia = UsingTrailingTriviaBuilder.GetTrailingLayoutTrivia(usingDirectives.Last().GetTrailingTrivia());
         var result = new List<UsingDirectiveSyntax>();
 
         for (var usingIndex = 0; usingIndex < canonical.Count; usingIndex++)
@@ -93,10 +95,12 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             cancellationToken.ThrowIfCancellationRequested();
 
             var current = canonical[usingIndex];
+            var trailingTrivia = UsingTrailingTriviaBuilder.CreateTrailingTrivia(current, isLast: usingIndex == canonical.Count - 1, originalBlockTerminalTrivia, endOfLine);
 
             if (usingIndex == 0)
             {
-                result.Add(current.WithLeadingTrivia(UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup: false, isFirst: true, endOfLine)));
+                result.Add(current.WithLeadingTrivia(UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup: false, isFirst: true, endOfLine))
+                                  .WithTrailingTrivia(trailingTrivia));
 
                 continue;
             }
@@ -105,7 +109,8 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
                                                                                                firstLeadingTriviaPrefix,
                                                                                                startsNewGroup: UsingGrouping.AreInSameGroup(canonical[usingIndex - 1], current) == false,
                                                                                                isFirst: false,
-                                                                                               endOfLine)));
+                                                                                               endOfLine))
+                              .WithTrailingTrivia(trailingTrivia));
         }
 
         return SyntaxFactory.List(result);

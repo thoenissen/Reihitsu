@@ -1010,5 +1010,29 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that reordering the only using directives in a file into different groups converges on a
+    /// single application of the code fix instead of needing a second pass to add the missing blank-line
+    /// separator (issue #728)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UsingOnlyFileCrossGroupReorderConvergesInOneApplication()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using System.Linq;
+                                """;
+        const string expected = """
+                                using System.Linq;
+
+                                using Microsoft.Win32;
+                                """;
+
+        var actual = await ApplyCodeFixAsync(testCode);
+
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Tests
 }
