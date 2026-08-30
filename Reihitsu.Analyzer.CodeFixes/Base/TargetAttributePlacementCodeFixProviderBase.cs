@@ -97,11 +97,6 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
             var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
-            if (attributeList.Parent is CompilationUnitSyntax)
-            {
-                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
-            }
-
             trailingTrivia = trailingTrivia.AddRange(indentationTrivia);
             updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);
         }
