@@ -64,10 +64,11 @@ public static class OrderingMoveSafety
     /// Moves a node before an earlier node of the same list while keeping every blank-line separator at the
     /// position it already occupied. A separator between two siblings is stored in the leading trivia of the
     /// sibling that follows it, so a plain remove-and-insert carries that trivia away with whichever node happens
-    /// to own it, relocating or deleting the separator instead of leaving it where the author put it. This keeps
-    /// every crossed node's own comments, documentation, attributes, directives and indentation attached to that
-    /// node; only the blank-line run at the very start of each affected node's leading trivia changes hands, and
-    /// it changes to the run that already belonged to the position the node ends up at
+    /// to own it, relocating or deleting the separator instead of leaving it where the author put it. Comments,
+    /// documentation and directives in a node's leading trivia stay with that node; the whitespace and end-of-line
+    /// run before them — which is a node's own indentation when it carries none of that content — is repositioned
+    /// to whichever position it already belonged to, so a caller without a later formatting pass may need to
+    /// re-indent the result
     /// </summary>
     /// <typeparam name="TNode">List node type</typeparam>
     /// <param name="nodes">List the move operates on</param>
@@ -112,9 +113,10 @@ public static class OrderingMoveSafety
     }
 
     /// <summary>
-    /// Gets the positional blank-line run at the very start of a node's leading trivia — the run up to its first
-    /// comment, documentation, attribute list, or directive. This is the part of a separator that belongs to the
-    /// boundary between two siblings rather than to either sibling
+    /// Gets the positional whitespace-and-end-of-line run at the very start of a node's leading trivia — the run
+    /// up to its first comment, documentation comment, or directive, or the entire leading trivia list when none
+    /// of those is present. This is the part of a separator — and, when nothing else is present, the node's own
+    /// indentation — that belongs to the boundary between two siblings rather than to either sibling
     /// </summary>
     /// <param name="node">Node whose leading trivia to inspect</param>
     /// <returns>The positional leading trivia run</returns>
@@ -129,9 +131,9 @@ public static class OrderingMoveSafety
     }
 
     /// <summary>
-    /// Gets the trivia that travels with a node when it is relocated — its comments, documentation, attribute
-    /// lists, directives and disabled text, together with the indentation that immediately precedes its first
-    /// token
+    /// Gets the leading trivia that travels with a node when it is relocated — its comments, documentation
+    /// comments, directives and disabled text, together with the indentation immediately preceding its first
+    /// token. Empty when the node carries none of that content, since its whole leading trivia is then positional
     /// </summary>
     /// <param name="node">Node whose leading trivia to inspect</param>
     /// <returns>The trivia that must stay attached to the node</returns>

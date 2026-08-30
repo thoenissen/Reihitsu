@@ -487,6 +487,54 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
+    /// Verifying that Fix All keeps every separator at its position when two static members are reordered in the
+    /// same document, so the gap sequence converges correctly instead of depending on application order (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixAllPreservesGapSequenceAcrossMultipleDiagnosticsInOneDocument()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:CreateA|}()
+                                    {
+                                    }
+
+                                    public static void {|#1:CreateB|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void CreateA()
+                                     {
+                                     }
+
+                                     public static void CreateB()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test => test.NumberOfFixAllIterations = 2,
+                     Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifying destructors do not crash analysis
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
