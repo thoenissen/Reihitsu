@@ -61,6 +61,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBas
                                          {
                                              _changed += value;
                                          }
+
                                          remove
                                          {
                                              _changed -= value;

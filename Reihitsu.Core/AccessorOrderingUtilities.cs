@@ -53,7 +53,8 @@ public static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Moves an accessor before another accessor
+    /// Moves an accessor before another accessor. Blank-line separators are kept at the position they already
+    /// occupied via <see cref="OrderingMoveSafety.MoveNodeBeforePreservingSeparators{TNode}"/>
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <param name="accessorToMove">Accessor to move</param>
@@ -72,8 +73,7 @@ public static class AccessorOrderingUtilities
             return accessorList;
         }
 
-        var updatedAccessors = accessorDeclarations.RemoveAt(accessorToMoveIndex)
-                                                   .Insert(targetAccessorIndex, accessorToMove);
+        var updatedAccessors = OrderingMoveSafety.MoveNodeBeforePreservingSeparators(accessorDeclarations, accessorToMove, targetAccessor);
 
         return accessorList.WithAccessors(updatedAccessors);
     }

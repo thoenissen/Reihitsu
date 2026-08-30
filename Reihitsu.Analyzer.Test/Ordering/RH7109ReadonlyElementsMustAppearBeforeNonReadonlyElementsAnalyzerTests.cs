@@ -45,6 +45,35 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
+    /// Verifying the blank line that already separated the readonly field from the mutable field survives the
+    /// reorder (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SeparatorSurvivesTheReorderWhenReadonlyFieldWasAlreadySeparated()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _value;
+
+                                    private readonly int {|#0:_readonlyValue|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     private readonly int _readonlyValue;
+
+                                     private int _value;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that an implicit-access mutable interface field and explicit-public readonly field share the same
     /// effective accessibility group and are safely reordered when neither has an initializer
     /// </summary>

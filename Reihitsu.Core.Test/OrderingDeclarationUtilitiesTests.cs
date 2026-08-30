@@ -186,6 +186,36 @@ public class OrderingDeclarationUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the blank-line separator stays at the position it already occupied instead of following
+    /// the moved member's own leading trivia to its new position (issue #727)
+    /// </summary>
+    [TestMethod]
+    public void MoveMemberBeforeKeepsSeparatorAtItsOriginalPosition()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void Run()
+                                                                                {
+                                                                                }
+
+                                                                                private static void Create()
+                                                                                {
+                                                                                }
+                                                                            }
+                                                                            """);
+        var runMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "Run");
+        var createMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "Create");
+
+        var updatedTypeDeclaration = OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, createMethod, runMethod);
+        var movedCreateMethod = updatedTypeDeclaration.Members[0];
+        var shiftedRunMethod = updatedTypeDeclaration.Members[1];
+
+        Assert.DoesNotContain("\n", movedCreateMethod.GetLeadingTrivia().ToFullString());
+        Assert.Contains("\n", shiftedRunMethod.GetLeadingTrivia().ToFullString());
+    }
+
+    /// <summary>
     /// Verifies that a preprocessor directive in the leading trivia of a crossed member is detected
     /// </summary>
     [TestMethod]

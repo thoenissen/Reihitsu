@@ -35,8 +35,7 @@ internal static class RuleDocumentationExampleOptOuts
                                                                                // Code-fix output differs from the documented correction: an alternative valid form, or a genuine
                                                                                // divergence tracked separately from this issue
                                                                                ["RH5501"] = "The code fix inserts a blank line between the attribute list and the moved declaration; reproduced with several declarations following the attribute, so the fix always adds this line even though the rule's own description only asks for a line break. Tracked as a genuine code-fix defect in #726.",
-                                                                               ["RH5503"] = "The code fix inserts a blank line between the attribute list and the moved declaration; reproduced with several declarations following the attribute, so the fix always adds this line even though the rule's own description only asks for a line break. Tracked as a genuine code-fix defect in #726.",
-                                                                               ["RH7103"] = "The code fix drops a blank line that already separated the two members when it reorders them; reproduced independent of member content. Tracked as a genuine code-fix defect in #727."
+                                                                               ["RH5503"] = "The code fix inserts a blank line between the attribute list and the moved declaration; reproduced with several declarations following the attribute, so the fix always adds this line even though the rule's own description only asks for a line break. Tracked as a genuine code-fix defect in #726."
                                                                            };
 
     #endregion // Fields
