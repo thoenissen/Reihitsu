@@ -92,6 +92,39 @@ public class AccessorOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the blank-line separator stays at the position it already occupied instead of following
+    /// the moved accessor's own leading trivia to its new position (issue #727)
+    /// </summary>
+    [TestMethod]
+    public void MoveAccessorBeforeKeepsSeparatorAtItsOriginalPosition()
+    {
+        var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
+                                                                                  internal class Sample
+                                                                                  {
+                                                                                      public int Value
+                                                                                      {
+                                                                                          set
+                                                                                          {
+                                                                                          }
+
+                                                                                          get
+                                                                                          {
+                                                                                          }
+                                                                                      }
+                                                                                  }
+                                                                                  """);
+        var setAccessor = accessorList.Accessors[0];
+        var getAccessor = accessorList.Accessors[1];
+
+        var updatedAccessorList = AccessorOrderingUtilities.MoveAccessorBefore(accessorList, getAccessor, setAccessor);
+        var movedGetAccessor = updatedAccessorList.Accessors[0];
+        var shiftedSetAccessor = updatedAccessorList.Accessors[1];
+
+        Assert.DoesNotContain("\n", movedGetAccessor.GetLeadingTrivia().ToFullString());
+        Assert.Contains("\n", shiftedSetAccessor.GetLeadingTrivia().ToFullString());
+    }
+
+    /// <summary>
     /// Verifies that a preprocessor directive in the affected leading trivia is detected
     /// </summary>
     [TestMethod]

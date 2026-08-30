@@ -220,7 +220,9 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Moves a member before another member within the same type declaration
+    /// Moves a member before another member within the same type declaration. Blank-line separators are kept at
+    /// the position they already occupied via
+    /// <see cref="OrderingMoveSafety.MoveNodeBeforePreservingSeparators{TNode}"/>
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
@@ -239,8 +241,7 @@ public static class OrderingDeclarationUtilities
             return typeDeclaration;
         }
 
-        var updatedMembers = members.RemoveAt(memberToMoveIndex)
-                                    .Insert(targetMemberIndex, memberToMove);
+        var updatedMembers = OrderingMoveSafety.MoveNodeBeforePreservingSeparators(members, memberToMove, targetMember);
 
         return typeDeclaration.WithMembers(updatedMembers);
     }

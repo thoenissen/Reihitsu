@@ -45,6 +45,35 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
+    /// Verifying the blank line that already separated the const field from the mutable field survives the
+    /// reorder (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SeparatorSurvivesTheReorderWhenConstFieldWasAlreadySeparated()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _value;
+
+                                    private const int {|#0:MaxValue|} = 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     private const int MaxValue = 1;
+
+                                     private int _value;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7102MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
     /// with the region opening in the moved field's own leading trivia and closing after it
     /// </summary>

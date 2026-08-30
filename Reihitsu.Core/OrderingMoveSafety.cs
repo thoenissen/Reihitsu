@@ -1,10 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
 /// <summary>
-/// Safety checks shared by the declaration and accessor reordering guards
+/// Safety checks and relocation mechanics shared by the declaration and accessor reordering guards and code fixes
 /// </summary>
 public static class OrderingMoveSafety
 {
@@ -54,6 +58,91 @@ public static class OrderingMoveSafety
 
         return RelocationChangesDirectiveScope(root, crossedSpan)
                || RelocationChangesDirectiveScope(root, movedSpan);
+    }
+
+    /// <summary>
+    /// Moves a node before an earlier node of the same list while keeping every blank-line separator at the
+    /// position it already occupied. A separator between two siblings is stored in the leading trivia of the
+    /// sibling that follows it, so a plain remove-and-insert carries that trivia away with whichever node happens
+    /// to own it, relocating or deleting the separator instead of leaving it where the author put it. This keeps
+    /// every crossed node's own comments, documentation, attributes, directives and indentation attached to that
+    /// node; only the blank-line run at the very start of each affected node's leading trivia changes hands, and
+    /// it changes to the run that already belonged to the position the node ends up at
+    /// </summary>
+    /// <typeparam name="TNode">List node type</typeparam>
+    /// <param name="nodes">List the move operates on</param>
+    /// <param name="nodeToMove">Node to move</param>
+    /// <param name="targetNode">Node the moved node should precede</param>
+    /// <returns>The updated list, or the original list when the move is not forward-only or either node is missing</returns>
+    public static SyntaxList<TNode> MoveNodeBeforePreservingSeparators<TNode>(SyntaxList<TNode> nodes, TNode nodeToMove, TNode targetNode)
+        where TNode : SyntaxNode
+    {
+        var nodeToMoveIndex = nodes.IndexOf(nodeToMove);
+        var targetNodeIndex = nodes.IndexOf(targetNode);
+
+        if (nodeToMoveIndex < 0
+            || targetNodeIndex < 0
+            || nodeToMoveIndex <= targetNodeIndex)
+        {
+            return nodes;
+        }
+
+        var originalGaps = new SyntaxTriviaList[nodeToMoveIndex - targetNodeIndex + 1];
+
+        for (var index = targetNodeIndex; index <= nodeToMoveIndex; index++)
+        {
+            originalGaps[index - targetNodeIndex] = GetLeadingGap(nodes[index]);
+        }
+
+        var reorderedNodes = new List<TNode>(nodes);
+        var movedNode = reorderedNodes[nodeToMoveIndex];
+
+        reorderedNodes.RemoveAt(nodeToMoveIndex);
+        reorderedNodes.Insert(targetNodeIndex, movedNode);
+
+        for (var index = targetNodeIndex; index <= nodeToMoveIndex; index++)
+        {
+            var node = reorderedNodes[index];
+            var payload = GetLeadingPayload(node);
+
+            reorderedNodes[index] = node.WithLeadingTrivia(originalGaps[index - targetNodeIndex].AddRange(payload));
+        }
+
+        return SyntaxFactory.List(reorderedNodes);
+    }
+
+    /// <summary>
+    /// Gets the positional blank-line run at the very start of a node's leading trivia — the run up to its first
+    /// comment, documentation, attribute list, or directive. This is the part of a separator that belongs to the
+    /// boundary between two siblings rather than to either sibling
+    /// </summary>
+    /// <param name="node">Node whose leading trivia to inspect</param>
+    /// <returns>The positional leading trivia run</returns>
+    private static SyntaxTriviaList GetLeadingGap(SyntaxNode node)
+    {
+        var leadingTrivia = node.GetLeadingTrivia();
+        var firstSignificantIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+
+        return firstSignificantIndex < 0
+                   ? leadingTrivia
+                   : SyntaxFactory.TriviaList(leadingTrivia.Take(firstSignificantIndex));
+    }
+
+    /// <summary>
+    /// Gets the trivia that travels with a node when it is relocated — its comments, documentation, attribute
+    /// lists, directives and disabled text, together with the indentation that immediately precedes its first
+    /// token
+    /// </summary>
+    /// <param name="node">Node whose leading trivia to inspect</param>
+    /// <returns>The trivia that must stay attached to the node</returns>
+    private static SyntaxTriviaList GetLeadingPayload(SyntaxNode node)
+    {
+        var leadingTrivia = node.GetLeadingTrivia();
+        var firstSignificantIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+
+        return firstSignificantIndex < 0
+                   ? SyntaxFactory.TriviaList()
+                   : SyntaxFactory.TriviaList(leadingTrivia.Skip(firstSignificantIndex));
     }
 
     /// <summary>

@@ -52,6 +52,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTests
                                          {
                                              return string.Empty;
                                          }
+
                                          set
                                          {
                                          }

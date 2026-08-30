@@ -44,6 +44,439 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                      public static void Create()
                                      {
                                      }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the blank line that separated the two members survives the reorder under CRLF line endings,
+    /// so the fix does not introduce mixed line endings while relocating the separator (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task StaticMembersAreReportedAndFixedUnderCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the blank line already above the moved member's documentation stays at its position instead of
+    /// vanishing under the type's opening brace once the fix moves the documented member to the front (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task StaticMemberWithDocumentationKeepsTheSeparatorWhenReordered()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Creates a new instance
+                                    /// </summary>
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Creates a new instance
+                                     /// </summary>
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the separator before a documented target member already survives the reorder today, because the
+    /// blank-line boundary before a comment reinserts it independently of this fix; this locks the already-correct
+    /// output in place so a change to the trivia split does not regress it (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SeparatorBeforeADocumentedTargetSurvivesTheReorder()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    /// <summary>
+                                    /// Runs the instance
+                                    /// </summary>
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     /// <summary>
+                                     /// Runs the instance
+                                     /// </summary>
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the separator survives the reorder today when both members carry documentation, and continues to
+    /// after the fix (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SeparatorSurvivesTheReorderWhenBothMembersAreDocumented()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    /// <summary>
+                                    /// Runs the instance
+                                    /// </summary>
+                                    public void Run()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Creates a new instance
+                                    /// </summary>
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Creates a new instance
+                                     /// </summary>
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     /// <summary>
+                                     /// Runs the instance
+                                     /// </summary>
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the separator stays at the position it already occupied when only the target member (not the
+    /// moved member) was preceded by a blank line, instead of following the moved member to its new position
+    /// (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SeparatorStaysAtTargetPositionWhenOnlyTheTargetHadABlankLineBefore()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _value;
+
+                                    public void Run()
+                                    {
+                                    }
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     private int _value;
+
+                                     public static void Create()
+                                     {
+                                     }
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a separator between two unrelated members is relocated rather than lost when the target
+    /// member is not the first member of the type, proving the fix repositions the existing separator instead of
+    /// merely re-adding one that lands under the type's opening brace (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RelocationPreservesGapCountWhenTargetIsNotTheFirstMember()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _value;
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     private int _value;
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying every separator keeps its position when the move crosses another member and the crossed gaps are
+    /// uniform, so the swap only permutes which member sits at each position (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixPreservesGapSequenceWhenMoveCrossesMultipleMembers()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+
+                                     public void Reset()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying every separator keeps its position when the move crosses another member and the crossed gaps are
+    /// not uniform, so the gap sequence is preserved rather than exchanged between the moved and target member
+    /// (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixPreservesGapSequenceWhenCrossedGapsAreNotUniform()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+                                     public void Run()
+                                     {
+                                     }
+
+                                     public void Reset()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that several blank lines above the moved member collapse to exactly one at the relocated
+    /// separator position, since the raw move relocates the whole gap and the formatter's own blank-line collapse
+    /// still applies afterward (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MultipleBlankLinesAboveTheMovedMemberCollapseToOneAfterReordering()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a balanced <c>#if false</c> block sitting entirely inside the moved member's own leading
+    /// trivia travels with the member intact, while the blank line preceding the directive stays positional
+    /// (issue #727)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixTravelsWithABalancedDisabledDirectiveBlockAboveTheMovedMember()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                #if false
+                                    public static void Old()
+                                    {
+                                    }
+                                #endif
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                 #if false
+                                     public static void Old()
+                                     {
+                                     }
+                                 #endif
+                                     public static void Create()
+                                     {
+                                     }
+
                                      public void Run()
                                      {
                                      }
@@ -227,6 +660,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                      public static void Create()
                                      {
                                      }
+
                                      public void Run()
                                      {
                                  #if DEBUG
