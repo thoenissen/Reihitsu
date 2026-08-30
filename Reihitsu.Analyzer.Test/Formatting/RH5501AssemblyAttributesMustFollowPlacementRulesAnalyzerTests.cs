@@ -156,6 +156,32 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that the code fix preserves the attribute list's own indentation on the moved declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixPreservesIndentationOfAttributeList()
+    {
+        const string testData = """
+                                    {|#0:[assembly: First]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                     [assembly: First]
+                                     internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that compliant code is not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
