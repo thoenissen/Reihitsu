@@ -182,6 +182,40 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that the code fix does not insert a blank line when the attribute list itself spans multiple lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixDoesNotInsertBlankLineForMultiLineAttributeList()
+    {
+        const string testData = """
+                                {|#0:[assembly: First(
+                                    "x")]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                    public FirstAttribute(string value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 [assembly: First(
+                                     "x")]
+                                 internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                     public FirstAttribute(string value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that compliant code is not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
