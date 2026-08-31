@@ -26,9 +26,9 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileFormatterTests : For
         var input = $"{Environment.NewLine}{Environment.NewLine}internal class Example;";
         var fixedData = "internal class Example;";
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId, 1, 1, 3, 1, AnalyzerResources.RH5028MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId, 1, 1, 3, 1, AnalyzerResources.RH5028MessageFormat));
     }
 
     #endregion // Tests

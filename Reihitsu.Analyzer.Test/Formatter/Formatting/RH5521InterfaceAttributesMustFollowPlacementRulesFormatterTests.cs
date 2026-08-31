@@ -39,9 +39,9 @@ public class RH5521InterfaceAttributesMustFollowPlacementRulesFormatterTests : F
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5521MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5521MessageFormat));
     }
 
     #endregion // Tests

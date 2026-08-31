@@ -41,9 +41,9 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesFormatterTests : F
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
     }
 
     #endregion // Tests

@@ -45,9 +45,9 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesFormatterTests : Fo
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5515PropertyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5515MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5515PropertyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5515MessageFormat));
     }
 
     #endregion // Tests

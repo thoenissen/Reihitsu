@@ -44,9 +44,9 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesFormatterTests : Format
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
     }
 
     #endregion // Tests
