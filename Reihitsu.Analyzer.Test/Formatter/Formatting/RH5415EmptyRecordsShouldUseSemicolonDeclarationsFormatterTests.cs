@@ -42,10 +42,9 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsFormatterTests : Fo
                                  internal record Example;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 null,
-                                 Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat));
     }
 
     /// <summary>
