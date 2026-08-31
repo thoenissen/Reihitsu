@@ -30,12 +30,7 @@ internal static class RuleDocumentationExampleOptOuts
                                                                                ["RH4001"] = "Example's violation depends on the source file's name ('Foo.cs' in a comment) and the code fix renames the file itself; the verifier's in-memory document is always named 'Test.cs' and only compares resulting text, so neither the real mismatch nor the rename is observable here.",
                                                                                ["RH4009"] = "Example needs a reihitsu.json configuration file listing the allowed namespace, which is outside a standalone compilation unit.",
                                                                                ["RH7305A"] = "The analyzer is disabled by default, so it reports nothing without explicit opt-in configuration.",
-                                                                               ["RH8402"] = "Example needs a reihitsu.json configuration file describing the copyright header, which is outside a standalone compilation unit.",
-
-                                                                               // Code-fix output differs from the documented correction: an alternative valid form, or a genuine
-                                                                               // divergence tracked separately from this issue
-                                                                               ["RH5501"] = "The code fix inserts a blank line between the attribute list and the moved declaration; reproduced with several declarations following the attribute, so the fix always adds this line even though the rule's own description only asks for a line break. Tracked as a genuine code-fix defect in #726.",
-                                                                               ["RH5503"] = "The code fix inserts a blank line between the attribute list and the moved declaration; reproduced with several declarations following the attribute, so the fix always adds this line even though the rule's own description only asks for a line break. Tracked as a genuine code-fix defect in #726."
+                                                                               ["RH8402"] = "Example needs a reihitsu.json configuration file describing the copyright header, which is outside a standalone compilation unit."
                                                                            };
 
     #endregion // Fields

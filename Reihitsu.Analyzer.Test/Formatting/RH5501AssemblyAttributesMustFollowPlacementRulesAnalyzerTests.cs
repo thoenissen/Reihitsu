@@ -36,13 +36,177 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Ana
                                 """;
         const string fixedData = """
                                  [assembly: First]
-
                                  internal class Example { }
                                  sealed class FirstAttribute : System.Attribute
                                  {
                                  }
                                  sealed class SecondAttribute : System.Attribute
                                  {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix does not insert a blank line when the declaration that follows has a non-empty body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixDoesNotInsertBlankLineWhenDeclarationHasBody()
+    {
+        const string testData = """
+                                {|#0:[assembly: First]|} internal class Example
+                                {
+                                    private void Run()
+                                    {
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [assembly: First]
+                                 internal class Example
+                                 {
+                                     private void Run()
+                                     {
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix does not insert a blank line when only the second of two attribute lists violates
+    /// the policy
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixDoesNotInsertBlankLineWhenSecondAttributeListViolates()
+    {
+        const string testData = """
+                                [assembly: First]
+                                {|#0:[assembly: Second]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [assembly: First]
+                                 [assembly: Second]
+                                 internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All converges to a single line break per attribute list when both lists on the same line
+    /// violate the policy
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllDoesNotInsertBlankLineForTwoViolatingAttributeListsOnOneLine()
+    {
+        const string testData = """
+                                {|#0:[assembly: First]|} {|#1:[assembly: Second]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [assembly: First]
+                                 [assembly: Second]
+                                 internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix preserves the attribute list's own indentation on the moved declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixPreservesIndentationOfAttributeList()
+    {
+        const string testData = """
+                                    {|#0:[assembly: First]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                     [assembly: First]
+                                     internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix does not insert a blank line when the attribute list itself spans multiple lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixDoesNotInsertBlankLineForMultiLineAttributeList()
+    {
+        const string testData = """
+                                {|#0:[assembly: First(
+                                    "x")]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                    public FirstAttribute(string value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 [assembly: First(
+                                     "x")]
+                                 internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                     public FirstAttribute(string value)
+                                     {
+                                     }
                                  }
                                  """;
 

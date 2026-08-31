@@ -36,12 +36,47 @@ public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : Analy
                                 """;
         const string fixedData = """
                                  [module: First]
-
                                  internal class Example { }
                                  sealed class FirstAttribute : System.Attribute
                                  {
                                  }
                                  sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5503MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix does not insert a blank line when the declaration that follows has a non-empty body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixDoesNotInsertBlankLineWhenDeclarationHasBody()
+    {
+        const string testData = """
+                                {|#0:[module: First]|} internal class Example
+                                {
+                                    private void Run()
+                                    {
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [module: First]
+                                 internal class Example
+                                 {
+                                     private void Run()
+                                     {
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
                                  {
                                  }
                                  """;
