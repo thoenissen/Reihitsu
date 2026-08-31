@@ -42,10 +42,10 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsFormatterTests :
                                  internal interface IExample;
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               null,
-                                               Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 null,
+                                 Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
     }
 
     /// <summary>

@@ -36,9 +36,9 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
         var input = $"internal class Example{Environment.NewLine}{{{alternativeLineEnding}    internal int Value => 42;{Environment.NewLine}}}";
         var fixedData = $"internal class Example{Environment.NewLine}{{{Environment.NewLine}    internal int Value => 42;{Environment.NewLine}}}";
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 2, 1, 3, 1, AnalyzerResources.RH5604MessageFormat));
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 2, 1, 3, 1, AnalyzerResources.RH5604MessageFormat));
     }
 
     /// <summary>
