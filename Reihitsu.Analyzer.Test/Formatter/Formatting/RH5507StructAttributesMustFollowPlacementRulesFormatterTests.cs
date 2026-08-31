@@ -39,9 +39,9 @@ public class RH5507StructAttributesMustFollowPlacementRulesFormatterTests : Form
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5507StructAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5507MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5507StructAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5507MessageFormat));
     }
 
     #endregion // Tests

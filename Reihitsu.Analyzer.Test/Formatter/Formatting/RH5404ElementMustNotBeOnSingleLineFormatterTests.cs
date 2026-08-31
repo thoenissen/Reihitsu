@@ -34,9 +34,9 @@ public class RH5404ElementMustNotBeOnSingleLineFormatterTests : FormatterTestsBa
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
     }
 
     /// <summary>
@@ -63,9 +63,9 @@ public class RH5404ElementMustNotBeOnSingleLineFormatterTests : FormatterTestsBa
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
     }
 
     #endregion // Tests

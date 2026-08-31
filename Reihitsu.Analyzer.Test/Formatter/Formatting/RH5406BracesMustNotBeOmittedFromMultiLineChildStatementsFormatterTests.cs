@@ -57,9 +57,9 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsFormatterTe
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
     }
 
     #endregion // Tests

@@ -44,9 +44,9 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 15, AnalyzerResources.RH5008MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 15, AnalyzerResources.RH5008MessageFormat));
     }
 
     #endregion // Tests

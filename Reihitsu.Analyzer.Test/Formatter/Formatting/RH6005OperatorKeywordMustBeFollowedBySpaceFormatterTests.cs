@@ -38,9 +38,9 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceFormatterTests : Formatte
                                  }
                                  """;
 
-        await VerifyFormatterFix(testData,
-                                 fixedData,
-                                 Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat));
     }
 
     #endregion // Tests

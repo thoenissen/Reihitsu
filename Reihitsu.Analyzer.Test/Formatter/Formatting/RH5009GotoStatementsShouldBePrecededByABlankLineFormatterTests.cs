@@ -50,9 +50,9 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineFormatterTests : Fo
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 13, AnalyzerResources.RH5009MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 13, AnalyzerResources.RH5009MessageFormat));
     }
 
     #endregion // Tests

@@ -41,9 +41,9 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterFormatterTests : Format
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, 3, 5, 3, 19, AnalyzerResources.RH7302MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, 3, 5, 3, 19, AnalyzerResources.RH7302MessageFormat));
     }
 
     #endregion // Tests

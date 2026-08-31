@@ -40,9 +40,9 @@ public class RH5108ParameterListMustFollowDeclarationFormatterTests : FormatterT
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
     }
 
     #endregion // Tests

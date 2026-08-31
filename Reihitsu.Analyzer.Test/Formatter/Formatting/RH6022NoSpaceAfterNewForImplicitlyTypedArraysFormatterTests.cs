@@ -41,9 +41,9 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysFormatterTests : Forma
                                  }
                                  """;
 
-        await VerifyFormatterFix(testData,
-                                 fixedData,
-                                 Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, AnalyzerResources.RH6022MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, AnalyzerResources.RH6022MessageFormat));
     }
 
     #endregion // Tests

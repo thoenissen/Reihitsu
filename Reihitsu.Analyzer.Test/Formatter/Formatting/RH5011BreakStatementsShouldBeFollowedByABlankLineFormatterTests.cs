@@ -58,9 +58,9 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, AnalyzerResources.RH5011MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, AnalyzerResources.RH5011MessageFormat));
     }
 
     #endregion // Tests

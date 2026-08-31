@@ -45,10 +45,10 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 13, 6, 15, AnalyzerResources.RH5302MessageFormat),
-                                 ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 13, 7, 15, AnalyzerResources.RH5302MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 13, 6, 15, AnalyzerResources.RH5302MessageFormat),
+                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 13, 7, 15, AnalyzerResources.RH5302MessageFormat));
     }
 
     /// <summary>

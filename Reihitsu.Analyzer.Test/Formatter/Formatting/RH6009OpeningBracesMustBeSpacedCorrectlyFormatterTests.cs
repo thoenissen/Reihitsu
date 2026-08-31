@@ -35,9 +35,9 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyFormatterTests : FormatterT
                                  }
                                  """;
 
-        await VerifyFormatterFix(testData,
-                                 fixedData,
-                                 Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
     }
 
     #endregion // Tests

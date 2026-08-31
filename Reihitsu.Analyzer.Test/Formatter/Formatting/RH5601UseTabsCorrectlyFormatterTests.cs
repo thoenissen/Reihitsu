@@ -26,7 +26,7 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
         var testData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}{{|#0:\t|}}void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
         var fixedData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
 
-        await VerifyFormatterFix(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
         var testData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}        var x = 1;{{|#0:\t|}}// comment{Environment.NewLine}    }}{Environment.NewLine}}}";
         var fixedData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}        var x = 1;    // comment{Environment.NewLine}    }}{Environment.NewLine}}}";
 
-        await VerifyFormatterFix(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
         var testData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}#pragma{{|#0:\t|}}warning disable CS0168{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}#pragma warning restore CS0168{Environment.NewLine}}}";
         var fixedData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}#pragma    warning disable CS0168{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}#pragma warning restore CS0168{Environment.NewLine}}}";
 
-        await VerifyFormatterFix(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
     }
 
     #endregion // Tests

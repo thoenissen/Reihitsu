@@ -46,9 +46,9 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagFormatterTe
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, 3, 9, 5, 19, AnalyzerResources.RH8307MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, 3, 9, 5, 19, AnalyzerResources.RH8307MessageFormat));
     }
 
     #endregion // Tests

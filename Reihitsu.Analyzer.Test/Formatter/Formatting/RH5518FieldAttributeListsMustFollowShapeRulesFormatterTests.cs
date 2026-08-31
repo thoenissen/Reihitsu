@@ -47,9 +47,9 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesFormatterTests : Forma
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
     }
 
     #endregion // Tests

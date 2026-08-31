@@ -43,9 +43,9 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
                                  }
                                  """;
 
-        await VerifyFormatterFix(testData,
-                                 fixedData,
-                                 Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
     }
 
     /// <summary>

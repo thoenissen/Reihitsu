@@ -43,9 +43,9 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesFormatterTests : Forma
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, 3, 9, 3, 40, AnalyzerResources.RH8305MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, 3, 9, 3, 40, AnalyzerResources.RH8305MessageFormat));
     }
 
     #endregion // Tests

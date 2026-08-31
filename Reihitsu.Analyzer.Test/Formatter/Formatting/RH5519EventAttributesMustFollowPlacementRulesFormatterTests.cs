@@ -45,9 +45,9 @@ public class RH5519EventAttributesMustFollowPlacementRulesFormatterTests : Forma
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5519MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5519MessageFormat));
     }
 
     #endregion // Tests

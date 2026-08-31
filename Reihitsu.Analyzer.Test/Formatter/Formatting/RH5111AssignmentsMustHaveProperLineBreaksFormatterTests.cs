@@ -54,9 +54,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, AnalyzerResources.RH5111MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, AnalyzerResources.RH5111MessageFormat));
     }
 
     /// <summary>

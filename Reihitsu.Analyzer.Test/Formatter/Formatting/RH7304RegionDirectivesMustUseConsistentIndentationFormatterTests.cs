@@ -43,10 +43,10 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 ExpectedDiagnostic(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, 3, 1, 3, 15, AnalyzerResources.RH7304MessageFormat),
-                                 ExpectedDiagnostic(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, 7, 1, 7, 21, AnalyzerResources.RH7304MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               ExpectedDiagnostic(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, 3, 1, 3, 15, AnalyzerResources.RH7304MessageFormat),
+                                               ExpectedDiagnostic(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, 7, 1, 7, 21, AnalyzerResources.RH7304MessageFormat));
     }
 
     #endregion // Tests

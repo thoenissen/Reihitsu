@@ -41,9 +41,9 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesFormatterTests : Fo
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFix(input,
-                                 fixedData,
-                                 Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5526MessageFormat));
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5526MessageFormat));
     }
 
     #endregion // Tests
