@@ -262,6 +262,8 @@ public class SyntaxIndentationUtilitiesTests
     public void GetTriviaIndentLevelFollowsTheBraceRange()
     {
         const string source = """
+                              #region Outer
+
                               internal class C
                               {
                                   #region Members
@@ -270,15 +272,17 @@ public class SyntaxIndentationUtilitiesTests
 
                                   #endregion // Members
                               }
+
+                              #endregion // Outer
                               """;
 
         var declaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration(source);
         var property = CoreSyntaxTestHelper.GetSingleMember<PropertyDeclarationSyntax>(source);
-        var regionDirective = property.GetLeadingTrivia().First(SyntaxTriviaUtilities.IsRegionDirective);
-        var leadingTrivia = declaration.GetLeadingTrivia();
+        var innerDirective = property.GetLeadingTrivia().First(SyntaxTriviaUtilities.IsRegionDirective);
+        var outerDirective = declaration.GetLeadingTrivia().First(SyntaxTriviaUtilities.IsRegionDirective);
 
-        Assert.AreEqual(1, SyntaxIndentationUtilities.GetTriviaIndentLevel(declaration, regionDirective, 0));
-        Assert.AreEqual(0, SyntaxIndentationUtilities.GetTriviaIndentLevel(declaration, leadingTrivia.FirstOrDefault(), 0));
+        Assert.AreEqual(1, SyntaxIndentationUtilities.GetTriviaIndentLevel(declaration, innerDirective, 0));
+        Assert.AreEqual(0, SyntaxIndentationUtilities.GetTriviaIndentLevel(declaration, outerDirective, 0));
     }
 
     /// <summary>

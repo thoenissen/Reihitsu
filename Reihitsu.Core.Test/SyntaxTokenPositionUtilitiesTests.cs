@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using System.Linq;
+
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Core;
 
 namespace Reihitsu.Core.Test;
 
@@ -97,6 +97,28 @@ public class SyntaxTokenPositionUtilitiesTests
                         SyntaxTokenPositionUtilities.GetColumn(carriageReturnProperty.Modifiers[0]));
 
         Assert.IsTrue(SyntaxTokenPositionUtilities.IsFirstOnLine(carriageReturnProperty.Modifiers[0]));
+    }
+
+    /// <summary>
+    /// Verifies that the line break is found when it sits in the token's own leading trivia. A token preceded by a
+    /// comment line carries the break on that side, so an implementation that inspected only the previous token's
+    /// trailing trivia would miss it
+    /// </summary>
+    [TestMethod]
+    public void IsFirstOnLineDetectsLineBreakInOwnLeadingTrivia()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  // Comment
+                                  internal bool Value => true;
+                              }
+                              """;
+
+        var property = CoreSyntaxTestHelper.GetSingleMember<PropertyDeclarationSyntax>(source);
+
+        Assert.Contains(SyntaxTriviaUtilities.IsCommentTrivia, property.Modifiers[0].LeadingTrivia);
+        Assert.IsTrue(SyntaxTokenPositionUtilities.IsFirstOnLine(property.Modifiers[0]));
     }
 
     #endregion // Tests
