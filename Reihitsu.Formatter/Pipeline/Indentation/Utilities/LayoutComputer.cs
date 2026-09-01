@@ -87,26 +87,15 @@ internal static class LayoutComputer
     #region Private methods
 
     /// <summary>
-    /// Determines whether a token is the first token on its line
+    /// Determines whether a token is the first token on its line. The rule itself lives in
+    /// <see cref="SyntaxTokenPositionUtilities.IsFirstOnLine"/>, shared with the RH5204 analyzer so both engines
+    /// agree on which token owns a line; this forwarder keeps the formatter's own call sites unchanged
     /// </summary>
     /// <param name="token">The token to check</param>
     /// <returns><see langword="true"/> if the token is first on its line; otherwise, <see langword="false"/></returns>
     internal static bool IsFirstOnLine(SyntaxToken token)
     {
-        if (token.IsKind(SyntaxKind.None))
-        {
-            return false;
-        }
-
-        var previousToken = token.GetPreviousToken();
-
-        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
-        {
-            return true;
-        }
-
-        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        return SyntaxTokenPositionUtilities.IsFirstOnLine(token);
     }
 
     /// <summary>
@@ -116,7 +105,7 @@ internal static class LayoutComputer
     /// <returns>The line number</returns>
     internal static int GetLine(SyntaxToken token)
     {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Line;
+        return SyntaxTokenPositionUtilities.GetLine(token);
     }
 
     /// <summary>
@@ -126,7 +115,7 @@ internal static class LayoutComputer
     /// <returns>The column</returns>
     internal static int GetColumn(SyntaxToken token)
     {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Character;
+        return SyntaxTokenPositionUtilities.GetColumn(token);
     }
 
     /// <summary>

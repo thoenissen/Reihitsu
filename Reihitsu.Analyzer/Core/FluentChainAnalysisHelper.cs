@@ -70,7 +70,7 @@ internal static class FluentChainAnalysisHelper
     /// <returns>Line number</returns>
     internal static int GetLine(SyntaxToken token)
     {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Line;
+        return SyntaxTokenPositionUtilities.GetLine(token);
     }
 
     /// <summary>

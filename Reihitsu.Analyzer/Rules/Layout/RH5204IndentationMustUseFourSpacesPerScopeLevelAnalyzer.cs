@@ -70,7 +70,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     {
         foreach (var token in root.DescendantTokens())
         {
-            var tokenLine = GetLine(token);
+            var tokenLine = SyntaxTokenPositionUtilities.GetLine(token);
 
             if (expectedIndentationByLine.TryGetValue(tokenLine, out var expectation) == false)
             {
@@ -130,39 +130,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
 
             ComputeBlockIndentation(child.AsNode(), childIndent, expectedIndentationByLine);
         }
-    }
-
-    /// <summary>
-    /// Gets the 0-based line number of a token
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>Line number</returns>
-    private static int GetLine(SyntaxToken token)
-    {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Line;
-    }
-
-    /// <summary>
-    /// Determines whether the specified token is the first token on its line
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns><see langword="true"/> if the token starts a line</returns>
-    private static bool IsFirstOnLine(SyntaxToken token)
-    {
-        if (token.IsKind(SyntaxKind.None))
-        {
-            return false;
-        }
-
-        var previousToken = token.GetPreviousToken();
-
-        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
-        {
-            return true;
-        }
-
-        return token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>
@@ -229,10 +196,10 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// <param name="expectedIndentationByLine">Expected indentation by line</param>
     private static void SetTokenIndentation(SyntaxToken token, int indentLevel, Dictionary<int, (int Indentation, Location Location)> expectedIndentationByLine)
     {
-        if (IsFirstOnLine(token)
+        if (SyntaxTokenPositionUtilities.IsFirstOnLine(token)
             && ShouldAnalyzeToken(token))
         {
-            expectedIndentationByLine[GetLine(token)] = (indentLevel * IndentSize, token.GetLocation());
+            expectedIndentationByLine[SyntaxTokenPositionUtilities.GetLine(token)] = (indentLevel * IndentSize, token.GetLocation());
         }
     }
 
