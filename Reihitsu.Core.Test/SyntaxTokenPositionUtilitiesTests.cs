@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -100,9 +101,10 @@ public class SyntaxTokenPositionUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that the line break is found when it sits in the token's own leading trivia. A token preceded by a
-    /// comment line carries the break on that side, so an implementation that inspected only the previous token's
-    /// trailing trivia would miss it
+    /// Verifies that the line break is honoured when it sits in the token's own leading trivia and nowhere else.
+    /// Parsed source cannot produce that shape on its own — Roslyn always attaches the first newline to the
+    /// preceding token's trailing trivia — so the trivia is moved deliberately here. Without the leading-trivia
+    /// disjunct this token would be reported as sharing a line with the brace before it
     /// </summary>
     [TestMethod]
     public void IsFirstOnLineDetectsLineBreakInOwnLeadingTrivia()
@@ -110,15 +112,22 @@ public class SyntaxTokenPositionUtilitiesTests
         const string source = """
                               internal class C
                               {
-                                  // Comment
                                   internal bool Value => true;
                               }
                               """;
 
-        var property = CoreSyntaxTestHelper.GetSingleMember<PropertyDeclarationSyntax>(source);
+        var root = CoreSyntaxTestHelper.ParseCompilationUnit(source);
+        var modifier = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single().Modifiers[0];
 
-        Assert.Contains(SyntaxTriviaUtilities.IsCommentTrivia, property.Modifiers[0].LeadingTrivia);
-        Assert.IsTrue(SyntaxTokenPositionUtilities.IsFirstOnLine(property.Modifiers[0]));
+        var rewritten = root.ReplaceTokens([modifier.GetPreviousToken(), modifier],
+                                           (original, _) => original.IsKind(SyntaxKind.OpenBraceToken)
+                                                                ? original.WithTrailingTrivia(SyntaxFactory.Space)
+                                                                : original.WithLeadingTrivia(SyntaxFactory.EndOfLine("\n")));
+
+        var movedModifier = rewritten.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single().Modifiers[0];
+
+        Assert.DoesNotContain(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia), movedModifier.GetPreviousToken().TrailingTrivia);
+        Assert.IsTrue(SyntaxTokenPositionUtilities.IsFirstOnLine(movedModifier));
     }
 
     #endregion // Tests
