@@ -251,9 +251,7 @@ internal static class LayoutComputer
             return;
         }
 
-        var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        model.Set(line, new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
+        model.Set(GetLine(token), new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
     }
 
     /// <summary>
