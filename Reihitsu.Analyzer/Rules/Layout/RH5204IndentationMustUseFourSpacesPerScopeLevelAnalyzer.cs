@@ -70,7 +70,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     {
         foreach (var token in root.DescendantTokens())
         {
-            var tokenLine = GetLine(token);
+            var tokenLine = SyntaxTokenPositionUtilities.GetLine(token);
 
             if (expectedIndentationByLine.TryGetValue(tokenLine, out var expectation) == false)
             {
@@ -133,39 +133,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Gets the 0-based line number of a token
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>Line number</returns>
-    private static int GetLine(SyntaxToken token)
-    {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Line;
-    }
-
-    /// <summary>
-    /// Determines whether the specified token is the first token on its line
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns><see langword="true"/> if the token starts a line</returns>
-    private static bool IsFirstOnLine(SyntaxToken token)
-    {
-        if (token.IsKind(SyntaxKind.None))
-        {
-            return false;
-        }
-
-        var previousToken = token.GetPreviousToken();
-
-        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
-        {
-            return true;
-        }
-
-        return token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-    }
-
-    /// <summary>
     /// Determines whether a first-on-line token should participate in scope indentation analysis
     /// </summary>
     /// <param name="token">Token</param>
@@ -194,7 +161,11 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Sets the indentation for region directives
+    /// Sets the indentation for region directives. A directive inside a branch the compiler skipped is left where the
+    /// author wrote it, matching the formatter's <c>LayoutComputer.SetDirectiveIndentation</c> (issue #434): the code
+    /// around it is untouched disabled text, so re-indenting the directive alone would half-format a region nobody
+    /// compiles. Because the code fix's directive path reads this same map, the analyzer and the formatter would
+    /// otherwise write different text for identical input
     /// </summary>
     /// <param name="token">Token</param>
     /// <param name="parent">Syntax node that owns the token</param>
@@ -204,7 +175,8 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     {
         foreach (var trivia in token.LeadingTrivia)
         {
-            if (SyntaxTriviaUtilities.IsRegionDirective(trivia) == false)
+            if (SyntaxTriviaUtilities.IsRegionDirective(trivia) == false
+                || SyntaxTriviaUtilities.IsInactiveDirective(trivia))
             {
                 continue;
             }
@@ -224,10 +196,10 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// <param name="expectedIndentationByLine">Expected indentation by line</param>
     private static void SetTokenIndentation(SyntaxToken token, int indentLevel, Dictionary<int, (int Indentation, Location Location)> expectedIndentationByLine)
     {
-        if (IsFirstOnLine(token)
+        if (SyntaxTokenPositionUtilities.IsFirstOnLine(token)
             && ShouldAnalyzeToken(token))
         {
-            expectedIndentationByLine[GetLine(token)] = (indentLevel * IndentSize, token.GetLocation());
+            expectedIndentationByLine[SyntaxTokenPositionUtilities.GetLine(token)] = (indentLevel * IndentSize, token.GetLocation());
         }
     }
 

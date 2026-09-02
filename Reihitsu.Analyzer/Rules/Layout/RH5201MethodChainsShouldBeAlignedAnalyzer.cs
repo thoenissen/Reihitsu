@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -52,7 +53,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     /// <returns>Column</returns>
     private static int GetColumn(SyntaxToken token)
     {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Character;
+        return SyntaxTokenPositionUtilities.GetColumn(token);
     }
 
     #endregion // Methods

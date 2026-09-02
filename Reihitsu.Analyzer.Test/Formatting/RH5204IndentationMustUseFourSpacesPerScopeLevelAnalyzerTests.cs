@@ -788,5 +788,69 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that region directives inside a branch the compiler excluded are left alone. Their surroundings are
+    /// untouched disabled text, so re-indenting the directive alone would half-format a region nobody compiles. The
+    /// formatter already declines this in <c>LayoutComputer</c>, and the analyzer has to agree or the CLI and the IDE
+    /// fix write different text for the same input
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForRegionDirectivesInsideInactiveBranch()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                #if false
+                                #region Disabled
+                                #endregion
+                                #endif
+
+                                    internal bool Value => true;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that region directives inside a branch the compiler kept are still detected and fixed. This is the
+    /// active side of the boundary that <see cref="VerifyNoDiagnosticsForRegionDirectivesInsideInactiveBranch"/> owns
+    /// the inactive side of
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionIndentationInsideActiveBranchIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                #if true
+                                {|#0:#region Enabled|}
+
+                                    internal bool Value => true;
+
+                                    #endregion // Enabled
+                                #endif
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                 #if true
+                                     #region Enabled
+
+                                     internal bool Value => true;
+
+                                     #endregion // Enabled
+                                 #endif
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
     #endregion // Tests
 }
