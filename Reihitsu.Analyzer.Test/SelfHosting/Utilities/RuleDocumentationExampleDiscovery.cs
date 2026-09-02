@@ -17,12 +17,12 @@ internal static class RuleDocumentationExampleDiscovery
     /// <summary>
     /// Regex for rule document title headings
     /// </summary>
-    private static readonly Regex _titleRegex = new(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] ", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex _titleRegex = new(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] ", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
 
     /// <summary>
     /// Regex for the metadata table's <c>Code Fix</c> row
     /// </summary>
-    private static readonly Regex _codeFixRowRegex = new(@"^\|\s*\*\*Code Fix\*\*\s*\|\s*(?<marker>✓|❌)\s*\|$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex _codeFixRowRegex = new(@"^\|\s*\*\*Code Fix\*\*\s*\|\s*(?<marker>✓|❌)\s*\|$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
 
     #endregion // Fields
 

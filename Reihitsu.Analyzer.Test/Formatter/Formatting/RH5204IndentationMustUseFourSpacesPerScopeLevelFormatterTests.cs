@@ -40,5 +40,29 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
                               ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 3, 3, 11, AnalyzerResources.RH5204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter leaves region directives inside a branch the compiler excluded exactly where the
+    /// author wrote them. Together with the analyzer's matching carve-out this pins the parity that was missing while
+    /// the analyzer re-indented what the formatter declined to touch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterLeavesRegionDirectivesInsideInactiveBranchUntouched()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                              #if false
+                              #region Disabled
+                              #endregion // Disabled
+                              #endif
+
+                                  internal bool Value => true;
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
     #endregion // Tests
 }
