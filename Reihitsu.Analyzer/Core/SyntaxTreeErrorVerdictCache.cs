@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 
@@ -33,7 +34,7 @@ internal sealed class SyntaxTreeErrorVerdictCache
     /// <param name="tree">Tree to inspect</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when the tree contains an error; otherwise, <see langword="false"/></returns>
-    internal bool ContainsError(SyntaxTree tree, System.Threading.CancellationToken cancellationToken)
+    internal bool ContainsError(SyntaxTree tree, CancellationToken cancellationToken)
     {
         if (_verdicts.TryGetValue(tree, out var containsError) == false)
         {

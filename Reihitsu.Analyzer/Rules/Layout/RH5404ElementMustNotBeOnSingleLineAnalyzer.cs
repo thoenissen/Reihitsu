@@ -78,15 +78,13 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        // Every concrete BaseTypeDeclarationSyntax kind has to be listed here, because the previous syntax-tree
-        // action matched the abstract type and so covered all of them. RH5404's test class carries a canary over
-        // those declaration types, so a kind added by a future Roslyn version fails loudly instead of silently
-        // dropping out of scope.
-        // SyntaxKind.UnionDeclaration is still an experimental Roslyn API. It is registered anyway because the
-        // previous syntax-tree action matched BaseTypeDeclarationSyntax and therefore already covered union
-        // declarations for consumers compiling with a preview language version; omitting the kind here would
-        // silently drop those diagnostics.
-#pragma warning disable RSEXPERIMENTAL006
+        // The previous syntax-tree action matched the abstract BaseTypeDeclarationSyntax, so every concrete kind
+        // has to be listed here to keep the same coverage. Each registered kind has a test that fails if it is
+        // dropped, and RH5404's test class carries a canary over the declaration types themselves.
+        //
+        // SyntaxKind.UnionDeclaration is deliberately absent. Union declarations parse only under a preview
+        // language version and need runtime support types .NET 10 does not ship, and registering the kind would
+        // pull an experimental Roslyn API into the analyzer. They are left out until the feature is released.
         context.RegisterSyntaxNodeAction(OnDeclaration,
                                          SyntaxKind.ClassDeclaration,
                                          SyntaxKind.StructDeclaration,
@@ -94,9 +92,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
                                          SyntaxKind.RecordDeclaration,
                                          SyntaxKind.RecordStructDeclaration,
                                          SyntaxKind.EnumDeclaration,
-                                         SyntaxKind.ExtensionBlockDeclaration,
-                                         SyntaxKind.UnionDeclaration);
-#pragma warning restore RSEXPERIMENTAL006
+                                         SyntaxKind.ExtensionBlockDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer
