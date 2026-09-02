@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -38,28 +39,28 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a block
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnBlock(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var block in root.DescendantNodes().OfType<BlockSyntax>())
+        if (context.Node is not BlockSyntax block)
         {
-            if (StatementBlockParentPolicy.IsCovered(block) == false)
-            {
-                continue;
-            }
+            return;
+        }
 
-            var braceLine = block.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-            var previousLine = block.OpenBraceToken.GetPreviousToken().GetLocation().GetLineSpan().EndLinePosition.Line;
-            var closeLine = block.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        if (StatementBlockParentPolicy.IsCovered(block) == false)
+        {
+            return;
+        }
 
-            if (braceLine == previousLine && closeLine > braceLine)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(block.OpenBraceToken.GetLocation()));
-            }
+        var braceLine = block.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var previousLine = block.OpenBraceToken.GetPreviousToken().GetLocation().GetLineSpan().EndLinePosition.Line;
+        var closeLine = block.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (braceLine == previousLine && closeLine > braceLine)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(block.OpenBraceToken.GetLocation()));
         }
     }
 
@@ -72,7 +73,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer : Diagno
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnBlock, SyntaxKind.Block);
     }
 
     #endregion // DiagnosticAnalyzer

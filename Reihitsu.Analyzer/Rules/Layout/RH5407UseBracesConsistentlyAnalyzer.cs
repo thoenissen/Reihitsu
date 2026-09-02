@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -37,34 +38,34 @@ public class RH5407UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes an if-statement
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnIfStatement(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var statement in root.DescendantNodes().OfType<IfStatementSyntax>())
+        if (context.Node is not IfStatementSyntax statement)
         {
-            if (statement.Else == null)
-            {
-                continue;
-            }
+            return;
+        }
 
-            if (statement.Else.Statement is IfStatementSyntax)
-            {
-                continue;
-            }
+        if (statement.Else == null)
+        {
+            return;
+        }
 
-            var ifHasBraces = statement.Statement is BlockSyntax;
-            var elseHasBraces = statement.Else.Statement is BlockSyntax;
+        if (statement.Else.Statement is IfStatementSyntax)
+        {
+            return;
+        }
 
-            if (ifHasBraces != elseHasBraces)
-            {
-                var target = elseHasBraces ? statement.Statement : statement.Else.Statement;
+        var ifHasBraces = statement.Statement is BlockSyntax;
+        var elseHasBraces = statement.Else.Statement is BlockSyntax;
 
-                context.ReportDiagnostic(CreateDiagnostic(target.GetLocation()));
-            }
+        if (ifHasBraces != elseHasBraces)
+        {
+            var target = elseHasBraces ? statement.Statement : statement.Else.Statement;
+
+            context.ReportDiagnostic(CreateDiagnostic(target.GetLocation()));
         }
     }
 
@@ -77,7 +78,7 @@ public class RH5407UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnIfStatement, SyntaxKind.IfStatement);
     }
 
     #endregion // DiagnosticAnalyzer

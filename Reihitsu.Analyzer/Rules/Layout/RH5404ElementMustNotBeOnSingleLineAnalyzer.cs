@@ -38,34 +38,34 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a type declaration
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var declaration in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
+        if (context.Node is not BaseTypeDeclarationSyntax declaration)
         {
-            if (declaration is TypeDeclarationSyntax typeDeclaration
-                && typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
-            {
-                continue;
-            }
+            return;
+        }
 
-            if (declaration.OpenBraceToken.IsMissing
-                || declaration.CloseBraceToken.IsMissing)
-            {
-                continue;
-            }
+        if (declaration is TypeDeclarationSyntax typeDeclaration
+            && typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
+        {
+            return;
+        }
 
-            var openBraceLine = declaration.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-            var closeBraceLine = declaration.CloseBraceToken.GetLocation().GetLineSpan().EndLinePosition.Line;
+        if (declaration.OpenBraceToken.IsMissing
+            || declaration.CloseBraceToken.IsMissing)
+        {
+            return;
+        }
 
-            if (openBraceLine == closeBraceLine)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(declaration.Identifier.GetLocation()));
-            }
+        var openBraceLine = declaration.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var closeBraceLine = declaration.CloseBraceToken.GetLocation().GetLineSpan().EndLinePosition.Line;
+
+        if (openBraceLine == closeBraceLine)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(declaration.Identifier.GetLocation()));
         }
     }
 
@@ -78,7 +78,25 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        // Every concrete BaseTypeDeclarationSyntax kind has to be listed here, because the previous syntax-tree
+        // action matched the abstract type and so covered all of them. RH5404's test class carries a canary over
+        // those declaration types, so a kind added by a future Roslyn version fails loudly instead of silently
+        // dropping out of scope.
+        // SyntaxKind.UnionDeclaration is still an experimental Roslyn API. It is registered anyway because the
+        // previous syntax-tree action matched BaseTypeDeclarationSyntax and therefore already covered union
+        // declarations for consumers compiling with a preview language version; omitting the kind here would
+        // silently drop those diagnostics.
+#pragma warning disable RSEXPERIMENTAL006
+        context.RegisterSyntaxNodeAction(OnDeclaration,
+                                         SyntaxKind.ClassDeclaration,
+                                         SyntaxKind.StructDeclaration,
+                                         SyntaxKind.InterfaceDeclaration,
+                                         SyntaxKind.RecordDeclaration,
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.EnumDeclaration,
+                                         SyntaxKind.ExtensionBlockDeclaration,
+                                         SyntaxKind.UnionDeclaration);
+#pragma warning restore RSEXPERIMENTAL006
     }
 
     #endregion // DiagnosticAnalyzer
