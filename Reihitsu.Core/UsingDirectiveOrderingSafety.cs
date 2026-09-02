@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -15,9 +15,13 @@ public static class UsingDirectiveOrderingSafety
     #region Fields
 
     /// <summary>
-    /// Matches a preprocessor directive line within a using block
+    /// Matches a preprocessor directive line within a using block. The match timeout is a wall-clock budget, not a
+    /// CPU one, so a thread descheduled on a loaded machine throws even though this pattern carries no nested
+    /// quantifier and cannot backtrack pathologically. A timeout here surfaces as AD0001 and disables the consuming
+    /// analyzer for the whole compilation, so the budget is set well above any plausible matching cost rather than
+    /// tight enough to double as a scheduling probe
     /// </summary>
-    private static readonly Regex _preprocessorDirectiveRegex = new(@"(^|\r?\n)\s*#", RegexOptions.CultureInvariant | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex _preprocessorDirectiveRegex = new(@"(^|\r?\n)\s*#", RegexOptions.CultureInvariant | RegexOptions.Compiled, TimeSpan.FromSeconds(2));
 
     #endregion // Fields
 

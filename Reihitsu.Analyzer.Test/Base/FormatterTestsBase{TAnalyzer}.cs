@@ -182,7 +182,7 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <returns>The markup-stripping regex</returns>
     private static Regex MarkupRegex()
     {
-        return new Regex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline, TimeSpan.FromMilliseconds(100));
+        return new Regex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline, TimeSpan.FromSeconds(2));
     }
 
     /// <summary>
