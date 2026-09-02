@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -43,7 +44,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : Diagno
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="parameterList">Parameter list</param>
-    private void AnalyzeParameterList(SyntaxTreeAnalysisContext context, ParameterListSyntax parameterList)
+    private void AnalyzeParameterList(SyntaxNodeAnalysisContext context, ParameterListSyntax parameterList)
     {
         var closeParenLine = parameterList.CloseParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
         var expectedLine = parameterList.Parameters.Count > 0
@@ -66,22 +67,37 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a parameter list
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    /// <param name="errorVerdicts">Syntax error verdict per tree</param>
+    private void OnParameterList(SyntaxNodeAnalysisContext context, SyntaxTreeErrorVerdictCache errorVerdicts)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        if (context.Tree.GetDiagnostics(context.CancellationToken).Any(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+        if (context.Node is not ParameterListSyntax parameterList
+            || ParameterListParentPolicy.IsClosingParenthesisCovered(parameterList) == false)
         {
             return;
         }
 
-        foreach (var parameterList in root.DescendantNodes().OfType<ParameterListSyntax>().Where(ParameterListParentPolicy.IsClosingParenthesisCovered))
+        // The rule withholds itself for a whole file with malformed syntax, so the verdict covers the entire tree
+        // rather than the analyzed parameter list.
+        if (errorVerdicts.ContainsError(context.Node.SyntaxTree, context.CancellationToken))
         {
-            AnalyzeParameterList(context, parameterList);
+            return;
         }
+
+        AnalyzeParameterList(context, parameterList);
+    }
+
+    /// <summary>
+    /// Starts the analysis of a compilation
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnCompilationStart(CompilationStartAnalysisContext context)
+    {
+        var errorVerdicts = new SyntaxTreeErrorVerdictCache();
+
+        context.RegisterSyntaxNodeAction(nodeContext => OnParameterList(nodeContext, errorVerdicts), SyntaxKind.ParameterList);
     }
 
     #endregion // Methods
@@ -93,7 +109,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : Diagno
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
     #endregion // DiagnosticAnalyzer

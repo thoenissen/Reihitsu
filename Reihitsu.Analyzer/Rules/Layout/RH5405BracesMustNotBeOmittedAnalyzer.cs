@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -37,24 +38,24 @@ public class RH5405BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes an if-statement
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnIfStatement(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var ifStatement in root.DescendantNodes().OfType<IfStatementSyntax>())
+        if (context.Node is not IfStatementSyntax ifStatement)
         {
-            // The if-body is reported here. An else-body is reported when its statement is not itself an
-            // if-statement, because a nested "else if" is handled by that inner if-statement instead.
-            AnalyzeChildStatement(context, ifStatement.Statement);
+            return;
+        }
 
-            if (ifStatement.Else is { Statement: { } elseStatement }
-                && elseStatement is IfStatementSyntax == false)
-            {
-                AnalyzeChildStatement(context, elseStatement);
-            }
+        // The if-body is reported here. An else-body is reported when its statement is not itself an
+        // if-statement, because a nested "else if" is handled by that inner if-statement instead.
+        AnalyzeChildStatement(context, ifStatement.Statement);
+
+        if (ifStatement.Else is { Statement: { } elseStatement }
+            && elseStatement is IfStatementSyntax == false)
+        {
+            AnalyzeChildStatement(context, elseStatement);
         }
     }
 
@@ -63,7 +64,7 @@ public class RH5405BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="statement">Child statement of the control-flow statement</param>
-    private void AnalyzeChildStatement(SyntaxTreeAnalysisContext context, StatementSyntax statement)
+    private void AnalyzeChildStatement(SyntaxNodeAnalysisContext context, StatementSyntax statement)
     {
         if (statement is BlockSyntax)
         {
@@ -88,7 +89,7 @@ public class RH5405BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnIfStatement, SyntaxKind.IfStatement);
     }
 
     #endregion // DiagnosticAnalyzer

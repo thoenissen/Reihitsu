@@ -451,5 +451,49 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
         await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifies that a syntax error in an unrelated member suppresses the rule for the whole file, including a
+    /// well-formed declaration elsewhere in that file that would otherwise be reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUnrelatedSyntaxErrorSuppressesTheWholeFile()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private int _broken = ;
+
+                                    private void Valid
+                                    (int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the same declaration is reported once the unrelated syntax error is removed, so the
+    /// suppression above is caused by the error and not by the shape of the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySameDeclarationIsReportedWithoutTheUnrelatedSyntaxError()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private void Valid
+                                    {|#0:(|}int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+    }
+
     #endregion // Tests
 }
