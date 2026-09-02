@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -38,34 +39,36 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a parameter list
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnParameterList(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var parameters in root.DescendantNodes().OfType<ParameterListSyntax>().Select(parameterList => parameterList.Parameters))
+        if (context.Node is not ParameterListSyntax parameterList)
         {
-            for (var index = 0; index < parameters.SeparatorCount; index++)
+            return;
+        }
+
+        var parameters = parameterList.Parameters;
+
+        for (var index = 0; index < parameters.SeparatorCount; index++)
+        {
+            var comma = parameters.GetSeparator(index);
+            var previousParameter = parameters[index];
+
+            if (comma.GetLocation().GetLineSpan().StartLinePosition.Line == previousParameter.GetLocation().GetLineSpan().EndLinePosition.Line)
             {
-                var comma = parameters.GetSeparator(index);
-                var previousParameter = parameters[index];
-
-                if (comma.GetLocation().GetLineSpan().StartLinePosition.Line == previousParameter.GetLocation().GetLineSpan().EndLinePosition.Line)
-                {
-                    continue;
-                }
-
-                // The formatter refuses to hoist the comma onto the previous parameter's line when a comment or
-                // directive sits in the gap, so flagging that shape would leave a permanent diagnostic.
-                if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousParameter.GetLastToken(), comma))
-                {
-                    continue;
-                }
-
-                context.ReportDiagnostic(CreateDiagnostic(comma.GetLocation()));
+                continue;
             }
+
+            // The formatter refuses to hoist the comma onto the previous parameter's line when a comment or
+            // directive sits in the gap, so flagging that shape would leave a permanent diagnostic.
+            if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousParameter.GetLastToken(), comma))
+            {
+                continue;
+            }
+
+            context.ReportDiagnostic(CreateDiagnostic(comma.GetLocation()));
         }
     }
 
@@ -78,7 +81,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer : Diagnostic
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnParameterList, SyntaxKind.ParameterList);
     }
 
     #endregion // DiagnosticAnalyzer

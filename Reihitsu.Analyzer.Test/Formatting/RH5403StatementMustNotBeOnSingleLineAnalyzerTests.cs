@@ -146,5 +146,56 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBa
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a single-line block nested in a lambda body is detected, so the rule reaches blocks that are
+    /// not direct descendants of a member declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleLineBlockInsideLambdaBodyIsDetected()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Action action = () =>
+                                                        {
+                                                            if (true) {|#0:{|} return; }
+                                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line block nested in a local function is detected
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleLineBlockInsideLocalFunctionIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        void Local()
+                                        {
+                                            if (true) {|#0:{|} return; }
+                                        }
+
+                                        Local();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat));
+    }
+
     #endregion // Tests
 }

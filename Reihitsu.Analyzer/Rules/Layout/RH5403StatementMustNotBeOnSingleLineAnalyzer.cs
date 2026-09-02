@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -38,25 +39,25 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBa
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a block
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnBlock(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var block in root.DescendantNodes().OfType<BlockSyntax>())
+        if (context.Node is not BlockSyntax block)
         {
-            if (StatementBlockParentPolicy.IsCovered(block) == false)
-            {
-                continue;
-            }
+            return;
+        }
 
-            if (block.Statements.Count > 0
-                && block.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line == block.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(block.OpenBraceToken.GetLocation()));
-            }
+        if (StatementBlockParentPolicy.IsCovered(block) == false)
+        {
+            return;
+        }
+
+        if (block.Statements.Count > 0
+            && block.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line == block.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(block.OpenBraceToken.GetLocation()));
         }
     }
 
@@ -69,7 +70,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBa
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnBlock, SyntaxKind.Block);
     }
 
     #endregion // DiagnosticAnalyzer

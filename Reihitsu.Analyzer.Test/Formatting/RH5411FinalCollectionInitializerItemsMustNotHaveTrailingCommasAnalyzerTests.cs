@@ -196,5 +196,57 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a trailing comma on an array initializer is not flagged, since that shape belongs to RH5410
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommaOnArrayInitializerIsNotFlagged()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new[]
+                                        {
+                                            1,
+                                            2,
+                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a trailing comma on an object initializer is not flagged, since no trailing-comma rule covers that kind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommaOnObjectInitializerIsNotFlagged()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private int First { get; set; }
+
+                                    private int Second { get; set; }
+
+                                    private static void Method()
+                                    {
+                                        var value = new Example
+                                        {
+                                            First = 1,
+                                            Second = 2,
+                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

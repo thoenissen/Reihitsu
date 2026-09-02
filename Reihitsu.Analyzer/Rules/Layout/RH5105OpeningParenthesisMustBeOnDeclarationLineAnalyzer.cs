@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -43,7 +44,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="parameterList">Parameter list to inspect</param>
-    private void CheckParameterList(SyntaxTreeAnalysisContext context, ParameterListSyntax parameterList)
+    private void CheckParameterList(SyntaxNodeAnalysisContext context, ParameterListSyntax parameterList)
     {
         var openParenToken = parameterList.OpenParenToken;
         var previousToken = openParenToken.GetPreviousToken();
@@ -64,23 +65,37 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a parameter list
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    /// <param name="errorVerdicts">Syntax error verdict per tree</param>
+    private void OnParameterList(SyntaxNodeAnalysisContext context, SyntaxTreeErrorVerdictCache errorVerdicts)
     {
-        if (context.Tree.GetDiagnostics(context.CancellationToken).Any(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+        if (context.Node is not ParameterListSyntax parameterList
+            || ParameterListParentPolicy.IsOpeningParenthesisCovered(parameterList) == false)
         {
             return;
         }
 
-        foreach (var parameterList in context.Tree.GetRoot(context.CancellationToken)
-                                                  .DescendantNodes()
-                                                  .OfType<ParameterListSyntax>()
-                                                  .Where(ParameterListParentPolicy.IsOpeningParenthesisCovered))
+        // The rule withholds itself for a whole file with malformed syntax, so the verdict covers the entire tree
+        // rather than the analyzed parameter list.
+        if (errorVerdicts.ContainsError(context.Node.SyntaxTree, context.CancellationToken))
         {
-            CheckParameterList(context, parameterList);
+            return;
         }
+
+        CheckParameterList(context, parameterList);
+    }
+
+    /// <summary>
+    /// Starts the analysis of a compilation
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnCompilationStart(CompilationStartAnalysisContext context)
+    {
+        var errorVerdicts = new SyntaxTreeErrorVerdictCache();
+
+        context.RegisterSyntaxNodeAction(nodeContext => OnParameterList(nodeContext, errorVerdicts), SyntaxKind.ParameterList);
     }
 
     #endregion // Methods
@@ -92,7 +107,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterCompilationStartAction(OnCompilationStart);
     }
 
     #endregion // DiagnosticAnalyzer
