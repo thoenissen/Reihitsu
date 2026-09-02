@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3004UseLambdaSyntaxAnalyzer"/> and <see cref="RH3004UseLambdaSyntaxCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3004UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH3004UseLambdaSyntaxAnalyzer, RH3004UseLambdaSyntaxCodeFixProvider>
+public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004UseLambdaSyntaxAnalyzer, RH3004UseLambdaSyntaxCodeFixProvider>
 {
     #region Tests
 
@@ -290,43 +290,6 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH3004UseLam
     }
 
     /// <summary>
-    /// Verifying anonymous methods nested in expressions are reported and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task NestedAnonymousMethodIsReportedAndFixed()
-    {
-        const string testCode = """
-                                using System;
-
-                                public class Test
-                                {
-                                    public Func<int, Func<int, int>> GetCurried()
-                                    {
-                                        return {|#0:delegate|}(int x)
-                                        {
-                                            return {|#1:delegate|}(int y) { return x + y; };
-                                        };
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 using System;
-
-                                 public class Test
-                                 {
-                                     public Func<int, Func<int, int>> GetCurried()
-                                     {
-                                         return (int x) => (int y) => x + y;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, onConfigure: config => config.NumberOfFixAllIterations = 2, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax.", 2));
-    }
-
-    /// <summary>
     /// Verifying that a documentation comment in the anonymous method body is preserved: the rewrite keeps
     /// the block instead of inlining the return expression and discarding the comment (issue #420)
     /// </summary>
@@ -500,4 +463,45 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH3004UseLam
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Func<int, Func<int, int>> GetCurried()
+                                    {
+                                        return {|#0:delegate|}(int x)
+                                        {
+                                            return {|#1:delegate|}(int y) { return x + y; };
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public Func<int, Func<int, int>> GetCurried()
+                                     {
+                                         return (int x) => (int y) => x + y;
+                                     }
+                                 }
+                                 """;
+
+        // Verifying anonymous methods nested in expressions are reported and fixed
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax.", 2),
+                                  config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

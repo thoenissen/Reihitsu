@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer"/> and <see cref="RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzerTests : AnalyzerTestsBase<RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer, RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider>
+public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzerTests : BatchCodeFixTestsBase<RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer, RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider>
 {
     #region Tests
 
@@ -140,79 +140,6 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     }
 
     /// <summary>
-    /// Verifies that the code fix converges across compilation-unit and block-namespace using scopes in one Fix All iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task CaseVariantSystemRootsAcrossScopesConvergeInOneFixAllIteration()
-    {
-        const string testCode = """
-                                using system;
-                                using {|#0:System|};
-
-                                namespace Example
-                                {
-                                    using SYSTEM.Text;
-                                    using {|#1:System.Text|};
-
-                                    public class TestClass
-                                    {
-                                    }
-                                }
-
-                                namespace system
-                                {
-                                    public class Helper
-                                    {
-                                    }
-                                }
-
-                                namespace SYSTEM.Text
-                                {
-                                    public class Helper
-                                    {
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 using System;
-
-                                 using system;
-
-                                 namespace Example
-                                 {
-                                     using System.Text;
-
-                                     using SYSTEM.Text;
-
-                                     public class TestClass
-                                     {
-                                     }
-                                 }
-
-                                 namespace system
-                                 {
-                                     public class Helper
-                                     {
-                                     }
-                                 }
-
-                                 namespace SYSTEM.Text
-                                 {
-                                     public class Helper
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that System ordering remains registered for using directives inside a file-scoped namespace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -315,4 +242,78 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using system;
+                                using {|#0:System|};
+
+                                namespace Example
+                                {
+                                    using SYSTEM.Text;
+                                    using {|#1:System.Text|};
+
+                                    public class TestClass
+                                    {
+                                    }
+                                }
+
+                                namespace system
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                namespace SYSTEM.Text
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using system;
+
+                                 namespace Example
+                                 {
+                                     using System.Text;
+
+                                     using SYSTEM.Text;
+
+                                     public class TestClass
+                                     {
+                                     }
+                                 }
+
+                                 namespace system
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 namespace SYSTEM.Text
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that the code fix converges across compilation-unit and block-namespace using scopes in one Fix All iteration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

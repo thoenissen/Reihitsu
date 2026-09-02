@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// <see cref="RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH8107VoidReturnValueMustNotBeDocumentedAnalyzer, RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider>
+public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFixTestsBase<RH8107VoidReturnValueMustNotBeDocumentedAnalyzer, RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider>
 {
     #region Tests
 
@@ -287,54 +287,6 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies multiple returns tags are detected and fixed together
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyReturnsTagsAreFixedTogether()
-    {
-        const string source = """
-                              namespace TestNamespace;
-
-                              internal class TestClass
-                              {
-                                  /// <summary>Runs the method.</summary>
-                                  /// {|#0:<returns>Nothing.</returns>|}
-                                  internal void TestMethod()
-                                  {
-                                  }
-
-                                  /// <summary>Runs the other method.</summary>{|#1:<returns>Nothing.</returns>|}
-                                  internal void TestOtherMethod()
-                                  {
-                                  }
-                              }
-                              """;
-
-        const string fixedSource = """
-                                   namespace TestNamespace;
-
-                                   internal class TestClass
-                                   {
-                                       /// <summary>Runs the method.</summary>
-                                       internal void TestMethod()
-                                       {
-                                       }
-
-                                       /// <summary>Runs the other method.</summary>
-                                       internal void TestOtherMethod()
-                                       {
-                                       }
-                                   }
-                                   """;
-
-        await Verify(source,
-                     fixedSource,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies no code fix is offered when the returns tag has no end tag
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -554,4 +506,53 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// {|#0:<returns>Nothing.</returns>|}
+                                  internal void TestMethod()
+                                  {
+                                  }
+
+                                  /// <summary>Runs the other method.</summary>{|#1:<returns>Nothing.</returns>|}
+                                  internal void TestOtherMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Runs the method.</summary>
+                                       internal void TestMethod()
+                                       {
+                                       }
+
+                                       /// <summary>Runs the other method.</summary>
+                                       internal void TestOtherMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        // Verifies multiple returns tags are detected and fixed together
+        return new FixAllScenario(source,
+                                  fixedSource,
+                                  Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

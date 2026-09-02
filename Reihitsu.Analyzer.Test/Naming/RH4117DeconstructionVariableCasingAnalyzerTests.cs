@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4117DeconstructionVariableCasingAnalyzer"/> and <see cref="RH4117DeconstructionVariableCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4117DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4117DeconstructionVariableCasingAnalyzer, RH4117DeconstructionVariableCasingCodeFixProvider>
+public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH4117DeconstructionVariableCasingAnalyzer, RH4117DeconstructionVariableCasingCodeFixProvider>
 {
     #region Tests
 
@@ -120,11 +120,34 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies multiple variables in a nested deconstruction are renamed together by Fix All in one iteration
+    /// Verifies no diagnostics are reported for camelCase deconstruction variables
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNestedDeconstructionVariablesAreFixedInOneFixAllIteration()
+    public async Task VerifyNoDiagnosticsForCamelCaseDeconstructionVariables()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public void Load()
+                                        {
+                                            var (resultCount, retryCount) = (42, 2);
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testCode = """
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
@@ -156,34 +179,12 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
                                  }
                                  """;
 
-        await Verify(testCode,
-                     fixedCode,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat, 2));
+        // Verifies multiple variables in a nested deconstruction are renamed together by Fix All in one iteration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    /// <summary>
-    /// Verifies no diagnostics are reported for camelCase deconstruction variables
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyNoDiagnosticsForCamelCaseDeconstructionVariables()
-    {
-        const string testCode = """
-                                namespace Reihitsu.Analyzer.Test.Naming.Resources
-                                {
-                                    public class DataLoader
-                                    {
-                                        public void Load()
-                                        {
-                                            var (resultCount, retryCount) = (42, 2);
-                                        }
-                                    }
-                                }
-                                """;
-
-        await Verify(testCode);
-    }
-
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

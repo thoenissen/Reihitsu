@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer"/> and <see cref="RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : AnalyzerTestsBase<RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer, RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider>
+public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : BatchCodeFixTestsBase<RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer, RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider>
 {
     #region Tests
 
@@ -340,38 +340,6 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies that several leading commas in the same parameter list all converge to the same alignment column
-    /// (issue #724)
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifySeveralLeadingCommasInOneListAreAllAligned()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method(int first
-                                               {|#0:,|}int second
-                                               {|#1:,|}int third)
-                                    {
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method(int first,
-                                                 int second,
-                                                 int third)
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that Fix All aligns every violating continuation line in one document in a single batch application
     /// (issue #724)
     /// </summary>
@@ -654,4 +622,38 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                               {|#0:,|}int second
+                                               {|#1:,|}int third)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second,
+                                                 int third)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that several leading commas in the same parameter list all converge to the same alignment column (issue #724)
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

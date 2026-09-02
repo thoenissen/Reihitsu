@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer"/> and <see cref="RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : AnalyzerTestsBase<RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer, RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider>
+public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : BatchCodeFixTestsBase<RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer, RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider>
 {
     #region Tests
 
@@ -172,46 +172,6 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies a switch-section statement chain is rewritten with the section statement indentation
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task ThreeStatementSwitchSectionFixAllKeepsSectionIndentation()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method(int value)
-                                    {
-                                        switch (value)
-                                        {
-                                            case 0: Method(1); {|#0:Method(2);|} {|#1:break;|}
-                                        }
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method(int value)
-                                     {
-                                         switch (value)
-                                         {
-                                             case 0: Method(1);
-                                                 Method(2);
-                                                 break;
-                                         }
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies a fix is withheld when an empty statement lies between the analyzed non-empty siblings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -296,4 +256,45 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 0: Method(1); {|#0:Method(2);|} {|#1:break;|}
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 0: Method(1);
+                                                 Method(2);
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Verifies a switch-section statement chain is rewritten with the section statement indentation
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

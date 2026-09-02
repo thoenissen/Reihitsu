@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6002CommasMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6002CommasMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6002CommasMustBeSpacedCorrectlyAnalyzer, RH6002CommasMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6002CommasMustBeSpacedCorrectlyAnalyzer, RH6002CommasMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -444,12 +444,12 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
         await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
     }
 
-    /// <summary>
-    /// Verifies that Fix All converges two interpolation-alignment commas in one document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleInterpolationAlignmentCommaDiagnosticsAreFixedInOneFixAllIteration()
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """
                                 internal class TestClass
@@ -470,11 +470,12 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
                                  }
                                  """;
 
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2));
+        // Verifies that Fix All converges two interpolation-alignment commas in one document
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

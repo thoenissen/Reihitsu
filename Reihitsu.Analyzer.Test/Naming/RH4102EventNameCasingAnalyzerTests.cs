@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4102EventNameCasingAnalyzer"/> and <see cref="RH4102EventNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4102EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH4102EventNameCasingAnalyzer, RH4102EventNameCasingCodeFixProvider>
+public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102EventNameCasingAnalyzer, RH4102EventNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -126,40 +126,6 @@ public class RH4102EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH4102EventN
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifying diagnostics for multiple events declared in a single declaration with wrong casing
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyDiagnosticsForMultipleEventsInSameDeclaration()
-    {
-        const string testCode = """
-                                using System;
-
-                                namespace Reihitsu.Analyzer.Test.Naming.Resources
-                                {
-                                    public class TestClass
-                                    {
-                                        public event EventHandler {|#0:firstEvent|}, {|#1:secondEvent|};
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 using System;
-
-                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
-                                 {
-                                     public class TestClass
-                                     {
-                                         public event EventHandler FirstEvent, SecondEvent;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat, 2));
     }
 
     /// <summary>
@@ -483,4 +449,41 @@ public class RH4102EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH4102EventN
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public event EventHandler {|#0:firstEvent|}, {|#1:secondEvent|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class TestClass
+                                     {
+                                         public event EventHandler FirstEvent, SecondEvent;
+                                     }
+                                 }
+                                 """;
+
+        // Verifying diagnostics for multiple events declared in a single declaration with wrong casing
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -17,7 +17,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5201MethodChainsShouldBeAlignedAnalyzer"/> and <see cref="RH5201MethodChainsShouldBeAlignedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer, RH5201MethodChainsShouldBeAlignedCodeFixProvider>
+public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer, RH5201MethodChainsShouldBeAlignedCodeFixProvider>
 {
     #region Tests
 
@@ -540,46 +540,6 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
-    /// Verifies that Fix All moves multiple same-line links without leaving whitespace or diagnostics behind
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixAllConvergesForMultipleSameLineDiagnostics()
-    {
-        const string testData = """
-                                using System.Linq;
-
-                                internal sealed class Example
-                                {
-                                    private static int[] Convert(int[] values)
-                                    {
-                                        return values.Where(value => value > 0)  {|#0:.|}Select(value => value)  {|#1:.|}OrderBy(value => value)
-                                                     .ToArray();
-                                    }
-                                }
-                                """;
-        const string resultData = """
-                                  using System.Linq;
-
-                                  internal sealed class Example
-                                  {
-                                      private static int[] Convert(int[] values)
-                                      {
-                                          return values.Where(value => value > 0)
-                                                       .Select(value => value)
-                                                       .OrderBy(value => value)
-                                                       .ToArray();
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData,
-                     resultData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that a wrapped member-access dot remains part of the preceding null-forgiving chain link
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -730,4 +690,45 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values.Where(value => value > 0)  {|#0:.|}Select(value => value)  {|#1:.|}OrderBy(value => value)
+                                                     .ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values.Where(value => value > 0)
+                                                       .Select(value => value)
+                                                       .OrderBy(value => value)
+                                                       .ToArray();
+                                      }
+                                  }
+                                  """;
+
+        // Verifies that Fix All moves multiple same-line links without leaving whitespace or diagnostics behind
+        return new FixAllScenario(testData,
+                                  resultData,
+                                  Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

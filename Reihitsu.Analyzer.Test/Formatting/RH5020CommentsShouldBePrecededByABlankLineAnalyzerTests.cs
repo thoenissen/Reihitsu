@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5020CommentsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5020CommentsShouldBePrecededByABlankLineAnalyzer, RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5020CommentsShouldBePrecededByABlankLineAnalyzer, RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -442,12 +442,12 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerT
         await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
     }
 
-    /// <summary>
-    /// Verifies that Fix All converges for multiple newly covered ordinary-comment kinds
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixAllConvergesForNewCommentKinds()
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testCode = """
                                 internal class RH5020
@@ -488,11 +488,12 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerT
                                  }
                                  """;
 
-        await Verify(testCode,
-                     fixedCode,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat, 2));
+        // Verifies that Fix All converges for multiple newly covered ordinary-comment kinds
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer"/> and <see cref="RH6015NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : AnalyzerTestsBase<RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer, RH6015NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider>
+public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : BatchCodeFixTestsBase<RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer, RH6015NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider>
 {
     #region Tests
 
@@ -205,12 +205,12 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : An
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
-    /// <summary>
-    /// Verifies that Fix All removes multiple same-line whitespace runs in one iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleSameLineDiagnosticsAreFixedInOneFixAllIteration()
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """
                                 internal class TestClass
@@ -229,11 +229,12 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : An
                                  }
                                  """;
 
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat, 2));
+        // Verifies that Fix All removes multiple same-line whitespace runs in one iteration
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

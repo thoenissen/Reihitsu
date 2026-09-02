@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7310EmptyRegionsShouldBeRemovedAnalyzer"/> and <see cref="RH7310EmptyRegionsShouldBeRemovedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<RH7310EmptyRegionsShouldBeRemovedAnalyzer, RH7310EmptyRegionsShouldBeRemovedCodeFixProvider>
+public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsBase<RH7310EmptyRegionsShouldBeRemovedAnalyzer, RH7310EmptyRegionsShouldBeRemovedCodeFixProvider>
 {
     #region Tests
 
@@ -451,4 +451,39 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                public class Widget
+                                {
+                                    {|#0:#region Methods|}
+
+                                    #endregion // Methods
+
+                                    {|#1:#region Properties|}
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        const string resultData = """
+                                  public class Widget
+                                  {
+                                  }
+                                  """;
+
+        // Two adjacent empty region pairs, so removing the first shifts the span of the second. The document is
+        // the one VerifyMultipleEmptyRegionsAreReported already asserts both diagnostics on; the expected result
+        // follows the single-removal behaviour of VerifyEmptyRegionIsRemoved, which takes the separating blank
+        // lines with the region pair
+        return new FixAllScenario(testData,
+                                  resultData,
+                                  Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

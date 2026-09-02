@@ -26,7 +26,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4115LocalVariableCasingAnalyzer"/> and <see cref="RH4115LocalVariableCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115LocalVariableCasingAnalyzer, RH4115LocalVariableCasingCodeFixProvider>
+public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH4115LocalVariableCasingAnalyzer, RH4115LocalVariableCasingCodeFixProvider>
 {
     #region Tests
 
@@ -440,85 +440,6 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies mixed local declaration forms are renamed together by Fix All in one iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMixedLocalDeclarationFormsAreFixedInOneFixAllIteration()
-    {
-        const string testCode = """
-                                using System;
-
-                                namespace Reihitsu.Analyzer.Test.Naming.Resources
-                                {
-                                    public class DataLoader
-                                    {
-                                        public int Load(int[] values)
-                                        {
-                                            var result = 0;
-
-                                            foreach (var {|#0:CurrentValue|} in values)
-                                            {
-                                                result += CurrentValue;
-                                            }
-
-                                            int.TryParse("42", out var {|#1:ParsedValue|});
-
-                                            try
-                                            {
-                                                throw new InvalidOperationException();
-                                            }
-                                            catch (InvalidOperationException {|#2:CaughtException|})
-                                            {
-                                                result += CaughtException.Message.Length;
-                                            }
-
-                                            return result + ParsedValue;
-                                        }
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 using System;
-
-                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
-                                 {
-                                     public class DataLoader
-                                     {
-                                         public int Load(int[] values)
-                                         {
-                                             var result = 0;
-
-                                             foreach (var currentValue in values)
-                                             {
-                                                 result += currentValue;
-                                             }
-
-                                             int.TryParse("42", out var parsedValue);
-
-                                             try
-                                             {
-                                                 throw new InvalidOperationException();
-                                             }
-                                             catch (InvalidOperationException caughtException)
-                                             {
-                                                 result += caughtException.Message.Length;
-                                             }
-
-                                             return result + parsedValue;
-                                         }
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat, 3));
     }
 
     /// <summary>
@@ -1730,4 +1651,84 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
 #pragma warning restore RH2101
 
     #endregion // Types
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public int Load(int[] values)
+                                        {
+                                            var result = 0;
+
+                                            foreach (var {|#0:CurrentValue|} in values)
+                                            {
+                                                result += CurrentValue;
+                                            }
+
+                                            int.TryParse("42", out var {|#1:ParsedValue|});
+
+                                            try
+                                            {
+                                                throw new InvalidOperationException();
+                                            }
+                                            catch (InvalidOperationException {|#2:CaughtException|})
+                                            {
+                                                result += CaughtException.Message.Length;
+                                            }
+
+                                            return result + ParsedValue;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class DataLoader
+                                     {
+                                         public int Load(int[] values)
+                                         {
+                                             var result = 0;
+
+                                             foreach (var currentValue in values)
+                                             {
+                                                 result += currentValue;
+                                             }
+
+                                             int.TryParse("42", out var parsedValue);
+
+                                             try
+                                             {
+                                                 throw new InvalidOperationException();
+                                             }
+                                             catch (InvalidOperationException caughtException)
+                                             {
+                                                 result += caughtException.Message.Length;
+                                             }
+
+                                             return result + parsedValue;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Verifies mixed local declaration forms are renamed together by Fix All in one iteration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat, 3),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer"/> and <see cref="RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzerTests : AnalyzerTestsBase<RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer, RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider>
+public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzerTests : BatchCodeFixTestsBase<RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer, RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -189,53 +189,6 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     }
 
     /// <summary>
-    /// Verifies that Fix All removes complete blank-line runs after both documentation-comment forms
-    /// in one iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleDocumentationBlankLineRunsAreFixedInOneFixAllIteration()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    /// <summary>First.</summary>
-                                {|#0:
-
-                                |}    void First()
-                                    {
-                                    }
-
-                                    /** <summary>Second.</summary> */
-                                {|#1:
-
-                                |}    void Second()
-                                    {
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     /// <summary>First.</summary>
-                                     void First()
-                                     {
-                                     }
-
-                                     /** <summary>Second.</summary> */
-                                     void Second()
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that raw-string content does not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -368,4 +321,51 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>First.</summary>
+                                {|#0:
+
+                                |}    void First()
+                                    {
+                                    }
+
+                                    /** <summary>Second.</summary> */
+                                {|#1:
+
+                                |}    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>First.</summary>
+                                     void First()
+                                     {
+                                     }
+
+                                     /** <summary>Second.</summary> */
+                                     void Second()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that Fix All removes complete blank-line runs after both documentation-comment forms in one iteration
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5030BlankLineAfterClosingBraceAnalyzer"/> and <see cref="RH5030BlankLineAfterClosingBraceCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<RH5030BlankLineAfterClosingBraceAnalyzer, RH5030BlankLineAfterClosingBraceCodeFixProvider>
+public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBase<RH5030BlankLineAfterClosingBraceAnalyzer, RH5030BlankLineAfterClosingBraceCodeFixProvider>
 {
     #region Tests
 
@@ -617,87 +617,6 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
     }
 
     /// <summary>
-    /// Verifies Fix All inserts one blank line after every affected closing brace in braced switch-section bodies
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixAllConvergesForBreaksInsideBracedSwitchSections()
-    {
-        const string testCode = """
-                                internal class RH5030
-                                {
-                                    public void Execute(int value)
-                                    {
-                                        switch (value)
-                                        {
-                                            case 1:
-                                                {
-                                                    if (value > 0)
-                                                    {
-                                                        Consume();
-                                                    {|#0:}|}
-                                                    break;
-                                                }
-
-                                            case 2:
-                                                {
-                                                    if (value > 1)
-                                                    {
-                                                        Consume();
-                                                    {|#1:}|}
-                                                    break;
-                                                }
-                                        }
-                                    }
-
-                                    private void Consume()
-                                    {
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 internal class RH5030
-                                 {
-                                     public void Execute(int value)
-                                     {
-                                         switch (value)
-                                         {
-                                             case 1:
-                                                 {
-                                                     if (value > 0)
-                                                     {
-                                                         Consume();
-                                                     }
-
-                                                     break;
-                                                 }
-
-                                             case 2:
-                                                 {
-                                                     if (value > 1)
-                                                     {
-                                                         Consume();
-                                                     }
-
-                                                     break;
-                                                 }
-                                         }
-                                     }
-
-                                     private void Consume()
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies a diagnostic is reported when a comment line separates a closing brace from the next statement,
     /// matching the formatter's blank-line definition, which only counts a line as blank when it contains no
     /// content (issue #440)
@@ -940,4 +859,86 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    if (value > 0)
+                                                    {
+                                                        Consume();
+                                                    {|#0:}|}
+                                                    break;
+                                                }
+
+                                            case 2:
+                                                {
+                                                    if (value > 1)
+                                                    {
+                                                        Consume();
+                                                    {|#1:}|}
+                                                    break;
+                                                }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5030
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     if (value > 0)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+
+                                             case 2:
+                                                 {
+                                                     if (value > 1)
+                                                     {
+                                                         Consume();
+                                                     }
+
+                                                     break;
+                                                 }
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifies Fix All inserts one blank line after every affected closing brace in braced switch-section bodies
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

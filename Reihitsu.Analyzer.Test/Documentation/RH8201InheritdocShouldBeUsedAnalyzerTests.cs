@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Test methods for <see cref="RH8201InheritdocShouldBeUsedAnalyzer"/> and <see cref="RH8201InheritdocShouldBeUsedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH8201InheritdocShouldBeUsedAnalyzer, RH8201InheritdocShouldBeUsedCodeFixProvider>
+public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH8201InheritdocShouldBeUsedAnalyzer, RH8201InheritdocShouldBeUsedCodeFixProvider>
 {
     #region Test data
 
@@ -1035,82 +1035,6 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
-    /// Verifies that Fix All replaces every multi-line (/** */) documentation comment in a type in one
-    /// iteration, which is the common shape when a type overrides several documented members (issue #463)
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleMultiLineDocumentationCommentsAreFixedInOneFixAllIteration()
-    {
-        const string testData = """
-                                using System;
-
-                                namespace TestNamespace
-                                {
-                                    internal abstract class TestBase
-                                    {
-                                        /// <summary>
-                                        /// Base documentation
-                                        /// </summary>
-                                        public abstract void TestMethod();
-
-                                        /// <summary>
-                                        /// Base documentation
-                                        /// </summary>
-                                        public abstract int TestProperty { get; set; }
-                                    }
-
-                                    internal class TestImplementation : TestBase
-                                    {
-                                        /**{|#0: <summary>Implementation documentation</summary> */|}
-                                        public override void TestMethod()
-                                        {
-                                        }
-
-                                        /**{|#1: <summary>Implementation documentation</summary> */|}
-                                        public override int TestProperty { get; set; }
-                                    }
-                                }
-                                """;
-
-        const string resultData = """
-                                  using System;
-
-                                  namespace TestNamespace
-                                  {
-                                      internal abstract class TestBase
-                                      {
-                                          /// <summary>
-                                          /// Base documentation
-                                          /// </summary>
-                                          public abstract void TestMethod();
-
-                                          /// <summary>
-                                          /// Base documentation
-                                          /// </summary>
-                                          public abstract int TestProperty { get; set; }
-                                      }
-
-                                      internal class TestImplementation : TestBase
-                                      {
-                                          /// <inheritdoc/>
-                                          public override void TestMethod()
-                                          {
-                                          }
-
-                                          /// <inheritdoc/>
-                                          public override int TestProperty { get; set; }
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData,
-                     resultData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1177,4 +1101,80 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract int TestProperty { get; set; }
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /**{|#0: <summary>Implementation documentation</summary> */|}
+                                        public override void TestMethod()
+                                        {
+                                        }
+
+                                        /**{|#1: <summary>Implementation documentation</summary> */|}
+                                        public override int TestProperty { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract void TestMethod();
+
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract int TestProperty { get; set; }
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          /// <inheritdoc/>
+                                          public override void TestMethod()
+                                          {
+                                          }
+
+                                          /// <inheritdoc/>
+                                          public override int TestProperty { get; set; }
+                                      }
+                                  }
+                                  """;
+
+        // Verifies that Fix All replaces every multi-line (/** */) documentation comment in a type in one iteration, which is the common shape when a type overrides several documented members (issue #463)
+        return new FixAllScenario(testData,
+                                  resultData,
+                                  Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

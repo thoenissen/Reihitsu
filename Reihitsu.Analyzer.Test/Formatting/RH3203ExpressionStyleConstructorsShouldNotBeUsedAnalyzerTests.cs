@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer, RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider>
+public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer, RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider>
 {
     #region Tests
 
@@ -135,12 +135,12 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
                      Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat));
     }
 
-    /// <summary>
-    /// Verifies two expression-bodied constructors are fixed in one Fix All iteration
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyTwoConstructorsAreFixedInOneFixAllIteration()
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """
                                 internal class RH3203
@@ -168,11 +168,12 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
                                   }
                                   """;
 
-        await Verify(testData.Replace("\r\n", "\n"),
-                     resultData.Replace("\r\n", "\n"),
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat, 2));
+        // Verifies two expression-bodied constructors are fixed in one Fix All iteration
+        return new FixAllScenario(testData.Replace("\r\n", "\n"),
+                                  resultData.Replace("\r\n", "\n"),
+                                  Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Tests for <see cref="RH8202ValueTagMustNotBeUsedAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH8202ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH8202ValueTagMustNotBeUsedAnalyzer, RH8202ValueTagMustNotBeUsedCodeFixProvider>
+public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH8202ValueTagMustNotBeUsedAnalyzer, RH8202ValueTagMustNotBeUsedCodeFixProvider>
 {
     #region Tests
 
@@ -271,48 +271,6 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH8202
     }
 
     /// <summary>
-    /// Verifies multiple value tags are detected and fixed together
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyValueTagsAreFixedTogether()
-    {
-        const string source = """
-                              namespace TestNamespace;
-
-                              /// <summary>Stores the current value.</summary>
-                              internal class TestClass
-                              {
-                                  /// <summary>Gets the current value.</summary>
-                                  /// {|#0:<value>The current value.</value>|}
-                                  internal int Value { get; }
-
-                                  /// <summary>Gets the previous value.</summary>{|#1:<value>The previous value.</value>|}
-                                  internal int PreviousValue { get; }
-                              }
-                              """;
-
-        const string fixedSource = """
-                                   namespace TestNamespace;
-
-                                   /// <summary>Stores the current value.</summary>
-                                   internal class TestClass
-                                   {
-                                       /// <summary>Gets the current value.</summary>
-                                       internal int Value { get; }
-
-                                       /// <summary>Gets the previous value.</summary>
-                                       internal int PreviousValue { get; }
-                                   }
-                                   """;
-
-        await Verify(source,
-                     fixedSource,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies no code fix is offered when the value tag has no end tag
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -557,4 +515,47 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH8202
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Stores the current value.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>Gets the current value.</summary>
+                                  /// {|#0:<value>The current value.</value>|}
+                                  internal int Value { get; }
+
+                                  /// <summary>Gets the previous value.</summary>{|#1:<value>The previous value.</value>|}
+                                  internal int PreviousValue { get; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   /// <summary>Stores the current value.</summary>
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Gets the current value.</summary>
+                                       internal int Value { get; }
+
+                                       /// <summary>Gets the previous value.</summary>
+                                       internal int PreviousValue { get; }
+                                   }
+                                   """;
+
+        // Verifies multiple value tags are detected and fixed together
+        return new FixAllScenario(source,
+                                  fixedSource,
+                                  Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

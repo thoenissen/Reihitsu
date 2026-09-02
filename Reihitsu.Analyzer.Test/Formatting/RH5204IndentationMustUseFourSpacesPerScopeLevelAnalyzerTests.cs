@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer"/> and <see cref="RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : AnalyzerTestsBase<RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer, RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider>
+public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : BatchCodeFixTestsBase<RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer, RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider>
 {
     #region Tests
 
@@ -252,48 +252,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
         await Verify(testData,
                      fixedData,
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that multiple indentation issues are detected and fixed together
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleIndentationIssuesAreDetectedAndFixed()
-    {
-        const string testData = """
-                                internal class Example
-                                {
-                                  {|#0:#region Members|}
-
-                                  {|#1:internal|} bool Method()
-                                  {|#2:{|}
-                                     {|#3:// Comment|}
-                                     {|#4:return|} false;
-                                  {|#5:}|}
-
-                                    #endregion // Members
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class Example
-                                 {
-                                     #region Members
-
-                                     internal bool Method()
-                                     {
-                                         // Comment
-                                         return false;
-                                     }
-
-                                     #endregion // Members
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 2,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 6));
     }
 
     /// <summary>
@@ -853,4 +811,47 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                  {|#0:#region Members|}
+
+                                  {|#1:internal|} bool Method()
+                                  {|#2:{|}
+                                     {|#3:// Comment|}
+                                     {|#4:return|} false;
+                                  {|#5:}|}
+
+                                    #endregion // Members
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     #region Members
+
+                                     internal bool Method()
+                                     {
+                                         // Comment
+                                         return false;
+                                     }
+
+                                     #endregion // Members
+                                 }
+                                 """;
+
+        // Verifies that multiple indentation issues are detected and fixed together
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 6),
+                                  static config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer"/> and <see cref="RH5032RegionDirectivesShouldBeFollowedByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer, RH5032RegionDirectivesShouldBeFollowedByABlankLineCodeFixProvider>
+public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer, RH5032RegionDirectivesShouldBeFollowedByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -178,11 +178,31 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that Fix All converges for both the newly covered closing-brace boundary and an ordinary region boundary
+    /// Verifies that an end-region at end of file remains exempt
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixAllConvergesAcrossRegionBoundaryKinds()
+    public async Task VerifyEndRegionAtEndOfFileIsExempt()
+    {
+        const string testData = """
+                                #region Content
+
+                                internal class TestClass
+                                {
+                                }
+
+                                #endregion
+                                """;
+
+        await Verify(testData);
+    }
+
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """
                                 #region Outer
@@ -227,31 +247,12 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : A
                                  #endregion
                                  """;
 
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat, 2));
+        // Verifies that Fix All converges for both the newly covered closing-brace boundary and an ordinary region boundary
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    /// <summary>
-    /// Verifies that an end-region at end of file remains exempt
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyEndRegionAtEndOfFileIsExempt()
-    {
-        const string testData = """
-                                #region Content
-
-                                internal class TestClass
-                                {
-                                }
-
-                                #endregion
-                                """;
-
-        await Verify(testData);
-    }
-
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }
