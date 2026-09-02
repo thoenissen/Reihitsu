@@ -40,9 +40,9 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
     }
 
     /// <summary>
@@ -62,9 +62,9 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
                                  internal class Example(int value);
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
                              }
                              """;
 
-        await VerifyFormatterStability(input);
+        await VerifyFormatter(input);
     }
 
     #endregion // Tests

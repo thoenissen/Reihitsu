@@ -41,9 +41,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyFormatterTests : Form
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
     }
 
     /// <summary>
@@ -72,9 +72,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyFormatterTests : Form
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyFormatterTests : Form
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     #endregion // Tests

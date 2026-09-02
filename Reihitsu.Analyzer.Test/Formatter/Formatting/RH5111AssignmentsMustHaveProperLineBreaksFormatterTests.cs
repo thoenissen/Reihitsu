@@ -54,9 +54,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, AnalyzerResources.RH5111MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, AnalyzerResources.RH5111MessageFormat));
     }
 
     /// <summary>
@@ -80,9 +80,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 3, 5, 4, 18, AnalyzerResources.RH5111MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 3, 5, 4, 18, AnalyzerResources.RH5111MessageFormat));
     }
 
     /// <summary>
@@ -120,9 +120,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
             Assert.AreEqual(normalizedFixedData, formatted, "Formatter output should join the parameter default value.");
         }
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
     /// <summary>
@@ -146,9 +146,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
     #endregion // Tests

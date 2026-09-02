@@ -36,9 +36,9 @@ public class RH5603FileMustNotEndWithANewlineFormatterTests : FormatterTestsBase
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 4, 2, 5, 1, AnalyzerResources.RH5603MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 4, 2, 5, 1, AnalyzerResources.RH5603MessageFormat));
     }
 
     #endregion // Tests

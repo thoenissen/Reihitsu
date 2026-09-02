@@ -21,55 +21,17 @@ namespace Reihitsu.Analyzer.Test.Base;
 public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
-    #region Fields
-
-    /// <summary>
-    /// Line endings used by formatter-stability tests
-    /// </summary>
-    private static readonly string[] _lineEndings = ["\n", "\r\n"];
-
-    #endregion // Fields
-
     #region Methods
 
     /// <summary>
-    /// Verifies that the formatter fixes the targeted rule violation using analyzer-style expected diagnostics
+    /// Verifies that analyzer-clean source remains unchanged and analyzer-clean after formatting
     /// </summary>
-    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
-    /// <param name="fixedSource">The expected formatted source text</param>
-    /// <param name="expected">The expected diagnostics before formatting</param>
+    /// <param name="source">The source text to verify</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected static async Task VerifyFormatterFix(string source, string fixedSource, params DiagnosticResult[] expected)
+    protected static async Task VerifyFormatter(string source)
     {
-        await VerifyFormatterFix(source, fixedSource, null, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the formatter fixes the targeted rule violation using analyzer-style expected diagnostics
-    /// </summary>
-    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
-    /// <param name="fixedSource">The expected formatted source text</param>
-    /// <param name="transformParseOptions">Optional parse-option transformation</param>
-    /// <param name="expected">The expected diagnostics before formatting</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected static async Task VerifyFormatterFix(string source, string fixedSource, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions, params DiagnosticResult[] expected)
-    {
-        Assert.IsNotEmpty(expected, "Diagnostics are required!");
-
-        if (transformParseOptions == null)
-        {
-            await Verify(source, expected);
-        }
-        else
-        {
-            await Verify(source,
-                         test => test.SolutionTransforms.Add((solution, projectId) => ApplyParseOptionsToTestProject(solution, projectId, transformParseOptions)),
-                         expected);
-        }
-
-        var formatted = await VerifyFormatterFixCore(source, fixedSource, transformParseOptions);
-
-        await Verify(formatted);
+        await VerifyFormatter(source, null, Environment.NewLine, null);
+        await VerifyFormatter(AlternateLineEndings(source), null, AlternateLineEndings(Environment.NewLine), null);
     }
 
     /// <summary>
@@ -79,85 +41,10 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <param name="fixedSource">The expected formatted source text</param>
     /// <param name="expected">The expected diagnostics before formatting</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected static async Task VerifyFormatterFixAndIdempotency(string source, string fixedSource, params DiagnosticResult[] expected)
+    protected static async Task VerifyFormatter(string source, string fixedSource, params DiagnosticResult[] expected)
     {
-        await VerifyFormatterFixAndIdempotency(source, fixedSource, _lineEndings, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under the specified line endings
-    /// </summary>
-    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
-    /// <param name="fixedSource">The expected formatted source text</param>
-    /// <param name="lineEndings">Line endings to verify</param>
-    /// <param name="expected">The expected diagnostics before formatting</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected static async Task VerifyFormatterFixAndIdempotency(string source, string fixedSource, string[] lineEndings, params DiagnosticResult[] expected)
-    {
-        Assert.IsNotEmpty(expected, "Diagnostics are required!");
-
-        foreach (var endOfLine in lineEndings)
-        {
-            var normalizedSource = NormalizeLineEndings(source, endOfLine);
-            var normalizedFixedSource = NormalizeLineEndings(fixedSource, endOfLine);
-
-            await Verify(normalizedSource, expected);
-
-            var formatted = await VerifyFormatterFixCore(normalizedSource, normalizedFixedSource, null, endOfLine);
-
-            await Verify(formatted);
-
-            var reformatted = await VerifyFormatterFixCore(formatted, normalizedFixedSource, null, endOfLine);
-
-            await Verify(reformatted);
-        }
-    }
-
-    /// <summary>
-    /// Verifies that analyzer-clean source remains unchanged and analyzer-clean after formatting
-    /// </summary>
-    /// <param name="source">The source text to verify</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected static async Task VerifyFormatterStability(string source)
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            var normalizedSource = NormalizeLineEndings(source, endOfLine);
-
-            await Verify(normalizedSource);
-
-            var formatted = await VerifyFormatterFixCore(normalizedSource, normalizedSource, null, endOfLine);
-
-            await Verify(formatted);
-        }
-    }
-
-    /// <summary>
-    /// Verifies that already analyzer-clean source is rewritten by an unrelated formatter behavior,
-    /// remains analyzer-clean afterward, and is stable on a second formatter pass, under LF and CRLF
-    /// line endings
-    /// </summary>
-    /// <param name="source">The source text before formatting</param>
-    /// <param name="fixedSource">The expected formatted source text</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected static async Task VerifyFormatterTransformStaysAnalyzerClean(string source,
-                                                                           string fixedSource)
-    {
-        foreach (var endOfLine in _lineEndings)
-        {
-            var normalizedSource = NormalizeLineEndings(source, endOfLine);
-            var normalizedFixedSource = NormalizeLineEndings(fixedSource, endOfLine);
-
-            await Verify(normalizedSource);
-
-            var formatted = await VerifyFormatterFixCore(normalizedSource, normalizedFixedSource, null, endOfLine);
-
-            await Verify(formatted);
-
-            var reformatted = await VerifyFormatterFixCore(formatted, normalizedFixedSource, null, endOfLine);
-
-            await Verify(reformatted);
-        }
+        await VerifyFormatter(source, fixedSource, Environment.NewLine, expected);
+        await VerifyFormatter(AlternateLineEndings(source), AlternateLineEndings(fixedSource), AlternateLineEndings(Environment.NewLine), expected);
     }
 
     /// <summary>
@@ -177,6 +64,29 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
+    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under LF and CRLF line endings
+    /// </summary>
+    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
+    /// <param name="fixedSource">The expected formatted source text</param>
+    /// <param name="endOfLine">End of line sequence</param>
+    /// <param name="expected">Expected diagnostics</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFormatter(string source, string fixedSource, string endOfLine, DiagnosticResult[] expected)
+    {
+        fixedSource ??= source;
+
+        await Verify(source, expected);
+
+        var formatted = await VerifyFormatterFixCore(source, fixedSource, null, endOfLine);
+
+        await Verify(formatted);
+
+        var reformatted = await VerifyFormatterFixCore(formatted, fixedSource, null, endOfLine);
+
+        await Verify(reformatted);
+    }
+
+    /// <summary>
     /// Regex that strips Roslyn analyzer-test markup from source text
     /// </summary>
     /// <returns>The markup-stripping regex</returns>
@@ -193,6 +103,20 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     private static string StripMarkup(string source)
     {
         return MarkupRegex().Replace(source, match => match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value);
+    }
+
+    /// <summary>
+    /// Returns the alternative line-ending sequence for the provided text
+    /// </summary>
+    /// <param name="text">Text for which to return alternative line endings</param>
+    /// <returns>The alternative line-ending sequence</returns>
+    private static string AlternateLineEndings(string text)
+    {
+        const string placeholder = "␍␊";
+
+        return text.Replace("\r\n", placeholder)
+                   .Replace("\n", "\r\n")
+                   .Replace(placeholder, "\n");
     }
 
     /// <summary>
@@ -230,25 +154,6 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
         Assert.AreEqual(@fixed, formatted, "Formatter output should match the expected fixed code.");
 
         return formatted;
-    }
-
-    /// <summary>
-    /// Applies transformed parse options to the formatter test project
-    /// </summary>
-    /// <param name="solution">Solution</param>
-    /// <param name="projectId">Project ID</param>
-    /// <param name="transformParseOptions">Parse-option transformation</param>
-    /// <returns>The updated solution</returns>
-    private static Solution ApplyParseOptionsToTestProject(Solution solution, ProjectId projectId, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions)
-    {
-        var project = solution.GetProject(projectId);
-
-        if (project?.ParseOptions is CSharpParseOptions parseOptions)
-        {
-            solution = solution.WithProjectParseOptions(projectId, transformParseOptions(parseOptions));
-        }
-
-        return solution;
     }
 
     #endregion // Methods

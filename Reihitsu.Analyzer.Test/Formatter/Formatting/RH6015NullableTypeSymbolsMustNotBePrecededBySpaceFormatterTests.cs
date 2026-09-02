@@ -39,9 +39,9 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat));
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     #endregion // Tests

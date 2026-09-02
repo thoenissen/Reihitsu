@@ -42,9 +42,9 @@ public class RH5509EnumAttributesMustFollowPlacementRulesFormatterTests : Format
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5509MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5509MessageFormat));
     }
 
     #endregion // Tests

@@ -43,9 +43,9 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     #endregion // Tests

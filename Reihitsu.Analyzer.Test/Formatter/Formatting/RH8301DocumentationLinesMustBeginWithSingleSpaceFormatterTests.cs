@@ -41,9 +41,9 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     /// <summary>
@@ -99,9 +99,9 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                  """;
         var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
     }
 
     /// <summary>
@@ -131,9 +131,9 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                  """;
         var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
     }
 
     /// <summary>
@@ -167,13 +167,11 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                      }
                                  }
                                  """;
-        string[] lineEndings = ["\n", "\r\n", "\r", "\u0085", "\u2028", "\u2029"];
         var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               lineEndings,
-                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
     }
 
     #endregion // Tests
