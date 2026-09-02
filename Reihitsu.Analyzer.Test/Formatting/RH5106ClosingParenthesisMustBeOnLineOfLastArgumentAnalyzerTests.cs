@@ -286,5 +286,51 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : A
         await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifies that a syntax error in an unrelated member suppresses the rule for the whole file, including a
+    /// well-formed parameter list elsewhere in that file that would otherwise be reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUnrelatedSyntaxErrorSuppressesTheWholeFile()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private int _broken = ;
+
+                                    private void Valid(int first,
+                                                       int second
+                                                       )
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the same parameter list is reported once the unrelated syntax error is removed, so the
+    /// suppression above is caused by the error and not by the shape of the parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySameParameterListIsReportedWithoutTheUnrelatedSyntaxError()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private void Valid(int first,
+                                                       int second
+                                                       {|#0:)|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+    }
+
     #endregion // Tests
 }

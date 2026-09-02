@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -243,6 +246,93 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line enum declaration is flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleLineEnumIsFlagged()
+    {
+        const string testData = """
+                                internal enum {|#0:TestEnum|} { First }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line extension block is flagged. An extension block has no name, so the identifier the
+    /// rule reports on is a missing token and the diagnostic carries no source location. That is pre-existing
+    /// behavior which this test pins rather than endorses - a location-less diagnostic cannot be fixed, and
+    /// correcting it is tracked separately.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleLineExtensionBlockIsFlagged()
+    {
+        const string testData = """
+                                internal static class Extensions
+                                {
+                                    extension(int value) { public int Doubled => value * 2; }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostic(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId).WithMessage(AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line extension block is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineExtensionBlockIsNotFlagged()
+    {
+        const string testData = """
+                                internal static class Extensions
+                                {
+                                    extension(int value)
+                                    {
+                                        public int Doubled => value * 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the declaration types the rule dispatches on are still exactly the ones its registration
+    /// enumerates. The rule registers an explicit syntax-kind list, so a declaration type added by a future Roslyn
+    /// version would silently fall out of scope; this test fails when that happens, and the registration in
+    /// <see cref="RH5404ElementMustNotBeOnSingleLineAnalyzer"/> has to be revisited together with
+    /// <c>documentation/rules/RH5404.md</c>.
+    /// </summary>
+    [TestMethod]
+    public void VerifyBaseTypeDeclarationTypesAreFullyEnumerated()
+    {
+        var declarationTypes = typeof(BaseTypeDeclarationSyntax).Assembly
+                                                                .GetTypes()
+                                                                .Where(type => type.IsAbstract == false
+                                                                               && typeof(BaseTypeDeclarationSyntax).IsAssignableFrom(type))
+                                                                .Select(type => type.Name)
+                                                                .OrderBy(name => name, StringComparer.Ordinal)
+                                                                .ToArray();
+
+        string[] expected = [
+                                "ClassDeclarationSyntax",
+                                "EnumDeclarationSyntax",
+                                "ExtensionBlockDeclarationSyntax",
+                                "InterfaceDeclarationSyntax",
+                                "RecordDeclarationSyntax",
+                                "StructDeclarationSyntax",
+                                "UnionDeclarationSyntax"
+                            ];
+
+        Assert.AreSequenceEqual(expected,
+                                declarationTypes,
+                                $"Declaration types reachable by the rule changed: [{string.Join(", ", declarationTypes)}]");
     }
 
     #endregion // Tests
