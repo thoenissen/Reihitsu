@@ -2,11 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -14,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5409: Final enum member must not have trailing comma
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer : DiagnosticAnalyzerBase
+public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer : TrailingCommaAnalyzerBase<EnumDeclarationSyntax>
 {
     #region Constants
 
@@ -31,61 +29,25 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5409Title), nameof(AnalyzerResources.RH5409MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5409Title), nameof(AnalyzerResources.RH5409MessageFormat), SyntaxKind.EnumDeclaration)
     {
     }
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Analyzes enum declarations
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnEnumDeclaration(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not EnumDeclarationSyntax enumDeclaration)
-        {
-            return;
-        }
-
-        var membersAndSeparators = enumDeclaration.Members.GetWithSeparators();
-
-        if (membersAndSeparators.Count == 0)
-        {
-            return;
-        }
-
-        var lastItem = membersAndSeparators[membersAndSeparators.Count - 1];
-
-        if (lastItem.IsToken == false || lastItem.AsToken().IsKind(SyntaxKind.CommaToken) == false)
-        {
-            return;
-        }
-
-        var lastSeparator = lastItem.AsToken();
-        var gap = TextSpan.FromBounds(lastSeparator.Span.End, enumDeclaration.CloseBraceToken.SpanStart);
-
-        if (SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(enumDeclaration, gap))
-        {
-            return;
-        }
-
-        context.ReportDiagnostic(CreateDiagnostic(lastSeparator.GetLocation()));
-    }
-
-    #endregion // Methods
-
-    #region DiagnosticAnalyzer
+    #region TrailingCommaAnalyzerBase
 
     /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
+    protected override SyntaxNodeOrTokenList GetElementsWithSeparators(EnumDeclarationSyntax node)
     {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeAction(OnEnumDeclaration, SyntaxKind.EnumDeclaration);
+        return node.Members.GetWithSeparators();
     }
 
-    #endregion // DiagnosticAnalyzer
+    /// <inheritdoc/>
+    protected override SyntaxToken GetCloseBraceToken(EnumDeclarationSyntax node)
+    {
+        return node.CloseBraceToken;
+    }
+
+    #endregion // TrailingCommaAnalyzerBase
 }
