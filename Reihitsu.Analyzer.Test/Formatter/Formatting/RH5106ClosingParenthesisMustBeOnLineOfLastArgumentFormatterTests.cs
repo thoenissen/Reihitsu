@@ -42,9 +42,9 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
     }
 
     #endregion // Tests

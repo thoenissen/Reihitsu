@@ -53,9 +53,9 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesFormatterTests :
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
     }
 
     #endregion // Tests

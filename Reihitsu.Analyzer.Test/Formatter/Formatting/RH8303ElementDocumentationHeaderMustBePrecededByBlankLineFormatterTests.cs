@@ -52,9 +52,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
     }
 
     /// <summary>
@@ -90,9 +90,9 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
     }
 
     #endregion // Tests

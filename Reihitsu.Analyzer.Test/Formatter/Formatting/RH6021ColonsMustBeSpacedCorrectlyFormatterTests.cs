@@ -39,9 +39,9 @@ public class RH6021ColonsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
     }
 
     #endregion // Tests

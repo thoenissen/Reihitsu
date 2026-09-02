@@ -47,9 +47,9 @@ public class RH5513MethodAttributesMustFollowPlacementRulesFormatterTests : Form
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
     }
 
     #endregion // Tests

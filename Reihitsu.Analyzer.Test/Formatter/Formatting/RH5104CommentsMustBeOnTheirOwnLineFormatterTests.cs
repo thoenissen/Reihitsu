@@ -48,9 +48,9 @@ public class RH5104CommentsMustBeOnTheirOwnLineFormatterTests : FormatterTestsBa
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat));
     }
 
     #endregion // Tests

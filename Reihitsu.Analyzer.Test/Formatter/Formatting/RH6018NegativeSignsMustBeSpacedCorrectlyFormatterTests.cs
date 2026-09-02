@@ -41,9 +41,9 @@ public class RH6018NegativeSignsMustBeSpacedCorrectlyFormatterTests : FormatterT
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6018MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6018MessageFormat));
     }
 
     #endregion // Tests

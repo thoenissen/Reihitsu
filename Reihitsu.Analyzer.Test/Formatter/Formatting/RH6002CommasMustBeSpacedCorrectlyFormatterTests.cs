@@ -39,9 +39,9 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
     }
 
     /// <summary>
@@ -68,9 +68,9 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
     }
 
     /// <summary>
@@ -97,9 +97,9 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     /// <summary>
@@ -138,7 +138,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     /// <summary>
@@ -168,9 +168,9 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
     }
 
     #endregion // Tests

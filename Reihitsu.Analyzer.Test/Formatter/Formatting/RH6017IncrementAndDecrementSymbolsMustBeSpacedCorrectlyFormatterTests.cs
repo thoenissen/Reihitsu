@@ -44,9 +44,9 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyFormatterTes
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
     }
 
     #endregion // Tests

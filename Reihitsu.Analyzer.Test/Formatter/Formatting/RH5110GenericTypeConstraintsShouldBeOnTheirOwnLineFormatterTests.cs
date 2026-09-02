@@ -36,9 +36,9 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH5110MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH5110MessageFormat));
     }
 
     #endregion // Tests

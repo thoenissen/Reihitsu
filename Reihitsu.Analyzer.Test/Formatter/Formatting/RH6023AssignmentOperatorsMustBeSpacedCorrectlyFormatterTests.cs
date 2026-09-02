@@ -41,9 +41,9 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyFormatterTests : Form
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
     }
 
     #endregion // Tests

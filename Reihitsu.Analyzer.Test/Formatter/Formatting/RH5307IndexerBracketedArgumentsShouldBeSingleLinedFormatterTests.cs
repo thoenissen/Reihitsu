@@ -43,9 +43,9 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
     }
 
     /// <summary>
@@ -77,9 +77,9 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
                              }
                              """;
 
-        await VerifyFormatterStability(input);
+        await VerifyFormatter(input);
     }
 
     #endregion // Tests

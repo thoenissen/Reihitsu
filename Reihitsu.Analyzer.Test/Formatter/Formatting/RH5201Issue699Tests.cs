@@ -84,7 +84,7 @@ public class RH5201Issue699Tests : FormatterTestsBase<RH5201MethodChainsShouldBe
                                    }
                                    """;
 
-        await VerifyFormatterTransformStaysAnalyzerClean(source, fixedSource);
+        await VerifyFormatter(source, fixedSource);
     }
 
     #endregion // Tests

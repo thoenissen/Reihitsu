@@ -48,9 +48,9 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesFormatterTests : Form
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, 7, 26, 8, 35, AnalyzerResources.RH5102MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, 7, 26, 8, 35, AnalyzerResources.RH5102MessageFormat));
     }
 
     #endregion // Tests

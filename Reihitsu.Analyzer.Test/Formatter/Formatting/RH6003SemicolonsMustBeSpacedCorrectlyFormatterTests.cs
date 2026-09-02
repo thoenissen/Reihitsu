@@ -41,9 +41,9 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyFormatterTests : FormatterTest
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyFormatterTests : FormatterTest
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyFormatterTests : FormatterTest
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     #endregion // Tests

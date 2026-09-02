@@ -45,10 +45,10 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 13, 6, 15, AnalyzerResources.RH5302MessageFormat),
-                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 13, 7, 15, AnalyzerResources.RH5302MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 13, 6, 15, AnalyzerResources.RH5302MessageFormat),
+                              ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 13, 7, 15, AnalyzerResources.RH5302MessageFormat));
     }
 
     /// <summary>
@@ -82,10 +82,10 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 27, 5, 29, AnalyzerResources.RH5302MessageFormat),
-                                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 19, 6, 21, AnalyzerResources.RH5302MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 27, 5, 29, AnalyzerResources.RH5302MessageFormat),
+                              ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 19, 6, 21, AnalyzerResources.RH5302MessageFormat));
     }
 
     #endregion // Tests

@@ -48,9 +48,9 @@ public class RH5101FirstArgumentShouldBeOnSameLineFormatterTests : FormatterTest
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, 8, 13, 8, 20, AnalyzerResources.RH5101MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, 8, 13, 8, 20, AnalyzerResources.RH5101MessageFormat));
     }
 
     #endregion // Tests

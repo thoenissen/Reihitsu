@@ -41,9 +41,9 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, 5, 5, 5, 29, AnalyzerResources.RH7301MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, 5, 5, 5, 29, AnalyzerResources.RH7301MessageFormat));
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
                               """;
         var input = source.Replace("#region Fields", "#region Fields   ");
 
-        await VerifyFormatterStability(input);
+        await VerifyFormatter(input);
     }
 
     /// <summary>
@@ -100,9 +100,9 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
         var input = source.Replace("#region Fields", "#region Fields   ");
         var expected = fixedSource.Replace("#region Fields", "#region Fields   ");
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               expected,
-                                               Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+        await VerifyFormatter(input,
+                              expected,
+                              Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
     }
 
     /// <summary>
@@ -135,9 +135,9 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
                                    """;
         var input = source.Replace("#region methods", "#region methods   ");
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedSource,
-                                               Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+        await VerifyFormatter(input,
+                              fixedSource,
+                              Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
     }
 
     #endregion // Tests

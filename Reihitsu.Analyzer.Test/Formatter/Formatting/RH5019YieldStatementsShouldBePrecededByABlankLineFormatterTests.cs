@@ -48,9 +48,9 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineFormatterTests : F
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 8, 9, 8, 14, AnalyzerResources.RH5019MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 8, 9, 8, 14, AnalyzerResources.RH5019MessageFormat));
     }
 
     #endregion // Tests

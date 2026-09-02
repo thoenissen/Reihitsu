@@ -48,9 +48,9 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
     /// <summary>
@@ -129,9 +129,9 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
     /// <summary>
@@ -212,9 +212,9 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
     /// <summary>
@@ -238,7 +238,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                               }
                               """;
 
-        await VerifyFormatterStability(source);
+        await VerifyFormatter(source);
     }
 
     /// <summary>
@@ -262,7 +262,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                               }
                               """;
 
-        await VerifyFormatterStability(source);
+        await VerifyFormatter(source);
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                               }
                               """;
 
-        await VerifyFormatterStability(source);
+        await VerifyFormatter(source);
     }
 
     #endregion // Tests

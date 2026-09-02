@@ -46,9 +46,9 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
     }
 
     /// <summary>
@@ -82,9 +82,9 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
     }
 
     /// <summary>
@@ -118,9 +118,9 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
     }
 
     /// <summary>
@@ -156,9 +156,9 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
     }
 
     #endregion // Tests

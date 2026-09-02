@@ -35,9 +35,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 3, 3, 11, AnalyzerResources.RH5204MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 3, 3, 11, AnalyzerResources.RH5204MessageFormat));
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
                               }
                               """;
 
-        await VerifyFormatterStability(source);
+        await VerifyFormatter(source);
     }
 
     #endregion // Tests

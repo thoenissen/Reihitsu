@@ -41,9 +41,9 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesFormatterTests : Form
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5504MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5504MessageFormat));
     }
 
     #endregion // Tests

@@ -49,10 +49,10 @@ public class RH5203MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTe
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, 8, 11, 8, 19, AnalyzerResources.RH5203MessageFormat),
-                                               ExpectedDiagnostic(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, 9, 17, 9, 24, AnalyzerResources.RH5203MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, 8, 11, 8, 19, AnalyzerResources.RH5203MessageFormat),
+                              ExpectedDiagnostic(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, 9, 17, 9, 24, AnalyzerResources.RH5203MessageFormat));
     }
 
     #endregion // Tests

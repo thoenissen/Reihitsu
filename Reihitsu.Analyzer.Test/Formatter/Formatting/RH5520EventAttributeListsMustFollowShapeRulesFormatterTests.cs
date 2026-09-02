@@ -47,9 +47,9 @@ public class RH5520EventAttributeListsMustFollowShapeRulesFormatterTests : Forma
                                  sealed class SecondAttribute : System.Attribute;
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5520MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5520MessageFormat));
     }
 
     #endregion // Tests

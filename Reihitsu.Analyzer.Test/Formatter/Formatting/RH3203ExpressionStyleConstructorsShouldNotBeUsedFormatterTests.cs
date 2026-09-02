@@ -42,9 +42,9 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedFormatterTests : Fo
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 24, 3, 37, AnalyzerResources.RH3203MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 24, 3, 37, AnalyzerResources.RH3203MessageFormat));
     }
 
     #endregion // Tests

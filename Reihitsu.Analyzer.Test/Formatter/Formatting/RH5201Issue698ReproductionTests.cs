@@ -156,7 +156,7 @@ public class RH5201Issue698ReproductionTests : FormatterTestsBase<RH5201MethodCh
                                    }
                                    """;
 
-        await VerifyFormatterFixAndIdempotency(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Method chains should be aligned.", 2));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Method chains should be aligned.", 2));
     }
 
     #endregion // Tests

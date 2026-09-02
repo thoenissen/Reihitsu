@@ -53,9 +53,9 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
     }
 
     /// <summary>
@@ -94,9 +94,9 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
                              }
                              """;
 
-        await VerifyFormatterStability(input);
+        await VerifyFormatter(input);
     }
 
     #endregion // Tests

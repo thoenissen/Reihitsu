@@ -89,7 +89,10 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
                        ReferenceAssemblies = ReferenceAssemblies.Net.Net90
                    };
 
-        test.ExpectedDiagnostics.AddRange(expected);
+        if (expected != null)
+        {
+            test.ExpectedDiagnostics.AddRange(expected);
+        }
 
         onConfigure?.Invoke(test);
 

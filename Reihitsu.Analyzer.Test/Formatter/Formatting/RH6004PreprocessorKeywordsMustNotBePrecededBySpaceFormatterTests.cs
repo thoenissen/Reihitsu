@@ -31,9 +31,9 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceFormatterTests : 
                                  internal class TestClass;
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
     }
 
     /// <summary>
@@ -64,9 +64,9 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceFormatterTests : 
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(testData,
-                                               fixedData,
-                                               Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
+        await VerifyFormatter(testData,
+                              fixedData,
+                              Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceFormatterTests : 
                                 }
                                 """;
 
-        await VerifyFormatterStability(testData);
+        await VerifyFormatter(testData);
     }
 
     #endregion // Tests

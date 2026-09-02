@@ -36,9 +36,9 @@ public class RH7101DoNotCombineFieldsFormatterTests : FormatterTestsBase<RH7101D
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
     }
 
     #endregion // Tests

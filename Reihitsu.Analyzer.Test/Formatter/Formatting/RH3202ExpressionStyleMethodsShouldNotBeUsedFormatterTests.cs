@@ -38,9 +38,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedFormatterTests : Formatt
                                  }
                                  """;
 
-        await VerifyFormatterFixAndIdempotency(input,
-                                               fixedData,
-                                               ExpectedDiagnostic(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 29, 3, 34, AnalyzerResources.RH3202MessageFormat));
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 29, 3, 34, AnalyzerResources.RH3202MessageFormat));
     }
 
     #endregion // Tests
