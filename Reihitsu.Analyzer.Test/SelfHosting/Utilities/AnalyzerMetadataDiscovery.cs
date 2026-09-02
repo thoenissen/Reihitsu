@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.Test.Base;
 
 namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
@@ -102,6 +103,23 @@ internal static class AnalyzerMetadataDiscovery
                                                       && type.Name.EndsWith("AnalyzerTests", StringComparison.Ordinal)
                                                       && type.GetCustomAttribute<TestClassAttribute>() is not null)
                                        .OrderBy(type => type.Name, StringComparer.Ordinal)
+                                       .ToArray();
+    }
+
+    /// <summary>
+    /// Discovers the test classes that verify an analyzer together with its code fix
+    /// </summary>
+    /// <returns>Code-fix test classes</returns>
+    internal static IReadOnlyList<DiscoveredCodeFixTestClass> DiscoverCodeFixTestClasses()
+    {
+        return typeof(SelfHostingTests).Assembly
+                                       .GetTypes()
+                                       .Where(type => type.IsAbstract is false
+                                                      && type.IsClass
+                                                      && type.GetCustomAttribute<TestClassAttribute>() is not null
+                                                      && FindClosedGenericBase(type, typeof(AnalyzerTestsBase<,>)) is not null)
+                                       .Select(CreateCodeFixTestClassMetadata)
+                                       .OrderBy(testClass => testClass.TestClassType.FullName, StringComparer.Ordinal)
                                        .ToArray();
     }
 
@@ -220,6 +238,47 @@ internal static class AnalyzerMetadataDiscovery
 
         return codeFixProvider.FixableDiagnosticIds
                               .Select(diagnosticId => new DiscoveredCodeFixProvider(codeFixProviderType, diagnosticId));
+    }
+
+    /// <summary>
+    /// Creates the metadata of a test class that verifies an analyzer together with its code fix
+    /// </summary>
+    /// <param name="testClassType">Test class type</param>
+    /// <returns>Code-fix test class metadata</returns>
+    private static DiscoveredCodeFixTestClass CreateCodeFixTestClassMetadata(Type testClassType)
+    {
+        var analyzerTestsBase = FindClosedGenericBase(testClassType, typeof(AnalyzerTestsBase<,>))
+                                    ?? throw new InvalidOperationException($"Test class '{testClassType.FullName}' does not derive from the code-fix test base.");
+        var codeFixProviderType = analyzerTestsBase.GetGenericArguments()[1];
+        var codeFixProvider = Activator.CreateInstance(codeFixProviderType) as CodeFixProvider
+                                  ?? throw new InvalidOperationException($"Failed to create code-fix provider '{codeFixProviderType.FullName}'.");
+        var codeFixTestsBase = FindClosedGenericBase(testClassType, typeof(BatchCodeFixTestsBase<,>))
+                                   ?? FindClosedGenericBase(testClassType, typeof(SingleCodeFixTestsBase<,>));
+
+        return new DiscoveredCodeFixTestClass(testClassType,
+                                              codeFixProviderType,
+                                              codeFixProvider.GetFixAllProvider() is not null,
+                                              codeFixTestsBase?.GetGenericTypeDefinition());
+    }
+
+    /// <summary>
+    /// Searches the base type chain of a type for a constructed generic type of the provided generic type definition
+    /// </summary>
+    /// <param name="type">Type whose base type chain is searched</param>
+    /// <param name="genericTypeDefinition">Generic type definition to search for</param>
+    /// <returns>The constructed generic base type, or <see langword="null"/> when the type does not derive from it</returns>
+    private static Type FindClosedGenericBase(Type type, Type genericTypeDefinition)
+    {
+        for (var current = type; current != null; current = current.BaseType)
+        {
+            if (current.IsGenericType
+                && current.GetGenericTypeDefinition() == genericTypeDefinition)
+            {
+                return current;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

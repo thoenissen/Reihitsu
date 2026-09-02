@@ -21,7 +21,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4001TypeNameShouldMatchFileNameAnalyzer"/> and <see cref="RH4001TypeNameShouldMatchFileNameCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<RH4001TypeNameShouldMatchFileNameAnalyzer, RH4001TypeNameShouldMatchFileNameCodeFixProvider>
+public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTestsBase<RH4001TypeNameShouldMatchFileNameAnalyzer, RH4001TypeNameShouldMatchFileNameCodeFixProvider>
 {
     #region Tests
 

@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer"/> and <see cref="RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : AnalyzerTestsBase<RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer, RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider>
+public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : BatchCodeFixTestsBase<RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer, RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider>
 {
     #region Tests
 
@@ -172,39 +172,6 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
-    }
-
-    /// <summary>
-    /// Verifying unnecessary nested parentheses are reported and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task UnnecessaryNestedParenthesesAreReportedAndFixed()
-    {
-        const string testCode = """
-                                public class Test
-                                {
-                                    public int Run(int value)
-                                    {
-                                        return {|#0:({|#1:(value)|})|};
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 public class Test
-                                 {
-                                     public int Run(int value)
-                                     {
-                                         return value;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     onConfigure: config => config.NumberOfFixAllIterations = 2,
-                     Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
     }
 
     /// <summary>
@@ -443,4 +410,38 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run(int value)
+                                    {
+                                        return {|#0:({|#1:(value)|})|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int Run(int value)
+                                     {
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        // The outer pair only becomes removable once the inner one is gone, so the batch needs a second iteration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2),
+                                  static config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
