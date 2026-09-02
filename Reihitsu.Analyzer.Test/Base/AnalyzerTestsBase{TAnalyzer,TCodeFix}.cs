@@ -18,7 +18,13 @@ using Reihitsu.Analyzer.Test.Verifiers;
 namespace Reihitsu.Analyzer.Test.Base;
 
 /// <summary>
-/// Verifying analyzer and code fixers
+/// Verifying analyzer and code fixers.
+/// <para>
+/// Test classes do not derive from this base directly. They derive from
+/// <see cref="BatchCodeFixTestsBase{TAnalyzer, TCodeFix}"/> when the code fix supports Fix All, and from
+/// <see cref="SingleCodeFixTestsBase{TAnalyzer, TCodeFix}"/> when it deliberately does not, so the Fix All
+/// coverage of a code fix is decided in code instead of being left to whoever writes the next test
+/// </para>
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 /// <typeparam name="TCodeFix">Type of the code fixer</typeparam>
