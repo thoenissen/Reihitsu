@@ -61,7 +61,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
                               }
                               """;
 
-        await VerifyFormatterStability(source);
+        await VerifyFormatter(source);
     }
 
     #endregion // Tests
