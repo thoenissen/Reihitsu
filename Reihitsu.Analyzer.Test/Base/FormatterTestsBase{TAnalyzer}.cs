@@ -120,19 +120,6 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
-    /// Normalizes all line endings in the provided text to the requested sequence
-    /// </summary>
-    /// <param name="text">Text to normalize</param>
-    /// <param name="endOfLine">Target line-ending sequence</param>
-    /// <returns>The normalized text</returns>
-    private static string NormalizeLineEndings(string text, string endOfLine)
-    {
-        var lineFeedOnly = text.Replace("\r\n", "\n");
-
-        return endOfLine == "\n" ? lineFeedOnly : lineFeedOnly.Replace("\n", endOfLine);
-    }
-
-    /// <summary>
     /// Runs the formatter, verifies the fixed output, and asserts that no analyzer diagnostics remain
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
@@ -143,12 +130,12 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     private static async Task<string> VerifyFormatterFixCore(string source,
                                                              string @fixed,
                                                              Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions,
-                                                             string endOfLine = null)
+                                                             string endOfLine)
     {
         var input = StripMarkup(source);
         var parseOptions = transformParseOptions?.Invoke(CSharpParseOptions.Default) ?? CSharpParseOptions.Default;
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(endOfLine ?? Environment.NewLine);
+        var context = new FormattingContext(endOfLine);
         var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
 
         Assert.AreEqual(@fixed, formatted, "Formatter output should match the expected fixed code.");
