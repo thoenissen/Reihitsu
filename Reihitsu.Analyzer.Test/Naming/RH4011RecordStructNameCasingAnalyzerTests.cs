@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4011RecordStructNameCasingAnalyzer"/> and <see cref="RH4011RecordStructNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4011RecordStructNameCasingAnalyzerTests : AnalyzerTestsBase<RH4011RecordStructNameCasingAnalyzer, RH4011RecordStructNameCasingCodeFixProvider>
+public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4011RecordStructNameCasingAnalyzer, RH4011RecordStructNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -87,4 +87,50 @@ public class RH4011RecordStructNameCasingAnalyzerTests : AnalyzerTestsBase<RH401
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public record struct {|#0:pointRecord|}(int X, int Y);
+
+                                    public record struct {|#1:sizeRecord|}(int Width, int Height);
+
+                                    public class Layout
+                                    {
+                                        public pointRecord Position { get; set; }
+
+                                        public sizeRecord Size { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public record struct PointRecord(int X, int Y);
+
+                                     public record struct SizeRecord(int Width, int Height);
+
+                                     public class Layout
+                                     {
+                                         public PointRecord Position { get; set; }
+
+                                         public SizeRecord Size { get; set; }
+                                     }
+                                 }
+                                 """;
+
+        // Both record structs are referenced by the same class, so each rename reaches a property type
+        // outside its own declaration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4011RecordStructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4011MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4004EnumNameCasingAnalyzer"/> and <see cref="RH4004EnumNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4004EnumNameCasingAnalyzerTests : AnalyzerTestsBase<RH4004EnumNameCasingAnalyzer, RH4004EnumNameCasingCodeFixProvider>
+public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004EnumNameCasingAnalyzer, RH4004EnumNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -197,4 +197,62 @@ public class RH4004EnumNameCasingAnalyzerTests : AnalyzerTestsBase<RH4004EnumNam
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public enum {|#0:orderState|}
+                                    {
+                                        Created
+                                    }
+
+                                    public enum {|#1:paymentState|}
+                                    {
+                                        Pending
+                                    }
+
+                                    public class StateHolder
+                                    {
+                                        public orderState Order { get; set; }
+
+                                        public paymentState Payment { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public enum OrderState
+                                     {
+                                         Created
+                                     }
+
+                                     public enum PaymentState
+                                     {
+                                         Pending
+                                     }
+
+                                     public class StateHolder
+                                     {
+                                         public OrderState Order { get; set; }
+
+                                         public PaymentState Payment { get; set; }
+                                     }
+                                 }
+                                 """;
+
+        // Both enums are referenced by the same class, so the batch rewrites two declarations and two
+        // property types
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4004MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

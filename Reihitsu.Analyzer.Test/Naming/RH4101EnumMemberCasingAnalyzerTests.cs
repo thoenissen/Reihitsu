@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4101EnumMemberCasingAnalyzer"/> and <see cref="RH4101EnumMemberCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4101EnumMemberCasingAnalyzerTests : AnalyzerTestsBase<RH4101EnumMemberCasingAnalyzer, RH4101EnumMemberCasingCodeFixProvider>
+public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101EnumMemberCasingAnalyzer, RH4101EnumMemberCasingCodeFixProvider>
 {
     #region Tests
 
@@ -182,4 +182,40 @@ public class RH4101EnumMemberCasingAnalyzerTests : AnalyzerTestsBase<RH4101EnumM
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public enum OrderState
+                                    {
+                                        {|#0:created|},
+                                        {|#1:in_progress|}
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public enum OrderState
+                                     {
+                                         Created,
+                                         InProgress
+                                     }
+                                 }
+                                 """;
+
+        // Both members belong to the same enum declaration, so the two renames are applied to one member
+        // list. The second name also exercises the underscore segmentation of the PascalCase conversion
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4101MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

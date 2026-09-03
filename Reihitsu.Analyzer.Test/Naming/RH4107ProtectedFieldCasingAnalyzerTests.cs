@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4107ProtectedFieldCasingAnalyzer"/> and <see cref="RH4107ProtectedFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4107ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4107ProtectedFieldCasingAnalyzer, RH4107ProtectedFieldCasingCodeFixProvider>
+public class RH4107ProtectedFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4107ProtectedFieldCasingAnalyzer, RH4107ProtectedFieldCasingCodeFixProvider>
 {
     #region Tests
 
@@ -144,4 +144,42 @@ public class RH4107ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4107P
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class BaseService
+                                    {
+                                        protected int {|#0:CacheCount|}, {|#1:RetryOffset|};
+
+                                        public int Sum => CacheCount + RetryOffset;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class BaseService
+                                     {
+                                         protected int _cacheCount, _retryOffset;
+
+                                         public int Sum => _cacheCount + _retryOffset;
+                                     }
+                                 }
+                                 """;
+
+        // Both fields are declarators of one field declaration, so the two renames are applied to the same
+        // variable list
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4107ProtectedFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4107MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

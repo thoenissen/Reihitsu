@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4110ConstFieldCasingAnalyzer"/> and <see cref="RH4110ConstFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4110ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4110ConstFieldCasingAnalyzer, RH4110ConstFieldCasingCodeFixProvider>
+public class RH4110ConstFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4110ConstFieldCasingAnalyzer, RH4110ConstFieldCasingCodeFixProvider>
 {
     #region Tests
 
@@ -98,4 +98,42 @@ public class RH4110ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4110Const
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Limits
+                                    {
+                                        private const int {|#0:maxItems|} = 10;
+
+                                        private const int {|#1:maxPages|} = maxItems / 2;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Limits
+                                     {
+                                         private const int MaxItems = 10;
+
+                                         private const int MaxPages = MaxItems / 2;
+                                     }
+                                 }
+                                 """;
+
+        // The second constant is initialized from the first, so one rename has to reach the other
+        // declaration's initializer
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4110ConstFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4110MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

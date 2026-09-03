@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4105MethodParameterCasingAnalyzer"/> and <see cref="RH4105MethodParameterCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4105MethodParameterCasingAnalyzerTests : AnalyzerTestsBase<RH4105MethodParameterCasingAnalyzer, RH4105MethodParameterCasingCodeFixProvider>
+public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH4105MethodParameterCasingAnalyzer, RH4105MethodParameterCasingCodeFixProvider>
 {
     #region Tests
 
@@ -352,4 +352,55 @@ public class RH4105MethodParameterCasingAnalyzerTests : AnalyzerTestsBase<RH4105
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Handler
+                                    {
+                                        public int Handle(int {|#0:InputValue|})
+                                        {
+                                            int Compute(int {|#1:Input_Value|})
+                                            {
+                                                return Input_Value + 1;
+                                            }
+
+                                            return Compute(InputValue);
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Handler
+                                     {
+                                         public int Handle(int inputValue)
+                                         {
+                                             int Compute(int inputValue)
+                                             {
+                                                 return inputValue + 1;
+                                             }
+
+                                             return Compute(inputValue);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Both parameters convert to the same camelCase name in nested scopes. They belong to different
+        // containers, so they are not a duplicate-target group: the batch renames both, and the local function
+        // parameter legitimately shadows the enclosing method parameter afterwards
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

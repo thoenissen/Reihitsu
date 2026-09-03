@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4003StructNameCasingAnalyzer"/> and <see cref="RH4003StructNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4003StructNameCasingAnalyzerTests : AnalyzerTestsBase<RH4003StructNameCasingAnalyzer, RH4003StructNameCasingCodeFixProvider>
+public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003StructNameCasingAnalyzer, RH4003StructNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -204,4 +204,47 @@ public class RH4003StructNameCasingAnalyzerTests : AnalyzerTestsBase<RH4003Struc
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public struct {|#0:pointValue|}
+                                    {
+                                        public rangeValue Range;
+                                    }
+
+                                    public struct {|#1:rangeValue|}
+                                    {
+                                        public int Length;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public struct PointValue
+                                     {
+                                         public RangeValue Range;
+                                     }
+
+                                     public struct RangeValue
+                                     {
+                                         public int Length;
+                                     }
+                                 }
+                                 """;
+
+        // The first struct declares a field of the second, so one rename has to reach the other declaration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4003MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

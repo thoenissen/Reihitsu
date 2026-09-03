@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4002ClassNameCasingAnalyzer"/> and <see cref="RH4002ClassNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4002ClassNameCasingAnalyzerTests : AnalyzerTestsBase<RH4002ClassNameCasingAnalyzer, RH4002ClassNameCasingCodeFixProvider>
+public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002ClassNameCasingAnalyzer, RH4002ClassNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -294,4 +294,52 @@ public class RH4002ClassNameCasingAnalyzerTests : AnalyzerTestsBase<RH4002ClassN
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class {|#0:orderProcessor|}
+                                    {
+                                        private readonly paymentGateway _gateway = new paymentGateway();
+
+                                        public int Total => _gateway.Amount;
+                                    }
+
+                                    public class {|#1:paymentGateway|}
+                                    {
+                                        public int Amount { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class OrderProcessor
+                                     {
+                                         private readonly PaymentGateway _gateway = new PaymentGateway();
+
+                                         public int Total => _gateway.Amount;
+                                     }
+
+                                     public class PaymentGateway
+                                     {
+                                         public int Amount { get; set; }
+                                     }
+                                 }
+                                 """;
+
+        // One reported class is used as the field type of the other, so the batch has to rewrite the
+        // reference together with both declarations
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4002ClassNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4002MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

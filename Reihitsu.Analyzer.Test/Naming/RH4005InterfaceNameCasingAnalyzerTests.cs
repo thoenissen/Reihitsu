@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4005InterfaceNameCasingAnalyzer"/> and <see cref="RH4005InterfaceNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4005InterfaceNameCasingAnalyzerTests : AnalyzerTestsBase<RH4005InterfaceNameCasingAnalyzer, RH4005InterfaceNameCasingCodeFixProvider>
+public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4005InterfaceNameCasingAnalyzer, RH4005InterfaceNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -325,4 +325,49 @@ public class RH4005InterfaceNameCasingAnalyzerTests : AnalyzerTestsBase<RH4005In
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:orderService|}
+                                    {
+                                        void Execute();
+                                    }
+
+                                    public interface {|#1:iPaymentGateway|} : orderService
+                                    {
+                                        int Amount { get; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IOrderService
+                                     {
+                                         void Execute();
+                                     }
+
+                                     public interface IPaymentGateway : IOrderService
+                                     {
+                                         int Amount { get; }
+                                     }
+                                 }
+                                 """;
+
+        // The second interface inherits the first, so the base list reference is renamed together with both
+        // declarations. The two names take the different arms of the prefix transform: "orderService" gains
+        // the "I" prefix, "iPaymentGateway" only has its existing prefix corrected
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
