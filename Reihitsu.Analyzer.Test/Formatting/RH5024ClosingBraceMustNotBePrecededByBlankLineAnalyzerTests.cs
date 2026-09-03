@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer"/> and <see cref="RH5024ClosingBraceMustNotBePrecededByBlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer, RH5024ClosingBraceMustNotBePrecededByBlankLineCodeFixProvider>
+public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer, RH5024ClosingBraceMustNotBePrecededByBlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -230,4 +230,53 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true)
+                                        {
+                                            int first = 0;
+                                {|#0:
+                                |}        }
+                                        if (true)
+                                        {
+                                            int second = 0;
+                                {|#1:
+                                |}        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                             int first = 0;
+                                         }
+                                         if (true)
+                                         {
+                                             int second = 0;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent if blocks, each with a blank line directly before its closing brace, so the second fix's
+        // removal span sits close behind the first fix's own removal
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

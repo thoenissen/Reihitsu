@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer, RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer, RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -214,4 +214,68 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5001
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 1; {|#0:try|}
+                                        {
+                                            value++;
+                                        }
+                                        catch
+                                        {
+                                        }
+                                        {|#1:try|}
+                                        {
+                                            value++;
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5001
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         try
+                                         {
+                                             value++;
+                                         }
+                                         catch
+                                         {
+                                         }
+
+                                         try
+                                         {
+                                             value++;
+                                         }
+                                         catch
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The first occurrence shares its line with the previous statement, exercising the wide gap-replacement
+        // branch, while the second sits on its own line directly after the first catch block, exercising the
+        // narrow leading-trivia branch
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5001MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5004DoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer, RH5004DoStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer, RH5004DoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -150,4 +150,60 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5004
+                                {
+                                    public void Execute()
+                                    {
+                                        var index = 0;
+                                        {|#0:do|}
+                                        {
+                                            index++;
+                                        }
+                                        while (index < 1);
+                                        {|#1:do|}
+                                        {
+                                            index++;
+                                        }
+                                        while (index < 3);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5004
+                                 {
+                                     public void Execute()
+                                     {
+                                         var index = 0;
+
+                                         do
+                                         {
+                                             index++;
+                                         }
+                                         while (index < 1);
+
+                                         do
+                                         {
+                                             index++;
+                                         }
+                                         while (index < 3);
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent do statements, each missing its preceding blank line, so the second fix's insertion point
+        // sits directly against the first fix's trailing while clause
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5004MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

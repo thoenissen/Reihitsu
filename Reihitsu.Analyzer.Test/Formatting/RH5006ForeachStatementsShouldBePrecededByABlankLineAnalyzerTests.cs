@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5006ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer, RH5006ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer, RH5006ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -190,4 +190,52 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5006
+                                {
+                                    public void Execute()
+                                    {
+                                        var items = new[] { 1, 2, 3 };
+                                        {|#0:foreach|} (var item in items)
+                                        {
+                                        }
+                                        {|#1:foreach|} (var item in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5006
+                                 {
+                                     public void Execute()
+                                     {
+                                         var items = new[] { 1, 2, 3 };
+
+                                         foreach (var item in items)
+                                         {
+                                         }
+
+                                         foreach (var item in items)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent foreach statements, each missing its preceding blank line, so the second fix's insertion
+        // point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

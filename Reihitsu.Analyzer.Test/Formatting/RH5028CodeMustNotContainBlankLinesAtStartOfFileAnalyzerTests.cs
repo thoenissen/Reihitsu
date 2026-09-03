@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer"/> and <see cref="RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : AnalyzerTestsBase<RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer, RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider>
+public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : BatchCodeFixTestsBase<RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer, RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider>
 {
     #region Tests
 
@@ -58,4 +58,56 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Anal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+
+
+                                internal class TestClass
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                 }
+                                 """;
+
+        const string secondSource = """
+
+                                    namespace TestNamespace
+                                    {
+                                    }
+                                    """;
+        const string secondFixedSource = """
+                                         namespace TestNamespace
+                                         {
+                                         }
+                                         """;
+
+        // RH5028's analyzer (Reihitsu.Analyzer/Rules/Layout/RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.cs)
+        // reports at most one diagnostic per syntax tree, so the Fix All scenario needs two documents to report
+        // two diagnostics at all
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  [
+                                      Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 1, 1, 3, 1).WithMessage(AnalyzerResources.RH5028MessageFormat),
+                                      Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 1, 1, 2, 1).WithMessage(AnalyzerResources.RH5028MessageFormat)
+                                  ],
+                                  config =>
+                                  {
+                                      config.TestState.Sources.Add(("/0/Test1.cs", secondSource));
+                                      config.FixedState.Sources.Add(("/0/Test1.cs", secondFixedSource));
+
+                                      // Fix All in document scope corrects one document per iteration, and this rule reports at most one
+                                      // diagnostic per file, so two documents need at most two iterations
+                                      config.NumberOfFixAllIterations = -2;
+                                  });
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

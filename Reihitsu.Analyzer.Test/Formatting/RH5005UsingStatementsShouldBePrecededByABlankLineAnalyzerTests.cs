@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5005UsingStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer, RH5005UsingStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer, RH5005UsingStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -151,4 +151,56 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                internal class RH5005
+                                {
+                                    public void Execute()
+                                    {
+                                        var fileName = "test.txt";
+                                        {|#0:using|} (var first = File.OpenRead(fileName))
+                                        {
+                                        }
+                                        {|#1:using|} (var second = File.OpenRead(fileName))
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.IO;
+
+                                 internal class RH5005
+                                 {
+                                     public void Execute()
+                                     {
+                                         var fileName = "test.txt";
+
+                                         using (var first = File.OpenRead(fileName))
+                                         {
+                                         }
+
+                                         using (var second = File.OpenRead(fileName))
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent using statements, each missing its preceding blank line, so the second fix's insertion
+        // point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5005MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

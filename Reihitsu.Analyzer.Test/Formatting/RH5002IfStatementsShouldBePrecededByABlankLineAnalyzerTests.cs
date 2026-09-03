@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer, RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer, RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -203,4 +203,56 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5002
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+                                        {|#0:if|} (value > 0)
+                                        {
+                                            value++;
+                                        }
+                                        {|#1:if|} (value > 1)
+                                        {
+                                            value++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5002
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         if (value > 0)
+                                         {
+                                             value++;
+                                         }
+
+                                         if (value > 1)
+                                         {
+                                             value++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent if statements, each missing its preceding blank line, so the second fix's insertion point
+        // sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

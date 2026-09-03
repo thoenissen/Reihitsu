@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5018LockStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer, RH5018LockStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer, RH5018LockStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -156,4 +156,60 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5018
+                                {
+                                    private readonly object gate = new();
+
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+                                        {|#0:lock|} (gate)
+                                        {
+                                            value++;
+                                        }
+                                        {|#1:lock|} (gate)
+                                        {
+                                            value++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5018
+                                 {
+                                     private readonly object gate = new();
+
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         lock (gate)
+                                         {
+                                             value++;
+                                         }
+
+                                         lock (gate)
+                                         {
+                                             value++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent lock statements, each missing its preceding blank line, so the second fix's insertion
+        // point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5018MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
