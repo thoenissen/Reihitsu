@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3001NotOperatorShouldNotBeUsedAnalyzer"/> and <see cref="RH3001NotOperatorShouldNotBeUsedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH3001NotOperatorShouldNotBeUsedAnalyzer, RH3001NotOperatorShouldNotBeUsedCodeFixProvider>
+public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH3001NotOperatorShouldNotBeUsedAnalyzer, RH3001NotOperatorShouldNotBeUsedCodeFixProvider>
 {
     #region Tests
 
@@ -414,4 +414,39 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool Run(bool first, bool second)
+                                    {
+                                        return {|#0:!|}(first && {|#1:!|}second);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public bool Run(bool first, bool second)
+                                     {
+                                         return (first && second == false) == false;
+                                     }
+                                 }
+                                 """;
+
+        // The inner operator sits inside the operand the outer rewrite replaces, so the two text changes overlap
+        // and the batch cannot apply them in one pass
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

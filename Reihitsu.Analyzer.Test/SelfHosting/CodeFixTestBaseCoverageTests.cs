@@ -33,14 +33,6 @@ public class CodeFixTestBaseCoverageTests
     /// </summary>
     private static readonly IReadOnlySet<string> _notYetMigratedTestClasses = new HashSet<string>(StringComparer.Ordinal)
                                                                               {
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3001NotOperatorShouldNotBeUsedAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3003UseStringEmptyForEmptyStringsAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3005UseReadableConditionsAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Clarity.RH3201CommentsMustContainTextAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Design.RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Design.RH2004AccessModifierMustBeDeclaredAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Design.RH2005FieldsMustBePrivateAnalyzerTests",

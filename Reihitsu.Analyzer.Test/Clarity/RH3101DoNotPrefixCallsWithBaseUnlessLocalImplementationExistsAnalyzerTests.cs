@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer"/> and <see cref="RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzerTests : AnalyzerTestsBase<RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer, RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider>
+public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzerTests : BatchCodeFixTestsBase<RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer, RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider>
 {
     #region Tests
 
@@ -368,4 +368,63 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class BaseType
+                                {
+                                    protected int GetValue()
+                                    {
+                                        return 1;
+                                    }
+
+                                    protected int Multiply(int value)
+                                    {
+                                        return value * 2;
+                                    }
+                                }
+
+                                public class DerivedType : BaseType
+                                {
+                                    public int Run()
+                                    {
+                                        return {|#0:base|}.Multiply({|#1:base|}.GetValue());
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class BaseType
+                                 {
+                                     protected int GetValue()
+                                     {
+                                         return 1;
+                                     }
+
+                                     protected int Multiply(int value)
+                                     {
+                                         return value * 2;
+                                     }
+                                 }
+
+                                 public class DerivedType : BaseType
+                                 {
+                                     public int Run()
+                                     {
+                                         return Multiply(GetValue());
+                                     }
+                                 }
+                                 """;
+
+        // The second qualifier is the argument of the invocation whose callee the first rewrite replaces
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists.", 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

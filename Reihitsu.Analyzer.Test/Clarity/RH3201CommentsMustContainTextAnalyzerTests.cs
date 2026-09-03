@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3201CommentsMustContainTextAnalyzer"/> and <see cref="RH3201CommentsMustContainTextCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3201CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH3201CommentsMustContainTextAnalyzer, RH3201CommentsMustContainTextCodeFixProvider>
+public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<RH3201CommentsMustContainTextAnalyzer, RH3201CommentsMustContainTextCodeFixProvider>
 {
     #region Tests
 
@@ -181,40 +181,6 @@ public class RH3201CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH32
                                 """;
 
         await Verify(testCode);
-    }
-
-    /// <summary>
-    /// Verifying multiple empty comments are reported and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task MultipleEmptyCommentsAreReportedAndFixed()
-    {
-        const string testCode = """
-                                public class Test
-                                {
-                                    public void Run()
-                                    {
-                                        {|#0://|}
-                                        {|#1:/**/|}
-                                        var value = 1;
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 public class Test
-                                 {
-                                     public void Run()
-                                     {
-                                         var value = 1;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text.", 2));
     }
 
     /// <summary>
@@ -400,4 +366,40 @@ public class RH3201CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH32
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        {|#0://|}
+                                        {|#1:/**/|}
+                                        var value = 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public void Run()
+                                     {
+                                         var value = 1;
+                                     }
+                                 }
+                                 """;
+
+        // The fix edits the document text rather than the syntax tree, and the two comments occupy consecutive
+        // lines, so their removal spans meet
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text.", 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
