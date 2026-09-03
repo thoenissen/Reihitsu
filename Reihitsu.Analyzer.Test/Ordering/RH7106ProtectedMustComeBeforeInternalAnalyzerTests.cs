@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7106ProtectedMustComeBeforeInternalAnalyzer"/> and <see cref="RH7106ProtectedMustComeBeforeInternalCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : AnalyzerTestsBase<RH7106ProtectedMustComeBeforeInternalAnalyzer, RH7106ProtectedMustComeBeforeInternalCodeFixProvider>
+public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTestsBase<RH7106ProtectedMustComeBeforeInternalAnalyzer, RH7106ProtectedMustComeBeforeInternalCodeFixProvider>
 {
     #region Tests
 
@@ -79,4 +79,44 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : AnalyzerTestsB
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    internal {|#0:protected|} void Execute()
+                                    {
+                                    }
+
+                                    internal {|#1:protected|} void Run()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     protected internal void Execute()
+                                     {
+                                     }
+
+                                     protected internal void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Two compound access modifiers inside one type, so both corrections are merged into the same type
+        // declaration and each one has to leave the other member's modifier list untouched
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7106ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId, AnalyzerResources.RH7106MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

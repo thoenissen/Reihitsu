@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer"/> and <see cref="RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests : AnalyzerTestsBase<RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer, RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyCodeFixProvider>
+public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests : BatchCodeFixTestsBase<RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer, RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyCodeFixProvider>
 {
     #region Tests
 
@@ -91,4 +91,39 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using static System.String;
+                                using static {|#0:System.Math|};
+                                using static {|#1:System.Console|};
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using static System.Console;
+                                 using static System.Math;
+                                 using static System.String;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        // All three static directives share the System root group, so each one is compared against its
+        // immediate predecessor and two of them are reported. Both fixes reorganize the same using list, so
+        // their text changes cover the identical span and the surviving one already clears both
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer.DiagnosticId, AnalyzerResources.RH7206MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

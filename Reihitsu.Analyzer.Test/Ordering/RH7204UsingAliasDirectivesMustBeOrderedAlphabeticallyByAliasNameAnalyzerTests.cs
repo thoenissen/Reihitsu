@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer"/> and <see cref="RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzerTests : AnalyzerTestsBase<RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer, RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider>
+public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzerTests : BatchCodeFixTestsBase<RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer, RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider>
 {
     #region Tests
 
@@ -126,4 +126,39 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using ZetaAlias = System.String;
+                                using {|#0:MiddleAlias|} = System.Object;
+                                using {|#1:AlphaAlias|} = System.Int32;
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using AlphaAlias = System.Int32;
+                                 using MiddleAlias = System.Object;
+                                 using ZetaAlias = System.String;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        // All three aliases target the same System root group, so each alias name is compared against its
+        // immediate predecessor and two of them are reported. Both fixes reorganize the same using list, so
+        // their text changes cover the identical span and the surviving one already clears both
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer.DiagnosticId, AnalyzerResources.RH7204MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7108EventAccessorsMustFollowOrderAnalyzer"/> and <see cref="RH7108EventAccessorsMustFollowOrderCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH7108EventAccessorsMustFollowOrderAnalyzer, RH7108EventAccessorsMustFollowOrderCodeFixProvider>
+public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTestsBase<RH7108EventAccessorsMustFollowOrderAnalyzer, RH7108EventAccessorsMustFollowOrderCodeFixProvider>
 {
     #region Tests
 
@@ -162,4 +162,92 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBas
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class TestClass
+                                {
+                                    private EventHandler _changed;
+
+                                    private EventHandler _closed;
+
+                                    public event EventHandler Changed
+                                    {
+                                        remove
+                                        {
+                                            _changed -= value;
+                                        }
+
+                                        {|#0:add|}
+                                        {
+                                            _changed += value;
+                                        }
+                                    }
+
+                                    public event EventHandler Closed
+                                    {
+                                        remove
+                                        {
+                                            _closed -= value;
+                                        }
+
+                                        {|#1:add|}
+                                        {
+                                            _closed += value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class TestClass
+                                 {
+                                     private EventHandler _changed;
+
+                                     private EventHandler _closed;
+
+                                     public event EventHandler Changed
+                                     {
+                                         add
+                                         {
+                                             _changed += value;
+                                         }
+
+                                         remove
+                                         {
+                                             _changed -= value;
+                                         }
+                                     }
+
+                                     public event EventHandler Closed
+                                     {
+                                         add
+                                         {
+                                             _closed += value;
+                                         }
+
+                                         remove
+                                         {
+                                             _closed -= value;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two misordered accessor lists inside one type, so both rewrites are merged into the same type
+        // declaration and each accessor move has to stay confined to its own event
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7108MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

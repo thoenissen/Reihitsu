@@ -193,19 +193,7 @@ public class CodeFixTestBaseCoverageTests
                                                                                   "Reihitsu.Analyzer.Test.Naming.RH4113InternalPropertyCasingAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Naming.RH4114PublicPropertyCasingAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Naming.RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4121TypeParameterNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7106ProtectedMustComeBeforeInternalAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7107PropertyAccessorsMustFollowOrderAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7108EventAccessorsMustFollowOrderAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Ordering.RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests"
+                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4121TypeParameterNameCasingAnalyzerTests"
                                                                               };
 
     #endregion // Fields

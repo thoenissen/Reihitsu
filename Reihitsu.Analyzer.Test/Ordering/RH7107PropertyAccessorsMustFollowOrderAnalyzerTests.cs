@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7107PropertyAccessorsMustFollowOrderAnalyzer"/> and <see cref="RH7107PropertyAccessorsMustFollowOrderCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH7107PropertyAccessorsMustFollowOrderAnalyzer, RH7107PropertyAccessorsMustFollowOrderCodeFixProvider>
+public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTestsBase<RH7107PropertyAccessorsMustFollowOrderAnalyzer, RH7107PropertyAccessorsMustFollowOrderCodeFixProvider>
 {
     #region Tests
 
@@ -142,4 +142,76 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTests
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public string Name
+                                    {
+                                        set
+                                        {
+                                        }
+
+                                        {|#0:get|}
+                                        {
+                                            return string.Empty;
+                                        }
+                                    }
+
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                        }
+
+                                        {|#1:get|}
+                                        {
+                                            return string.Empty;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public string Name
+                                     {
+                                         get
+                                         {
+                                             return string.Empty;
+                                         }
+
+                                         set
+                                         {
+                                         }
+                                     }
+
+                                     public string Description
+                                     {
+                                         get
+                                         {
+                                             return string.Empty;
+                                         }
+
+                                         set
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two misordered accessor lists inside one type, so both rewrites are merged into the same type
+        // declaration and each accessor move has to stay confined to its own property
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
