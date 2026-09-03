@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer"/> and <see cref="RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests : AnalyzerTestsBase<RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer, RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider>
+public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests : BatchCodeFixTestsBase<RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer, RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider>
 {
     #region Tests
 
@@ -484,54 +484,6 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifying that Fix All keeps every separator at its position when two static members are reordered in the
-    /// same document, so the gap sequence converges correctly instead of depending on application order (issue #727)
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task FixAllPreservesGapSequenceAcrossMultipleDiagnosticsInOneDocument()
-    {
-        const string testCode = """
-                                public class TestClass
-                                {
-                                    public void Run()
-                                    {
-                                    }
-
-                                    public static void {|#0:CreateA|}()
-                                    {
-                                    }
-
-                                    public static void {|#1:CreateB|}()
-                                    {
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 public class TestClass
-                                 {
-                                     public static void CreateA()
-                                     {
-                                     }
-
-                                     public static void CreateB()
-                                     {
-                                     }
-
-                                     public void Run()
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     test => test.NumberOfFixAllIterations = 2,
-                     Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat, 2));
     }
 
     /// <summary>
@@ -1014,4 +966,52 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:CreateA|}()
+                                    {
+                                    }
+
+                                    public static void {|#1:CreateB|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void CreateA()
+                                     {
+                                     }
+
+                                     public static void CreateB()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifying that Fix All keeps every separator at its position when two static members are reordered in the same document, so the gap sequence converges correctly instead of depending on application order (issue #727)
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat, 2),
+                                  test => test.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

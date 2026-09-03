@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3102CodeMustNotContainEmptyStatementsAnalyzer"/> and <see cref="RH3102CodeMustNotContainEmptyStatementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTestsBase<RH3102CodeMustNotContainEmptyStatementsAnalyzer, RH3102CodeMustNotContainEmptyStatementsCodeFixProvider>
+public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFixTestsBase<RH3102CodeMustNotContainEmptyStatementsAnalyzer, RH3102CodeMustNotContainEmptyStatementsCodeFixProvider>
 {
     #region Tests
 
@@ -181,39 +181,6 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
-    }
-
-    /// <summary>
-    /// Verifying multiple consecutive empty statements are reported and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task MultipleEmptyStatementsAreReportedAndFixed()
-    {
-        const string testCode = """
-                                public class Test
-                                {
-                                    public void Run()
-                                    {
-                                        {|#0:;|}
-                                        {|#1:;|}
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 public class Test
-                                 {
-                                     public void Run()
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     onConfigure: config => config.NumberOfFixAllIterations = 2,
-                     Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements.", 2));
     }
 
     /// <summary>
@@ -387,4 +354,38 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        {|#0:;|}
+                                        {|#1:;|}
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifying multiple consecutive empty statements are reported and fixed
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements.", 2),
+                                  config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

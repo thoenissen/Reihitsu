@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer"/> and <see cref="RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : AnalyzerTestsBase<RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer, RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider>
+public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : BatchCodeFixTestsBase<RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer, RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider>
 {
     #region Tests
 
@@ -108,42 +108,6 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
                                 """";
 
         await Verify(testData);
-    }
-
-    /// <summary>
-    /// Verifies that continuation lines are detected and fixed together
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyContinuationLinesAreDetectedAndFixedTogether()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    /// <summary>
-                                    {|#0:///|}Summary.
-                                    {|#1:///|}</summary>
-                                    void Method()
-                                    {
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     /// <summary>
-                                     /// Summary.
-                                     /// </summary>
-                                     void Method()
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
     }
 
     /// <summary>
@@ -289,4 +253,41 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    {|#0:///|}Summary.
+                                    {|#1:///|}</summary>
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Summary.
+                                     /// </summary>
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that continuation lines are detected and fixed together
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

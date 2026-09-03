@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7301RegionsShouldMatchAnalyzer"/> and <see cref="RH7301RegionsShouldMatchCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301RegionsShouldMatchAnalyzer, RH7301RegionsShouldMatchCodeFixProvider>
+public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH7301RegionsShouldMatchAnalyzer, RH7301RegionsShouldMatchCodeFixProvider>
 {
     #region Tests
 
@@ -352,13 +352,12 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
         await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
     }
 
-    /// <summary>
-    /// Verifies that nested, sequential and inactive-branch region pairs use LIFO matching and are independently
-    /// corrected by Fix All without crossing pair boundaries
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task NestedSequentialAndInactiveRegionPairsAreFixedIndependently()
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """
                                 internal class TestClass
@@ -406,11 +405,12 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
                                   }
                                   """;
 
-        await Verify(testData,
-                     resultData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 4));
+        // Verifies that nested, sequential and inactive-branch region pairs use LIFO matching and are independently corrected by Fix All without crossing pair boundaries
+        return new FixAllScenario(testData,
+                                  resultData,
+                                  Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 4),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

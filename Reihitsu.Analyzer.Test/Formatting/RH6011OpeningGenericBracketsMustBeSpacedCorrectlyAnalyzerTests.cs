@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer, RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer, RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -220,12 +220,12 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
-    /// <summary>
-    /// Verifies that Fix All removes multiple same-line whitespace runs in one iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleSameLineDiagnosticsAreFixedInOneFixAllIteration()
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -244,11 +244,12 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
                                  }
                                  """;
 
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat, 2));
+        // Verifies that Fix All removes multiple same-line whitespace runs in one iteration
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

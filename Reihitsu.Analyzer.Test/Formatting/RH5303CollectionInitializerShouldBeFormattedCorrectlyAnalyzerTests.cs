@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer, RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer, RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -214,66 +214,6 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testData,
                      resultData,
                      Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that Fix All converges when multiple complex elements contain misaligned expressions
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixAllConvergesForMultipleComplexElementDiagnostics()
-    {
-        const string testData = """
-                                using System.Collections.Generic;
-
-                                internal class Data;
-
-                                internal class Example
-                                {
-                                    private static void Method(Data firstValue, Data secondValue)
-                                    {
-                                        var values = new Dictionary<string, Data>()
-                                                     {
-                                                         {
-                                                             "first",
-                                                         {|#0:firstValue|}
-                                                         },
-                                                         {
-                                                             "second",
-                                                         {|#1:secondValue|}
-                                                         }
-                                                     };
-                                    }
-                                }
-                                """;
-        const string resultData = """
-                                  using System.Collections.Generic;
-
-                                  internal class Data;
-
-                                  internal class Example
-                                  {
-                                      private static void Method(Data firstValue, Data secondValue)
-                                      {
-                                          var values = new Dictionary<string, Data>()
-                                                       {
-                                                           {
-                                                               "first",
-                                                               firstValue
-                                                           },
-                                                           {
-                                                               "second",
-                                                               secondValue
-                                                           }
-                                                       };
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData,
-                     resultData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat, 2));
     }
 
     /// <summary>
@@ -933,4 +873,65 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    private static void Method(Data firstValue, Data secondValue)
+                                    {
+                                        var values = new Dictionary<string, Data>()
+                                                     {
+                                                         {
+                                                             "first",
+                                                         {|#0:firstValue|}
+                                                         },
+                                                         {
+                                                             "second",
+                                                         {|#1:secondValue|}
+                                                         }
+                                                     };
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+
+                                  internal class Data;
+
+                                  internal class Example
+                                  {
+                                      private static void Method(Data firstValue, Data secondValue)
+                                      {
+                                          var values = new Dictionary<string, Data>()
+                                                       {
+                                                           {
+                                                               "first",
+                                                               firstValue
+                                                           },
+                                                           {
+                                                               "second",
+                                                               secondValue
+                                                           }
+                                                       };
+                                      }
+                                  }
+                                  """;
+
+        // Verifies that Fix All converges when multiple complex elements contain misaligned expressions
+        return new FixAllScenario(testData,
+                                  resultData,
+                                  Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

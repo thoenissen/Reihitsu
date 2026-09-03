@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5111AssignmentsMustHaveProperLineBreaksAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTestsBase<RH5111AssignmentsMustHaveProperLineBreaksAnalyzer, RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider>
+public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeFixTestsBase<RH5111AssignmentsMustHaveProperLineBreaksAnalyzer, RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider>
 {
     #region Properties
 
@@ -471,47 +471,6 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                               """";
 
         await AssertCodeFixMatchesFormatterAsync(source);
-    }
-
-    /// <summary>
-    /// Verifies that Fix All converges for multiple declarators in the same declaration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixAllConvergesForMultipleVariableDeclarators()
-    {
-        const string testData = """
-                                namespace TestNamespace
-                                {
-                                    class TestClass
-                                    {
-                                        public void TestMethod()
-                                        {
-                                            int {|#0:first
-                                                = 1|}, {|#1:second
-                                                = 2|};
-                                        }
-                                    }
-                                }
-                                """;
-
-        const string fixedData = """
-                                 namespace TestNamespace
-                                 {
-                                     class TestClass
-                                     {
-                                         public void TestMethod()
-                                         {
-                                             int first = 1, second = 2;
-                                         }
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2));
     }
 
     /// <summary>
@@ -1173,4 +1132,46 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        public void TestMethod()
+                                        {
+                                            int {|#0:first
+                                                = 1|}, {|#1:second
+                                                = 2|};
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         public void TestMethod()
+                                         {
+                                             int first = 1, second = 2;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that Fix All converges for multiple declarators in the same declaration
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

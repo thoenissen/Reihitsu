@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer, RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer, RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -253,38 +253,6 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies that Fix All normalizes multiple keyword-operator diagnostics in one iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleKeywordOperatorDiagnosticsAreFixedInOneFixAllIteration()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    bool Method(object value)
-                                    {
-                                        return value  {|#0:is|}  string && value  {|#1:as|}  string != null;
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     bool Method(object value)
-                                     {
-                                         return value is string && value as string != null;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that generic type arguments do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -307,4 +275,37 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerT
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    bool Method(object value)
+                                    {
+                                        return value  {|#0:is|}  string && value  {|#1:as|}  string != null;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     bool Method(object value)
+                                     {
+                                         return value is string && value as string != null;
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that Fix All normalizes multiple keyword-operator diagnostics in one iteration
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

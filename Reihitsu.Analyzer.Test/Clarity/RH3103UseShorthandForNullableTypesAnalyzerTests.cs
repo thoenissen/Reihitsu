@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3103UseShorthandForNullableTypesAnalyzer"/> and <see cref="RH3103UseShorthandForNullableTypesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase<RH3103UseShorthandForNullableTypesAnalyzer, RH3103UseShorthandForNullableTypesCodeFixProvider>
+public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTestsBase<RH3103UseShorthandForNullableTypesAnalyzer, RH3103UseShorthandForNullableTypesCodeFixProvider>
 {
     #region Tests
 
@@ -556,43 +556,6 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying multiple Nullable generics in one typeof are fixed in one Fix All iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task NullableGenericsInSingleTypeofAreFixedInOneFixAllIteration()
-    {
-        const string testCode = """
-                                using System;
-
-                                public class Test
-                                {
-                                    public Type GetType()
-                                    {
-                                        return typeof(({|#0:Nullable<int>|}, {|#1:Nullable<long>|}));
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 using System;
-
-                                 public class Test
-                                 {
-                                     public Type GetType()
-                                     {
-                                         return typeof((int?, long?));
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types.", 2));
-    }
-
-    /// <summary>
     /// Verifying Nullable generic in nameof expression is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -736,4 +699,42 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Type GetType()
+                                    {
+                                        return typeof(({|#0:Nullable<int>|}, {|#1:Nullable<long>|}));
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public Type GetType()
+                                     {
+                                         return typeof((int?, long?));
+                                     }
+                                 }
+                                 """;
+
+        // Verifying multiple Nullable generics in one typeof are fixed in one Fix All iteration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types.", 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

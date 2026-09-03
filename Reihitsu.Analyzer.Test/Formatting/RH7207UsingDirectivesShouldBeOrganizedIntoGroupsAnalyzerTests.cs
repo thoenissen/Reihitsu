@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer"/> and <see cref="RH7207UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : AnalyzerTestsBase<RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer, RH7207UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider>
+public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : BatchCodeFixTestsBase<RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer, RH7207UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider>
 {
     #region Tests
 
@@ -790,79 +790,6 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that exact and case-variant System roots form separate groups across compilation-unit and block-namespace scopes
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task CaseVariantSystemGroupsAcrossScopesConvergeInOneFixAllIteration()
-    {
-        const string testCode = """
-                                using {|#0:SYSTEM|};
-                                using System;
-
-                                namespace Example
-                                {
-                                    using {|#1:system.Text|};
-                                    using System.Text;
-
-                                    public class TestClass
-                                    {
-                                    }
-                                }
-
-                                namespace SYSTEM
-                                {
-                                    public class Helper
-                                    {
-                                    }
-                                }
-
-                                namespace system.Text
-                                {
-                                    public class Helper
-                                    {
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 using System;
-
-                                 using SYSTEM;
-
-                                 namespace Example
-                                 {
-                                     using System.Text;
-
-                                     using system.Text;
-
-                                     public class TestClass
-                                     {
-                                     }
-                                 }
-
-                                 namespace SYSTEM
-                                 {
-                                     public class Helper
-                                     {
-                                     }
-                                 }
-
-                                 namespace system.Text
-                                 {
-                                     public class Helper
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode,
-                     fixedCode,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that using groups inside a file-scoped namespace are reported and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1035,4 +962,78 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using {|#0:SYSTEM|};
+                                using System;
+
+                                namespace Example
+                                {
+                                    using {|#1:system.Text|};
+                                    using System.Text;
+
+                                    public class TestClass
+                                    {
+                                    }
+                                }
+
+                                namespace SYSTEM
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                namespace system.Text
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using SYSTEM;
+
+                                 namespace Example
+                                 {
+                                     using System.Text;
+
+                                     using system.Text;
+
+                                     public class TestClass
+                                     {
+                                     }
+                                 }
+
+                                 namespace SYSTEM
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 namespace system.Text
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that exact and case-variant System roots form separate groups across compilation-unit and block-namespace scopes
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

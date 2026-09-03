@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer, RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer, RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -499,80 +499,6 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     /// <summary>
-    /// Verifies that Fix All converges in one iteration for multiple assignment-owned complex elements
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyFixAllConvergesForMultipleComplexElementAssignments()
-    {
-        const string testData = """
-                                using System.Collections.Generic;
-
-                                internal class Data;
-
-                                internal class Example
-                                {
-                                    public Dictionary<string, Data> First { get; } = [];
-                                    public Dictionary<string, Data> Second { get; } = [];
-
-                                    private static void Method(Data firstValue, Data secondValue)
-                                    {
-                                        var value = new Example
-                                                    {
-                                                        {|#0:First = {
-                                                                    {
-                                                                        "first",
-                                                                    firstValue
-                                                                    }
-                                                                }|},
-                                                        {|#1:Second = {
-                                                                     {
-                                                                         "second",
-                                                                     secondValue
-                                                                     }
-                                                                 }|}
-                                                    };
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 using System.Collections.Generic;
-
-                                 internal class Data;
-
-                                 internal class Example
-                                 {
-                                     public Dictionary<string, Data> First { get; } = [];
-                                     public Dictionary<string, Data> Second { get; } = [];
-
-                                     private static void Method(Data firstValue, Data secondValue)
-                                     {
-                                         var value = new Example
-                                                     {
-                                                         First = {
-                                                                     {
-                                                                         "first",
-                                                                         firstValue
-                                                                     }
-                                                                 },
-                                                         Second = {
-                                                                      {
-                                                                          "second",
-                                                                          secondValue
-                                                                      }
-                                                                  }
-                                                     };
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that a shifted standalone comment before a complex-element closing brace reports and is fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -936,4 +862,79 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    public Dictionary<string, Data> First { get; } = [];
+                                    public Dictionary<string, Data> Second { get; } = [];
+
+                                    private static void Method(Data firstValue, Data secondValue)
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:First = {
+                                                                    {
+                                                                        "first",
+                                                                    firstValue
+                                                                    }
+                                                                }|},
+                                                        {|#1:Second = {
+                                                                     {
+                                                                         "second",
+                                                                     secondValue
+                                                                     }
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     public Dictionary<string, Data> First { get; } = [];
+                                     public Dictionary<string, Data> Second { get; } = [];
+
+                                     private static void Method(Data firstValue, Data secondValue)
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         First = {
+                                                                     {
+                                                                         "first",
+                                                                         firstValue
+                                                                     }
+                                                                 },
+                                                         Second = {
+                                                                      {
+                                                                          "second",
+                                                                          secondValue
+                                                                      }
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        // Verifies that Fix All converges in one iteration for multiple assignment-owned complex elements
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

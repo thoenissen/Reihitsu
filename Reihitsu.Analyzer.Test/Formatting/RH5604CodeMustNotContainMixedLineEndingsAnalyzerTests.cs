@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5604CodeMustNotContainMixedLineEndingsAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTestsBase<RH5604CodeMustNotContainMixedLineEndingsAnalyzer, RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider>
+public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFixTestsBase<RH5604CodeMustNotContainMixedLineEndingsAnalyzer, RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider>
 {
     #region Tests
 
@@ -139,32 +139,6 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
                                 + "internal class TestClass { }";
 
         await Verify(testData);
-    }
-
-    /// <summary>
-    /// Verifies that XML and ordinary minority line endings are fixed in one Fix All iteration
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyXmlAndOrdinaryMinoritiesAreFixedInOneFixAllIteration()
-    {
-        const string testData = "{|#0:/// <summary>\r\n|}"
-                                + "/// Documentation.\n"
-                                + "/// </summary>\n"
-                                + "{|#1:internal class TestClass\r\n|}"
-                                + "{\n"
-                                + "}";
-        const string fixedData = "/// <summary>\n"
-                                 + "/// Documentation.\n"
-                                 + "/// </summary>\n"
-                                 + "internal class TestClass\n"
-                                 + "{\n"
-                                 + "}";
-
-        await Verify(testData,
-                     fixedData,
-                     static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat, 2));
     }
 
     /// <summary>
@@ -317,4 +291,31 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = "{|#0:/// <summary>\r\n|}"
+                                + "/// Documentation.\n"
+                                + "/// </summary>\n"
+                                + "{|#1:internal class TestClass\r\n|}"
+                                + "{\n"
+                                + "}";
+        const string fixedData = "/// <summary>\n"
+                                 + "/// Documentation.\n"
+                                 + "/// </summary>\n"
+                                 + "internal class TestClass\n"
+                                 + "{\n"
+                                 + "}";
+
+        // Verifies that XML and ordinary minority line endings are fixed in one Fix All iteration
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
