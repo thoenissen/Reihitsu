@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7104PartialElementsMustDeclareAccessModifierAnalyzer"/> and <see cref="RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : AnalyzerTestsBase<RH7104PartialElementsMustDeclareAccessModifierAnalyzer, RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider>
+public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : BatchCodeFixTestsBase<RH7104PartialElementsMustDeclareAccessModifierAnalyzer, RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider>
 {
     #region Tests
 
@@ -108,4 +108,38 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                partial class {|#0:Outer|}
+                                {
+                                    partial class {|#1:Inner|}
+                                    {
+                                        public int Value { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal partial class Outer
+                                 {
+                                     private partial class Inner
+                                     {
+                                         public int Value { get; set; }
+                                     }
+                                 }
+                                 """;
+
+        // The nested declaration sits inside the declaration the outer fix rewrites, so both corrections are
+        // computed against overlapping subtrees while their text changes stay confined to the inserted keyword
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

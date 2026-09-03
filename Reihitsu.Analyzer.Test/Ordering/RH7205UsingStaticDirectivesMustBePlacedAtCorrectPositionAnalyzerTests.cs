@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer"/> and <see cref="RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTests : AnalyzerTestsBase<RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer, RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider>
+public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTests : BatchCodeFixTestsBase<RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer, RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider>
 {
     #region Tests
 
@@ -78,4 +78,54 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using static {|#0:System.Console|};
+                                using static {|#1:System.Math|};
+                                using Alpha;
+
+                                namespace Alpha
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using Alpha;
+
+                                 using static System.Console;
+                                 using static System.Math;
+
+                                 namespace Alpha
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        // Both static directives precede the same regular using, and each fix reorganizes the whole
+        // compilation-unit using list, so the two text changes cover the identical span and the surviving one
+        // already clears both
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer.DiagnosticId, AnalyzerResources.RH7205MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

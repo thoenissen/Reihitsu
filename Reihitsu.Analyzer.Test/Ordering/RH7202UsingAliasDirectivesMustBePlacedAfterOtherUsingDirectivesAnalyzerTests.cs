@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer"/> and <see cref="RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzerTests : AnalyzerTestsBase<RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer, RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider>
+public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzerTests : BatchCodeFixTestsBase<RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer, RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider>
 {
     #region Tests
 
@@ -78,4 +78,53 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using {|#0:IntAlias|} = System.Int32;
+                                using {|#1:TextAlias|} = System.String;
+                                using Alpha;
+
+                                namespace Alpha
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using Alpha;
+
+                                 using IntAlias = System.Int32;
+                                 using TextAlias = System.String;
+
+                                 namespace Alpha
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        // Both aliases precede the same regular using, and each fix reorganizes the whole compilation-unit using
+        // list, so the two text changes cover the identical span and the surviving one already clears both
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7202MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

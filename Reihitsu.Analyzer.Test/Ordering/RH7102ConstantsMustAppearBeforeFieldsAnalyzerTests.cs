@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7102ConstantsMustAppearBeforeFieldsAnalyzer"/> and <see cref="RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : AnalyzerTestsBase<RH7102ConstantsMustAppearBeforeFieldsAnalyzer, RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider>
+public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTestsBase<RH7102ConstantsMustAppearBeforeFieldsAnalyzer, RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider>
 {
     #region Tests
 
@@ -104,4 +104,37 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : AnalyzerTestsB
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _value;
+                                    private const int {|#0:MaxValue|} = 1;
+                                    private const int {|#1:MinValue|} = 2;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     private const int MaxValue = 1;
+                                     private const int MinValue = 2;
+                                     private int _value;
+                                 }
+                                 """;
+
+        // Both constants are moved in front of the same mutable field, so each fix rewrites the span from that
+        // field to its own declaration and the two text changes overlap. The batch keeps one of them per pass
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7102MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

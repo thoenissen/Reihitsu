@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 /// Test methods for <see cref="RH7105DeclarationKeywordsMustFollowOrderAnalyzer"/> and <see cref="RH7105DeclarationKeywordsMustFollowOrderCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH7105DeclarationKeywordsMustFollowOrderAnalyzer, RH7105DeclarationKeywordsMustFollowOrderCodeFixProvider>
+public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFixTestsBase<RH7105DeclarationKeywordsMustFollowOrderAnalyzer, RH7105DeclarationKeywordsMustFollowOrderCodeFixProvider>
 {
     #region Tests
 
@@ -282,4 +282,36 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    {|#0:static|} public int Value { get; set; }
+
+                                    {|#1:static|} internal int Other { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static int Value { get; set; }
+
+                                     internal static int Other { get; set; }
+                                 }
+                                 """;
+
+        // Two misordered modifier lists inside one type, so the batch merges both member rewrites into the same
+        // type declaration and a fix that reordered more than its own modifier list would lose the other
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
