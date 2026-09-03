@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4108InternalFieldCasingAnalyzer"/> and <see cref="RH4108InternalFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4108InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4108InternalFieldCasingAnalyzer, RH4108InternalFieldCasingCodeFixProvider>
+public class RH4108InternalFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4108InternalFieldCasingAnalyzer, RH4108InternalFieldCasingCodeFixProvider>
 {
     #region Tests
 
@@ -154,4 +154,46 @@ public class RH4108InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4108In
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Registry
+                                    {
+                                        internal int {|#0:itemCount|};
+
+                                        internal int {|#1:pageSize|} = 10;
+
+                                        public int Total => itemCount * pageSize;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Registry
+                                     {
+                                         internal int ItemCount;
+
+                                         internal int PageSize = 10;
+
+                                         public int Total => ItemCount * PageSize;
+                                     }
+                                 }
+                                 """;
+
+        // Both fields are read by the same expression body, so each rename has to reach a reference outside
+        // its own declaration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

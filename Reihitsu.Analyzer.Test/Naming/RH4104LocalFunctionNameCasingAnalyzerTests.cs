@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4104LocalFunctionNameCasingAnalyzer"/> and <see cref="RH4104LocalFunctionNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4104LocalFunctionNameCasingAnalyzerTests : AnalyzerTestsBase<RH4104LocalFunctionNameCasingAnalyzer, RH4104LocalFunctionNameCasingCodeFixProvider>
+public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4104LocalFunctionNameCasingAnalyzer, RH4104LocalFunctionNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -302,4 +302,64 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : AnalyzerTestsBase<RH41
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Runner
+                                    {
+                                        public int Run(int value)
+                                        {
+                                            int {|#0:outerHelper|}(int input)
+                                            {
+                                                int {|#1:innerHelper|}(int nested)
+                                                {
+                                                    return nested + 1;
+                                                }
+
+                                                return innerHelper(input);
+                                            }
+
+                                            return outerHelper(value);
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Runner
+                                     {
+                                         public int Run(int value)
+                                         {
+                                             int OuterHelper(int input)
+                                             {
+                                                 int InnerHelper(int nested)
+                                                 {
+                                                     return nested + 1;
+                                                 }
+
+                                                 return InnerHelper(input);
+                                             }
+
+                                             return OuterHelper(value);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The second local function is declared inside the first, so the two renames happen in nested scopes
+        // and each has to reach its own invocation
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4104LocalFunctionNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4104MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

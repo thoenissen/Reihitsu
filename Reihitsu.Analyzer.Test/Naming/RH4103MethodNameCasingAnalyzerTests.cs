@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4103MethodNameCasingAnalyzer"/> and <see cref="RH4103MethodNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4103MethodNameCasingAnalyzerTests : AnalyzerTestsBase<RH4103MethodNameCasingAnalyzer, RH4103MethodNameCasingCodeFixProvider>
+public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103MethodNameCasingAnalyzer, RH4103MethodNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -339,4 +339,54 @@ public class RH4103MethodNameCasingAnalyzerTests : AnalyzerTestsBase<RH4103Metho
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Calculator
+                                    {
+                                        public int {|#0:computeTotal|}(int value)
+                                        {
+                                            return computeFactor(value) * 2;
+                                        }
+
+                                        private int {|#1:computeFactor|}(int value)
+                                        {
+                                            return value + 1;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Calculator
+                                     {
+                                         public int ComputeTotal(int value)
+                                         {
+                                             return ComputeFactor(value) * 2;
+                                         }
+
+                                         private int ComputeFactor(int value)
+                                         {
+                                             return value + 1;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The first reported method calls the second, so the batch has to rewrite the invocation together
+        // with both declarations
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4103MethodNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4103MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

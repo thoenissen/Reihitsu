@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4120RecordPrimaryConstructorParameterCasingAnalyzer"/> and <see cref="RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : AnalyzerTestsBase<RH4120RecordPrimaryConstructorParameterCasingAnalyzer, RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider>
+public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH4120RecordPrimaryConstructorParameterCasingAnalyzer, RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider>
 {
     #region Tests
 
@@ -134,4 +134,52 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : Analyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public record Order(int {|#0:orderId|}, string {|#1:customerName|});
+
+                                    public class OrderFactory
+                                    {
+                                        public string Describe()
+                                        {
+                                            var order = new Order(orderId: 1, customerName: "Ada");
+
+                                            return order.customerName + order.orderId;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public record Order(int OrderId, string CustomerName);
+
+                                     public class OrderFactory
+                                     {
+                                         public string Describe()
+                                         {
+                                             var order = new Order(OrderId: 1, CustomerName: "Ada");
+
+                                             return order.CustomerName + order.OrderId;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Both parameters belong to the same primary constructor, so each rename also rewrites the
+        // synthesized property and the named argument that reads it
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4120MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

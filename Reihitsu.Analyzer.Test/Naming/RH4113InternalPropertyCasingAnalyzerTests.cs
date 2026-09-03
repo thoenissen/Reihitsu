@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4113InternalPropertyCasingAnalyzer"/> and <see cref="RH4113InternalPropertyCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4113InternalPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH4113InternalPropertyCasingAnalyzer, RH4113InternalPropertyCasingCodeFixProvider>
+public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4113InternalPropertyCasingAnalyzer, RH4113InternalPropertyCasingCodeFixProvider>
 {
     #region Tests
 
@@ -159,4 +159,46 @@ public class RH4113InternalPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH411
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Settings
+                                    {
+                                        internal int {|#0:retryCount|} { get; set; }
+
+                                        internal int {|#1:timeoutSeconds|} { get; set; }
+
+                                        public int Total => retryCount * timeoutSeconds;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Settings
+                                     {
+                                         internal int RetryCount { get; set; }
+
+                                         internal int TimeoutSeconds { get; set; }
+
+                                         public int Total => RetryCount * TimeoutSeconds;
+                                     }
+                                 }
+                                 """;
+
+        // Both properties are read by the same expression body, so each rename has to reach a reference
+        // outside its own declaration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

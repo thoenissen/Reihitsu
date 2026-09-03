@@ -171,29 +171,7 @@ public class CodeFixTestBaseCoverageTests
                                                                                   "Reihitsu.Analyzer.Test.Formatting.RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Formatting.RH7309RegionsShouldFollowCategoryOrderAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Formatting.RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4002ClassNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4003StructNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4004EnumNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4005InterfaceNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4006DelegateNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4010RecordNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4011RecordStructNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4101EnumMemberCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4103MethodNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4104LocalFunctionNameCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4105MethodParameterCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4106PrivateFieldCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4107ProtectedFieldCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4108InternalFieldCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4109PublicFieldCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4110ConstFieldCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4111PrivatePropertyCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4112ProtectedPropertyCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4113InternalPropertyCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4114PublicPropertyCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Naming.RH4121TypeParameterNameCasingAnalyzerTests"
+                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTests"
                                                                               };
 
     #endregion // Fields

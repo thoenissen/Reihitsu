@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4006DelegateNameCasingAnalyzer"/> and <see cref="RH4006DelegateNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4006DelegateNameCasingAnalyzerTests : AnalyzerTestsBase<RH4006DelegateNameCasingAnalyzer, RH4006DelegateNameCasingCodeFixProvider>
+public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4006DelegateNameCasingAnalyzer, RH4006DelegateNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -161,4 +161,50 @@ public class RH4006DelegateNameCasingAnalyzerTests : AnalyzerTestsBase<RH4006Del
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public delegate void {|#0:orderHandler|}(int orderId);
+
+                                    public delegate int {|#1:valueSelector|}(string input);
+
+                                    public class Dispatcher
+                                    {
+                                        public orderHandler Handler { get; set; }
+
+                                        public valueSelector Selector { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public delegate void OrderHandler(int orderId);
+
+                                     public delegate int ValueSelector(string input);
+
+                                     public class Dispatcher
+                                     {
+                                         public OrderHandler Handler { get; set; }
+
+                                         public ValueSelector Selector { get; set; }
+                                     }
+                                 }
+                                 """;
+
+        // Both delegates are used as property types of the same class, so each rename has to reach a
+        // reference outside its own declaration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4006MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4010RecordNameCasingAnalyzer"/> and <see cref="RH4010RecordNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4010RecordNameCasingAnalyzerTests : AnalyzerTestsBase<RH4010RecordNameCasingAnalyzer, RH4010RecordNameCasingCodeFixProvider>
+public class RH4010RecordNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4010RecordNameCasingAnalyzer, RH4010RecordNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -93,4 +93,36 @@ public class RH4010RecordNameCasingAnalyzerTests : AnalyzerTestsBase<RH4010Recor
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public record {|#0:orderRecord|}(int Id);
+
+                                    public record {|#1:customerRecord|}(orderRecord Order);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public record OrderRecord(int Id);
+
+                                     public record CustomerRecord(OrderRecord Order);
+                                 }
+                                 """;
+
+        // The second record takes the first as a primary constructor parameter type, so the batch rewrites
+        // that reference as well as both declarations
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4010RecordNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4010MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 /// Test methods for <see cref="RH4121TypeParameterNameCasingAnalyzer"/> and <see cref="RH4121TypeParameterNameCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH4121TypeParameterNameCasingAnalyzerTests : AnalyzerTestsBase<RH4121TypeParameterNameCasingAnalyzer, RH4121TypeParameterNameCasingCodeFixProvider>
+public class RH4121TypeParameterNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4121TypeParameterNameCasingAnalyzer, RH4121TypeParameterNameCasingCodeFixProvider>
 {
     #region Tests
 
@@ -355,4 +355,42 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : AnalyzerTestsBase<RH41
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Cache<{|#0:key|}, {|#1:value|}>
+                                    {
+                                        public key Key { get; set; }
+
+                                        public value Value { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Cache<TKey, TValue>
+                                     {
+                                         public TKey Key { get; set; }
+
+                                         public TValue Value { get; set; }
+                                     }
+                                 }
+                                 """;
+
+        // Both type parameters belong to the same parameter list and are used by the members, so each rename
+        // has to reach references outside its own declaration
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4121TypeParameterNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4121MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
