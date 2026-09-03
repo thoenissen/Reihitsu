@@ -420,7 +420,8 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        // The second qualifier is the argument of the invocation whose callee the first rewrite replaces
+        // Both qualifiers sit in one invocation expression, on its callee and inside its argument, but the two
+        // rewrites replace nodes whose spans do not overlap, so the batch merges them in a single pass
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists.", 2));

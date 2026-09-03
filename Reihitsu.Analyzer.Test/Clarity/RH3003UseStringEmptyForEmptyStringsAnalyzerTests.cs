@@ -413,8 +413,8 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        // A comment separates the two literals, so the batch has to carry the trivia of the first replacement
-        // across the second one
+        // A comment sits between the two literals, so the batch has to preserve trivia that lies in the gap
+        // between its two replacements
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings.", 2));
