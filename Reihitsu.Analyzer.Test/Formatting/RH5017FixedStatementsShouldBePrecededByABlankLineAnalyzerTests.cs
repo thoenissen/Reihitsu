@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5017FixedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer, RH5017FixedStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer, RH5017FixedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -153,4 +153,60 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5017
+                                {
+                                    private readonly byte[] data = new byte[1];
+
+                                    public unsafe void Pin()
+                                    {
+                                        var buffer = new byte[4];
+                                        {|#0:fixed|} (byte* first = buffer)
+                                        {
+                                            *first = 1;
+                                        }
+                                        {|#1:fixed|} (byte* second = data)
+                                        {
+                                            *second = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5017
+                                 {
+                                     private readonly byte[] data = new byte[1];
+
+                                     public unsafe void Pin()
+                                     {
+                                         var buffer = new byte[4];
+
+                                         fixed (byte* first = buffer)
+                                         {
+                                             *first = 1;
+                                         }
+
+                                         fixed (byte* second = data)
+                                         {
+                                             *second = 2;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent fixed statements, each missing its preceding blank line, so the second fix's insertion
+        // point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5017MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

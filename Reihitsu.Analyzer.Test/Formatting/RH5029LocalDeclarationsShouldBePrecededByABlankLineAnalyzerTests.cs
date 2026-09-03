@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer, RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer, RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -328,4 +328,74 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    public void Execute()
+                                    {
+                                        Consume();
+                                        {|#0:var|} first = GetValue();
+                                        Consume(first);
+                                        {|#1:var|} second = GetValue();
+                                        Consume(second);
+                                    }
+
+                                    private string GetValue()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+
+                                    private void Consume(string value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     public void Execute()
+                                     {
+                                         Consume();
+
+                                         var first = GetValue();
+                                         Consume(first);
+
+                                         var second = GetValue();
+                                         Consume(second);
+                                     }
+
+                                     private string GetValue()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+
+                                     private void Consume(string value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Two independent consumption/declaration pairs, each missing its separating blank line, so the second
+        // fix's insertion point is unaffected by the first occurrence's own blank-line insertion
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5012ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer, RH5012ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer, RH5012ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -145,4 +145,55 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5012
+                                {
+                                    public void Iterate()
+                                    {
+                                        while (true)
+                                        {
+                                            var shouldContinue = true;
+                                            {|#0:continue|};
+                                            {|#1:continue|};
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 internal class RH5012
+                                 {
+                                     public void Iterate()
+                                     {
+                                         while (true)
+                                         {
+                                             var shouldContinue = true;
+
+                                             continue;
+
+                                             continue;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The second continue is unreachable code, kept alive only to exercise Fix All on two adjacent
+        // occurrences in the same block; the pragma at file top suppresses CS0162 without touching either
+        // occurrence
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5012MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

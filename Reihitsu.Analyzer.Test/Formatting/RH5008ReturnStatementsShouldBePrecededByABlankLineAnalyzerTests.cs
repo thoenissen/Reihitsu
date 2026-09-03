@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5008ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer, RH5008ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer, RH5008ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -423,4 +423,48 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                internal class RH5008
+                                {
+                                    public int Execute()
+                                    {
+                                        var value = 1;
+                                        {|#0:return|} value;
+                                        {|#1:return|} value + 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 internal class RH5008
+                                 {
+                                     public int Execute()
+                                     {
+                                         var value = 1;
+
+                                         return value;
+
+                                         return value + 1;
+                                     }
+                                 }
+                                 """;
+
+        // The second return is unreachable code, kept alive only to exercise Fix All on two adjacent occurrences
+        // in the same block; the pragma at file top suppresses CS0162 without touching either occurrence
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

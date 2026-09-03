@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer"/> and <see cref="RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer, RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider>
+public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer, RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -179,4 +179,61 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true)
+                                        {
+                                        }
+                                {|#0:
+                                |}        else
+                                        {
+                                        }
+                                        try
+                                        {
+                                        }
+                                {|#1:
+                                |}        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                         }
+                                         else
+                                         {
+                                         }
+                                         try
+                                         {
+                                         }
+                                         catch
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent chained blocks (an else clause and a catch clause), each preceded by a blank line, so the
+        // second fix's removal span sits close behind the first fix's own removal
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5026MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

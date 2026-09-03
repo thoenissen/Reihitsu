@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer"/> and <see cref="RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer, RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider>
+public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer, RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -100,4 +100,53 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Anal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        do
+                                        {
+                                        }
+                                {|#0:
+                                |}        while (true);
+                                        do
+                                        {
+                                        }
+                                {|#1:
+                                |}        while (false);
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         do
+                                         {
+                                         }
+                                         while (true);
+                                         do
+                                         {
+                                         }
+                                         while (false);
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent do statements, each with a blank line directly before its trailing while footer, so the
+        // second fix's removal span sits close behind the first fix's own removal
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5027MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

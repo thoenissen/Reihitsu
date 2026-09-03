@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5015CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH5015CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH5015CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -145,4 +145,56 @@ public class RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5015
+                                {
+                                    public int Execute(int value)
+                                    {
+                                        var factor = 2;
+                                        {|#0:checked|}
+                                        {
+                                            value *= factor;
+                                        }
+                                        {|#1:checked|}
+                                        {
+                                            return value * factor;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5015
+                                 {
+                                     public int Execute(int value)
+                                     {
+                                         var factor = 2;
+
+                                         checked
+                                         {
+                                             value *= factor;
+                                         }
+
+                                         checked
+                                         {
+                                             return value * factor;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent checked statements, each missing its preceding blank line, so the second fix's insertion
+        // point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5015MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

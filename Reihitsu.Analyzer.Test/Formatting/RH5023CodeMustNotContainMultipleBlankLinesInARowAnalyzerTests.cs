@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer"/> and <see cref="RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : AnalyzerTestsBase<RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer, RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider>
+public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : BatchCodeFixTestsBase<RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer, RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider>
 {
     #region Tests
 
@@ -166,4 +166,47 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int first = 0;
+
+                                {|#0:
+                                |}        int second = 1;
+
+                                {|#1:
+                                |}        int third = 2;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int first = 0;
+
+                                         int second = 1;
+
+                                         int third = 2;
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent excess-blank-line groups, each collapsing two blank lines down to one, so the second
+        // fix's removal span sits close behind the first fix's own removal
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, AnalyzerResources.RH5023MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

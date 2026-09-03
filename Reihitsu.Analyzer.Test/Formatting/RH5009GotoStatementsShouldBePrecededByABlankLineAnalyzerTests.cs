@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5009GotoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer, RH5009GotoStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer, RH5009GotoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -236,4 +236,56 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5009
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+                                        {|#0:goto|} First;
+
+                                        First:
+                                        value++;
+                                        {|#1:goto|} Second;
+
+                                        Second:
+                                        value++;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5009
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         goto First;
+
+                                         First:
+                                         value++;
+
+                                         goto Second;
+
+                                         Second:
+                                         value++;
+                                     }
+                                 }
+                                 """;
+
+        // Two independent goto statements, each directly following an unrelated statement, so the second fix's
+        // insertion point is unaffected by the first occurrence's own blank-line insertion
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

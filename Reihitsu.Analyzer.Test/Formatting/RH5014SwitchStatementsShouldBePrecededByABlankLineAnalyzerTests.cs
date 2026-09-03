@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5014SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer, RH5014SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer, RH5014SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -163,4 +163,64 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5014
+                                {
+                                    public int Execute(int number)
+                                    {
+                                        var offset = 1;
+                                        {|#0:switch|} (number)
+                                        {
+                                            case 0:
+                                                return offset;
+                                        }
+                                        {|#1:switch|} (number)
+                                        {
+                                            case 0:
+                                                return offset;
+                                            default:
+                                                return number;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5014
+                                 {
+                                     public int Execute(int number)
+                                     {
+                                         var offset = 1;
+
+                                         switch (number)
+                                         {
+                                             case 0:
+                                                 return offset;
+                                         }
+
+                                         switch (number)
+                                         {
+                                             case 0:
+                                                 return offset;
+                                             default:
+                                                 return number;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent switch statements, each missing its preceding blank line, so the second fix's insertion
+        // point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5014MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

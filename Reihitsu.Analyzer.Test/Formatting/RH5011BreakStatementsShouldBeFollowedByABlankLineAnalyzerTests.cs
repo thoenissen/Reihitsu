@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer, RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider>
+public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer, RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -405,4 +405,65 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5011
+                                {
+                                    public void Execute()
+                                    {
+                                        while (true)
+                                        {
+                                            {|#0:break|};
+                                            Consume();
+                                        }
+                                        while (true)
+                                        {
+                                            {|#1:break|};
+                                            Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5011
+                                 {
+                                     public void Execute()
+                                     {
+                                         while (true)
+                                         {
+                                             break;
+
+                                             Consume();
+                                         }
+                                         while (true)
+                                         {
+                                             break;
+
+                                             Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent while loops, each with a break statement missing its following blank line, so the second
+        // fix's insertion point is unaffected by the first occurrence's own blank-line insertion
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

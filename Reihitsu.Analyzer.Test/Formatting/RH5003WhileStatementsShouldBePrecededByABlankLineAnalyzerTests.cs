@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer, RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer, RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -146,4 +146,56 @@ public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5003
+                                {
+                                    public void Execute()
+                                    {
+                                        var index = 0;
+                                        {|#0:while|} (index < 1)
+                                        {
+                                            index++;
+                                        }
+                                        {|#1:while|} (index < 3)
+                                        {
+                                            index++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5003
+                                 {
+                                     public void Execute()
+                                     {
+                                         var index = 0;
+
+                                         while (index < 1)
+                                         {
+                                             index++;
+                                         }
+
+                                         while (index < 3)
+                                         {
+                                             index++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent while statements, each missing its preceding blank line, so the second fix's insertion
+        // point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5003MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

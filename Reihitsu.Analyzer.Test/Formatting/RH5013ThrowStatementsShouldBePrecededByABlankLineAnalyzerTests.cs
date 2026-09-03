@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5013ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer, RH5013ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer, RH5013ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -158,4 +158,58 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                #pragma warning disable CS0162
+
+                                using System;
+
+                                internal class RH5013
+                                {
+                                    public void Execute(bool isInvalid)
+                                    {
+                                        if (isInvalid)
+                                        {
+                                            var message = "invalid";
+                                            {|#0:throw|} new InvalidOperationException(message);
+                                            {|#1:throw|} new InvalidOperationException(message);
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0162
+
+                                 using System;
+
+                                 internal class RH5013
+                                 {
+                                     public void Execute(bool isInvalid)
+                                     {
+                                         if (isInvalid)
+                                         {
+                                             var message = "invalid";
+
+                                             throw new InvalidOperationException(message);
+
+                                             throw new InvalidOperationException(message);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The second throw is unreachable code, kept alive only to exercise Fix All on two adjacent occurrences
+        // in the same block; the pragma at file top suppresses CS0162 without touching either occurrence
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

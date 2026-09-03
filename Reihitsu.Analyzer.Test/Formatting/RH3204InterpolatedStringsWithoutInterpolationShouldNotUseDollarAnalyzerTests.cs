@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer"/> and <see cref="RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzerTests : AnalyzerTestsBase<RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer, RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider>
+public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzerTests : BatchCodeFixTestsBase<RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer, RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider>
 {
     #region Tests
 
@@ -247,28 +247,6 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     }
 
     /// <summary>
-    /// Verifies that multiple interpolated strings without interpolation are all detected
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMultipleInterpolatedStringsWithoutInterpolationAreDetected()
-    {
-        const string testData = """
-                                internal class Example
-                                {
-                                    private static void Method()
-                                    {
-                                        var a = {|#0:$"first"|};
-                                        var b = {|#1:$"second"|};
-                                        var c = "third";
-                                    }
-                                }
-                                """;
-
-        await Verify(testData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that an explicitly string-typed target without interpolation is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -365,4 +343,41 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var a = {|#0:$"first"|};
+                                        var b = {|#1:$"second"|};
+                                        var c = "third";
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var a = "first";
+                                         var b = "second";
+                                         var c = "third";
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent interpolated string literals without interpolation, each replaced by a whole-node swap,
+        // so the second fix's replacement is unaffected by the first occurrence's own replacement
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

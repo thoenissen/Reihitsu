@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5016UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH5016UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH5016UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -145,4 +145,56 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5016
+                                {
+                                    public int Execute(int value)
+                                    {
+                                        var factor = 2;
+                                        {|#0:unchecked|}
+                                        {
+                                            value *= factor;
+                                        }
+                                        {|#1:unchecked|}
+                                        {
+                                            return value * factor;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5016
+                                 {
+                                     public int Execute(int value)
+                                     {
+                                         var factor = 2;
+
+                                         unchecked
+                                         {
+                                             value *= factor;
+                                         }
+
+                                         unchecked
+                                         {
+                                             return value * factor;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Two adjacent unchecked statements, each missing its preceding blank line, so the second fix's
+        // insertion point sits directly against the first fix's closing brace
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5016MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer, RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider>
+public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer, RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -228,4 +228,56 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                internal class RH5019
+                                {
+                                    public IEnumerable<int> Execute(bool flag)
+                                    {
+                                        var current = 1;
+                                        {|#0:yield|} return current;
+                                        if (flag)
+                                        {
+                                            var next = 2;
+                                            {|#1:yield|} return next;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 internal class RH5019
+                                 {
+                                     public IEnumerable<int> Execute(bool flag)
+                                     {
+                                         var current = 1;
+
+                                         yield return current;
+                                         if (flag)
+                                         {
+                                             var next = 2;
+
+                                             yield return next;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // A top-level occurrence and a nested occurrence inside an if block; consecutive yield statements are
+        // exempt from this rule, so two occurrences require two distinct non-yield predecessors
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5019MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
