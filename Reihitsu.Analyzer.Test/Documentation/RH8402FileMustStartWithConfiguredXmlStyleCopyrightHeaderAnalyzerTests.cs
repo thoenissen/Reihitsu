@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Test methods for <see cref="RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer"/> and <see cref="RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTests : AnalyzerTestsBase<RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer, RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider>
+public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTests : BatchCodeFixTestsBase<RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer, RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider>
 {
     #region Constants
 
@@ -390,4 +390,60 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string template = "// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>";
+
+        const string secondSource = """
+                                    namespace TestNamespace
+                                    {
+                                    }
+                                    """;
+        const string secondFixedSource = """
+                                         // <copyright file="Test1.cs" company="Example Software">
+                                         // Copyright (c) Example Software. All rights reserved.
+                                         // </copyright>
+                                         namespace TestNamespace
+                                         {
+                                         }
+                                         """;
+        const string fixedCode = """
+                                 // <copyright file="Test0.cs" company="Example Software">
+                                 // Copyright (c) Example Software. All rights reserved.
+                                 // </copyright>
+                                 namespace TestNamespace
+                                 {
+                                 }
+                                 """;
+
+        // This rule reports at most one diagnostic per file, so the Fix All scenario needs two documents to
+        // report two diagnostics at all. The {fileName} placeholder in the template makes the scenario prove
+        // the header is resolved per document rather than reusing the first document's resolved header
+        return new FixAllScenario(TestCode,
+                                  fixedCode,
+                                  [
+                                      Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat),
+                                      Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat)
+                                  ],
+                                  config =>
+                                  {
+                                      var configuration = CreateCopyrightConfiguration(template, ("companyName", "Example Software"));
+
+                                      config.TestState.Sources.Add(("/0/Test1.cs", secondSource));
+                                      config.FixedState.Sources.Add(("/0/Test1.cs", secondFixedSource));
+                                      config.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                                      config.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                                      config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+
+                                      // Fix All in document scope corrects one document per iteration, and this rule reports at most one
+                                      // diagnostic per file, so two documents need at most two iterations
+                                      config.NumberOfFixAllIterations = -2;
+                                  });
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// <see cref="RH8204DoNotUsePlaceholderElementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : AnalyzerTestsBase<RH8204DoNotUsePlaceholderElementsAnalyzer, RH8204DoNotUsePlaceholderElementsCodeFixProvider>
+public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsBase<RH8204DoNotUsePlaceholderElementsAnalyzer, RH8204DoNotUsePlaceholderElementsCodeFixProvider>
 {
     #region Tests
 
@@ -93,4 +93,34 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : AnalyzerTestsBase<
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>This method {|#0:<placeholder>does work</placeholder>|} and {|#1:<placeholder>returns nothing</placeholder>|}.</summary>
+                              internal class TestClass
+                              {
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   /// <summary>This method does work and returns nothing.</summary>
+                                   internal class TestClass
+                                   {
+                                   }
+                                   """;
+
+        // Two placeholders on the same summary line produce disjoint text edits, so the batch fixer can apply
+        // both without either shifting the other's span
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
