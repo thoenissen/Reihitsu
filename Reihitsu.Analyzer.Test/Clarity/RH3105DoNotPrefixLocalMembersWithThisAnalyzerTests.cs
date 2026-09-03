@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3105DoNotPrefixLocalMembersWithThisAnalyzer"/> and <see cref="RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsBase<RH3105DoNotPrefixLocalMembersWithThisAnalyzer, RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider>
+public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTestsBase<RH3105DoNotPrefixLocalMembersWithThisAnalyzer, RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider>
 {
     #region Tests
 
@@ -156,42 +156,6 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3105DoNotPrefixLocalMembersWithThisAnalyzer.DiagnosticId, "Do not prefix local members with this."));
-    }
-
-    /// <summary>
-    /// Verifying multiple unnecessary this qualifiers are reported and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task MultipleUnnecessaryThisQualifiersAreReportedAndFixed()
-    {
-        const string testCode = """
-                                public class Test
-                                {
-                                    private int _value;
-                                    private int _count;
-
-                                    public int Run()
-                                    {
-                                        return {|#0:this|}._value + {|#1:this|}._count;
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 public class Test
-                                 {
-                                     private int _value;
-                                     private int _count;
-
-                                     public int Run()
-                                     {
-                                         return _value + _count;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, Diagnostics(RH3105DoNotPrefixLocalMembersWithThisAnalyzer.DiagnosticId, "Do not prefix local members with this.", 2));
     }
 
     /// <summary>
@@ -358,4 +322,43 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _value;
+                                    private int _count;
+
+                                    public int Run()
+                                    {
+                                        return {|#0:this|}._value + {|#1:this|}._count;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _value;
+                                     private int _count;
+
+                                     public int Run()
+                                     {
+                                         return _value + _count;
+                                     }
+                                 }
+                                 """;
+
+        // Both qualifiers sit in the same expression, so the two rewrites replace siblings of one parent node
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3105DoNotPrefixLocalMembersWithThisAnalyzer.DiagnosticId, "Do not prefix local members with this.", 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

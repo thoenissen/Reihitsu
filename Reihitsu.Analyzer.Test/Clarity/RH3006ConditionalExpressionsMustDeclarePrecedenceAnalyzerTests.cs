@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer"/> and <see cref="RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : AnalyzerTestsBase<RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer, RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider>
+public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : BatchCodeFixTestsBase<RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer, RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider>
 {
     #region Tests
 
@@ -74,36 +74,6 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
-    }
-
-    /// <summary>
-    /// Verifying mixed logical operators with AND on both sides are reported and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task MixedLogicalOperatorsWithAndOnBothSidesAreReportedAndFixed()
-    {
-        const string testCode = """
-                                public class Test
-                                {
-                                    public bool Run(bool a, bool b, bool c, bool d)
-                                    {
-                                        return {|#0:a && b|} || {|#1:c && d|};
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 public class Test
-                                 {
-                                     public bool Run(bool a, bool b, bool c, bool d)
-                                     {
-                                         return (a && b) || (c && d);
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence.", 2));
     }
 
     /// <summary>
@@ -327,4 +297,37 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool Run(bool a, bool b, bool c, bool d)
+                                    {
+                                        return {|#0:a && b|} || {|#1:c && d|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public bool Run(bool a, bool b, bool c, bool d)
+                                     {
+                                         return (a && b) || (c && d);
+                                     }
+                                 }
+                                 """;
+
+        // Both operands of the same OR expression are reported, so the two rewrites replace siblings of one parent node
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence.", 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

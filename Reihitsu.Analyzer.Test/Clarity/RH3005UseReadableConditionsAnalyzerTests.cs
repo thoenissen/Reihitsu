@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3005UseReadableConditionsAnalyzer"/> and <see cref="RH3005UseReadableConditionsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005UseReadableConditionsAnalyzer, RH3005UseReadableConditionsCodeFixProvider>
+public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH3005UseReadableConditionsAnalyzer, RH3005UseReadableConditionsCodeFixProvider>
 {
     #region Tests
 
@@ -358,36 +358,6 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
     }
 
     /// <summary>
-    /// Verifying multiple Yoda conditions in the same method are all reported
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task MultipleYodaConditionsAreReported()
-    {
-        const string testCode = """
-                                public class Test
-                                {
-                                    public bool Run(int count, string name)
-                                    {
-                                        return 0 {|#0:<|} count && null {|#1:!=|} name;
-                                    }
-                                }
-                                """;
-
-        const string fixedCode = """
-                                 public class Test
-                                 {
-                                     public bool Run(int count, string name)
-                                     {
-                                         return count > 0 && name != null;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions.", 2));
-    }
-
-    /// <summary>
     /// Verifying that no fix is offered when swapping the operands would require a user-defined operator overload that
     /// does not exist, which would produce non-compiling output
     /// </summary>
@@ -673,4 +643,37 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool Run(int count, string name)
+                                    {
+                                        return 0 {|#0:<|} count && null {|#1:!=|} name;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public bool Run(int count, string name)
+                                     {
+                                         return count > 0 && name != null;
+                                     }
+                                 }
+                                 """;
+
+        // Both operands of the same AND expression are swapped, so the two rewrites replace siblings of one parent node
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions.", 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

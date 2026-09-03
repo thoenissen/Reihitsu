@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3104DoNotUseDefaultValueTypeConstructorAnalyzer"/> and <see cref="RH3104DoNotUseDefaultValueTypeConstructorCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTestsBase<RH3104DoNotUseDefaultValueTypeConstructorAnalyzer, RH3104DoNotUseDefaultValueTypeConstructorCodeFixProvider>
+public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeFixTestsBase<RH3104DoNotUseDefaultValueTypeConstructorAnalyzer, RH3104DoNotUseDefaultValueTypeConstructorCodeFixProvider>
 {
     #region Tests
 
@@ -473,4 +473,41 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public bool Run()
+                                    {
+                                        return new {|#0:Guid|}() == new {|#1:Guid|}();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public bool Run()
+                                     {
+                                         return default(Guid) == default(Guid);
+                                     }
+                                 }
+                                 """;
+
+        // Both operands of the same comparison are rewritten, so the two replacements share one parent node
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor.", 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

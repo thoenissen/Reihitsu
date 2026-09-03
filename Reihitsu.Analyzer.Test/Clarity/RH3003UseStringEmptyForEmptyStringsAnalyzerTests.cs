@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH3003UseStringEmptyForEmptyStringsAnalyzer"/> and <see cref="RH3003UseStringEmptyForEmptyStringsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBase<RH3003UseStringEmptyForEmptyStringsAnalyzer, RH3003UseStringEmptyForEmptyStringsCodeFixProvider>
+public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTestsBase<RH3003UseStringEmptyForEmptyStringsAnalyzer, RH3003UseStringEmptyForEmptyStringsCodeFixProvider>
 {
     #region Tests
 
@@ -387,4 +387,38 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public string Run()
+                                    {
+                                        return {|#0:""|} /* separator */ + {|#1:""|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public string Run()
+                                     {
+                                         return string.Empty /* separator */ + string.Empty;
+                                     }
+                                 }
+                                 """;
+
+        // A comment sits between the two literals, so the batch has to preserve trivia that lies in the gap
+        // between its two replacements
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings.", 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
