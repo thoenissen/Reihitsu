@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Test methods for <see cref="RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer"/> and <see cref="RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : AnalyzerTestsBase<RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer, RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider>
+public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchCodeFixTestsBase<RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer, RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider>
 {
     #region Tests
 
@@ -208,4 +208,50 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// {|#0:<summary>First summary</summary>|}
+                                  void First()
+                                  {
+                                  }
+
+                                  /// {|#1:<summary>Second summary</summary>|}
+                                  void Second()
+                                  {
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// First summary
+                                       /// </summary>
+                                       void First()
+                                       {
+                                       }
+
+                                       /// <summary>
+                                       /// Second summary
+                                       /// </summary>
+                                       void Second()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        // The two members are directly adjacent, so the fix formats each declaration next to the one blank
+        // line separating them; this is the shape most likely to have either rewrite reach into the other's
+        // leading trivia
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// <see cref="RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzerTests : AnalyzerTestsBase<RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer, RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider>
+public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzerTests : BatchCodeFixTestsBase<RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer, RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider>
 {
     #region Tests
 
@@ -238,4 +238,42 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  {|#0:///|} just a comment
+                                  {|#1:///|} second line
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       // just a comment
+                                       // second line
+                                       internal void TestMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        // Both diagnostics belong to the same documentation comment and both fixes replace the identical
+        // ParentTrivia.FullSpan, so the batch merge must apply that replacement once rather than twice
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

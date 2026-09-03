@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Test methods for <see cref="RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer"/> and <see cref="RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTests : AnalyzerTestsBase<RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer, RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider>
+public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTests : BatchCodeFixTestsBase<RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer, RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider>
 {
     #region Tests
 
@@ -212,4 +212,47 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// {|#0:<summary>First line
+                                  /// Second line
+                                  /// </summary>|}
+                                  /// {|#1:<remarks>First remark
+                                  /// Second remark
+                                  /// </remarks>|}
+                                  void Method()
+                                  {
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// First line
+                                       /// Second line
+                                       /// </summary>
+                                       /// <remarks>
+                                       /// First remark
+                                       /// Second remark
+                                       /// </remarks>
+                                       void Method()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        // Both diagnostics resolve to the same member, so the batch fixer must apply the formatted rewrite of
+        // that declaration once rather than duplicating its content across two identical changes
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

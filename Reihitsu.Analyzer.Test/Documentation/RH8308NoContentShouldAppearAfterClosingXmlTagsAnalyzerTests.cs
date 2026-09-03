@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Test methods for <see cref="RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer"/> and <see cref="RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : AnalyzerTestsBase<RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer, RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider>
+public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : BatchCodeFixTestsBase<RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer, RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider>
 {
     #region Tests
 
@@ -156,4 +156,37 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary>Summary.</summary> {|#0:Additional text|}
+                                  /// <remarks>Remarks.</remarks> {|#1:More text|}
+                                  void Method()
+                                  {
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Summary.</summary>
+                                       /// <remarks>Remarks.</remarks>
+                                       void Method()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        // The two trailing-text runs sit on different documentation lines, so the two deletions are disjoint
+        // and neither shifts the other's span
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

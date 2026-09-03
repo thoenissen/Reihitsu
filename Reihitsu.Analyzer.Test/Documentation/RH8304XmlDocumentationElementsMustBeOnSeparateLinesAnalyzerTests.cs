@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Test methods for <see cref="RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/> and <see cref="RH8304XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer, RH8304XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider>
+public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : BatchCodeFixTestsBase<RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer, RH8304XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider>
 {
     #region Tests
 
@@ -146,4 +146,41 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Summary.
+                                  /// </summary>{|#0:<param name="first">First.</param>|}{|#1:<param name="second">Second.</param>|}
+                                  void Method(string first, string second)
+                                  {
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// Summary.
+                                       /// </summary>
+                                       /// <param name="first">First.</param>
+                                       /// <param name="second">Second.</param>
+                                       void Method(string first, string second)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        // Both elements are inserted onto their own line from the same original line, so the incremental and
+        // batch prefixes agree even though the second insertion point shifts once the first fix is applied
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

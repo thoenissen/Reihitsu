@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Test methods for <see cref="RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer"/> and <see cref="RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTests : AnalyzerTestsBase<RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer, RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider>
+public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTests : BatchCodeFixTestsBase<RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer, RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider>
 {
     #region Tests
 
@@ -655,4 +655,65 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Adds a number.
+                                  /// </summary>
+                                  /// <returns>The sum.</returns>
+                                  /// {|#0:<param name="a">First value.</param>|}
+                                  public int Add(int a)
+                                  {
+                                      return a;
+                                  }
+
+                                  /// <summary>
+                                  /// Subtracts a number.
+                                  /// </summary>
+                                  /// <returns>The difference.</returns>
+                                  /// {|#1:<param name="b">Second value.</param>|}
+                                  public int Subtract(int b)
+                                  {
+                                      return -b;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// Adds a number.
+                                       /// </summary>
+                                       /// <param name="a">First value.</param>
+                                       /// <returns>The sum.</returns>
+                                       public int Add(int a)
+                                       {
+                                           return a;
+                                       }
+
+                                       /// <summary>
+                                       /// Subtracts a number.
+                                       /// </summary>
+                                       /// <param name="b">Second value.</param>
+                                       /// <returns>The difference.</returns>
+                                       public int Subtract(int b)
+                                       {
+                                           return -b;
+                                       }
+                                   }
+                                   """;
+
+        // The two members are directly adjacent and each reorders around the one blank line separating them,
+        // which is where a rewrite of one declaration could reach into the other's leading trivia
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
