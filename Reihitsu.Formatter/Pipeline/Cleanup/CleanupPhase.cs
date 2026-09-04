@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
@@ -90,9 +91,19 @@ internal sealed class CleanupPhase : IFormattingPhase
         }
         else
         {
-            var nextToken = original.GetNextToken();
+            // includeZeroWidth: true is required here — EndOfFileToken is zero-width, so the default
+            // GetNextToken() skips over it and returns None for the file's last real token exactly as
+            // it would for a genuinely detached node, making the two arms indistinguishable and
+            // defeating the EndOfFileToken.LeadingTrivia check below.
+            var nextToken = original.GetNextToken(includeZeroWidth: true);
 
-            if (nextToken.IsKind(SyntaxKind.None) || nextToken.IsKind(SyntaxKind.EndOfFileToken))
+            // SyntaxToken.GetNextToken() skips trivia, so knowing the next token is EndOfFileToken only
+            // proves no further real token follows — it says nothing about whether that token's own
+            // leading trivia still holds a comment, directive, or disabled text that needs to start on
+            // its own line. FindFirstSignificantTriviaIndex is that missing check, reused from the
+            // shared owner instead of restated here.
+            if (nextToken.IsKind(SyntaxKind.None)
+                || (nextToken.IsKind(SyntaxKind.EndOfFileToken) && SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(nextToken.LeadingTrivia) < 0))
             {
                 trailing = RemoveTrailingEndOfLineTrivia(trailing);
             }
