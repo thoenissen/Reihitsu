@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer, RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer, RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -182,4 +182,54 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : Analyze
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    private static bool Method(int[] values1, int[] values2)
+                                    {
+                                        return values1 is {|#0:[
+                                        1,
+                                            2
+                                        ]|} && values2 is {|#1:[
+                                            3,
+                                        4
+                                        ]|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     private static bool Method(int[] values1, int[] values2)
+                                     {
+                                         return values1 is [
+                                                               1,
+                                                               2
+                                                           ] && values2 is [
+                                                                               3,
+                                                                               4
+                                                                           ];
+                                     }
+                                 }
+                                 """;
+
+        // The two list patterns sit side by side in one logical expression, so both resolve to the identical fix
+        // target: the enclosing return statement. The batch fixer discards the second, overlapping action, and
+        // the surviving single fix already re-anchors both list patterns' brackets in one pass. Nesting a list
+        // pattern inside another instead would make the outer pattern's own elements multi-line, and
+        // CanSafelyFormat requires every immediate element to be single-line, so that shape would silently
+        // withhold the outer diagnostic rather than exercise interference
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

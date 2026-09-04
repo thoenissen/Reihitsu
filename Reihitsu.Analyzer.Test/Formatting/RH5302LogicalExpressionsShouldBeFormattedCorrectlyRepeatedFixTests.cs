@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// trailing logical operator must converge instead of growing the line without bound
 /// </summary>
 [TestClass]
-public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests : AnalyzerTestsBase<RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests : BatchCodeFixTestsBase<RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -68,4 +68,50 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5302
+                                {
+                                    void Run(bool condition1, bool condition2, bool condition3, bool condition4)
+                                    {
+                                        if (condition1 {|#0:&&|}
+                                            condition2 {|#1:&&|}
+                                            condition3 {|#2:|||}
+                                            condition4)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5302
+                                 {
+                                     void Run(bool condition1, bool condition2, bool condition3, bool condition4)
+                                     {
+                                         if (condition1
+                                             && condition2
+                                             && condition3
+                                             || condition4)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Reproduces issue #725 under Fix All rather than under a single code-fix application: all three
+        // trailing operators belong to one chain, so every diagnostic resolves to the same outermost logical
+        // expression. The batch fixer discards the two overlapping actions, and the single surviving fix must
+        // still converge the whole chain in this one batch application, leaving no RH5302 diagnostic behind
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 3));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

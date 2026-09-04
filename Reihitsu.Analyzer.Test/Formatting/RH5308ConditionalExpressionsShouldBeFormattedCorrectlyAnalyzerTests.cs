@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -269,4 +269,47 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    string Method(bool a, bool b)
+                                    {
+                                        return (a
+                                {|#0:?|} "1"
+                                : "2") + (b
+                                {|#1:?|} "3"
+                                : "4");
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     string Method(bool a, bool b)
+                                     {
+                                         return (a
+                                                     ? "1"
+                                                     : "2") + (b
+                                                                   ? "3"
+                                                                   : "4");
+                                     }
+                                 }
+                                 """;
+
+        // The two conditionals sit side by side in one return statement, so both resolve to the identical fix
+        // target: the enclosing return statement. The batch fixer discards the second, overlapping action, and
+        // the surviving single fix already re-anchors both conditionals' ? and : tokens in one pass
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

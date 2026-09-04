@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer"/> and <see cref="RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer, RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider>
+public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : BatchCodeFixTestsBase<RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer, RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider>
 {
     #region Tests
 
@@ -257,4 +257,55 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class Example
+                                {
+                                    internal void Method()
+                                    {
+                                        Action outer = () =>
+                                        {|#0:{|}
+                                            Func<object, object> inner = obj =>
+                                            {|#1:{|}
+                                                return obj;
+                                            };
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         Action outer = () =>
+                                                        {
+                                                            Func<object, object> inner = obj =>
+                                                                                         {
+                                                                                             return obj;
+                                                                                         };
+                                                        };
+                                     }
+                                 }
+                                 """;
+
+        // The outer lambda's misaligned brace is fixed by reformatting the whole outer lambda expression, whose
+        // span fully contains the inner lambda flagged by the second diagnostic, so the batch fixer discards the
+        // overlapping inner change while the outer rewrite already re-aligns the nested lambda's brace too
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

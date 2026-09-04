@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer"/> and <see cref="RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : AnalyzerTestsBase<RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer, RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider>
+public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCodeFixTestsBase<RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer, RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider>
 {
     #region Tests
 
@@ -193,4 +193,61 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : Analyze
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    private static string Outer(int a, int b)
+                                    {
+                                        var value = {|#0:a switch
+                                        {
+                                            0 => {|#1:b switch
+                                            {
+                                                0 => "Idle",
+                                                    _ => "Unknown"
+                                            }|},
+                                                _ => "Fallback"
+                                        }|};
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     private static string Outer(int a, int b)
+                                     {
+                                         var value = a switch
+                                                     {
+                                                         0 => b switch
+                                                              {
+                                                                  0 => "Idle",
+                                                                  _ => "Unknown"
+                                                              },
+                                                         _ => "Fallback"
+                                                     };
+
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        // Both switch expressions resolve to the same fix target: the enclosing equals-value clause of the
+        // "var value = ..." declaration, since walking up from the nested switch expression passes straight
+        // through the outer one without matching a statement, initializer, or arrow clause of its own. The batch
+        // fixer discards the second, overlapping action, and the surviving single fix already anchors both the
+        // outer and the nested switch expression's braces and arms in one pass
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

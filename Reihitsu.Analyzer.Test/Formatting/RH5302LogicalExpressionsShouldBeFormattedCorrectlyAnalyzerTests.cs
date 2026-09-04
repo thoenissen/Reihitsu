@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -493,4 +493,49 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5302
+                                {
+                                    void Run(bool condition1, bool condition2, bool condition3)
+                                    {
+                                        if (condition1 {|#0:|||}
+                                            condition2 {|#1:&&|}
+                                            condition3)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5302
+                                 {
+                                     void Run(bool condition1, bool condition2, bool condition3)
+                                     {
+                                         if (condition1
+                                             || condition2
+                                                && condition3)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Both operators belong to the same logical chain, so walking up through their enclosing &&/|| parents
+        // reaches the identical outermost expression for each diagnostic. The batch fixer discards the second,
+        // overlapping action, and the surviving single fix already re-lays out every operator in the chain,
+        // including the right-nested && whose own anchor is the || expression's right operand rather than the
+        // chain's start
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

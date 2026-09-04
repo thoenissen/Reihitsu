@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -198,4 +198,60 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        int[][] values = {|#0:[
+                                        [
+                                            1,
+                                                2
+                                        ],
+                                            {|#1:[
+                                        3,
+                                            4
+                                        ]|}
+                                            ]|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         int[][] values = [
+                                                              [
+                                                                  1,
+                                                                  2
+                                                              ],
+                                                              [
+                                                                  3,
+                                                                  4
+                                                              ]
+                                                          ];
+                                     }
+                                 }
+                                 """;
+
+        // The first inner collection expression is already aligned and stays unreported. Both reported
+        // diagnostics - the outer collection expression and the second inner one - resolve to the identical fix
+        // target: the enclosing equals-value clause of the "values = ..." declaration, since neither has a
+        // closer statement, initializer, or arrow clause of its own. The batch fixer discards the second,
+        // overlapping action, and the surviving single fix already re-aligns the outer brackets together with
+        // every inner collection expression
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
