@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5104CommentsMustBeOnTheirOwnLineAnalyzer"/> and <see cref="RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase<RH5104CommentsMustBeOnTheirOwnLineAnalyzer, RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider>
+public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTestsBase<RH5104CommentsMustBeOnTheirOwnLineAnalyzer, RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider>
 {
     #region Tests
 
@@ -421,4 +421,48 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method(bool left, bool right)
+                                    {
+                                        if (left {|#0:/* c1 */|} == right {|#1:/* c2 */|})
+                                        {
+                                            return;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method(bool left, bool right)
+                                     {
+                                         /* c1 */
+                                         /* c2 */
+                                         if (left == right )
+                                         {
+                                             return;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // Both comments relocate to the same insertion point (the start of the "if" line), so their zero-length
+        // insertion edits collide at the same offset in the original document; the batch fixer applies only one
+        // insertion per pass and needs a second pass to relocate the comment it deferred
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat, 2),
+                                  test => test.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

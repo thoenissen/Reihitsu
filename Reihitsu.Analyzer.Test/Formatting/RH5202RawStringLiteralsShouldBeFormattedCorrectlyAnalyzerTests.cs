@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Tests for <see cref="RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer, RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer, RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -375,4 +375,62 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """"
+                                using System;
+
+                                internal class RH5202
+                                {
+                                    void MisalignedClosingLess()
+                                    {
+                                        var a = {|#0:"""
+                                    Test
+                                    """|};
+                                    }
+
+                                    void MisalignedClosingMore()
+                                    {
+                                        var b = {|#1:"""
+                                                        Test
+                                                        """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  using System;
+
+                                  internal class RH5202
+                                  {
+                                      void MisalignedClosingLess()
+                                      {
+                                          var a = """
+                                                  Test
+                                                  """;
+                                      }
+
+                                      void MisalignedClosingMore()
+                                      {
+                                          var b = """
+                                                  Test
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        // Each fix rewrites the exact text span of one raw string literal expression, and one raw string literal
+        // can never nest inside another (its content is atomic character data, not a syntax tree), so the two
+        // literals here can never share or abut a text span; interference is structurally unreachable for this
+        // rule's fix, so this proves both occurrences are corrected independently
+        return new FixAllScenario(testCode,
+                                  resultData,
+                                  Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

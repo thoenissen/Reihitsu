@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5101FirstArgumentShouldBeOnSameLineAnalyzer"/> and <see cref="RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsBase<RH5101FirstArgumentShouldBeOnSameLineAnalyzer, RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider>
+public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTestsBase<RH5101FirstArgumentShouldBeOnSameLineAnalyzer, RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider>
 {
     #region Tests
 
@@ -480,4 +480,53 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    private static string Outer(string a, string b) => a + b;
+
+                                    private static string Inner(string a, string b) => a + b;
+
+                                    private static string Use()
+                                    {
+                                        return Outer(
+                                            {|#0:Inner(
+                                                {|#1:"a"|},
+                                                "b")|},
+                                            "c");
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     private static string Outer(string a, string b) => a + b;
+
+                                     private static string Inner(string a, string b) => a + b;
+
+                                     private static string Use()
+                                     {
+                                         return Outer(Inner("a",
+                                                            "b"),
+                                                      "c");
+                                     }
+                                 }
+                                 """;
+
+        // The outer diagnostic's fix reformats the whole outer argument list, whose span fully contains the inner
+        // argument list rewritten by the inner diagnostic's fix, so the batch fixer discards the overlapping inner
+        // change while the outer rewrite already carries the correctly formatted nested call
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

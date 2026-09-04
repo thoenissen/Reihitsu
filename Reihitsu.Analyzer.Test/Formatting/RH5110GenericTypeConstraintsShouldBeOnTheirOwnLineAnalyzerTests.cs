@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer"/> and <see cref="RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase<RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer, RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider>
+public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTestsBase<RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer, RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider>
 {
     #region Tests
 
@@ -252,4 +252,49 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Container
+                                {
+                                    internal void Outer<TOuter>() {|#0:where|} TOuter : class
+                                    {
+                                        void Local<TLocal>()
+                                        {|#1:where|} TLocal : class
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Container
+                                 {
+                                     internal void Outer<TOuter>()
+                                         where TOuter : class
+                                     {
+                                         void Local<TLocal>()
+                                             where TLocal : class
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The outer diagnostic's fix reformats the whole outer method declaration, whose span fully contains the
+        // local function rewritten by the inner diagnostic's fix, so the batch fixer discards the overlapping
+        // inner change in its first pass; the outer rewrite already carries the correctly formatted nested
+        // constraint clause, but the batch fixer still needs a second pass to converge because its first pass
+        // re-analyzes and re-applies the (now redundant) inner fix before recognizing it is a no-op
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat, 2),
+                                  test => test.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

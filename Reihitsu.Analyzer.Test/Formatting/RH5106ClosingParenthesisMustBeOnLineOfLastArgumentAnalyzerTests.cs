@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer"/> and <see cref="RH5106ClosingParenthesisMustBeOnLineOfLastArgumentCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : AnalyzerTestsBase<RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer, RH5106ClosingParenthesisMustBeOnLineOfLastArgumentCodeFixProvider>
+public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : BatchCodeFixTestsBase<RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer, RH5106ClosingParenthesisMustBeOnLineOfLastArgumentCodeFixProvider>
 {
     #region Tests
 
@@ -333,4 +333,52 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void MethodA(int first,
+                                                 int second
+                                    {|#0:)|}
+                                    {
+                                    }
+
+                                    void MethodB(int first,
+                                                 int second
+                                    {|#1:)|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void MethodA(int first,
+                                                  int second)
+                                     {
+                                     }
+
+                                     void MethodB(int first,
+                                                  int second)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Each fix only collapses the narrow whitespace gap between its own parameter list's last argument and its
+        // own closing parenthesis, so the two gaps here, separated by a complete method body, can never share or
+        // abut a text span; interference is structurally unreachable for this rule's gap-only fix, so this proves
+        // both occurrences are corrected independently
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

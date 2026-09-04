@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer"/> and <see cref="RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTests : AnalyzerTestsBase<RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer, RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider>
+public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTests : BatchCodeFixTestsBase<RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer, RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider>
 {
     #region Tests
 
@@ -420,4 +420,82 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal sealed class Example
+                                {
+                                    private static object Create()
+                                    {
+                                        return new Builder()
+                                            {|#0:.|}UseLogging(new Builder()
+                                                {|#1:.|}UseValidation()
+                                                .Build())
+                                            .Build();
+                                    }
+
+                                    private sealed class Builder
+                                    {
+                                        public Builder UseLogging(object value)
+                                        {
+                                            return this;
+                                        }
+
+                                        public Builder UseValidation()
+                                        {
+                                            return this;
+                                        }
+
+                                        public object Build()
+                                        {
+                                            return new object();
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal sealed class Example
+                                 {
+                                     private static object Create()
+                                     {
+                                         return new Builder().UseLogging(new Builder().UseValidation()
+                                                                                      .Build())
+                                                             .Build();
+                                     }
+
+                                     private sealed class Builder
+                                     {
+                                         public Builder UseLogging(object value)
+                                         {
+                                             return this;
+                                         }
+
+                                         public Builder UseValidation()
+                                         {
+                                             return this;
+                                         }
+
+                                         public object Build()
+                                         {
+                                             return new object();
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The outer diagnostic's fix reformats the whole outer chain, whose span fully contains the inner chain
+        // passed as an argument to "UseLogging" and rewritten by the inner diagnostic's fix, so the batch fixer
+        // discards the overlapping inner change while the outer rewrite already carries the correctly formatted
+        // nested chain
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

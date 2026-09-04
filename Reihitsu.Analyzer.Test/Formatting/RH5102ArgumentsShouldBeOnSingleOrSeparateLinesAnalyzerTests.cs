@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer"/> and <see cref="RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer, RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider>
+public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : BatchCodeFixTestsBase<RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer, RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider>
 {
     #region Tests
 
@@ -430,4 +430,53 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y, int z) => x + y + z;
+
+                                    private static int Inner(int x, int y, int z) => x + y + z;
+
+                                    private static int Use()
+                                    {
+                                        return Add{|#0:(Inner{|#1:(1, 2,
+                                                             3)|},
+                                                    5, 6)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     private static int Add(int x, int y, int z) => x + y + z;
+
+                                     private static int Inner(int x, int y, int z) => x + y + z;
+
+                                     private static int Use()
+                                     {
+                                         return Add(Inner(1,
+                                                          2,
+                                                          3),
+                                                    5,
+                                                    6);
+                                     }
+                                 }
+                                 """;
+
+        // The outer diagnostic's fix reformats the whole outer argument list, whose span fully contains the inner
+        // argument list rewritten by the inner diagnostic's fix, so the batch fixer discards the overlapping inner
+        // change while the outer rewrite already carries the correctly formatted nested call
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
