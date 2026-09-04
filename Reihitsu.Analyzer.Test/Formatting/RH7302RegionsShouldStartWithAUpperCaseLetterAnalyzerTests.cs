@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : AnalyzerTestsBase<RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer, RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider>
+public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCodeFixTestsBase<RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer, RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider>
 {
     #region Tests
 
@@ -273,4 +273,59 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : Analyze
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class RH7302
+                                {
+                                    {|#0:#region members|}
+                                    internal bool Method()
+                                    {
+                                        var value = true;
+                                        return value;
+                                    }
+                                    #endregion // members
+
+                                    {|#1:#region helpers|}
+                                    internal bool Helper()
+                                    {
+                                        var value = true;
+                                        return value;
+                                    }
+                                    #endregion // helpers
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH7302
+                                 {
+                                     #region Members
+                                     internal bool Method()
+                                     {
+                                         var value = true;
+                                         return value;
+                                     }
+                                     #endregion // Members
+
+                                     #region Helpers
+                                     internal bool Helper()
+                                     {
+                                         var value = true;
+                                         return value;
+                                     }
+                                     #endregion // Helpers
+                                 }
+                                 """;
+
+        // Two lowercase regions sit back to back in the same type; each fix only capitalizes its own
+        // #region/#endregion pair, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

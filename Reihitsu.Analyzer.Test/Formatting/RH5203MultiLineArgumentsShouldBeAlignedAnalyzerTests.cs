@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5203MultiLineArgumentsShouldBeAlignedAnalyzer"/> and <see cref="RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<RH5203MultiLineArgumentsShouldBeAlignedAnalyzer, RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider>
+public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsBase<RH5203MultiLineArgumentsShouldBeAlignedAnalyzer, RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider>
 {
     #region Tests
 
@@ -127,4 +127,48 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : AnalyzerTest
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Console.WriteLine("test1",
+                                          {|#0:"test2"|},
+                                          {|#1:"test3"|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         Console.WriteLine("test1",
+                                                           "test2",
+                                                           "test3");
+                                     }
+                                 }
+                                 """;
+
+        // Each fix replaces only the leading whitespace of its own flagged argument's first token, a span
+        // confined to that argument's own line, so the two occurrences here, both misaligned continuations of the
+        // same argument list, can never share or abut a text span; this proves the batch fixer merges the two
+        // narrow, disjoint edits cleanly within one list
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

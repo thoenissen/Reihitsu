@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6001KeywordsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6001KeywordsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6001KeywordsMustBeSpacedCorrectlyAnalyzer, RH6001KeywordsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6001KeywordsMustBeSpacedCorrectlyAnalyzer, RH6001KeywordsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -92,4 +92,47 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBas
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        {|#0:if|}(true)
+                                        {
+                                        }
+                                        {|#1:while|}(true)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                         }
+                                         while (true)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The two keyword violations sit on adjacent lines with no blank line between them; each fix only
+        // inserts a single space at its own keyword's boundary, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

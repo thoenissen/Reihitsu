@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer, RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer, RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -551,4 +551,39 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(string value)
+                                    {
+                                        _ = value {|#0:?|}{|#1:.|} Length;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(string value)
+                                     {
+                                         _ = value?.Length;
+                                     }
+                                 }
+                                 """;
+
+        // The conditional-access question mark and its immediately following dot are directly adjacent tokens
+        // whose fixes both touch the trivia run around the same operator: the question mark's fix removes the
+        // leading space and the dot's fix removes the trailing space, an adjacent-trivia interference the batch
+        // fixer must converge in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5403StatementMustNotBeOnSingleLineAnalyzer"/> and <see cref="RH5403StatementMustNotBeOnSingleLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase<RH5403StatementMustNotBeOnSingleLineAnalyzer, RH5403StatementMustNotBeOnSingleLineCodeFixProvider>
+public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTestsBase<RH5403StatementMustNotBeOnSingleLineAnalyzer, RH5403StatementMustNotBeOnSingleLineCodeFixProvider>
 {
     #region Tests
 
@@ -198,4 +198,45 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBa
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true) {|#0:{|} if (true) {|#1:{|} return; } }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                             if (true)
+                                             {
+                                                 return;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The inner if statement is entirely nested inside the outer if's single-line body, so the outer fix's
+        // reformatted statement span fully contains the inner occurrence, exercising the batch fixer's
+        // overlap-discarding path rather than two independently applied changes
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

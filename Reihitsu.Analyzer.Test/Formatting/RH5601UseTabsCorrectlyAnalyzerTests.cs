@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5601UseTabsCorrectlyAnalyzer"/> and <see cref="RH5601UseTabsCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5601UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5601UseTabsCorrectlyAnalyzer, RH5601UseTabsCorrectlyCodeFixProvider>
+public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601UseTabsCorrectlyAnalyzer, RH5601UseTabsCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -213,4 +213,21 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5601UseTa
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = "internal class TestClass\r\n{\r\n{|#0:\t|}{|#1:\t|}void Method()\r\n    {\r\n    }\r\n}";
+        const string fixedCode = "internal class TestClass\r\n{\r\n        void Method()\r\n    {\r\n    }\r\n}";
+
+        // The two tabs are consecutive, so their single-character replacement spans directly abut one another,
+        // exercising the batch fixer's handling of adjacent same-line replacements
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

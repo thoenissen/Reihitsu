@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5108ParameterListMustFollowDeclarationAnalyzer"/> and <see cref="RH5108ParameterListMustFollowDeclarationCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTestsBase<RH5108ParameterListMustFollowDeclarationAnalyzer, RH5108ParameterListMustFollowDeclarationCodeFixProvider>
+public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFixTestsBase<RH5108ParameterListMustFollowDeclarationAnalyzer, RH5108ParameterListMustFollowDeclarationCodeFixProvider>
 {
     #region Tests
 
@@ -321,4 +321,48 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void MethodA(
+                                        {|#0:int|} value)
+                                    {
+                                    }
+
+                                    void MethodB(
+                                        {|#1:int|} value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void MethodA(int value)
+                                     {
+                                     }
+
+                                     void MethodB(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Each fix only collapses the narrow whitespace gap between its own opening parenthesis and its own first
+        // parameter, so the two gaps here, separated by a complete method body, can never share or abut a text
+        // span; interference is structurally unreachable for this rule's gap-only fix, so this proves both
+        // occurrences are corrected independently
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

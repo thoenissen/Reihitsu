@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer"/> and <see cref="RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzerTests : AnalyzerTestsBase<RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer, RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider>
+public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzerTests : BatchCodeFixTestsBase<RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer, RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider>
 {
     #region Tests
 
@@ -340,4 +340,70 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH7501
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    Consume();
+                                                    {|#0:break|};
+                                                }
+                                            case 2:
+                                                {
+                                                    Consume();
+                                                    {|#1:break|};
+                                                }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH7501
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     Consume();
+                                                 }
+                                                 break;
+                                             case 2:
+                                                 {
+                                                     Consume();
+                                                 }
+                                                 break;
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Two switch sections on adjacent lines each carry their own explicit block ending with break; the
+        // fixes only move their own block's break statement, so the batch fixer converges in one pass
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, AnalyzerResources.RH7501MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

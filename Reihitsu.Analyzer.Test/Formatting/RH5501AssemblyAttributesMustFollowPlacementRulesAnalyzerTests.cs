@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer"/> and <see cref="RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : AnalyzerTestsBase<RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer, RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider>
+public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : BatchCodeFixTestsBase<RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer, RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider>
 {
     #region Tests
 
@@ -276,4 +276,40 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                {|#0:[assembly: First]|} {|#1:[assembly: Second]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 [assembly: First]
+                                 [assembly: Second]
+                                 internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two assembly attribute lists share one line: the first fix rewrites the gap up to the second list's
+        // opening bracket, and the second fix rewrites the gap up to the class keyword, so their fix spans abut
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

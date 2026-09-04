@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6006OpeningParenthesisMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer, RH6006OpeningParenthesisMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer, RH6006OpeningParenthesisMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -101,4 +101,38 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : Analyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method(int a, int b)
+                                    {
+                                        return ({|#0: |}a + ({|#1: |}b));
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Method(int a, int b)
+                                     {
+                                         return (a + (b));
+                                     }
+                                 }
+                                 """;
+
+        // The outer and inner opening parentheses each carry their own trailing whitespace run a few characters
+        // apart in the same expression; the fixes only remove their own run, so the batch fixer converges in
+        // one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5528ReturnValueAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer, RH5528ReturnValueAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer, RH5528ReturnValueAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -131,4 +131,64 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    {|#0:[return: First, Second]|} {|#1:[return: Third, Fourth]|}
+                                    internal int M() => 0;
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                sealed class FourthAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     [return: First]
+                                     [return: Second]
+                                     [return: Third]
+                                     [return: Fourth]
+                                     internal int M() => 0;
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class FourthAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two multi-attribute return-value lists sit back to back on the same declaration: each fix computes
+        // its split against the same original document and both target the same return-value attribute-list
+        // run, so the batch fixer discards one of the two conflicting changes in its first pass and needs a
+        // second pass to correct the diagnostic that survives
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

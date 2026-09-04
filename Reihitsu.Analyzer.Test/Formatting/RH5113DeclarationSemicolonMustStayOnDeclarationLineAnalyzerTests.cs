@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : AnalyzerTestsBase<RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer, RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider>
+public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : BatchCodeFixTestsBase<RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer, RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider>
 {
     #region Tests
 
@@ -363,4 +363,44 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace TestNamespace
+                                {
+                                    internal class TestClass
+                                    {
+                                        private int _first
+                                            {|#0:;|}
+                                        private int _second
+                                            {|#1:;|}
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace TestNamespace
+                                 {
+                                     internal class TestClass
+                                     {
+                                         private int _first;
+                                         private int _second;
+                                     }
+                                 }
+                                 """;
+
+        // Each fix only reformats its own field declaration node, and a field declaration can never nest inside
+        // another field declaration, so the two declarations here can never share or abut a text span;
+        // interference is structurally unreachable for this rule's fix, so this proves both occurrences are
+        // corrected independently
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

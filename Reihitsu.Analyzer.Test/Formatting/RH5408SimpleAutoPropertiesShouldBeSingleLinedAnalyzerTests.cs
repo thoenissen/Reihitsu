@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : AnalyzerTestsBase<RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer, RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider>
+public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchCodeFixTestsBase<RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer, RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider>
 {
     #region Tests
 
@@ -1467,4 +1467,42 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5408
+                                {
+                                    {|#0:public int A
+                                    {
+                                        get;
+                                        set;
+                                    }|}
+                                    {|#1:public int B
+                                    {
+                                        get;
+                                        set;
+                                    }|}
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5408
+                                 {
+                                     public int A { get; set; }
+                                     public int B { get; set; }
+                                 }
+                                 """;
+
+        // The two properties are adjacent with no blank line between them, so the first fix's collapsed
+        // replacement span directly abuts the second occurrence's leading trivia
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

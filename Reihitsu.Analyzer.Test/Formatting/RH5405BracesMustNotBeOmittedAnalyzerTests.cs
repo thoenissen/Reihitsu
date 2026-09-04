@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5405BracesMustNotBeOmittedAnalyzer"/> and <see cref="RH5405BracesMustNotBeOmittedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5405BracesMustNotBeOmittedAnalyzerTests : AnalyzerTestsBase<RH5405BracesMustNotBeOmittedAnalyzer, RH5405BracesMustNotBeOmittedCodeFixProvider>
+public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<RH5405BracesMustNotBeOmittedAnalyzer, RH5405BracesMustNotBeOmittedCodeFixProvider>
 {
     #region Tests
 
@@ -203,4 +203,76 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : AnalyzerTestsBase<RH540
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method1(bool x)
+                                    {
+                                        if (x)
+                                            {|#0:Foo();|}
+                                    }
+
+                                    void Method2(bool y)
+                                    {
+                                        if (y)
+                                            {|#1:Bar();|}
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void Bar()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method1(bool x)
+                                     {
+                                         if (x)
+                                         {
+                                             Foo();
+                                         }
+                                     }
+
+                                     void Method2(bool y)
+                                     {
+                                         if (y)
+                                         {
+                                             Bar();
+                                         }
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+
+                                     void Bar()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // RH5405 only reports single-line embedded child statements; nesting a second violation inside the first
+        // would make the outer child multi-line, which RH5406 owns instead, so the only way two diagnostics could
+        // share an owning statement is an if/else pair - and there both branches resolve to the identical
+        // if-statement node, collapsing to what the batch fixer treats as a single reformat rather than two
+        // interfering ones. Two independent if-statements in different methods are used instead, because
+        // interference beyond that identical-owner collapse is unreachable for this rule
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

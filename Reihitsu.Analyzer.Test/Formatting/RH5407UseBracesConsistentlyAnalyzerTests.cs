@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5407UseBracesConsistentlyAnalyzer"/> and <see cref="RH5407UseBracesConsistentlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5407UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH5407UseBracesConsistentlyAnalyzer, RH5407UseBracesConsistentlyCodeFixProvider>
+public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH5407UseBracesConsistentlyAnalyzer, RH5407UseBracesConsistentlyCodeFixProvider>
 {
     #region Tests
 
@@ -150,4 +150,73 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH5407
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method1()
+                                    {
+                                        if (true)
+                                        {
+                                            return;
+                                        }
+                                        else
+                                            {|#0:return;|}
+                                    }
+
+                                    void Method2()
+                                    {
+                                        if (true)
+                                        {
+                                            return;
+                                        }
+                                        else
+                                            {|#1:return;|}
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method1()
+                                     {
+                                         if (true)
+                                         {
+                                             return;
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+                                     }
+
+                                     void Method2()
+                                     {
+                                         if (true)
+                                         {
+                                             return;
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The rule reports at most one diagnostic per if-statement, so a shared owner between two occurrences is
+        // unreachable; two independent if/else statements in different methods exercise the batch fixer applying
+        // two genuinely separate reformats
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

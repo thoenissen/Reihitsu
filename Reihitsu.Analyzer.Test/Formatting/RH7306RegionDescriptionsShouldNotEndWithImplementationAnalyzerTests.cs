@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests : AnalyzerTestsBase<RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer, RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider>
+public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests : BatchCodeFixTestsBase<RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer, RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider>
 {
     #region Tests
 
@@ -123,4 +123,45 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    {|#0:#region Methods implementation|}
+
+                                    public void DoWork()
+                                    {
+                                    }
+
+                                    {|#1:#endregion // Methods implementation|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     #region Methods
+
+                                     public void DoWork()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+                                 }
+                                 """;
+
+        // Both diagnostics belong to the same region's #region and #endregion description; the fix registered
+        // for either one strips the "implementation" suffix from both directive lines, so the two computed
+        // fixes target the exact same span, the strongest form of interference in this batch, and the batch
+        // fixer must still converge to correcting them once
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

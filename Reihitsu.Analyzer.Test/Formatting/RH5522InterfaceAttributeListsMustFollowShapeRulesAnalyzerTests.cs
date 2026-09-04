@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5522InterfaceAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer, RH5522InterfaceAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer, RH5522InterfaceAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -116,4 +116,58 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                {|#0:[First, Second]|} {|#1:[Third, Fourth]|}
+                                internal interface IExample { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                sealed class FourthAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 [First]
+                                 [Second]
+                                 [Third]
+                                 [Fourth]
+                                 internal interface IExample { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class FourthAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two multi-attribute interface lists sit back to back on the same declaration: each fix computes its
+        // split against the same original document and both target the same interface attribute-list run, so
+        // the batch fixer discards one of the two conflicting changes in its first pass and needs a second pass
+        // to correct the diagnostic that survives
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

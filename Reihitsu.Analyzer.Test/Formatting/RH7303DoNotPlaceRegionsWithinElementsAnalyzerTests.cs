@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7303DoNotPlaceRegionsWithinElementsAnalyzer"/> and <see cref="RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : AnalyzerTestsBase<RH7303DoNotPlaceRegionsWithinElementsAnalyzer, RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider>
+public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTestsBase<RH7303DoNotPlaceRegionsWithinElementsAnalyzer, RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider>
 {
     #region Tests
 
@@ -68,4 +68,40 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : AnalyzerTestsB
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        {|#0:#region Helper|}
+                                        var value = 1;
+                                        {|#1:#endregion|}
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         var value = 1;
+                                     }
+                                 }
+                                 """;
+
+        // Both diagnostics belong to the same misplaced #region/#endregion pair, and the fix registered for
+        // either one removes both directive lines: the two computed fixes target the exact same span, the
+        // strongest form of interference in this batch, and the batch fixer must still converge to removing
+        // them once
+        return new FixAllScenario(testData, fixedData, Diagnostics(RH7303DoNotPlaceRegionsWithinElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7303MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer"/> and <see cref="RH6004PreprocessorKeywordsMustNotBePrecededBySpaceCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : AnalyzerTestsBase<RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer, RH6004PreprocessorKeywordsMustNotBePrecededBySpaceCodeFixProvider>
+public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : BatchCodeFixTestsBase<RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer, RH6004PreprocessorKeywordsMustNotBePrecededBySpaceCodeFixProvider>
 {
     #region Tests
 
@@ -138,4 +138,33 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                {|#0:    |}#pragma warning disable CS0168
+                                {|#1:    |}#pragma warning restore CS0168
+                                internal class TestClass
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 #pragma warning disable CS0168
+                                 #pragma warning restore CS0168
+                                 internal class TestClass
+                                 {
+                                 }
+                                 """;
+
+        // Two indented preprocessor directives sit on adjacent lines; each fix only removes its own line's
+        // leading whitespace run, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

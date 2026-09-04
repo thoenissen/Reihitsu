@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7101DoNotCombineFieldsAnalyzer"/> and <see cref="RH7101DoNotCombineFieldsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoNotCombineFieldsAnalyzer, RH7101DoNotCombineFieldsCodeFixProvider>
+public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH7101DoNotCombineFieldsAnalyzer, RH7101DoNotCombineFieldsCodeFixProvider>
 {
     #region Tests
 
@@ -450,4 +450,36 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoN
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstFieldA, {|#0:secondFieldA|};
+                                    private int firstFieldB, {|#1:secondFieldB|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstFieldA;
+                                     private int secondFieldA;
+                                     private int firstFieldB;
+                                     private int secondFieldB;
+                                 }
+                                 """;
+
+        // Two combined field declarations sit on adjacent lines with no blank line between them; each fix only
+        // splits its own field declaration, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

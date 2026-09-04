@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTests : AnalyzerTestsBase<RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer, RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider>
+public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTests : BatchCodeFixTestsBase<RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer, RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider>
 {
     #region Tests
 
@@ -135,4 +135,36 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class RH5401
+                                {
+                                    {|#0:public int P1
+                                            => 1;|}
+                                    {|#1:public int P2
+                                            => 2;|}
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5401
+                                 {
+                                     public int P1 => 1;
+                                     public int P2 => 2;
+                                 }
+                                 """;
+
+        // The two properties are adjacent with no blank line between them, so the first fix's replacement span
+        // directly abuts the second occurrence's leading trivia
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5401MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

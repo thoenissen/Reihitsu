@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6007OpeningSquareBracketsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer, RH6007OpeningSquareBracketsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer, RH6007OpeningSquareBracketsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -69,4 +69,43 @@ public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int[] first = [0];
+                                        int[] second = [0];
+                                        _ = first[{|#0: |}0];
+                                        _ = second[{|#1: |}0];
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int[] first = [0];
+                                         int[] second = [0];
+                                         _ = first[0];
+                                         _ = second[0];
+                                     }
+                                 }
+                                 """;
+
+        // Two element-access brackets sit on adjacent lines with no blank line between them; each fix only
+        // removes its own trailing whitespace run, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6007MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

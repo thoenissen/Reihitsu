@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : AnalyzerTestsBase<RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer, RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider>
+public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : BatchCodeFixTestsBase<RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer, RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider>
 {
     #region Tests
 
@@ -88,4 +88,32 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal record {|#0:First|}
+                                {
+                                }
+                                internal record {|#1:Second|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal record First;
+                                 internal record Second;
+                                 """;
+
+        // The two empty records are adjacent with no blank line between them, so the first fix's collapsed
+        // replacement span directly abuts the second occurrence's leading trivia
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

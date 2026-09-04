@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7309RegionsShouldFollowCategoryOrderAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : AnalyzerTestsBase<RH7309RegionsShouldFollowCategoryOrderAnalyzer, RH7309RegionsShouldFollowCategoryOrderCodeFixProvider>
+public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixTestsBase<RH7309RegionsShouldFollowCategoryOrderAnalyzer, RH7309RegionsShouldFollowCategoryOrderCodeFixProvider>
 {
     #region Tests
 
@@ -1058,4 +1058,103 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : AnalyzerTests
     }
 
     #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class WidgetBase
+                                {
+                                    public virtual void Reset()
+                                    {
+                                    }
+                                }
+
+                                internal class Widget : WidgetBase, IWidget
+                                {
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                    {|#0:#region WidgetBase|}
+
+                                    public override void Reset()
+                                    {
+                                    }
+
+                                    #endregion // WidgetBase
+
+                                    {|#1:#region Methods|}
+
+                                    public void Refresh()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+        const string fixedData = """
+                                 internal interface IWidget
+                                 {
+                                     void Render();
+                                 }
+
+                                 internal class WidgetBase
+                                 {
+                                     public virtual void Reset()
+                                     {
+                                     }
+                                 }
+
+                                 internal class Widget : WidgetBase, IWidget
+                                 {
+                                     #region Methods
+
+                                     public void Refresh()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region WidgetBase
+
+                                     public override void Reset()
+                                     {
+                                     }
+
+                                     #endregion // WidgetBase
+
+                                     #region IWidget
+
+                                     public void Render()
+                                     {
+                                     }
+
+                                     #endregion // IWidget
+                                 }
+                                 """;
+
+        // Both diagnostics register the fix that reorders every top-level region of the same type into
+        // canonical order, so the two computed fixes are byte-for-byte identical text changes: the strongest
+        // form of interference in this batch, where the second fix is discarded as a duplicate of the first
+        // and the already-canonical result still has to satisfy the scenario in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                              index => CreateMessage(index == 0 ? "WidgetBase" : "Methods"),
+                                              2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer"/> and <see cref="RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : AnalyzerTestsBase<RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer, RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider>
+public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : BatchCodeFixTestsBase<RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer, RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider>
 {
     #region Tests
 
@@ -224,4 +224,41 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    private static int Method(int[] values1, int[] values2)
+                                    {
+                                        return {|#0:values1[
+                                            0]|} + {|#1:values2[
+                                            1]|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     private static int Method(int[] values1, int[] values2)
+                                     {
+                                         return values1[0] + values2[1];
+                                     }
+                                 }
+                                 """;
+
+        // The two indexer accesses sit side by side in one return statement, so both resolve to the identical
+        // fix target: the enclosing return statement. The batch fixer discards the second, overlapping action,
+        // and the surviving single fix already collapses both bracketed argument lists to a single line
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

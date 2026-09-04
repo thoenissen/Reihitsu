@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5404ElementMustNotBeOnSingleLineAnalyzer"/> and <see cref="RH5404ElementMustNotBeOnSingleLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase<RH5404ElementMustNotBeOnSingleLineAnalyzer, RH5404ElementMustNotBeOnSingleLineCodeFixProvider>
+public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTestsBase<RH5404ElementMustNotBeOnSingleLineAnalyzer, RH5404ElementMustNotBeOnSingleLineCodeFixProvider>
 {
     #region Tests
 
@@ -403,4 +403,30 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class {|#0:Outer|} { internal class {|#1:Inner|} { } }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Outer
+                                 {
+                                     internal class Inner;
+                                 }
+                                 """;
+
+        // The inner class declaration is entirely nested inside the outer class's single-line body, so the outer
+        // fix's reformatted node span fully contains the inner occurrence, exercising the batch fixer's
+        // overlap-discarding path rather than two independently applied changes
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

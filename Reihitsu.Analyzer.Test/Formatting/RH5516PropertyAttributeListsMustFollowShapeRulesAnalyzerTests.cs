@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5516PropertyAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer, RH5516PropertyAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer, RH5516PropertyAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -131,4 +131,64 @@ public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    {|#0:[First, Second]|} {|#1:[Third, Fourth]|}
+                                    internal int Value { get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                sealed class FourthAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     [Second]
+                                     [Third]
+                                     [Fourth]
+                                     internal int Value { get; set; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class FourthAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two multi-attribute property lists sit back to back on the same declaration: each fix computes its
+        // split against the same original document and both target the same property attribute-list run, so the
+        // batch fixer discards one of the two conflicting changes in its first pass and needs a second pass to
+        // correct the diagnostic that survives
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5516MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

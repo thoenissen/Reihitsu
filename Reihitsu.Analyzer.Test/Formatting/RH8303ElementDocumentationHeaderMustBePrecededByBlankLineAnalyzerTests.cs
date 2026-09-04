@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer"/> and <see cref="RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer, RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider>
+public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTests : BatchCodeFixTestsBase<RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer, RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider>
 {
     #region Tests
 
@@ -420,4 +420,61 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void First()
+                                    {
+                                    }
+                                    {|#0:///|} <summary>
+                                    /// Second.
+                                    /// </summary>
+                                    void Second()
+                                    {
+                                    }
+                                    {|#1:///|} <summary>
+                                    /// Third.
+                                    /// </summary>
+                                    void Third()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void First()
+                                     {
+                                     }
+
+                                     /// <summary>
+                                     /// Second.
+                                     /// </summary>
+                                     void Second()
+                                     {
+                                     }
+
+                                     /// <summary>
+                                     /// Third.
+                                     /// </summary>
+                                     void Third()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Two undocumented-to-documented boundaries sit on adjacent members in the same document; each fix
+        // only inserts a blank line at its own member's boundary, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

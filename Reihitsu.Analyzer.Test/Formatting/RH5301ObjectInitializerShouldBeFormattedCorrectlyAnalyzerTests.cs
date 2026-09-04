@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer, RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer, RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -481,4 +481,71 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Inner
+                                {
+                                    public string Name { get; set; }
+                                }
+
+                                internal class Container
+                                {
+                                    public Inner Value { get; set; }
+                                }
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var container = {|#0:new Container
+                                            {
+                                                Value = {|#1:new Inner
+                                                    {
+                                                        Name = "test"
+                                                    }|}
+                                            }|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Inner
+                                 {
+                                     public string Name { get; set; }
+                                 }
+
+                                 internal class Container
+                                 {
+                                     public Inner Value { get; set; }
+                                 }
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var container = new Container
+                                                         {
+                                                             Value = new Inner
+                                                                     {
+                                                                         Name = "test"
+                                                                     }
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        // The outer object creation's fix reformats the whole "new Container { ... }" expression, whose span
+        // fully contains the nested "new Inner { ... }" flagged by the second diagnostic, so the batch fixer
+        // discards the overlapping inner change while the outer rewrite already re-aligns the nested initializer
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

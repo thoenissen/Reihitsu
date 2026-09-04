@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer"/> and <see cref="RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTests : AnalyzerTestsBase<RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer, RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsCodeFixProvider>
+public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTests : BatchCodeFixTestsBase<RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer, RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsCodeFixProvider>
 {
     #region Tests
 
@@ -195,4 +195,70 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method1()
+                                    {
+                                        if (true)
+                                            {|#0:Other(1,
+                                                  2);|}
+                                    }
+
+                                    void Method2(bool y)
+                                    {
+                                        if (y)
+                                            {|#1:Other(3,
+                                                  4);|}
+                                    }
+
+                                    void Other(int value1, int value2)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method1()
+                                     {
+                                         if (true)
+                                         {
+                                             Other(1,
+                                                   2);
+                                         }
+                                     }
+
+                                     void Method2(bool y)
+                                     {
+                                         if (y)
+                                         {
+                                             Other(3,
+                                                   4);
+                                         }
+                                     }
+
+                                     void Other(int value1, int value2)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // RH5406 only reports multi-line embedded child statements, and both an if-branch and its own else-branch
+        // resolve to the identical owning if-statement, which the batch fixer already collapses into a single
+        // reformat instead of two interfering ones. Two independent if-statements in different methods are used
+        // here because interference beyond that identical-owner collapse is unreachable for this rule
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

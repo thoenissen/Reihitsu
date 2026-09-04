@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer"/> and <see cref="RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer, RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider>
+public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : BatchCodeFixTestsBase<RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer, RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider>
 {
     #region Tests
 
@@ -453,4 +453,52 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void MethodA{|#0:(|}int first, int second,
+                                                int third)
+                                    {
+                                    }
+
+                                    void MethodB{|#1:(|}int first, int second,
+                                                int third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void MethodA(int first,
+                                                  int second,
+                                                  int third)
+                                     {
+                                     }
+
+                                     void MethodB(int first,
+                                                  int second,
+                                                  int third)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Each fix rebuilds only its own declaration's parameter-list span, and a parameter list can never nest
+        // inside another declaration's parameter list, so the two spans here, separated by a complete method body,
+        // can never share or abut text; interference is structurally unreachable for this rule's fix, so this
+        // proves both occurrences are corrected independently
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

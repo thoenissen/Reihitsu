@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer"/> and <see cref="RH5105OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : AnalyzerTestsBase<RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer, RH5105OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider>
+public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : BatchCodeFixTestsBase<RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer, RH5105OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider>
 {
     #region Tests
 
@@ -496,4 +496,48 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void MethodA
+                                    {|#0:(|}int value)
+                                    {
+                                    }
+
+                                    void MethodB
+                                    {|#1:(|}int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void MethodA(int value)
+                                     {
+                                     }
+
+                                     void MethodB(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Each fix only collapses the narrow whitespace gap between its own declaration's name and its own opening
+        // parenthesis, so the two gaps here, separated by a complete method body, can never share or abut a text
+        // span; interference is structurally unreachable for this rule's gap-only fix, so this proves both
+        // occurrences are corrected independently
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

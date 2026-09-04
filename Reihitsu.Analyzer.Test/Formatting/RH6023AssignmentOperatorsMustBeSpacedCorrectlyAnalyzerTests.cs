@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6023AssignmentOperatorsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer, RH6023AssignmentOperatorsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer, RH6023AssignmentOperatorsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -253,4 +253,39 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var a{|#0:=|}1;
+                                        var b{|#1:=|}2;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         var a = 1;
+                                         var b = 2;
+                                     }
+                                 }
+                                 """;
+
+        // Two statements on adjacent lines each carry their own unspaced assignment operator; the fixes only
+        // rewrite their own operator's gaps, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
