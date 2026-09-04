@@ -408,6 +408,29 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
+    /// Verifies that a final blank line made of whitespace-then-newline is still trimmed away entirely —
+    /// the strip-side boundary of the widened end-of-file predicate (issue #769): end-of-file leading
+    /// trivia that holds only whitespace and end-of-line trivia must still be treated as "nothing left
+    /// to print", not as content that blocks the strip
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingWhitespaceOnlyBlankLineAtEndOfFile()
+    {
+        // Arrange — a final blank line consisting of trailing whitespace followed by a newline
+        const string input = "class Foo\r\n{\r\n}\r\n \r\n";
+        const string expected = "class Foo\r\n{\r\n}";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "A trailing whitespace-only blank line at end of file should be fully trimmed.");
+    }
+
+    /// <summary>
     /// Verifies that a tab inside a non-region preprocessor directive's own interior (for example the gap
     /// between "pragma" and "warning" in a #pragma directive) is replaced with spaces. Directive trivia is
     /// structured, so the token-level cleanup pass never visits tokens inside it directly

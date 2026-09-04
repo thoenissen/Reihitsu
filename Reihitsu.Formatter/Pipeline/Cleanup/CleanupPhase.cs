@@ -90,15 +90,42 @@ internal sealed class CleanupPhase : IFormattingPhase
         }
         else
         {
-            var nextToken = original.GetNextToken();
+            // includeZeroWidth: true is required here — EndOfFileToken is zero-width, so the default
+            // GetNextToken() skips over it and returns None for the file's last real token exactly as
+            // it would for a genuinely detached node, making the two arms indistinguishable and
+            // defeating the EndOfFileToken.LeadingTrivia check below.
+            var nextToken = original.GetNextToken(includeZeroWidth: true);
 
-            if (nextToken.IsKind(SyntaxKind.None) || nextToken.IsKind(SyntaxKind.EndOfFileToken))
+            if (nextToken.IsKind(SyntaxKind.None)
+                || (nextToken.IsKind(SyntaxKind.EndOfFileToken) && HasNoRemainingContent(nextToken.LeadingTrivia)))
             {
                 trailing = RemoveTrailingEndOfLineTrivia(trailing);
             }
         }
 
         return trailing;
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list carries nothing but whitespace and end-of-line trivia.
+    /// <c>SyntaxToken.GetNextToken()</c> skips trivia, so knowing the next token is
+    /// <see cref="SyntaxKind.EndOfFileToken"/> only proves no further real token follows — it says
+    /// nothing about whether that token's own leading trivia still holds a comment, directive, or
+    /// disabled text that needs to start on its own line. This is that missing check
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect, typically <see cref="SyntaxToken.LeadingTrivia"/> of the end-of-file token</param>
+    /// <returns><see langword="true"/> when the list has no printable content; otherwise, <see langword="false"/></returns>
+    private static bool HasNoRemainingContent(SyntaxTriviaList triviaList)
+    {
+        foreach (var trivia in triviaList)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
