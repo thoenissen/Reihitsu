@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5602CodeMustNotContainTrailingWhitespaceAnalyzer"/> and <see cref="RH5602CodeMustNotContainTrailingWhitespaceCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerTestsBase<RH5602CodeMustNotContainTrailingWhitespaceAnalyzer, RH5602CodeMustNotContainTrailingWhitespaceCodeFixProvider>
+public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCodeFixTestsBase<RH5602CodeMustNotContainTrailingWhitespaceAnalyzer, RH5602CodeMustNotContainTrailingWhitespaceCodeFixProvider>
 {
     #region Tests
 
@@ -194,4 +194,41 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var first = 0;{|#0:    |}
+                                        var second = 0;{|#1:    |}
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         var first = 0;
+                                         var second = 0;
+                                     }
+                                 }
+                                 """;
+
+        // The rule reports one diagnostic per trailing-whitespace run, and each statement's run is on its own
+        // line; the two adjacent statements exercise the batch fixer applying two genuinely separate, surgical
+        // removals
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

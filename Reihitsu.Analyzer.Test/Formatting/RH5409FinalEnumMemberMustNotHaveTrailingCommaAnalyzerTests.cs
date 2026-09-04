@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer"/> and <see cref="RH5409FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : AnalyzerTestsBase<RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer, RH5409FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider>
+public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchCodeFixTestsBase<RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer, RH5409FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider>
 {
     #region Tests
 
@@ -224,4 +224,43 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : Analyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal enum FirstEnum
+                                {
+                                    Value{|#0:,|}
+                                }
+
+                                internal enum SecondEnum
+                                {
+                                    Other{|#1:,|}
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal enum FirstEnum
+                                 {
+                                     Value
+                                 }
+
+                                 internal enum SecondEnum
+                                 {
+                                     Other
+                                 }
+                                 """;
+
+        // The rule reports at most one trailing comma per enum (its final member), so a shared owner between two
+        // occurrences is unreachable; two independent enum declarations exercise the batch fixer applying two
+        // genuinely separate, surgical comma removals
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

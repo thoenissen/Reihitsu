@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer"/> and <see cref="RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : AnalyzerTestsBase<RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer, RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider>
+public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : BatchCodeFixTestsBase<RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer, RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider>
 {
     #region Tests
 
@@ -146,4 +146,46 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true) {|#0:{|} if (true) {|#1:{|}
+                                        }
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         { if (true)
+                                         {
+                                         }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The inner if statement is nested directly inside the outer if's block, and both braces originally share
+        // the very same source line. Each fix only rewrites the narrow trivia gap immediately before its own
+        // brace, so the two replacement spans sit directly next to each other on that shared line without
+        // overlapping, exercising the batch fixer's handling of adjacent same-line replacements
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5402MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

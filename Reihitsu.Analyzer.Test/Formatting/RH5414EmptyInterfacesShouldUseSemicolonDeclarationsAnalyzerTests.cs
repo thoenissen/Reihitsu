@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : AnalyzerTestsBase<RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer, RH5414EmptyInterfacesShouldUseSemicolonDeclarationsCodeFixProvider>
+public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : BatchCodeFixTestsBase<RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer, RH5414EmptyInterfacesShouldUseSemicolonDeclarationsCodeFixProvider>
 {
     #region Tests
 
@@ -118,4 +118,32 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal interface {|#0:IFirst|}
+                                {
+                                }
+                                internal interface {|#1:ISecond|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal interface IFirst;
+                                 internal interface ISecond;
+                                 """;
+
+        // The two empty interfaces are adjacent with no blank line between them, so the first fix's collapsed
+        // replacement span directly abuts the second occurrence's leading trivia
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

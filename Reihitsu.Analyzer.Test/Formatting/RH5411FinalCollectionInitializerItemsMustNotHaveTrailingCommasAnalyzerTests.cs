@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer"/> and <see cref="RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzerTests : AnalyzerTestsBase<RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer, RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasCodeFixProvider>
+public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzerTests : BatchCodeFixTestsBase<RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer, RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasCodeFixProvider>
 {
     #region Tests
 
@@ -249,4 +249,39 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static readonly List<int> First = new() { 1, 2{|#0:,|} };
+                                    private static readonly List<int> Second = new() { 3, 4{|#1:,|} };
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static readonly List<int> First = new() { 1, 2 };
+                                     private static readonly List<int> Second = new() { 3, 4 };
+                                 }
+                                 """;
+
+        // The rule reports at most one trailing comma per collection initializer (its final item), so a shared
+        // owner between two occurrences is unreachable; two independent, adjacent field initializers exercise the
+        // batch fixer applying two genuinely separate, surgical comma removals
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

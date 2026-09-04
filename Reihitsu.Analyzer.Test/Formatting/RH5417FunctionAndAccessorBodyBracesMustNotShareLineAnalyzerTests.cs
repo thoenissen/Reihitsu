@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer"/> and <see cref="RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : AnalyzerTestsBase<RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer, RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider>
+public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : BatchCodeFixTestsBase<RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer, RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider>
 {
     #region Tests
 
@@ -428,4 +428,39 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void First() {|#0:{|} }
+                                    public void Second() {|#1:{|} }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public void First()
+                                     {
+                                     }
+                                     public void Second()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // Both bodies resolve to their own distinct member declaration, so the two fixes reformat unrelated nodes;
+        // the members are adjacent with no blank line between them, exercising the batch fixer's handling of
+        // closely spaced but non-overlapping replacements
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
