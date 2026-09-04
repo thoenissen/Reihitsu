@@ -18,7 +18,8 @@ public class BlankLineBeforePragmaAtEndOfFileTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating the outermost closing brace from a trailing <c>#pragma</c>
-    /// directive at end of file is preserved rather than removed
+    /// directive at end of file is preserved rather than removed, and that the result is a fixed point
+    /// under a second formatting pass — before the fix this shape degraded into invalid C# on pass two
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingPragmaAtEndOfFileIsPreserved()
@@ -38,13 +39,14 @@ public class BlankLineBeforePragmaAtEndOfFileTests : FormatterTestsBase
                              #pragma warning restore CS1591
                              """;
 
-        // Act & Assert
-        AssertRuleResult(input);
+        // Act & Assert — passing input as expected also exercises the second-pass idempotency check
+        AssertRuleResult(input, input);
     }
 
     /// <summary>
     /// Verifies that a blank line separating a top-level type's closing brace (no enclosing namespace)
-    /// from a trailing <c>#pragma</c> directive at end of file is preserved rather than removed
+    /// from a trailing <c>#pragma</c> directive at end of file is preserved rather than removed, and
+    /// that the result is a fixed point under a second formatting pass
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingPragmaAfterTopLevelClassAtEndOfFileIsPreserved()
@@ -61,8 +63,45 @@ public class BlankLineBeforePragmaAtEndOfFileTests : FormatterTestsBase
                              #pragma warning restore CS1591
                              """;
 
+        // Act & Assert — passing input as expected also exercises the second-pass idempotency check
+        AssertRuleResult(input, input);
+    }
+
+    /// <summary>
+    /// Verifies that two or more blank lines before a trailing <c>#pragma</c> directive at end of file
+    /// collapse to exactly one (owned by <c>BlankLineCollapser</c>, not by <c>CleanupPhase</c>) and that
+    /// no further newline is removed — before the fix this shape was non-convergent: the collapse and
+    /// the end-of-file strip combined to merge the directive onto the closing brace by the second pass
+    /// </summary>
+    [TestMethod]
+    public void MultipleBlankLinesBeforeTrailingPragmaAtEndOfFileCollapseToOne()
+    {
+        // Arrange
+        const string input = """
+                             public class Foo
+                             {
+                                 public void Bar()
+                                 {
+                                 }
+                             }
+
+
+
+                             #pragma warning restore CS1591
+                             """;
+        const string expected = """
+                                public class Foo
+                                {
+                                    public void Bar()
+                                    {
+                                    }
+                                }
+
+                                #pragma warning restore CS1591
+                                """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
