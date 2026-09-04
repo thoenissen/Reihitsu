@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
@@ -96,36 +97,19 @@ internal sealed class CleanupPhase : IFormattingPhase
             // defeating the EndOfFileToken.LeadingTrivia check below.
             var nextToken = original.GetNextToken(includeZeroWidth: true);
 
+            // SyntaxToken.GetNextToken() skips trivia, so knowing the next token is EndOfFileToken only
+            // proves no further real token follows — it says nothing about whether that token's own
+            // leading trivia still holds a comment, directive, or disabled text that needs to start on
+            // its own line. FindFirstSignificantTriviaIndex is that missing check, reused from the
+            // shared owner instead of restated here.
             if (nextToken.IsKind(SyntaxKind.None)
-                || (nextToken.IsKind(SyntaxKind.EndOfFileToken) && HasNoRemainingContent(nextToken.LeadingTrivia)))
+                || (nextToken.IsKind(SyntaxKind.EndOfFileToken) && SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(nextToken.LeadingTrivia) < 0))
             {
                 trailing = RemoveTrailingEndOfLineTrivia(trailing);
             }
         }
 
         return trailing;
-    }
-
-    /// <summary>
-    /// Determines whether a trivia list carries nothing but whitespace and end-of-line trivia.
-    /// <c>SyntaxToken.GetNextToken()</c> skips trivia, so knowing the next token is
-    /// <see cref="SyntaxKind.EndOfFileToken"/> only proves no further real token follows — it says
-    /// nothing about whether that token's own leading trivia still holds a comment, directive, or
-    /// disabled text that needs to start on its own line. This is that missing check
-    /// </summary>
-    /// <param name="triviaList">The trivia list to inspect, typically <see cref="SyntaxToken.LeadingTrivia"/> of the end-of-file token</param>
-    /// <returns><see langword="true"/> when the list has no printable content; otherwise, <see langword="false"/></returns>
-    private static bool HasNoRemainingContent(SyntaxTriviaList triviaList)
-    {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /// <summary>
