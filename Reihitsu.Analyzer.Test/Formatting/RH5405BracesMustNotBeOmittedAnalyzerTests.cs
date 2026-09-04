@@ -151,6 +151,62 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
+    /// Verifies that when both the if-branch and the else-branch are unbraced, the fix places the else keyword on
+    /// its own line at the statement's indentation instead of appending it to the closing brace's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBothBranchesUnbracedPlacesElseOnItsOwnLine()
+    {
+        const string testData = """
+                                internal class Sample
+                                {
+                                    void Method(bool x)
+                                    {
+                                        if (x)
+                                            {|#0:Foo();|}
+                                        else
+                                            {|#1:Bar();|}
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void Bar()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Sample
+                                 {
+                                     void Method(bool x)
+                                     {
+                                         if (x)
+                                         {
+                                             Foo();
+                                         }
+                                         else
+                                         {
+                                             Bar();
+                                         }
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+
+                                     void Bar()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies that a multi-line brace-less child statement is not flagged by RH5405 (it is reported by RH5406),
     /// so the two rules never report the same statement
     /// </summary>
