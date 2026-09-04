@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer, RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer, RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -57,4 +57,33 @@ public class RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                [{|#0: |}System.Obsolete]
+                                [{|#1:	|}System.CLSCompliant(true)]
+                                internal class TestClass
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [System.Obsolete]
+                                 [System.CLSCompliant(true)]
+                                 internal class TestClass
+                                 {
+                                 }
+                                 """;
+
+        // Two attribute lists sit on adjacent lines with no blank line between them; each fix only removes its
+        // own trailing whitespace run, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6013MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer, RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer, RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -126,4 +126,43 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int first = 0;
+                                        int second = 0;
+                                        first{|#0: |}++;
+                                        second{|#1: |}--;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int first = 0;
+                                         int second = 0;
+                                         first++;
+                                         second--;
+                                     }
+                                 }
+                                 """;
+
+        // Two statements on adjacent lines each carry their own unwanted whitespace run before the increment or
+        // decrement operator; the fixes only remove their own run, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

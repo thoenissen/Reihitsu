@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer"/> and <see cref="RH6022NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : AnalyzerTestsBase<RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer, RH6022NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider>
+public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : BatchCodeFixTestsBase<RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer, RH6022NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider>
 {
     #region Tests
 
@@ -66,4 +66,39 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : Analyz
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int[] first = new{|#0: |}[] { 1 };
+                                        int[] second = new{|#1: |}[] { 2 };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int[] first = new[] { 1 };
+                                         int[] second = new[] { 2 };
+                                     }
+                                 }
+                                 """;
+
+        // Two implicitly typed array creations on adjacent lines each carry their own unwanted whitespace run
+        // after the new keyword; the fixes only remove their own run, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, AnalyzerResources.RH6022MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

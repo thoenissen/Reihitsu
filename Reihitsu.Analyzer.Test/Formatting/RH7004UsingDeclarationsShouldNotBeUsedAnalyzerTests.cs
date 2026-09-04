@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7004UsingDeclarationsShouldNotBeUsedAnalyzer"/> and <see cref="RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH7004UsingDeclarationsShouldNotBeUsedAnalyzer, RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider>
+public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH7004UsingDeclarationsShouldNotBeUsedAnalyzer, RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider>
 {
     #region Tests
 
@@ -458,4 +458,55 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : AnalyzerTests
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                internal class RH7004
+                                {
+                                    public void Execute()
+                                    {
+                                        {|#0:using|} var first = new MemoryStream();
+                                        {|#1:using|} var second = new MemoryStream();
+                                        _ = first;
+                                        _ = second;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.IO;
+
+                                 internal class RH7004
+                                 {
+                                     public void Execute()
+                                     {
+                                         using (var first = new MemoryStream())
+                                         {
+                                             using (var second = new MemoryStream())
+                                             {
+                                                 _ = first;
+                                                 _ = second;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The first using declaration's fix wraps every following statement -- including the second using
+        // declaration itself -- into a new block, so its replacement span is a superset of the second
+        // declaration's own fix span. The batch fixer discards the second fix as conflicting in the first pass
+        // and needs another pass, once the first wrap has moved it into its new block, to convert it as well
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH7004UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH7004MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

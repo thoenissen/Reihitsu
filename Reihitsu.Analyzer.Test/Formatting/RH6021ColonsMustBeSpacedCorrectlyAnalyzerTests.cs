@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6021ColonsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6021ColonsMustBeSpacedCorrectlyAnalyzer, RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6021ColonsMustBeSpacedCorrectlyAnalyzer, RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -320,4 +320,51 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass{|#0::|}System.IDisposable
+                                {
+                                    public TestClass()
+                                    {
+                                    }
+
+                                    public TestClass(int value){|#1::|}this()
+                                    {
+                                    }
+
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass : System.IDisposable
+                                 {
+                                     public TestClass()
+                                     {
+                                     }
+
+                                     public TestClass(int value) : this()
+                                     {
+                                     }
+
+                                     public void Dispose()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        // The base-list colon and the constructor-initializer colon each carry their own unspaced sides in the
+        // same document; the fixes only rewrite their own colon's gaps, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

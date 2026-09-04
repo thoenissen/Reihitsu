@@ -17,7 +17,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer, RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer, RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -123,4 +123,43 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    unsafe void Method()
+                                    {
+                                        int first = 0;
+                                        int second = 0;
+                                        int* firstPointer = &{|#0: |}first;
+                                        int* secondPointer = &{|#1: |}second;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     unsafe void Method()
+                                     {
+                                         int first = 0;
+                                         int second = 0;
+                                         int* firstPointer = &first;
+                                         int* secondPointer = &second;
+                                     }
+                                 }
+                                 """;
+
+        // Two statements on adjacent lines each carry their own unwanted whitespace run after the address-of
+        // operator; the fixes only remove their own run, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6020MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer"/> and <see cref="RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : AnalyzerTestsBase<RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer, RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider>
+public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : BatchCodeFixTestsBase<RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer, RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider>
 {
     #region Tests
 
@@ -301,4 +301,39 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : A
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                {|#0:#region Fields|}
+
+                                    private string _name;
+
+                                {|#1:#endregion // Fields|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     #region Fields
+
+                                     private string _name;
+
+                                     #endregion // Fields
+                                 }
+                                 """;
+
+        // The #region and #endregion directives of the same region pair are the rule's minimal reporting unit;
+        // each fix only re-indents its own directive line, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

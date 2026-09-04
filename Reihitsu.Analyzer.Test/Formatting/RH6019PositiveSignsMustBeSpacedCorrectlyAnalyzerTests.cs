@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6019PositiveSignsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer, RH6019PositiveSignsMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer, RH6019PositiveSignsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -108,4 +108,39 @@ public class RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int first = +{|#0: |}1;
+                                        int second = +{|#1: |}2;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int first = +1;
+                                         int second = +2;
+                                     }
+                                 }
+                                 """;
+
+        // Two statements on adjacent lines each carry their own unwanted whitespace run after the positive
+        // sign; the fixes only remove their own run, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6019MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

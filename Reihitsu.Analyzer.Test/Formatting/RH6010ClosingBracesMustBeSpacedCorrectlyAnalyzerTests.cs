@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6010ClosingBracesMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer, RH6010ClosingBracesMustBeSpacedCorrectlyCodeFixProvider>
+public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer, RH6010ClosingBracesMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -82,4 +82,33 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int First { get; set;{|#0:}|}
+                                    int Second { get; set;{|#1:}|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int First { get; set; }
+                                     int Second { get; set; }
+                                 }
+                                 """;
+
+        // Two properties on adjacent lines each carry their own unspaced closing brace; the fixes only insert a
+        // space at their own brace's boundary, so the batch fixer converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
