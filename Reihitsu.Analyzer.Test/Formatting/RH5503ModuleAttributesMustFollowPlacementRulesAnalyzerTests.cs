@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer"/> and <see cref="RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : AnalyzerTestsBase<RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer, RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider>
+public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : BatchCodeFixTestsBase<RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer, RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider>
 {
     #region Tests
 
@@ -147,4 +147,40 @@ public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                {|#0:[module: First]|} {|#1:[module: Second]|} internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 [module: First]
+                                 [module: Second]
+                                 internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two module attribute lists share one line: the first fix rewrites the gap up to the second list's
+        // opening bracket, and the second fix rewrites the gap up to the class keyword, so their fix spans abut
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5503MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

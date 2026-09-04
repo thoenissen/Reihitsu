@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer"/> and <see cref="RH5523ParameterAttributesMustFollowPlacementRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : AnalyzerTestsBase<RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer, RH5523ParameterAttributesMustFollowPlacementRulesCodeFixProvider>
+public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : BatchCodeFixTestsBase<RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer, RH5523ParameterAttributesMustFollowPlacementRulesCodeFixProvider>
 {
     #region Tests
 
@@ -226,4 +226,47 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    internal void M({|#0:[First]|}
+                                                    {|#1:[Second]|}
+                                                    int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     internal void M([First] [Second] int value) { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two attribute lists on one parameter each sit on their own line: the first fix rewrites the gap up to
+        // the second list's opening bracket, and the second fix rewrites the gap up to the parameter type, so
+        // their fix spans abut
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

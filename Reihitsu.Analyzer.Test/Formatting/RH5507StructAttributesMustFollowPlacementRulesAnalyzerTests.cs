@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5507StructAttributesMustFollowPlacementRulesAnalyzer"/> and <see cref="RH5507StructAttributesMustFollowPlacementRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : AnalyzerTestsBase<RH5507StructAttributesMustFollowPlacementRulesAnalyzer, RH5507StructAttributesMustFollowPlacementRulesCodeFixProvider>
+public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : BatchCodeFixTestsBase<RH5507StructAttributesMustFollowPlacementRulesAnalyzer, RH5507StructAttributesMustFollowPlacementRulesCodeFixProvider>
 {
     #region Tests
 
@@ -111,4 +111,40 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                {|#0:[First]|} {|#1:[Second]|} internal struct Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 [First]
+                                 [Second]
+                                 internal struct Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two struct attribute lists share one line: the first fix rewrites the gap up to the second list's
+        // opening bracket, and the second fix rewrites the gap up to the struct keyword, so their fix spans abut
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5507StructAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5507MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

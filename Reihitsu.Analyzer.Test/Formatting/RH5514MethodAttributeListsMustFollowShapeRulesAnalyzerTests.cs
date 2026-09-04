@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5514MethodAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5514MethodAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5514MethodAttributeListsMustFollowShapeRulesAnalyzer, RH5514MethodAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5514MethodAttributeListsMustFollowShapeRulesAnalyzer, RH5514MethodAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -131,4 +131,64 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    {|#0:[First, Second]|} {|#1:[Third, Fourth]|}
+                                    internal void M() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                sealed class FourthAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     [Second]
+                                     [Third]
+                                     [Fourth]
+                                     internal void M() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class FourthAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two multi-attribute method lists sit back to back on the same declaration: each fix computes its
+        // split against the same original document and both target the same method attribute-list run, so the
+        // batch fixer discards one of the two conflicting changes in its first pass and needs a second pass to
+        // correct the diagnostic that survives
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5514MethodAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5514MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

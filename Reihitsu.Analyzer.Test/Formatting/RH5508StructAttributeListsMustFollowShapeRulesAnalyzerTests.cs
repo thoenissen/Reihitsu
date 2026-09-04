@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5508StructAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5508StructAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5508StructAttributeListsMustFollowShapeRulesAnalyzer, RH5508StructAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5508StructAttributeListsMustFollowShapeRulesAnalyzer, RH5508StructAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -116,4 +116,58 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Analy
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                {|#0:[First, Second]|} {|#1:[Third, Fourth]|}
+                                internal struct Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                sealed class FourthAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 [First]
+                                 [Second]
+                                 [Third]
+                                 [Fourth]
+                                 internal struct Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class FourthAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two multi-attribute struct lists sit back to back on the same declaration: each fix computes its
+        // split against the same original document and both target the same struct attribute-list run, so the
+        // batch fixer discards one of the two conflicting changes in its first pass and needs a second pass to
+        // correct the diagnostic that survives
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

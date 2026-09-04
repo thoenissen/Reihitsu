@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer"/> and <see cref="RH5525DelegateAttributesMustFollowPlacementRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5525DelegateAttributesMustFollowPlacementRulesAnalyzerTests : AnalyzerTestsBase<RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer, RH5525DelegateAttributesMustFollowPlacementRulesCodeFixProvider>
+public class RH5525DelegateAttributesMustFollowPlacementRulesAnalyzerTests : BatchCodeFixTestsBase<RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer, RH5525DelegateAttributesMustFollowPlacementRulesCodeFixProvider>
 {
     #region Tests
 
@@ -111,4 +111,40 @@ public class RH5525DelegateAttributesMustFollowPlacementRulesAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                {|#0:[First]|} {|#1:[Second]|} internal delegate void ExampleDelegate();
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 [First]
+                                 [Second]
+                                 internal delegate void ExampleDelegate();
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two delegate attribute lists share one line: the first fix rewrites the gap up to the second list's
+        // opening bracket, and the second fix rewrites the gap up to the delegate keyword, so their fix spans abut
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5525MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

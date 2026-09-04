@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer, RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer, RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -116,4 +116,58 @@ public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                {|#0:[assembly: First, Second]|} {|#1:[assembly: Third, Fourth]|}
+                                internal class Example { }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                sealed class FourthAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 [assembly: First]
+                                 [assembly: Second]
+                                 [assembly: Third]
+                                 [assembly: Fourth]
+                                 internal class Example { }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class FourthAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Two multi-attribute assembly lists sit back to back on the same compilation unit: each fix computes its
+        // split against the same original document and both target the same compilation-unit attribute-list run,
+        // so the batch fixer discards one of the two conflicting changes in its first pass and needs a second
+        // pass to correct the diagnostic that survives
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5502MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

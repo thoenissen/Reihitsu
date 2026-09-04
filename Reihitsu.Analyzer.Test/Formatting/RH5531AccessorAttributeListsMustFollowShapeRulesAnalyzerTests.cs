@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5531AccessorAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer, RH5531AccessorAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer, RH5531AccessorAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -295,4 +295,72 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Ana
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                sealed class FourthAttribute : System.Attribute
+                                {
+                                }
+                                internal class Example
+                                {
+                                    internal int Value
+                                    {
+                                        {|#0:[First, Second]|} {|#1:[Third, Fourth]|}
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class FourthAttribute : System.Attribute
+                                 {
+                                 }
+                                 internal class Example
+                                 {
+                                     internal int Value
+                                     {
+                                         [First]
+                                         [Second]
+                                         [Third]
+                                         [Fourth]
+                                         get;
+                                         set;
+                                     }
+                                 }
+                                 """;
+
+        // Two multi-attribute lists sit back to back on the same get accessor: each fix computes its split
+        // against the same original document and both target the same accessor attribute-list run, so the batch
+        // fixer discards one of the two conflicting changes in its first pass and needs a second pass to correct
+        // the diagnostic that survives
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 2),
+                                  Configure: config => config.NumberOfFixAllIterations = 2);
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

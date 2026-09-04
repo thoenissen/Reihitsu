@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer"/> and <see cref="RH5524ParameterAttributeListsMustFollowShapeRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : AnalyzerTestsBase<RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer, RH5524ParameterAttributeListsMustFollowShapeRulesCodeFixProvider>
+public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer, RH5524ParameterAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
     #region Tests
 
@@ -124,4 +124,52 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : An
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    internal void M([First] {|#0:[Second]|} {|#1:[Third]|} int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     internal void M([First, Second, Third] int value) { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // Three single-attribute lists sit on one parameter: the first sibling is exempt from diagnosis, so both
+        // diagnostics land on the second and third lists, and both fixes independently recompute the identical
+        // merge of all three lists against the same original document, giving the batch fixer two fully
+        // overlapping candidate changes to reconcile
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
