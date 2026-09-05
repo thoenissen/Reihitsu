@@ -151,6 +151,51 @@ public class DirectivePreservationTests
     }
 
     /// <summary>
+    /// Verifies that a <c>#pragma</c> directive between an unbraced then-branch and its <c>else</c> keyword
+    /// is kept on its own line, and the whole document still parses, once braces are inserted around
+    /// both branches
+    /// </summary>
+    [TestMethod]
+    public void ControlFlowBraceInsertionKeepsDirectiveBeforeElse()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(bool b)
+                                 {
+                                     if (b)
+                                         Foo();
+                             #pragma warning disable CS0168
+                                     else
+                                         Bar();
+                             #pragma warning restore CS0168
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (b)
+                                        {
+                                            Foo();
+                                        }
+                                #pragma warning disable CS0168
+                                        else
+                                        {
+                                            Bar();
+                                        }
+                                #pragma warning restore CS0168
+                                    }
+                                }
+                                """;
+
+        AssertFormatted(input, NormalizeLineEndings(expected));
+    }
+
+    /// <summary>
     /// Verifies that a multi-variable field declaration carrying a directive is not split, so the
     /// <c>#if</c>/<c>#endif</c> around the initializer are not deleted
     /// </summary>

@@ -26,7 +26,7 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
                                                                        CancellationToken cancellationToken)
     {
         return [
-                   new ControlFlowBraceTransform(cancellationToken),
+                   new ControlFlowBraceTransform(context, cancellationToken),
                    new ExpressionBodiedMethodTransform(cancellationToken),
                    new ExpressionBodiedConstructorTransform(cancellationToken),
                    new ExpressionBodiedOperatorTransform(cancellationToken),
