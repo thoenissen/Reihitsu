@@ -85,6 +85,49 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
     }
 
     /// <summary>
+    /// Verifies that when the else-branch is already braced and the if-branch is not, the fix braces the
+    /// if-branch and places the else keyword on its own line instead of appending it to the closing brace's
+    /// line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIfBranchUnbracedIsFixedWithElseOnItsOwnLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true)
+                                            {|#0:return;|}
+                                        else
+                                        {
+                                            return;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                             return;
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that else-if chains do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

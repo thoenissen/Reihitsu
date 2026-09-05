@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
@@ -14,6 +15,11 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
 {
     #region Fields
+
+    /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
 
     /// <summary>
     /// The cancellation token
@@ -27,9 +33,12 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ControlFlowBraceTransform(CancellationToken cancellationToken)
+    public ControlFlowBraceTransform(FormattingContext context,
+                                     CancellationToken cancellationToken)
     {
+        _context = context;
         _cancellationToken = cancellationToken;
     }
 
@@ -41,8 +50,10 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// Wraps a statement in a block when it is not already braced
     /// </summary>
     /// <param name="statement">The statement to inspect</param>
+    /// <param name="endOfLine">The end-of-line sequence to terminate the inserted closing brace's line with</param>
     /// <returns>The braced statement</returns>
-    private static StatementSyntax WrapWithBraces(StatementSyntax statement)
+    private static StatementSyntax WrapWithBraces(StatementSyntax statement,
+                                                  string endOfLine)
     {
         if (statement is null or BlockSyntax)
         {
@@ -64,6 +75,13 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
                                            .WithTrailingTrivia(NormalizeTrailingTrivia(statement.GetTrailingTrivia()));
 
         var block = SyntaxFactory.Block(SyntaxFactory.SingletonList(normalizedStatement));
+
+        // The token that used to follow the statement (an else keyword, a directive, or the next
+        // statement) keeps its own leading trivia verbatim, which never carries the line terminator
+        // that separated it from the statement — that terminator lived in the statement's own trailing
+        // trivia, discarded above. Without restoring it here, that token is glued to the inserted
+        // closing brace instead of starting its own line
+        block = block.WithCloseBraceToken(block.CloseBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLine)));
 
         if (leadingComments.Count > 0)
         {
@@ -158,11 +176,11 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             return null;
         }
 
-        node = node.WithStatement(WrapWithBraces(node.Statement));
+        node = node.WithStatement(WrapWithBraces(node.Statement, _context.EndOfLine));
 
         if (node.Else is { Statement: not null and not BlockSyntax and not IfStatementSyntax } elseClause)
         {
-            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement)));
+            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement, _context.EndOfLine)));
         }
 
         return node;

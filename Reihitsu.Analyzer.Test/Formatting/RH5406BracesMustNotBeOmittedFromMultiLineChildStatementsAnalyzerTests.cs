@@ -194,6 +194,58 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that when both the if-branch and the else-branch are multi-line brace-less child statements,
+    /// the fix places the else keyword on its own line instead of appending it to the closing brace's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBothBranchesMultiLineUnbracedPlacesElseOnItsOwnLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool x)
+                                    {
+                                        if (x)
+                                            {|#0:Other(1,
+                                                  2);|}
+                                        else
+                                            {|#1:Other(3,
+                                                  4);|}
+                                    }
+
+                                    void Other(int value1, int value2)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(bool x)
+                                     {
+                                         if (x)
+                                         {
+                                             Other(1,
+                                                   2);
+                                         }
+                                         else
+                                         {
+                                             Other(3,
+                                                   4);
+                                         }
+                                     }
+
+                                     void Other(int value1, int value2)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
