@@ -10,7 +10,9 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for contained statement bodies and inline condition comments
+/// Applies line-break rules for contained statement bodies, inline condition comments, and chained
+/// continuation keywords (<c>else</c>, <c>catch</c>, <c>finally</c>, a <c>do</c> statement's <c>while</c>)
+/// that must start their own line after the block they chain from
 /// </summary>
 internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 {
@@ -98,8 +100,9 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes an <c>if</c> statement's then/else block braces and moves a trailing
-    /// inline condition comment onto its own line
+    /// Normalizes an <c>if</c> statement's then/else block braces, moves a trailing inline condition
+    /// comment onto its own line, and ensures a following <c>else</c>/<c>else if</c> keyword starts
+    /// its own line
     /// </summary>
     /// <param name="node">The if statement</param>
     /// <param name="isElseIfBranch">
@@ -120,7 +123,56 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
             node = NormalizeBlockBraces(node, elseBlock);
         }
 
-        return MoveTrailingConditionCommentToOwnLine(node, isElseIfBranch);
+        node = MoveTrailingConditionCommentToOwnLine(node, isElseIfBranch);
+
+        if (node.Else != null)
+        {
+            node = _bracePlacer.EnsureTokenStartsOwnLine(node, node.Else.ElseKeyword);
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Normalizes a <c>try</c> statement's block braces and ensures each <c>catch</c> keyword and a
+    /// trailing <c>finally</c> keyword start their own line after the block they chain from
+    /// </summary>
+    /// <param name="node">The try statement</param>
+    /// <returns>The updated try statement</returns>
+    private TryStatementSyntax NormalizeTryStatement(TryStatementSyntax node)
+    {
+        node = _bracePlacer.NormalizeContainedBlock(node, node.Block);
+
+        for (var catchIndex = 0; catchIndex < node.Catches.Count; catchIndex++)
+        {
+            node = _bracePlacer.EnsureTokenStartsOwnLine(node, node.Catches[catchIndex].CatchKeyword);
+        }
+
+        if (node.Finally != null)
+        {
+            node = _bracePlacer.EnsureTokenStartsOwnLine(node, node.Finally.FinallyKeyword);
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Normalizes a <c>do</c> statement's block braces and ensures the trailing <c>while</c> keyword
+    /// starts its own line after the block. A <c>do</c> statement whose body is not a block is left
+    /// untouched, matching the formatter's existing hands-off treatment of single-statement <c>do</c> bodies
+    /// </summary>
+    /// <param name="node">The do statement</param>
+    /// <returns>The updated do statement</returns>
+    private DoStatementSyntax NormalizeDoStatement(DoStatementSyntax node)
+    {
+        if (TryGetContainedBlock(node, out var block) == false)
+        {
+            return node;
+        }
+
+        node = (DoStatementSyntax)_bracePlacer.NormalizeContainedBlock(node, block);
+
+        return _bracePlacer.EnsureTokenStartsOwnLine(node, node.WhileKeyword);
     }
 
     /// <summary>
@@ -256,6 +308,16 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
         if (visited is IfStatementSyntax ifStatement)
         {
             return NormalizeIfStatement(ifStatement, isElseIfBranch);
+        }
+
+        if (visited is TryStatementSyntax tryStatement)
+        {
+            return NormalizeTryStatement(tryStatement);
+        }
+
+        if (visited is DoStatementSyntax doStatement)
+        {
+            return NormalizeDoStatement(doStatement);
         }
 
         if (TryGetContainedBlock(visited, out var block))

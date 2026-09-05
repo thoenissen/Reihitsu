@@ -160,6 +160,30 @@ internal sealed class BracePlacer
     }
 
     /// <summary>
+    /// Ensures a token starts its own line, without disturbing how many blank lines precede it.
+    /// Used for a statement keyword that chains directly from a preceding block's closing brace
+    /// (<c>else</c>, <c>catch</c>, <c>finally</c>, or a <c>do</c> statement's <c>while</c>), where the
+    /// token is owned by a different node than the block whose brace precedes it, so neither
+    /// <see cref="EnsureCloseBraceContinuation{TNode}"/> nor the gap normalizer — both scoped to the
+    /// block itself — can reach it
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The node containing the token</param>
+    /// <param name="token">The token to ensure starts its own line</param>
+    /// <returns>The node with the token moved to its own line, or unchanged if it already starts one</returns>
+    public TNode EnsureTokenStartsOwnLine<TNode>(TNode node,
+                                                 SyntaxToken token)
+        where TNode : SyntaxNode
+    {
+        if (token.IsMissing || LineBreakTriviaUtilities.HasLeadingEndOfLine(token))
+        {
+            return node;
+        }
+
+        return LineBreakTriviaUtilities.MoveTokenToNewLine(node, token, _endOfLine);
+    }
+
+    /// <summary>
     /// Normalizes a brace pair owned by a declaration (open brace on its own line, first content on
     /// a new line, and close brace on its own line)
     /// </summary>
