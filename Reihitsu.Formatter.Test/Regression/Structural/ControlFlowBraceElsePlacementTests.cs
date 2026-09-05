@@ -251,10 +251,11 @@ public class ControlFlowBraceElsePlacementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an unbraced <c>if</c> with no <c>else</c>, immediately followed by the enclosing
-    /// block's own closing brace, is already formatted correctly and stays unchanged
+    /// block's own closing brace, is correctly braced without a spurious blank line before that
+    /// enclosing brace
     /// </summary>
     [TestMethod]
-    public void UnbracedIfWithNoElseStaysUnchanged()
+    public void UnbracedIfWithNoElseIsBracedWithoutDisturbingTheEnclosingBrace()
     {
         // Arrange
         const string input = """
@@ -263,15 +264,26 @@ public class ControlFlowBraceElsePlacementTests : FormatterTestsBase
                                  void M(bool x)
                                  {
                                      if (x)
-                                     {
                                          Foo();
-                                     }
                                  }
                              }
                              """;
 
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool x)
+                                    {
+                                        if (x)
+                                        {
+                                            Foo();
+                                        }
+                                    }
+                                }
+                                """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
