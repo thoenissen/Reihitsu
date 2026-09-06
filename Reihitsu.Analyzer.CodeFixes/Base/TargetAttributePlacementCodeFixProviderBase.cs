@@ -100,14 +100,29 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             // empty when another token precedes the list on the same physical line (the whitespace belongs to
             // that token's trailing trivia instead), and it resolves to an earlier line's indentation when a
             // directive in the leading trivia swallows the preceding end-of-line. Reading the source line that
-            // contains the list's start position sidesteps both cases
+            // contains the list's start position sidesteps both cases, unless that line is itself the
+            // continuation of a multi-line trivia (for example a block comment) that started on an earlier
+            // line: its leading whitespace is then the comment's own internal alignment, not code indentation,
+            // so the original leading-trivia scan is used instead. That scan still measures correctly here,
+            // because a multi-line trivia carries no top-level end-of-line trivia of its own, so the scan finds
+            // whichever end-of-line trivia precedes it
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var line = sourceText.Lines.GetLineFromPosition(attributeList.SpanStart);
-            var leadingWhitespace = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+            var overlappingTrivia = root.FindTrivia(line.Start);
+            var lineStartsInsideMultiLineTrivia = overlappingTrivia.RawKind != 0 && overlappingTrivia.SpanStart < line.Start;
 
-            if (leadingWhitespace.Length > 0)
+            if (lineStartsInsideMultiLineTrivia)
             {
-                trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(leadingWhitespace));
+                trailingTrivia = trailingTrivia.AddRange(SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia()));
+            }
+            else
+            {
+                var leadingWhitespace = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+
+                if (leadingWhitespace.Length > 0)
+                {
+                    trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(leadingWhitespace));
+                }
             }
 
             updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);

@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -282,6 +282,42 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                      Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the code fix uses the declaration's own indentation, rather than the physical line's literal
+    /// leading whitespace, when the attribute list's line is itself the continuation of a multi-line comment that
+    /// started on an earlier line. That whitespace is the comment's own internal alignment, not code indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixUsesDeclarationIndentationWhenLineBeginsInsideMultiLineComment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    /* note
+                                           continued */ {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /* note
+                                            continued */ [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -317,9 +353,10 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                  }
                                  """;
 
-        // Two attribute lists share one line: under WellKnownFixAllProviders.BatchFixer both fixes are computed
-        // against the same original document, so both would see the un-split layout and derive a zero-width
-        // indentation from it before the guard fix
+        // The two attribute lists already share one line: under WellKnownFixAllProviders.BatchFixer both fixes
+        // are computed against the same original document. The second list's own leading trivia is empty there
+        // (the intervening whitespace belongs to the first list's close bracket's trailing trivia instead),
+        // which used to make its derived indentation zero-width
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat, 2));

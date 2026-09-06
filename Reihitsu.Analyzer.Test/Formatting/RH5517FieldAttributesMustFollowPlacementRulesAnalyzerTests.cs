@@ -160,9 +160,10 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        // Two attribute lists share one line: under WellKnownFixAllProviders.BatchFixer both fixes are computed
-        // against the same original document, so both would see the un-split layout and derive a zero-width
-        // indentation from it before the guard fix
+        // The two attribute lists already share one line: under WellKnownFixAllProviders.BatchFixer both fixes
+        // are computed against the same original document. The second list's own leading trivia is empty there
+        // (the intervening whitespace belongs to the first list's close bracket's trailing trivia instead),
+        // which used to make its derived indentation zero-width
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat, 2));
