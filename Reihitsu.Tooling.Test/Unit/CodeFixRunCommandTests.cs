@@ -288,7 +288,10 @@ public sealed class CodeFixRunCommandTests
 
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
-            Assert.AreSequenceEqual(originalBytes, await File.ReadAllBytesAsync(path, TestContext.CancellationToken));
+
+            var currentBytes = await File.ReadAllBytesAsync(path, TestContext.CancellationToken);
+
+            Assert.AreSequenceEqual(originalBytes, currentBytes);
         }
     }
 
