@@ -37,14 +37,7 @@ public class CodeFixTestBaseCoverageTests
                                                                                   "Reihitsu.Analyzer.Test.Design.RH2004AccessModifierMustBeDeclaredAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Design.RH2005FieldsMustBePrivateAnalyzerTests",
                                                                                   "Reihitsu.Analyzer.Test.Design.RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Design.RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Formatting.RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests"
+                                                                                  "Reihitsu.Analyzer.Test.Design.RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests"
                                                                               };
 
     #endregion // Fields
