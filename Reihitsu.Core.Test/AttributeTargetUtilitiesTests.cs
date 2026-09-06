@@ -145,7 +145,7 @@ public class AttributeTargetUtilitiesTests
 
         var updated = AttributeTargetUtilities.WithAttributeLists(destructor, default);
 
-        Assert.HasCount(0, AttributeTargetUtilities.GetAttributeLists(updated));
+        Assert.IsEmpty(AttributeTargetUtilities.GetAttributeLists(updated));
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class AttributeTargetUtilitiesTests
 
         var updated = AttributeTargetUtilities.WithAttributeLists(lambda, default);
 
-        Assert.HasCount(0, AttributeTargetUtilities.GetAttributeLists(updated));
+        Assert.IsEmpty(AttributeTargetUtilities.GetAttributeLists(updated));
     }
 
     #endregion // Tests
