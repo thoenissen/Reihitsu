@@ -125,5 +125,45 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that Fix All in document preserves the member's original indentation when two attribute lists
+    /// share one physical source line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllPreservesIndentationWhenTwoAttributeListsShareOneLine()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First]|} {|#1:[Second]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     [Second]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat, 2));
+    }
+
     #endregion // Tests
 }
