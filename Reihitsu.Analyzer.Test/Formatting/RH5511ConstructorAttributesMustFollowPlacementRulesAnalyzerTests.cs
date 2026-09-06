@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer"/> and <see cref="RH5511ConstructorAttributesMustFollowPlacementRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : AnalyzerTestsBase<RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer, RH5511ConstructorAttributesMustFollowPlacementRulesCodeFixProvider>
+public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : BatchCodeFixTestsBase<RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer, RH5511ConstructorAttributesMustFollowPlacementRulesCodeFixProvider>
 {
     #region Tests
 
@@ -126,14 +126,170 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that Fix All in document preserves the member's original indentation when two attribute lists
-    /// share one physical source line
+    /// Verifies that the code fix uses the attribute list's own source line indentation, rather than its leading
+    /// trivia, when another declaration precedes the list on that line. The list's leading trivia is empty in
+    /// this shape, because the intervening whitespace belongs to the preceding token's trailing trivia instead
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixAllPreservesIndentationWhenTwoAttributeListsShareOneLine()
+    public async Task VerifyCodeFixUsesLineIndentationWhenListIsPrecededByOtherSourceOnSameLine()
     {
         const string testData = """
+                                internal class Example
+                                {
+                                    private int _pad; {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private int _pad; [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix uses the attribute list's own source line indentation rather than a preceding
+    /// directive's indentation. A directive in the leading trivia swallows the preceding end-of-line, so scanning
+    /// the leading trivia for the last end-of-line lands on trivia index 0 and returns the directive's line
+    /// instead of the attribute list's own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixUsesListsOwnLineIndentationRatherThanPrecedingDirectiveIndentation()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                        #pragma warning disable 1591
+                                    {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                         #pragma warning disable 1591
+                                     [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix copies the attribute list's line indentation verbatim rather than canonicalizing
+    /// it, when the list already starts its own line at a non-canonical depth
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixPreservesNonCanonicalIndentation()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                        {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                         [First]
+                                         internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix copies a tab-indented line's leading trivia verbatim, rather than expanding it
+    /// to spaces, when another declaration precedes the attribute list on that line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixPreservesTabIndentationWhenPrecededByOtherSourceOnSameLine()
+    {
+        const string testData = "internal class Example\n{\n\tprivate int _pad; {|#0:[First]|} internal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
+        const string fixedData = "internal class Example\n{\n\tprivate int _pad; [First]\n\tinternal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix uses the indentation of the line on which a multi-line attribute list starts,
+    /// rather than the line of its closing bracket
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixUsesStartLineIndentationForMultiLineAttributeList()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First(
+                                        1)]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                    internal FirstAttribute(int value) { }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First(
+                                         1)]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                     internal FirstAttribute(int value) { }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
                                 internal class Example
                                 {
                                     {|#0:[First]|} {|#1:[Second]|} internal Example() { }
@@ -145,7 +301,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                 {
                                 }
                                 """;
-        const string fixedData = """
+
+        const string fixedCode = """
                                  internal class Example
                                  {
                                      [First]
@@ -160,10 +317,13 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat, 2));
+        // Two attribute lists share one line: under WellKnownFixAllProviders.BatchFixer both fixes are computed
+        // against the same original document, so both would see the un-split layout and derive a zero-width
+        // indentation from it before the guard fix
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat, 2));
     }
 
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

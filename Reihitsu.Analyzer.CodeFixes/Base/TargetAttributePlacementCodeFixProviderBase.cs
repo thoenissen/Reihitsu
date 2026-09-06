@@ -95,9 +95,21 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         {
             var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
             var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
-            var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
-            trailingTrivia = trailingTrivia.AddRange(indentationTrivia);
+            // The attribute list's own leading trivia is not a reliable proxy for its line's indentation: it is
+            // empty when another token precedes the list on the same physical line (the whitespace belongs to
+            // that token's trailing trivia instead), and it resolves to an earlier line's indentation when a
+            // directive in the leading trivia swallows the preceding end-of-line. Reading the source line that
+            // contains the list's start position sidesteps both cases
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var line = sourceText.Lines.GetLineFromPosition(attributeList.SpanStart);
+            var leadingWhitespace = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+
+            if (leadingWhitespace.Length > 0)
+            {
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(leadingWhitespace));
+            }
+
             updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);
         }
         else
