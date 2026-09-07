@@ -126,6 +126,31 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that no code fix is offered when the enclosing class is missing its closing brace. The
+    /// indentation level cannot be computed from a scope the parser has not closed yet, and this is ordinary
+    /// mid-edit source rather than a defect to correct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenEnclosingTypeIsMissingClosingBrace()
+    {
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       [First] internal Example() { }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
     /// Verifies that the code fix indents the member at the attribute list's syntactic nesting depth when another
     /// declaration precedes the list on the same physical line
     /// </summary>

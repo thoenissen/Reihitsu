@@ -125,6 +125,40 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     }
 
     /// <summary>
+    /// Determines whether an enclosing scope that <see cref="SyntaxIndentationUtilities.ComputeBaseIndentLevel"/>
+    /// would count owns a brace the parser could not find. Such a scope silently drops out of the computed
+    /// indentation level instead of raising an error, which would strip the member's indentation on exactly the
+    /// transient, mid-edit documents where an IDE offers "Fix all in document" most often
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when an enclosing scope has a missing brace</returns>
+    private static bool HasIncompleteEnclosingScope(AttributeListSyntax attributeList)
+    {
+        for (var ancestor = attributeList.Parent; ancestor != null; ancestor = ancestor.Parent)
+        {
+            var braces = ancestor switch
+                         {
+                             BlockSyntax block => (Open: block.OpenBraceToken, Close: block.CloseBraceToken),
+                             TypeDeclarationSyntax typeDeclaration => (typeDeclaration.OpenBraceToken, typeDeclaration.CloseBraceToken),
+                             NamespaceDeclarationSyntax namespaceDeclaration => (namespaceDeclaration.OpenBraceToken, namespaceDeclaration.CloseBraceToken),
+                             EnumDeclarationSyntax enumDeclaration => (enumDeclaration.OpenBraceToken, enumDeclaration.CloseBraceToken),
+                             SwitchStatementSyntax switchStatement => (switchStatement.OpenBraceToken, switchStatement.CloseBraceToken),
+                             AccessorListSyntax accessorList => (accessorList.OpenBraceToken, accessorList.CloseBraceToken),
+                             InitializerExpressionSyntax initializer => (initializer.OpenBraceToken, initializer.CloseBraceToken),
+                             AnonymousObjectCreationExpressionSyntax anonymousObject => (anonymousObject.OpenBraceToken, anonymousObject.CloseBraceToken),
+                             _ => default((SyntaxToken Open, SyntaxToken Close)?)
+                         };
+
+            if (braces is { Open.IsMissing: true } or { Close.IsMissing: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Tries to get a fixable attribute list from a diagnostic
     /// </summary>
     /// <param name="root">Root</param>
@@ -161,6 +195,16 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         }
 
         placementMode = ResolvePlacementMode(attributeList);
+
+        // ComputeBaseIndentLevel counts an enclosing scope by its brace pair; a scope whose brace the parser
+        // could not find silently drops out of that count instead of raising an error, understating the
+        // indentation level. There is no way to recover the intended depth from a scope the parser never closed,
+        // so the fix stays unregistered rather than guessing at a document that is still being edited
+        if (placementMode == TargetAttributePlacementMode.SeparateLine
+            && HasIncompleteEnclosingScope(attributeList))
+        {
+            return false;
+        }
 
         return true;
     }
