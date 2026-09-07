@@ -126,13 +126,12 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix uses the attribute list's own source line indentation, rather than its leading
-    /// trivia, when another declaration precedes the list on that line. The list's leading trivia is empty in
-    /// this shape, because the intervening whitespace belongs to the preceding token's trailing trivia instead
+    /// Verifies that the code fix indents the member at the attribute list's syntactic nesting depth when another
+    /// declaration precedes the list on the same physical line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixUsesLineIndentationWhenListIsPrecededByOtherSourceOnSameLine()
+    public async Task VerifyCodeFixIndentsAtNestingDepthWhenPrecededByOtherSourceOnSameLine()
     {
         const string testData = """
                                 internal class Example
@@ -160,14 +159,12 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix uses the attribute list's own source line indentation rather than a preceding
-    /// directive's indentation. A directive in the leading trivia swallows the preceding end-of-line, so scanning
-    /// the leading trivia for the last end-of-line lands on trivia index 0 and returns the directive's line
-    /// instead of the attribute list's own line
+    /// Verifies that the code fix indents the member at the attribute list's syntactic nesting depth rather than
+    /// at a preceding directive's own indentation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixUsesListsOwnLineIndentationRatherThanPrecedingDirectiveIndentation()
+    public async Task VerifyCodeFixIndentsAtNestingDepthRatherThanPrecedingDirectiveIndentation()
     {
         const string testData = """
                                 internal class Example
@@ -197,12 +194,12 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix copies the attribute list's line indentation verbatim rather than canonicalizing
-    /// it, when the list already starts its own line at a non-canonical depth
+    /// Verifies that the code fix indents the member at the attribute list's canonical nesting depth rather than
+    /// matching whatever non-canonical depth the list itself already happens to sit at
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixPreservesNonCanonicalIndentation()
+    public async Task VerifyCodeFixUsesCanonicalIndentationRegardlessOfTheAttributeListsOwnDepth()
     {
         const string testData = """
                                 internal class Example
@@ -217,7 +214,7 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                  internal class Example
                                  {
                                          [First]
-                                         internal Example() { }
+                                     internal Example() { }
                                  }
                                  sealed class FirstAttribute : System.Attribute
                                  {
@@ -230,15 +227,15 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix copies a tab-indented line's leading trivia verbatim, rather than expanding it
-    /// to spaces, when another declaration precedes the attribute list on that line
+    /// Verifies that the code fix always emits spaces for the computed indentation, even when another declaration
+    /// on the same line is itself tab-indented
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixPreservesTabIndentationWhenPrecededByOtherSourceOnSameLine()
+    public async Task VerifyCodeFixUsesSpacesRegardlessOfSurroundingTabIndentation()
     {
         const string testData = "internal class Example\n{\n\tprivate int _pad; {|#0:[First]|} internal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
-        const string fixedData = "internal class Example\n{\n\tprivate int _pad; [First]\n\tinternal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
+        const string fixedData = "internal class Example\n{\n\tprivate int _pad; [First]\n    internal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
 
         await Verify(testData,
                      fixedData,
@@ -246,12 +243,12 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix uses the indentation of the line on which a multi-line attribute list starts,
-    /// rather than the line of its closing bracket
+    /// Verifies that the code fix indents the member at the attribute list's syntactic nesting depth when the
+    /// attribute list itself spans multiple lines, using the depth rather than the column of either line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixUsesStartLineIndentationForMultiLineAttributeList()
+    public async Task VerifyCodeFixIndentsAtNestingDepthForMultiLineAttributeList()
     {
         const string testData = """
                                 internal class Example
@@ -283,14 +280,13 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the diagnostic is still reported, but no code fix is offered, when the attribute list's line
-    /// is itself the continuation of a multi-line comment that started on an earlier line. The physical line's
-    /// leading whitespace is then the comment's own internal alignment, not code indentation, and there is no
-    /// general way to recover the declaration's real indentation from it
+    /// Verifies that the code fix indents the member correctly when the attribute list's line is itself the
+    /// continuation of a multi-line comment that started on an earlier line. Nesting depth does not read that
+    /// line's text at all, so the comment's own internal alignment cannot influence the result
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenLineBeginsInsideMultiLineComment()
+    public async Task VerifyCodeFixIndentsCorrectlyWhenLineBeginsInsideMultiLineComment()
     {
         const string testData = """
                                 internal class Example
@@ -302,39 +298,31 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                 {
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class Example
-                                   {
-                                       /* note
-                                              continued */ [First] internal Example() { }
-                                   }
-                                   sealed class FirstAttribute : System.Attribute
-                                   {
-                                   }
-                                   """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /* note
+                                            continued */ [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
 
         await Verify(testData,
+                     fixedData,
                      Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                   RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<AttributeListSyntax>()
-                                                               .First()
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
     }
 
     /// <summary>
-    /// Verifies that the diagnostic is still reported, but no code fix is offered, when the attribute list's line
-    /// is itself the continuation of a multi-line verbatim string literal that started on an earlier line. Unlike
-    /// a multi-line comment, this continuation is part of a token's own span rather than trivia, so it needs its
-    /// own guard
+    /// Verifies that the code fix indents the member correctly when the attribute list's line is itself the
+    /// continuation of a multi-line verbatim string literal that started on an earlier line. Unlike a comment,
+    /// this continuation is part of a token's own span rather than trivia, but nesting depth is unaffected either way
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenLineBeginsInsideMultiLineVerbatimString()
+    public async Task VerifyCodeFixIndentsCorrectlyWhenLineBeginsInsideMultiLineVerbatimString()
     {
         const string testData = """
                                 internal class Example
@@ -346,38 +334,30 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                 {
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class Example
-                                   {
-                                       private const string Text = @"a
-                                             b"; [First] internal Example() { }
-                                   }
-                                   sealed class FirstAttribute : System.Attribute
-                                   {
-                                   }
-                                   """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private const string Text = @"a
+                                           b"; [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
 
         await Verify(testData,
+                     fixedData,
                      Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                   RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<AttributeListSyntax>()
-                                                               .First()
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
     }
 
     /// <summary>
-    /// Verifies that the diagnostic is still reported, but no code fix is offered, when another declaration
-    /// precedes a multi-line comment on the comment's own starting line. The comment then carries no leading
-    /// end-of-line trivia of its own to anchor on, and the attribute list's leading trivia is empty
+    /// Verifies that the code fix indents the member correctly when another declaration precedes a multi-line
+    /// comment on the comment's own starting line, leaving the attribute list's leading trivia empty
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenTokenPrecedesMultiLineCommentOnSameLine()
+    public async Task VerifyCodeFixIndentsCorrectlyWhenTokenPrecedesMultiLineCommentOnSameLine()
     {
         const string testData = """
                                 internal class Example
@@ -389,28 +369,137 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                 {
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class Example
-                                   {
-                                       internal int Field; /* note
-                                          continued */ [First] internal Example() { }
-                                   }
-                                   sealed class FirstAttribute : System.Attribute
-                                   {
-                                   }
-                                   """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal int Field; /* note
+                                        continued */ [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
 
         await Verify(testData,
+                     fixedData,
                      Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
 
-        var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                   RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<AttributeListSyntax>()
-                                                               .First()
-                                                               .GetLocation());
+    /// <summary>
+    /// Verifies that the code fix indents the member correctly when a second attribute list starts on the
+    /// continuation line of a first, multi-line attribute list. The second list's own first token begins its
+    /// physical line, but that line is a syntactic continuation of the multi-line list, not the declaration's own
+    /// indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixIndentsCorrectlyWhenSecondAttributeListStartsOnMultiLineListsContinuationLine()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First(
+                                        1)]|} {|#1:[Second]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                    internal FirstAttribute(int value) { }
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First(
+                                         1)]
+                                     [Second]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                     internal FirstAttribute(int value) { }
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
 
-        Assert.IsEmpty(actions);
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix indents the member correctly when the attribute list follows a multi-line
+    /// parameter list that ends on the attribute's own physical line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixIndentsCorrectlyWhenAttributeListFollowsMultiLineParameterList()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M(int a,
+                                                    int b) { } {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M(int a,
+                                                     int b) { } [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix indents the member correctly when the attribute list follows a multi-line field
+    /// initializer that ends on the attribute's own physical line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixIndentsCorrectlyWhenAttributeListFollowsMultiLineInitializer()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private int Pad =
+                                        1 + 2; {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private int Pad =
+                                         1 + 2; [First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
     }
 
     #endregion // Tests
