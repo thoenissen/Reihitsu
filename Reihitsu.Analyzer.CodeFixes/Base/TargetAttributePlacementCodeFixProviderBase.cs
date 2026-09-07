@@ -100,29 +100,16 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             // empty when another token precedes the list on the same physical line (the whitespace belongs to
             // that token's trailing trivia instead), and it resolves to an earlier line's indentation when a
             // directive in the leading trivia swallows the preceding end-of-line. Reading the source line that
-            // contains the list's start position sidesteps both cases, unless that line is itself the
-            // continuation of a multi-line trivia (for example a block comment) that started on an earlier
-            // line: its leading whitespace is then the comment's own internal alignment, not code indentation,
-            // so the original leading-trivia scan is used instead. That scan still measures correctly here,
-            // because a multi-line trivia carries no top-level end-of-line trivia of its own, so the scan finds
-            // whichever end-of-line trivia precedes it
+            // contains the list's start position sidesteps both cases. TryGetFixableAttributeList withholds the
+            // fix whenever that line is itself the continuation of a multi-line trivia or token, so by the time
+            // this method runs, the line's own leading whitespace is always genuine code indentation
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var line = sourceText.Lines.GetLineFromPosition(attributeList.SpanStart);
-            var overlappingTrivia = root.FindTrivia(line.Start);
-            var lineStartsInsideMultiLineTrivia = overlappingTrivia.RawKind != 0 && overlappingTrivia.SpanStart < line.Start;
+            var leadingWhitespace = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
 
-            if (lineStartsInsideMultiLineTrivia)
+            if (leadingWhitespace.Length > 0)
             {
-                trailingTrivia = trailingTrivia.AddRange(SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia()));
-            }
-            else
-            {
-                var leadingWhitespace = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
-
-                if (leadingWhitespace.Length > 0)
-                {
-                    trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(leadingWhitespace));
-                }
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(leadingWhitespace));
             }
 
             updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);
@@ -137,6 +124,33 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         var updatedRoot = root.ReplaceTokens([closeBracket, tokenAfter], (original, _) => original == closeBracket ? updatedCloseBracket : updatedTokenAfter);
 
         return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Determines whether the source line an attribute list starts on is itself the continuation of a multi-line
+    /// trivia or token that began on an earlier line
+    /// </summary>
+    /// <param name="root">Root</param>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when the line is a continuation of an earlier multi-line construct</returns>
+    private static bool LineStartsInsideMultiLineConstruct(SyntaxNode root, AttributeListSyntax attributeList)
+    {
+        var sourceText = attributeList.SyntaxTree?.GetText();
+
+        if (sourceText == null)
+        {
+            return false;
+        }
+
+        var line = sourceText.Lines.GetLineFromPosition(attributeList.SpanStart);
+        var overlappingTrivia = root.FindTrivia(line.Start);
+
+        if (overlappingTrivia.RawKind != 0 && overlappingTrivia.SpanStart < line.Start)
+        {
+            return true;
+        }
+
+        return root.FindToken(line.Start).Span.Start < line.Start;
     }
 
     /// <summary>
@@ -176,6 +190,19 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         }
 
         placementMode = ResolvePlacementMode(attributeList);
+
+        // A SeparateLine fix derives the inserted line's indentation from the leading whitespace of the source
+        // line the attribute list starts on. That is only genuine code indentation when the line starts fresh;
+        // when it is itself the continuation of a multi-line trivia (for example a block comment) or a
+        // multi-line token (for example a raw or verbatim string literal) that began on an earlier line, the
+        // "leading whitespace" is that construct's own internal alignment instead. There is no general way to
+        // recover the declaration's real indentation from such a line, so the fix stays unregistered rather than
+        // guessing
+        if (placementMode == TargetAttributePlacementMode.SeparateLine
+            && LineStartsInsideMultiLineConstruct(root, attributeList))
+        {
+            return false;
+        }
 
         return true;
     }

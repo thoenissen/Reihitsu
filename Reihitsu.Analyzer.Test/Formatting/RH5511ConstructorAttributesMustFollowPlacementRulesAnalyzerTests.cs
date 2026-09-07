@@ -283,13 +283,14 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix uses the declaration's own indentation, rather than the physical line's literal
-    /// leading whitespace, when the attribute list's line is itself the continuation of a multi-line comment that
-    /// started on an earlier line. That whitespace is the comment's own internal alignment, not code indentation
+    /// Verifies that the diagnostic is still reported, but no code fix is offered, when the attribute list's line
+    /// is itself the continuation of a multi-line comment that started on an earlier line. The physical line's
+    /// leading whitespace is then the comment's own internal alignment, not code indentation, and there is no
+    /// general way to recover the declaration's real indentation from it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixUsesDeclarationIndentationWhenLineBeginsInsideMultiLineComment()
+    public async Task VerifyDiagnosticWithoutCodeFixWhenLineBeginsInsideMultiLineComment()
     {
         const string testData = """
                                 internal class Example
@@ -301,21 +302,115 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                 {
                                 }
                                 """;
-        const string fixedData = """
-                                 internal class Example
-                                 {
-                                     /* note
-                                            continued */ [First]
-                                     internal Example() { }
-                                 }
-                                 sealed class FirstAttribute : System.Attribute
-                                 {
-                                 }
-                                 """;
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       /* note
+                                              continued */ [First] internal Example() { }
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
 
         await Verify(testData,
-                     fixedData,
                      Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic is still reported, but no code fix is offered, when the attribute list's line
+    /// is itself the continuation of a multi-line verbatim string literal that started on an earlier line. Unlike
+    /// a multi-line comment, this continuation is part of a token's own span rather than trivia, so it needs its
+    /// own guard
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenLineBeginsInsideMultiLineVerbatimString()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private const string Text = @"a
+                                          b"; {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       private const string Text = @"a
+                                             b"; [First] internal Example() { }
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic is still reported, but no code fix is offered, when another declaration
+    /// precedes a multi-line comment on the comment's own starting line. The comment then carries no leading
+    /// end-of-line trivia of its own to anchor on, and the attribute list's leading trivia is empty
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenTokenPrecedesMultiLineCommentOnSameLine()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal int Field; /* note
+                                       continued */ {|#0:[First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       internal int Field; /* note
+                                          continued */ [First] internal Example() { }
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
