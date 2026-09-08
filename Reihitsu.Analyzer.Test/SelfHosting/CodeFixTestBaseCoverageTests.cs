@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,23 +17,6 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 [TestClass]
 public class CodeFixTestBaseCoverageTests
 {
-    #region Fields
-
-    /// <summary>
-    /// Migration ledger of the test classes that still derive from
-    /// <see cref="AnalyzerTestsBase{TAnalyzer, TCodeFix}"/> directly, because the compiler cannot prevent that
-    /// inside the same assembly.
-    /// <para>
-    /// This list is temporary. It is scheduled for deletion together with this field's last entry: every
-    /// migration pull request removes the classes it migrates, and the final one removes the list and this
-    /// remark with it. Nothing may ever be added here — a new test class picks one of the two code-fix test
-    /// bases from the start
-    /// </para>
-    /// </summary>
-    private static readonly IReadOnlySet<string> _notYetMigratedTestClasses = new HashSet<string>(StringComparer.Ordinal);
-
-    #endregion // Fields
-
     #region Methods
 
     /// <summary>
@@ -84,36 +66,13 @@ public class CodeFixTestBaseCoverageTests
 
         Assert.IsNotEmpty(testClasses);
 
-        var findings = testClasses.Where(testClass => testClass.CodeFixTestsBaseDefinition is null
-                                                      && _notYetMigratedTestClasses.Contains(testClass.TestClassType.FullName) is false)
+        var findings = testClasses.Where(testClass => testClass.CodeFixTestsBaseDefinition is null)
                                   .Select(testClass => $"{testClass.TestClassType.FullName} must derive from {GetExpectedBaseName(testClass)} ({GetSourcePath(testClass.TestClassType)})")
                                   .ToArray();
 
         if (findings.Length > 0)
         {
             Assert.Fail($"The following changes are required:\n\n{string.Join(Environment.NewLine, findings)}");
-        }
-    }
-
-    /// <summary>
-    /// Verifying the migration ledger only lists test classes that exist and are still unmigrated, so it can
-    /// only shrink and never hides a class that has already been migrated
-    /// </summary>
-    [TestMethod]
-    public void MigrationLedgerListsOnlyUnmigratedTestClasses()
-    {
-        var testClasses = AnalyzerMetadataDiscovery.DiscoverCodeFixTestClasses();
-        var unmigratedTestClasses = testClasses.Where(testClass => testClass.CodeFixTestsBaseDefinition is null)
-                                               .Select(testClass => testClass.TestClassType.FullName)
-                                               .ToHashSet(StringComparer.Ordinal);
-        var findings = _notYetMigratedTestClasses.Where(testClass => unmigratedTestClasses.Contains(testClass) is false)
-                                                 .OrderBy(testClass => testClass, StringComparer.Ordinal)
-                                                 .Select(testClass => $"{testClass} is listed in the migration ledger, but it does not exist or already derives from a code-fix test base")
-                                                 .ToArray();
-
-        if (findings.Length > 0)
-        {
-            Assert.Fail($"The following entries have to be removed from the migration ledger:\n\n{string.Join(Environment.NewLine, findings)}");
         }
     }
 
