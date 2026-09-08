@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 /// Test methods for <see cref="RH2004AccessModifierMustBeDeclaredAnalyzer"/> and <see cref="RH2004AccessModifierMustBeDeclaredCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase<RH2004AccessModifierMustBeDeclaredAnalyzer, RH2004AccessModifierMustBeDeclaredCodeFixProvider>
+public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTestsBase<RH2004AccessModifierMustBeDeclaredAnalyzer, RH2004AccessModifierMustBeDeclaredCodeFixProvider>
 {
     #region Tests
 
@@ -409,4 +409,40 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class Sample
+                                {
+                                    string {|#0:field|};
+
+                                    void {|#1:DoWork|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  internal class Sample
+                                  {
+                                      private string field;
+
+                                      private void DoWork()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        return new FixAllScenario(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

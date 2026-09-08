@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 /// Test methods for <see cref="RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer"/> and <see cref="RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer, RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider>
+public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : BatchCodeFixTestsBase<RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer, RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider>
 {
     #region Tests
 
@@ -57,4 +57,48 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class Sample
+                                {
+                                    internal void Verify()
+                                    {
+                                        Action outer = delegate{|#0:()|}
+                                        {
+                                            Action inner = delegate{|#1:()|} { };
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  internal class Sample
+                                  {
+                                      internal void Verify()
+                                      {
+                                          Action outer = delegate
+                                          {
+                                              Action inner = delegate { };
+                                          };
+                                      }
+                                  }
+                                  """;
+
+        return new FixAllScenario(testData, resultData, Diagnostics(RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH3106MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
