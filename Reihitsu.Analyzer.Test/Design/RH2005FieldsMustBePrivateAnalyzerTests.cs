@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 /// Test methods for <see cref="RH2005FieldsMustBePrivateAnalyzer"/> and <see cref="RH2005FieldsMustBePrivateCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH2005FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH2005FieldsMustBePrivateAnalyzer, RH2005FieldsMustBePrivateCodeFixProvider>
+public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH2005FieldsMustBePrivateAnalyzer, RH2005FieldsMustBePrivateCodeFixProvider>
 {
     #region Tests
 
@@ -139,4 +139,36 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH2005Fi
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                public class Sample
+                                {
+                                    public string {|#0:first|};
+
+                                    public int {|#1:second|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  public class Sample
+                                  {
+                                      private string first;
+
+                                      private int second;
+                                  }
+                                  """;
+
+        return new FixAllScenario(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

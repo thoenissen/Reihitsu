@@ -31,14 +31,7 @@ public class CodeFixTestBaseCoverageTests
     /// bases from the start
     /// </para>
     /// </summary>
-    private static readonly IReadOnlySet<string> _notYetMigratedTestClasses = new HashSet<string>(StringComparer.Ordinal)
-                                                                              {
-                                                                                  "Reihitsu.Analyzer.Test.Design.RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Design.RH2004AccessModifierMustBeDeclaredAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Design.RH2005FieldsMustBePrivateAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Design.RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests",
-                                                                                  "Reihitsu.Analyzer.Test.Design.RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests"
-                                                                              };
+    private static readonly IReadOnlySet<string> _notYetMigratedTestClasses = new HashSet<string>(StringComparer.Ordinal);
 
     #endregion // Fields
 

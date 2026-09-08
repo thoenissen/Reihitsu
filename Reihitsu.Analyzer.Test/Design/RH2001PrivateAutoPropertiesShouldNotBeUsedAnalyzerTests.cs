@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 /// Test methods for <see cref="RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer"/> and <see cref="RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
+public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
 {
     #region Tests
 
@@ -335,4 +335,48 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal class RH2001
+                                    {
+                                        public int Sum()
+                                        {
+                                            return Alpha + Beta;
+                                        }
+
+                                        private int {|#0:Alpha|} { get; set; }
+
+                                        private int {|#1:Beta|} { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources
+                                  {
+                                      internal class RH2001
+                                      {
+                                          public int Sum()
+                                          {
+                                              return _alpha + _beta;
+                                          }
+
+                                          private int _alpha;
+
+                                          private int _beta;
+                                      }
+                                  }
+                                  """;
+
+        return new FixAllScenario(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

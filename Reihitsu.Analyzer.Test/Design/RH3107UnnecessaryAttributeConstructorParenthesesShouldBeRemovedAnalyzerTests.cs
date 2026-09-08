@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 /// Test methods for <see cref="RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer"/> and <see cref="RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer, RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider>
+public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests : BatchCodeFixTestsBase<RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer, RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider>
 {
     #region Tests
 
@@ -67,4 +67,36 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                [Serializable{|#0:()|}, Obsolete{|#1:()|}]
+                                internal class Sample
+                                {
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  [Serializable, Obsolete]
+                                  internal class Sample
+                                  {
+                                  }
+                                  """;
+
+        return new FixAllScenario(testData, resultData, Diagnostics(RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH3107MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
