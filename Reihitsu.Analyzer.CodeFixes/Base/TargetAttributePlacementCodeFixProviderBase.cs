@@ -95,9 +95,21 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         {
             var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
             var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
-            var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
-            trailingTrivia = trailingTrivia.AddRange(indentationTrivia);
+            // The indentation of the inserted line is computed from the attribute list's syntactic nesting depth
+            // rather than read from source text or trivia. Text- and trivia-based derivations both have to special
+            // case every shape that can precede the list on its line or share its line — another token, a
+            // directive, a multi-line comment, a multi-line string literal, a multi-line attribute list, parameter
+            // list, or initializer — and each such case is its own way to read the wrong thing as indentation.
+            // Nesting depth answers the same question without reading any of that: it depends only on which
+            // braced scopes contain the attribute list, matching Reihitsu.Formatter's own IndentationPhase
+            var indentLevel = SyntaxIndentationUtilities.ComputeBaseIndentLevel(attributeList);
+
+            if (indentLevel > 0)
+            {
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', indentLevel * SyntaxIndentationUtilities.IndentSize)));
+            }
+
             updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);
         }
         else
@@ -110,6 +122,40 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         var updatedRoot = root.ReplaceTokens([closeBracket, tokenAfter], (original, _) => original == closeBracket ? updatedCloseBracket : updatedTokenAfter);
 
         return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Determines whether an enclosing scope that <see cref="SyntaxIndentationUtilities.ComputeBaseIndentLevel"/>
+    /// would count owns a brace the parser could not find. Such a scope silently drops out of the computed
+    /// indentation level instead of raising an error, which would strip the member's indentation on exactly the
+    /// transient, mid-edit documents where an IDE offers "Fix all in document" most often
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when an enclosing scope has a missing brace</returns>
+    private static bool HasIncompleteEnclosingScope(AttributeListSyntax attributeList)
+    {
+        for (var ancestor = attributeList.Parent; ancestor != null; ancestor = ancestor.Parent)
+        {
+            var braces = ancestor switch
+                         {
+                             BlockSyntax block => (Open: block.OpenBraceToken, Close: block.CloseBraceToken),
+                             TypeDeclarationSyntax typeDeclaration => (typeDeclaration.OpenBraceToken, typeDeclaration.CloseBraceToken),
+                             NamespaceDeclarationSyntax namespaceDeclaration => (namespaceDeclaration.OpenBraceToken, namespaceDeclaration.CloseBraceToken),
+                             EnumDeclarationSyntax enumDeclaration => (enumDeclaration.OpenBraceToken, enumDeclaration.CloseBraceToken),
+                             SwitchStatementSyntax switchStatement => (switchStatement.OpenBraceToken, switchStatement.CloseBraceToken),
+                             AccessorListSyntax accessorList => (accessorList.OpenBraceToken, accessorList.CloseBraceToken),
+                             InitializerExpressionSyntax initializer => (initializer.OpenBraceToken, initializer.CloseBraceToken),
+                             AnonymousObjectCreationExpressionSyntax anonymousObject => (anonymousObject.OpenBraceToken, anonymousObject.CloseBraceToken),
+                             _ => default((SyntaxToken Open, SyntaxToken Close)?)
+                         };
+
+            if (braces is { Open.IsMissing: true } or { Close.IsMissing: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -149,6 +195,16 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         }
 
         placementMode = ResolvePlacementMode(attributeList);
+
+        // ComputeBaseIndentLevel counts an enclosing scope by its brace pair; a scope whose brace the parser
+        // could not find silently drops out of that count instead of raising an error, understating the
+        // indentation level. There is no way to recover the intended depth from a scope the parser never closed,
+        // so the fix stays unregistered rather than guessing at a document that is still being edited
+        if (placementMode == TargetAttributePlacementMode.SeparateLine
+            && HasIncompleteEnclosingScope(attributeList))
+        {
+            return false;
+        }
 
         return true;
     }

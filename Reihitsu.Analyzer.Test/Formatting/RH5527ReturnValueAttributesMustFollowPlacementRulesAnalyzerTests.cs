@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer"/> and <see cref="RH5527ReturnValueAttributesMustFollowPlacementRulesCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : AnalyzerTestsBase<RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer, RH5527ReturnValueAttributesMustFollowPlacementRulesCodeFixProvider>
+public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : BatchCodeFixTestsBase<RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer, RH5527ReturnValueAttributesMustFollowPlacementRulesCodeFixProvider>
 {
     #region Tests
 
@@ -126,4 +126,48 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                internal class Example
+                                {
+                                    {|#0:[return: First]|} {|#1:[return: Second]|} internal int M() => 0;
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Example
+                                 {
+                                     [return: First]
+                                     [return: Second]
+                                     internal int M() => 0;
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        // The two attribute lists already share one line: under WellKnownFixAllProviders.BatchFixer both fixes
+        // are computed against the same original document. The second list's own leading trivia is empty there
+        // (the intervening whitespace belongs to the first list's close bracket's trailing trivia instead),
+        // which used to make its derived indentation zero-width
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

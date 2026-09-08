@@ -156,11 +156,12 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that the code fix preserves the attribute list's own indentation on the moved declaration
+    /// Verifies that the code fix uses the attribute list's canonical (top-level) indentation on the moved
+    /// declaration, regardless of whatever indentation the attribute list itself already happens to sit at
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixPreservesIndentationOfAttributeList()
+    public async Task VerifyCodeFixUsesCanonicalIndentationRegardlessOfTheAttributeListsOwnDepth()
     {
         const string testData = """
                                     {|#0:[assembly: First]|} internal class Example { }
@@ -170,7 +171,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
                                 """;
         const string fixedData = """
                                      [assembly: First]
-                                     internal class Example { }
+                                 internal class Example { }
                                  sealed class FirstAttribute : System.Attribute
                                  {
                                  }
