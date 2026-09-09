@@ -40,6 +40,12 @@ public sealed class FixtureRunResult
     /// </summary>
     public bool PreservedLineEnding { get; }
 
+    /// <summary>
+    /// The document path the fixture was last analyzed under. Differs from the fixture's on-disk path when a code
+    /// fix replaced the document identity, which is what lets the caller report the rename explicitly
+    /// </summary>
+    public string FinalDocumentPath { get; }
+
     #endregion // Properties
 
     #region Constructor
@@ -53,12 +59,14 @@ public sealed class FixtureRunResult
     /// <param name="originalSource">Source the fixture was analyzed from</param>
     /// <param name="finalSource">Source after the last applied code action</param>
     /// <param name="preservedLineEnding">Whether the final source still uses the arm's line ending exclusively</param>
+    /// <param name="finalDocumentPath">The document path the fixture was last analyzed under</param>
     public FixtureRunResult(FixtureOutcome outcome,
                             int iterations,
                             int registeredActions,
                             string originalSource,
                             string finalSource,
-                            bool preservedLineEnding)
+                            bool preservedLineEnding,
+                            string finalDocumentPath)
     {
         Outcome = outcome;
         Iterations = iterations;
@@ -66,6 +74,7 @@ public sealed class FixtureRunResult
         OriginalSource = originalSource;
         FinalSource = finalSource;
         PreservedLineEnding = preservedLineEnding;
+        FinalDocumentPath = finalDocumentPath;
     }
 
     #endregion // Constructor

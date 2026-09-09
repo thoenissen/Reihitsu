@@ -161,7 +161,7 @@ public static class CodeFixRunCommand
 
             foreach (var lineEnding in _lineEndings)
             {
-                var result = await FixtureRunner.RunAsync(target, source, lineEnding, maximumIterations, cancellationToken).ConfigureAwait(false);
+                var result = await FixtureRunner.RunAsync(target, source, lineEnding, maximumIterations, displayPath, cancellationToken).ConfigureAwait(false);
 
                 counters[result.Outcome] = counters.GetValueOrDefault(result.Outcome) + 1;
                 lineEndingDrifts += result.PreservedLineEnding ? 0 : 1;
@@ -223,7 +223,9 @@ public static class CodeFixRunCommand
     }
 
     /// <summary>
-    /// Writes the header, the optional line-ending note, and the diff of one fixture arm
+    /// Writes the header, the optional line-ending note, the optional document-rename note, and the diff of one
+    /// fixture arm. The header always names the fixture's on-disk path — never the document a replacing code fix
+    /// renamed it to — so a rename is visible only through the dedicated note
     /// </summary>
     /// <param name="output">Standard output writer</param>
     /// <param name="displayPath">Fixture path relative to the fixture directory</param>
@@ -238,6 +240,11 @@ public static class CodeFixRunCommand
         if (result.PreservedLineEnding == false)
         {
             output.WriteLine($"Line endings: {FixtureLineEndings.Describe(result.FinalSource)}");
+        }
+
+        if (string.Equals(result.FinalDocumentPath, displayPath, StringComparison.Ordinal) == false)
+        {
+            output.WriteLine($"Document renamed: {displayPath} -> {result.FinalDocumentPath}");
         }
 
         var diff = UnifiedDiffWriter.Generate(displayPath, result.OriginalSource, result.FinalSource);

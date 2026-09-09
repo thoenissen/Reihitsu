@@ -31,28 +31,35 @@ public static class FixtureRunner
     /// Analyzes the fixture and applies the resolved code fix until the diagnostic is no longer reported or the
     /// iteration cap is reached. Convergence is decided by the diagnostic disappearing, not by two consecutive
     /// passes producing the same text: a fixture carrying several occurrences legitimately changes on every
-    /// iteration while still converging
+    /// iteration while still converging. A fix that replaces the analyzed document's identity (for example a
+    /// rename) is followed into the next iteration under its new path, and counts as progress on its own even
+    /// when the text is unchanged, so a rename-only fix converges instead of being mistaken for an ineffective one
     /// </summary>
     /// <param name="target">Analyzer and code fix provider the diagnostic ID resolved to</param>
     /// <param name="source">Fixture source</param>
     /// <param name="lineEnding">Line ending the fixture is normalized to before it is analyzed</param>
     /// <param name="maximumIterations">Maximum number of code actions applied before the run is abandoned</param>
+    /// <param name="fixturePath">
+    /// The fixture's on-disk relative path, forward-slash separated. Used both as the
+    /// document identity the first iteration analyzes and to identify the fixture in tooling-failure messages
+    /// </param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The observations of this fixture and line-ending arm</returns>
     public static async Task<FixtureRunResult> RunAsync(CodeFixTarget target,
                                                         string source,
                                                         string lineEnding,
                                                         int maximumIterations,
+                                                        string fixturePath,
                                                         CancellationToken cancellationToken = default)
     {
         var normalized = FixtureLineEndings.Normalize(source, lineEnding);
 
         if (HasSyntaxErrors(normalized, cancellationToken))
         {
-            return Create(FixtureOutcome.ParseError, 0, 0, normalized, normalized, lineEnding);
+            return Create(FixtureOutcome.ParseError, 0, 0, normalized, normalized, lineEnding, fixturePath);
         }
 
-        var state = (Current: normalized, Iterations: 0, RegisteredActions: 0);
+        var state = (Current: normalized, DocumentPath: fixturePath, Iterations: 0, RegisteredActions: 0);
 
         while (true)
         {
@@ -62,6 +69,7 @@ public static class FixtureRunner
                                                     normalized,
                                                     lineEnding,
                                                     maximumIterations,
+                                                    fixturePath,
                                                     state,
                                                     cancellationToken).ConfigureAwait(false);
 
@@ -73,19 +81,25 @@ public static class FixtureRunner
             state.RegisteredActions = iteration.RegisteredActions;
             state.Iterations++;
 
-            if (string.Equals(iteration.AppliedSource, state.Current, StringComparison.Ordinal))
+            var madeProgress = string.Equals(iteration.AppliedSource, state.Current, StringComparison.Ordinal) == false
+                               || string.Equals(iteration.AppliedDocumentPath, state.DocumentPath, StringComparison.Ordinal) == false;
+
+            if (madeProgress == false)
             {
-                // The action produced no textual change, so another iteration would repeat it forever. This is
-                // reported apart from the cap: an ineffective fix is a defect in the rule, a cap is not.
+                // The action produced no textual or document-identity change, so another iteration would repeat
+                // it forever. This is reported apart from the cap: an ineffective fix is a defect in the rule, a
+                // cap is not.
                 return Create(FixtureOutcome.NoProgress,
                               state.Iterations,
                               state.RegisteredActions,
                               normalized,
                               state.Current,
-                              lineEnding);
+                              lineEnding,
+                              state.DocumentPath);
             }
 
             state.Current = iteration.AppliedSource;
+            state.DocumentPath = iteration.AppliedDocumentPath;
 
             if (HasSyntaxErrors(state.Current, cancellationToken))
             {
@@ -94,7 +108,8 @@ public static class FixtureRunner
                               state.RegisteredActions,
                               normalized,
                               state.Current,
-                              lineEnding);
+                              lineEnding,
+                              state.DocumentPath);
             }
         }
     }
@@ -115,25 +130,31 @@ public static class FixtureRunner
     }
 
     /// <summary>
-    /// Analyzes one iteration and either returns a terminal result or the source produced by the first code action
+    /// Analyzes one iteration and either returns a terminal result or the source and document path produced by
+    /// the first code action
     /// </summary>
     /// <param name="target">Resolved analyzer and code fix target</param>
     /// <param name="normalized">Original normalized fixture source</param>
     /// <param name="lineEnding">Requested fixture line ending</param>
     /// <param name="maximumIterations">Maximum number of code actions</param>
-    /// <param name="state">Current source, iteration count, and first action count</param>
+    /// <param name="fixturePath">
+    /// The fixture's on-disk relative path, used to identify the fixture in
+    /// tooling-failure messages
+    /// </param>
+    /// <param name="state">Current source, document path, iteration count, and first action count</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A terminal result or the source and action count for the next iteration</returns>
-    private static async Task<(FixtureRunResult TerminalResult, string AppliedSource, int RegisteredActions)> RunIterationAsync(CodeFixTarget target,
-                                                                                                                                string normalized,
-                                                                                                                                string lineEnding,
-                                                                                                                                int maximumIterations,
-                                                                                                                                (string Current, int Iterations, int RegisteredActions) state,
-                                                                                                                                CancellationToken cancellationToken)
+    /// <returns>A terminal result or the source, document path, and action count for the next iteration</returns>
+    private static async Task<(FixtureRunResult TerminalResult, string AppliedSource, string AppliedDocumentPath, int RegisteredActions)> RunIterationAsync(CodeFixTarget target,
+                                                                                                                                                            string normalized,
+                                                                                                                                                            string lineEnding,
+                                                                                                                                                            int maximumIterations,
+                                                                                                                                                            string fixturePath,
+                                                                                                                                                            (string Current, string DocumentPath, int Iterations, int RegisteredActions) state,
+                                                                                                                                                            CancellationToken cancellationToken)
     {
         using (var workspace = new AdhocWorkspace())
         {
-            var (document, documentId) = CreateDocument(workspace, state.Current);
+            var (document, documentId, projectId) = CreateDocument(workspace, state.Current, state.DocumentPath);
 
             var reported = await AnalyzeAsync(document, target, cancellationToken).ConfigureAwait(false);
 
@@ -144,7 +165,9 @@ public static class FixtureRunner
                                state.RegisteredActions,
                                normalized,
                                state.Current,
-                               lineEnding),
+                               lineEnding,
+                               state.DocumentPath),
+                        null,
                         null,
                         state.RegisteredActions);
             }
@@ -160,7 +183,7 @@ public static class FixtureRunner
 
             if (terminalResult != null)
             {
-                return (terminalResult, null, state.RegisteredActions);
+                return (terminalResult, null, null, state.RegisteredActions);
             }
 
             var actions = await RegisterActionsAsync(document, target, diagnostics[0], cancellationToken).ConfigureAwait(false);
@@ -172,15 +195,17 @@ public static class FixtureRunner
                                state.RegisteredActions,
                                normalized,
                                state.Current,
-                               lineEnding),
+                               lineEnding,
+                               state.DocumentPath),
+                        null,
                         null,
                         state.RegisteredActions);
             }
 
             var registeredActions = state.Iterations == 0 ? actions.Count : state.RegisteredActions;
-            var applied = await ApplyAsync(actions[0], documentId, cancellationToken).ConfigureAwait(false);
+            var applied = await ApplyAsync(actions[0], documentId, projectId, fixturePath, lineEnding, state.DocumentPath, cancellationToken).ConfigureAwait(false);
 
-            return (null, applied, registeredActions);
+            return (null, applied.Source, applied.DocumentPath, registeredActions);
         }
     }
 
@@ -191,13 +216,13 @@ public static class FixtureRunner
     /// <param name="normalized">Original normalized fixture source</param>
     /// <param name="lineEnding">Requested fixture line ending</param>
     /// <param name="maximumIterations">Maximum number of code actions</param>
-    /// <param name="state">Current source, iteration count, and first action count</param>
+    /// <param name="state">Current source, document path, iteration count, and first action count</param>
     /// <returns>The terminal result, or <see langword="null"/> when a code action may be applied</returns>
     private static FixtureRunResult GetDiagnosticTerminalResult(ImmutableArray<Diagnostic> diagnostics,
                                                                 string normalized,
                                                                 string lineEnding,
                                                                 int maximumIterations,
-                                                                (string Current, int Iterations, int RegisteredActions) state)
+                                                                (string Current, string DocumentPath, int Iterations, int RegisteredActions) state)
     {
         if (diagnostics.IsEmpty)
         {
@@ -206,7 +231,8 @@ public static class FixtureRunner
                           state.RegisteredActions,
                           normalized,
                           state.Current,
-                          lineEnding);
+                          lineEnding,
+                          state.DocumentPath);
         }
 
         return state.Iterations >= maximumIterations
@@ -215,7 +241,8 @@ public static class FixtureRunner
                             state.RegisteredActions,
                             normalized,
                             state.Current,
-                            lineEnding)
+                            lineEnding,
+                            state.DocumentPath)
                    : null;
     }
 
@@ -228,20 +255,23 @@ public static class FixtureRunner
     /// <param name="originalSource">Source the fixture was analyzed from</param>
     /// <param name="finalSource">Source after the last applied code action</param>
     /// <param name="lineEnding">Line ending the arm requested</param>
+    /// <param name="finalDocumentPath">The document path the fixture was last analyzed under</param>
     /// <returns>The fixture run result</returns>
     private static FixtureRunResult Create(FixtureOutcome outcome,
                                            int iterations,
                                            int registeredActions,
                                            string originalSource,
                                            string finalSource,
-                                           string lineEnding)
+                                           string lineEnding,
+                                           string finalDocumentPath)
     {
         return new FixtureRunResult(outcome,
                                     iterations,
                                     registeredActions,
                                     originalSource,
                                     finalSource,
-                                    FixtureLineEndings.UsesOnly(finalSource, lineEnding));
+                                    FixtureLineEndings.UsesOnly(finalSource, lineEnding),
+                                    finalDocumentPath);
     }
 
     /// <summary>
@@ -286,38 +316,88 @@ public static class FixtureRunner
     }
 
     /// <summary>
-    /// Applies a code action and returns the resulting document text
+    /// Applies a code action and returns the resulting document text and path. A code fix that replaces the
+    /// document's identity (for example a rename) removes the original <see cref="DocumentId"/> rather than
+    /// changing its text, so the fixture project's remaining document is resolved as a fallback instead of
+    /// treating that shape as a tooling failure
     /// </summary>
     /// <param name="action">Code action to apply</param>
     /// <param name="documentId">Identifier of the document the action changes</param>
+    /// <param name="projectId">
+    /// Identifier of the fixture project, used to find a replacement document when the
+    /// original identifier no longer resolves
+    /// </param>
+    /// <param name="fixturePath">
+    /// The fixture's on-disk relative path, named in the failure message when the
+    /// applied solution carries no single resolvable fixture document
+    /// </param>
+    /// <param name="lineEnding">Requested fixture line ending, named in the failure message</param>
+    /// <param name="currentDocumentPath">The document path the action was applied to</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The source text after the action was applied</returns>
-    private static async Task<string> ApplyAsync(CodeAction action, DocumentId documentId, CancellationToken cancellationToken)
+    /// <returns>The source text and document path after the action was applied</returns>
+    private static async Task<(string Source, string DocumentPath)> ApplyAsync(CodeAction action,
+                                                                               DocumentId documentId,
+                                                                               ProjectId projectId,
+                                                                               string fixturePath,
+                                                                               string lineEnding,
+                                                                               string currentDocumentPath,
+                                                                               CancellationToken cancellationToken)
     {
         var operations = await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
         var applyChanges = operations.OfType<ApplyChangesOperation>().FirstOrDefault()
                                ?? throw new InvalidOperationException("The code action registered no document change.");
-        var changedDocument = applyChanges.ChangedSolution.GetDocument(documentId)
-                                  ?? throw new InvalidOperationException("Failed to resolve the changed fixture document.");
+        var changedDocument = applyChanges.ChangedSolution.GetDocument(documentId);
+        var documentPath = currentDocumentPath;
+
+        if (changedDocument == null)
+        {
+            var documents = applyChanges.ChangedSolution.GetProject(projectId)?.Documents.ToImmutableArray() ?? [];
+
+            if (documents.Length != 1)
+            {
+                throw new InvalidOperationException($"Failed to resolve the fixture document for '{fixturePath}' [{FixtureLineEndings.GetName(lineEnding)}]: "
+                                                    + $"expected exactly one document after the code action but found {documents.Length}.");
+            }
+
+            changedDocument = documents[0];
+            documentPath = BuildDocumentPath(changedDocument);
+        }
+
         var text = await changedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return text.ToString();
+        return (text.ToString(), documentPath);
     }
 
     /// <summary>
-    /// Creates an ad-hoc document for the fixture source. References come from the running host rather than from
-    /// a package restore, so the runner needs no network access
+    /// Builds a forward-slash separated document path from a document's folders and name
+    /// </summary>
+    /// <param name="document">Document to describe</param>
+    /// <returns>The document's folders and name joined with <c>/</c></returns>
+    private static string BuildDocumentPath(Document document)
+    {
+        return document.Folders.Count == 0 ? document.Name : string.Join('/', document.Folders.Append(document.Name));
+    }
+
+    /// <summary>
+    /// Creates an ad-hoc document for the fixture source, named after the fixture's own document path so that
+    /// analyzers reading the document's file name (such as RH4001) observe the fixture's real identity instead of
+    /// a constant. References come from the running host rather than from a package restore, so the runner needs
+    /// no network access
     /// </summary>
     /// <param name="workspace">Workspace hosting the document</param>
     /// <param name="source">Fixture source</param>
-    /// <returns>The created document and its identifier</returns>
-    private static (Document Document, DocumentId DocumentId) CreateDocument(AdhocWorkspace workspace, string source)
+    /// <param name="documentPath">Forward-slash separated document path the fixture is currently analyzed under</param>
+    /// <returns>The created document, its identifier, and its project's identifier</returns>
+    private static (Document Document, DocumentId DocumentId, ProjectId ProjectId) CreateDocument(AdhocWorkspace workspace, string source, string documentPath)
     {
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
         var trustedPlatformAssemblies = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
         var references = (trustedPlatformAssemblies?.Split(Path.PathSeparator) ?? []).Where(path => string.IsNullOrEmpty(path) == false)
                                                                                      .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path));
+        var separatorIndex = documentPath.LastIndexOf('/');
+        var name = separatorIndex < 0 ? documentPath : documentPath[(separatorIndex + 1)..];
+        var folders = separatorIndex < 0 ? (ImmutableArray<string>)[] : [.. documentPath[..separatorIndex].Split('/')];
         var solution = workspace.CurrentSolution
                                 .AddProject(ProjectInfo.Create(projectId,
                                                                VersionStamp.Create(),
@@ -326,11 +406,11 @@ public static class FixtureRunner
                                                                LanguageNames.CSharp,
                                                                parseOptions: new CSharpParseOptions(LanguageVersion.Latest),
                                                                metadataReferences: references))
-                                .AddDocument(documentId, "Fixture.cs", SourceText.From(source));
+                                .AddDocument(documentId, name, SourceText.From(source), folders, documentPath);
         var document = solution.GetDocument(documentId)
                            ?? throw new InvalidOperationException("Failed to create the fixture document.");
 
-        return (document, documentId);
+        return (document, documentId, projectId);
     }
 
     #endregion // Methods

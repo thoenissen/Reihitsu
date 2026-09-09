@@ -61,7 +61,11 @@ The target is named by **diagnostic ID**, because `FixableDiagnosticIds` and `Su
 
 Fixtures are only read, and paths resolve against the caller's working directory, so a read-only workflow keeps its fixture directory outside the repository and deletes it afterwards. The whole directory is one invocation: process startup is paid once, not once per candidate. Every fixture is run twice, normalized to LF and to CRLF, because the two differ in the trivia the code reads rather than only in the bytes.
 
-Each arm prints a header, an optional line-ending note, and the unified diff from the fixture's input to the final text, followed by one quotable `CODE-FIX RUN: …` summary line. The status token is the sweep's observation:
+Everything after a literal `--` is forwarded to the runner as-is by both wrappers, so a fixture directory that is itself named like an option (`--no-install`, for example) still reaches the runner instead of being consumed as the wrapper's own flag.
+
+Each fixture is analyzed under its own on-disk relative path rather than a constant placeholder, so a rule that reads the document's file name (RH4001, for example) observes the fixture's real identity. A code fix that replaces the document's identity instead of only its text — RH4001's rename is the shipped example — is followed into the next iteration under its new name; the rename counts as progress on its own, so a rename-only fix still converges rather than being reported as `no-progress`. The arm header always names the fixture's on-disk path, never the renamed document, and an arm whose analyzed document was renamed prints one additional `Document renamed: <before> -> <after>` line.
+
+Each arm prints a header, an optional line-ending note, an optional document-rename note, and the unified diff from the fixture's input to the final text, followed by one quotable `CODE-FIX RUN: …` summary line. The status token is the sweep's observation:
 
 | Status | Meaning |
 |---|---|

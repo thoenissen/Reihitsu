@@ -21,12 +21,23 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 install_arguments=()
 runner_arguments=()
+positional_only=0
 
 for argument in "$@"; do
-    case "$argument" in
-        --no-install) install_arguments+=("$argument") ;;
-        *) runner_arguments+=("$argument") ;;
-    esac
+    if [[ "$positional_only" -eq 0 && "$argument" == "--" ]]; then
+        positional_only=1
+        runner_arguments+=("$argument")
+
+        continue
+    fi
+
+    if [[ "$positional_only" -eq 0 && "$argument" == "--no-install" ]]; then
+        install_arguments+=("$argument")
+
+        continue
+    fi
+
+    runner_arguments+=("$argument")
 done
 
 if ! reihitsu_ensure_dotnet "${install_arguments[@]+"${install_arguments[@]}"}" --quiet; then

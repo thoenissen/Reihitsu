@@ -125,6 +125,85 @@ public sealed class CodeFixRunCommandTests
             Assert.Contains("-    private int _first, _second;", output);
             Assert.Contains("+    private int _first;", output);
             Assert.Contains("+    private int _second;", output);
+            Assert.DoesNotContain("Document renamed:", output);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a code fix which renames the document instead of the original (RH4001) resolves the
+    /// replacement, reports it under a supported outcome instead of a tooling failure, keeps reporting the
+    /// on-disk fixture path in the arm header, and states the rename explicitly. A fixture whose name already
+    /// matches its type is swept in the same run and must report no-diagnostic, which is only possible once the
+    /// analyzed document carries the fixture's own name instead of a constant
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncResolvesRenamedDocumentAfterDocumentReplacingCodeFix()
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            fixture.CreateFile("Mismatch.cs", "internal class Sample\n{\n}\n");
+            fixture.CreateFile("Matching.cs", "internal class Matching\n{\n}\n");
+
+            // Act
+            var (exitCode, output, _) = await RunAsync("RH4001", fixture.Path);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.Contains("== Mismatch.cs [LF] == fixed (1 action(s), 1 iteration(s))", output);
+            Assert.Contains("== Mismatch.cs [CRLF] == fixed (1 action(s), 1 iteration(s))", output);
+            Assert.Contains("Document renamed: Mismatch.cs -> Sample.cs", output);
+            Assert.Contains("== Matching.cs [LF] == no-diagnostic", output);
+            Assert.Contains("== Matching.cs [CRLF] == no-diagnostic", output);
+            Assert.DoesNotContain("Failed to resolve the changed fixture document", output);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a fix which renames the underlying symbol through <c>Renamer</c> rather than replacing the
+    /// document (RH2001) keeps the original document identity, so no rename line is ever emitted for it
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncReportsRH2001WithoutDocumentRename()
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            fixture.CreateFile("auto.cs", "internal class Sample\n{\n    private bool PrivateAutoProperty { get; set; }\n}\n");
+
+            // Act
+            var (exitCode, output, _) = await RunAsync("RH2001", fixture.Path);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.Contains("== auto.cs [LF] == fixed (1 action(s), 1 iteration(s))", output);
+            Assert.DoesNotContain("Document renamed:", output);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that RH8402 stays unreachable through the runner even though the analyzed document now carries a
+    /// real file path: the rule needs configured additional files that the ad-hoc fixture project never supplies,
+    /// so the document-identity change must not make it reachable as a side effect
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncReportsRH8402AsNoDiagnostic()
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            fixture.CreateFile("NoHeader.cs", "internal class NoHeader\n{\n}\n");
+
+            // Act
+            var (exitCode, output, _) = await RunAsync("RH8402", fixture.Path);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.Contains("== NoHeader.cs [LF] == no-diagnostic", output);
+            Assert.Contains("== NoHeader.cs [CRLF] == no-diagnostic", output);
         }
     }
 
