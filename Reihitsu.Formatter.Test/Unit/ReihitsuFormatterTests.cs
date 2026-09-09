@@ -317,7 +317,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> normalizes documentation newlines to the predominant source style
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> normalizes documentation newlines to the predominant source style and remains idempotent after serialization and reparsing
     /// </summary>
     [TestMethod]
     public void FormatSyntaxTreeNormalizesDocumentationNewlinesToPredominantStyle()
@@ -342,10 +342,23 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         {
             var tree = CSharpSyntaxTree.ParseText(testCase.Input, cancellationToken: TestContext.CancellationToken);
             var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+            var firstPass = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(testCase.Expected,
-                            result.GetRoot(TestContext.CancellationToken).ToFullString(),
+                            firstPass,
                             $"Documentation newlines should normalize to predominant {testCase.Description} input.");
+
+            var reparsedTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
+
+            Assert.DoesNotContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error,
+                                  reparsedTree.GetDiagnostics(TestContext.CancellationToken),
+                                  $"Reparsed {testCase.Description} output should not have syntax errors.");
+
+            var secondResult = ReihitsuFormatter.FormatSyntaxTree(reparsedTree, TestContext.CancellationToken);
+
+            Assert.AreEqual(firstPass,
+                            secondResult.GetRoot(TestContext.CancellationToken).ToFullString(),
+                            $"Documentation newlines should be idempotent under {testCase.Description} input after reparsing.");
         }
     }
 
