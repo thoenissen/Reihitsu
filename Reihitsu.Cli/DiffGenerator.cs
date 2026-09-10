@@ -17,13 +17,6 @@ internal static class DiffGenerator
     /// </summary>
     private const string NoNewlineMarker = "\\ No newline at end of file";
 
-    /// <summary>
-    /// Internal sentinel appended to the last line of a side that lacks a trailing newline so that an unterminated
-    /// last line is distinct from an otherwise identical terminated line; it is stripped before output and replaced
-    /// by the marker, which makes the diff render mismatched terminations as a delete and an insert, not a context line
-    /// </summary>
-    private const string NoNewlineSentinel = "￼NO-NEWLINE-AT-END-OF-FILE￼";
-
     #endregion // Constants
 
     #region Methods
@@ -61,32 +54,35 @@ internal static class DiffGenerator
     }
 
     /// <summary>
-    /// Splits content into diff lines, encoding the trailing-newline state into the last line
+    /// Splits content into diff lines, carrying the trailing-newline state alongside each line's own text
     /// </summary>
     /// <param name="content">The content to split</param>
-    /// <returns>The diff lines, with the last line carrying the no-newline sentinel when the content has no trailing newline</returns>
-    private static string[] ToDiffLines(string content)
+    /// <returns>The diff lines, with the last line marked unterminated when the content has no trailing newline</returns>
+    private static DiffLine[] ToDiffLines(string content)
     {
         var lines = LineSplitter.Split(content);
+        var isTerminated = EndsWithLineBreak(content);
 
         if (lines.Length == 0)
         {
-            return lines;
+            return [];
         }
 
-        if (EndsWithLineBreak(content))
+        if (isTerminated)
         {
             // A trailing line break produces an empty final element; drop it so a terminated file is not treated as
             // having an extra blank line.
             Array.Resize(ref lines, lines.Length - 1);
         }
-        else
+
+        var diffLines = new DiffLine[lines.Length];
+
+        for (var index = 0; index < lines.Length; index++)
         {
-            // Mark the last line as unterminated so it is not considered equal to a terminated identical line.
-            lines[^1] += NoNewlineSentinel;
+            diffLines[index] = new DiffLine(lines[index], index < lines.Length - 1 || isTerminated);
         }
 
-        return lines;
+        return diffLines;
     }
 
     /// <summary>
@@ -96,7 +92,7 @@ internal static class DiffGenerator
     /// <param name="hunk">The diff hunk to render</param>
     /// <param name="originalLines">The original lines array</param>
     /// <param name="formattedLines">The formatted lines array</param>
-    private static void AppendHunk(StringBuilder builder, DiffHunk hunk, string[] originalLines, string[] formattedLines)
+    private static void AppendHunk(StringBuilder builder, DiffHunk hunk, DiffLine[] originalLines, DiffLine[] formattedLines)
     {
         builder.AppendLine($"@@ -{FormatRange(hunk.OriginalStart, hunk.OriginalCount)} +{FormatRange(hunk.FormattedStart, hunk.FormattedCount)} @@");
 
@@ -126,21 +122,18 @@ internal static class DiffGenerator
     }
 
     /// <summary>
-    /// Appends a single diff line, stripping the no-newline sentinel and emitting the marker when present
+    /// Appends a single diff line, emitting the no-newline marker when the line is unterminated
     /// </summary>
     /// <param name="builder">The string builder to append to</param>
     /// <param name="prefix">The unified-diff line prefix (space, '-' or '+')</param>
-    /// <param name="line">The diff line, possibly carrying the no-newline sentinel</param>
-    private static void AppendLine(StringBuilder builder, char prefix, string line)
+    /// <param name="line">The diff line to render</param>
+    private static void AppendLine(StringBuilder builder, char prefix, DiffLine line)
     {
-        if (line.EndsWith(NoNewlineSentinel, StringComparison.Ordinal))
+        builder.AppendLine($"{prefix}{line.Text}");
+
+        if (line.IsTerminated == false)
         {
-            builder.AppendLine($"{prefix}{line[..^NoNewlineSentinel.Length]}");
             builder.AppendLine(NoNewlineMarker);
-        }
-        else
-        {
-            builder.AppendLine($"{prefix}{line}");
         }
     }
 

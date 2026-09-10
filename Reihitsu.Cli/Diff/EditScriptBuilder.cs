@@ -27,7 +27,7 @@ internal static class EditScriptBuilder
     /// <param name="originalLines">The original lines</param>
     /// <param name="formattedLines">The formatted lines</param>
     /// <returns>A list of edit operations describing the differences</returns>
-    public static List<EditOperation> Build(string[] originalLines, string[] formattedLines)
+    public static List<EditOperation> Build(DiffLine[] originalLines, DiffLine[] formattedLines)
     {
         var originalLength = originalLines.Length;
         var formattedLength = formattedLines.Length;
@@ -61,12 +61,12 @@ internal static class EditScriptBuilder
     /// <param name="originalLines">The original lines</param>
     /// <param name="formattedLines">The formatted lines</param>
     /// <returns>The length of the common prefix</returns>
-    private static int ComputeCommonPrefixLength(string[] originalLines, string[] formattedLines)
+    private static int ComputeCommonPrefixLength(DiffLine[] originalLines, DiffLine[] formattedLines)
     {
         var maximum = Math.Min(originalLines.Length, formattedLines.Length);
         var length = 0;
 
-        while (length < maximum && string.Equals(originalLines[length], formattedLines[length], StringComparison.Ordinal))
+        while (length < maximum && originalLines[length].Equals(formattedLines[length]))
         {
             length++;
         }
@@ -81,14 +81,14 @@ internal static class EditScriptBuilder
     /// <param name="formattedLines">The formatted lines</param>
     /// <param name="prefixLength">The length of the common prefix already consumed</param>
     /// <returns>The length of the common suffix</returns>
-    private static int ComputeCommonSuffixLength(string[] originalLines, string[] formattedLines, int prefixLength)
+    private static int ComputeCommonSuffixLength(DiffLine[] originalLines, DiffLine[] formattedLines, int prefixLength)
     {
         var maximum = Math.Min(originalLines.Length, formattedLines.Length) - prefixLength;
         var length = 0;
 
         while (length < maximum)
         {
-            if (string.Equals(originalLines[originalLines.Length - 1 - length], formattedLines[formattedLines.Length - 1 - length], StringComparison.Ordinal) == false)
+            if (originalLines[originalLines.Length - 1 - length].Equals(formattedLines[formattedLines.Length - 1 - length]) == false)
             {
                 break;
             }
@@ -107,7 +107,7 @@ internal static class EditScriptBuilder
     /// <param name="formattedLines">The formatted lines</param>
     /// <param name="prefixLength">The length of the common prefix</param>
     /// <param name="suffixLength">The length of the common suffix</param>
-    private static void AppendChangedRegion(List<EditOperation> operations, string[] originalLines, string[] formattedLines, int prefixLength, int suffixLength)
+    private static void AppendChangedRegion(List<EditOperation> operations, DiffLine[] originalLines, DiffLine[] formattedLines, int prefixLength, int suffixLength)
     {
         var originalCount = originalLines.Length - suffixLength - prefixLength;
         var formattedCount = formattedLines.Length - suffixLength - prefixLength;
@@ -127,8 +127,8 @@ internal static class EditScriptBuilder
             return;
         }
 
-        var originalRegion = new string[originalCount];
-        var formattedRegion = new string[formattedCount];
+        var originalRegion = new DiffLine[originalCount];
+        var formattedRegion = new DiffLine[formattedCount];
 
         Array.Copy(originalLines, prefixLength, originalRegion, 0, originalCount);
         Array.Copy(formattedLines, prefixLength, formattedRegion, 0, formattedCount);
@@ -163,7 +163,7 @@ internal static class EditScriptBuilder
     /// <param name="originalRegion">The original lines of the changed region</param>
     /// <param name="formattedRegion">The formatted lines of the changed region</param>
     /// <param name="offset">The offset to add to indices so they refer back into the full arrays</param>
-    private static void AppendLcsBacktrack(List<EditOperation> operations, string[] originalRegion, string[] formattedRegion, int offset)
+    private static void AppendLcsBacktrack(List<EditOperation> operations, DiffLine[] originalRegion, DiffLine[] formattedRegion, int offset)
     {
         var table = LcsComputer.ComputeTable(originalRegion, formattedRegion);
         var changes = new List<EditOperation>();
@@ -172,7 +172,7 @@ internal static class EditScriptBuilder
 
         while (originalPosition > 0 || formattedPosition > 0)
         {
-            if (originalPosition > 0 && formattedPosition > 0 && string.Equals(originalRegion[originalPosition - 1], formattedRegion[formattedPosition - 1], StringComparison.Ordinal))
+            if (originalPosition > 0 && formattedPosition > 0 && originalRegion[originalPosition - 1].Equals(formattedRegion[formattedPosition - 1]))
             {
                 changes.Add(new EditOperation(EditKind.Equal, offset + originalPosition - 1, offset + formattedPosition - 1));
 

@@ -18,7 +18,7 @@ public class LcsComputerTests
     [TestMethod]
     public void ComputeTableIdenticalLinesReturnsCorrectTable()
     {
-        var lines = new[] { "a", "b", "c" };
+        var lines = ToDiffLines("a", "b", "c");
 
         var table = LcsComputer.ComputeTable(lines, lines);
 
@@ -33,8 +33,8 @@ public class LcsComputerTests
     [TestMethod]
     public void ComputeTableCompletelyDifferentLinesReturnsZeroDiagonal()
     {
-        var original = new[] { "a", "b", "c" };
-        var formatted = new[] { "x", "y", "z" };
+        var original = ToDiffLines("a", "b", "c");
+        var formatted = ToDiffLines("x", "y", "z");
 
         var table = LcsComputer.ComputeTable(original, formatted);
 
@@ -49,8 +49,8 @@ public class LcsComputerTests
     [TestMethod]
     public void ComputeTableEmptyOriginalReturnsZeroRow()
     {
-        var original = Array.Empty<string>();
-        var formatted = new[] { "a", "b", "c" };
+        var original = Array.Empty<DiffLine>();
+        var formatted = ToDiffLines("a", "b", "c");
 
         var table = LcsComputer.ComputeTable(original, formatted);
 
@@ -68,8 +68,8 @@ public class LcsComputerTests
     [TestMethod]
     public void ComputeTableEmptyFormattedReturnsZeroColumn()
     {
-        var original = new[] { "a", "b", "c" };
-        var formatted = Array.Empty<string>();
+        var original = ToDiffLines("a", "b", "c");
+        var formatted = Array.Empty<DiffLine>();
 
         var table = LcsComputer.ComputeTable(original, formatted);
 
@@ -87,8 +87,8 @@ public class LcsComputerTests
     [TestMethod]
     public void ComputeTablePartialOverlapReturnsCorrectLengths()
     {
-        var original = new[] { "a", "b", "c", "d" };
-        var formatted = new[] { "a", "x", "c", "d" };
+        var original = ToDiffLines("a", "b", "c", "d");
+        var formatted = ToDiffLines("a", "x", "c", "d");
 
         var table = LcsComputer.ComputeTable(original, formatted);
 
@@ -97,6 +97,17 @@ public class LcsComputerTests
 
         // After matching "a" at [1,1]
         Assert.AreEqual(1, table[1, 1]);
+    }
+
+    /// <summary>
+    /// Converts plain line text into terminated <see cref="DiffLine"/> values for tests that only exercise LCS table
+    /// computation and are indifferent to termination state
+    /// </summary>
+    /// <param name="texts">The line texts</param>
+    /// <returns>A <see cref="DiffLine"/> array with every line marked terminated</returns>
+    private static DiffLine[] ToDiffLines(params string[] texts)
+    {
+        return Array.ConvertAll(texts, text => new DiffLine(text, true));
     }
 
     #endregion // Methods

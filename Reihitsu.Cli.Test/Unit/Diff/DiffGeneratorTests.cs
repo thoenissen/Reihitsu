@@ -387,5 +387,183 @@ public class DiffGeneratorTests
                         result);
     }
 
+    /// <summary>
+    /// Verifies that a terminated final line whose authored text equals the internal no-newline sentinel renders
+    /// verbatim under lone-carriage-return line endings, not only under LF and CRLF
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersTerminatedFinalLineContainingSentinelLikeTextVerbatimLoneCr()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs",
+                                            $"class A\r{{\r}}\r// {SentinelLikeAuthoredText}\r",
+                                            $"class B\r{{\r}}\r// {SentinelLikeAuthoredText}\r");
+
+        // Assert
+        Assert.AreEqual("--- a/test.cs\n"
+                        + "+++ b/test.cs\n"
+                        + "@@ -1,4 +1,4 @@\n"
+                        + "-class A\n"
+                        + "+class B\n"
+                        + " {\n"
+                        + " }\n"
+                        + $" // {SentinelLikeAuthoredText}\n",
+                        result);
+    }
+
+    /// <summary>
+    /// Verifies that removing a non-final line whose authored text equals the internal no-newline sentinel renders
+    /// the line verbatim as a deletion, without truncating it or emitting a false no-newline marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersDeletedNonFinalLineContainingSentinelLikeTextVerbatim()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", $"a\n// {SentinelLikeAuthoredText}\nb\n", "a\nb\n");
+
+        // Assert
+        Assert.Contains($"-// {SentinelLikeAuthoredText}\n", result);
+        Assert.DoesNotContain("\\ No newline at end of file", result);
+    }
+
+    /// <summary>
+    /// Verifies that inserting a non-final line whose authored text equals the internal no-newline sentinel renders
+    /// the line verbatim as an insertion, without truncating it or emitting a false no-newline marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersInsertedNonFinalLineContainingSentinelLikeTextVerbatim()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", "a\nb\n", $"a\n// {SentinelLikeAuthoredText}\nb\n");
+
+        // Assert
+        Assert.Contains($"+// {SentinelLikeAuthoredText}\n", result);
+        Assert.DoesNotContain("\\ No newline at end of file", result);
+    }
+
+    /// <summary>
+    /// Verifies that two adjacent non-final lines whose authored text equals the internal no-newline sentinel both
+    /// render verbatim as context, without truncation or a false no-newline marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersAdjacentSentinelLikeContextLinesVerbatim()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs",
+                                            $"a\n// {SentinelLikeAuthoredText}\n// {SentinelLikeAuthoredText}\nb\n",
+                                            $"a\n// {SentinelLikeAuthoredText}\n// {SentinelLikeAuthoredText}\nc\n");
+
+        // Assert
+        var contextLineCount = result.Split('\n').Count(line => line == $" // {SentinelLikeAuthoredText}");
+
+        Assert.AreEqual(2, contextLineCount);
+        Assert.Contains("-b\n", result);
+        Assert.Contains("+c\n", result);
+        Assert.DoesNotContain("\\ No newline at end of file", result);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line unterminated file and a multi-line terminated file whose final line's authored
+    /// text equals the internal no-newline sentinel never compare equal at the common-prefix stage
+    /// </summary>
+    [TestMethod]
+    public void GenerateDistinguishesUnterminatedContentFromTerminatedSentinelLikeContentAtCommonPrefix()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", "a\nb\n}", $"a\nb\n}}{SentinelLikeAuthoredText}\n");
+
+        // Assert
+        Assert.AreNotEqual(string.Empty, result);
+        Assert.Contains("-}\n", result);
+        Assert.Contains("\\ No newline at end of file\n", result);
+        Assert.Contains($"+}}{SentinelLikeAuthoredText}\n", result);
+    }
+
+    /// <summary>
+    /// Verifies that an unterminated line and a terminated line whose authored text equals the internal no-newline
+    /// sentinel never compare equal at the common-suffix stage, even when an earlier line also differs
+    /// </summary>
+    [TestMethod]
+    public void GenerateDistinguishesUnterminatedContentFromTerminatedSentinelLikeContentAtCommonSuffix()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", "A\n}", $"B\n}}{SentinelLikeAuthoredText}\n");
+
+        // Assert
+        Assert.Contains("-A\n", result);
+        Assert.Contains("-}\n", result);
+        Assert.Contains("\\ No newline at end of file\n", result);
+        Assert.Contains("+B\n", result);
+        Assert.Contains($"+}}{SentinelLikeAuthoredText}\n", result);
+        Assert.DoesNotContain($" }}{SentinelLikeAuthoredText}", result);
+    }
+
+    /// <summary>
+    /// Verifies that an unterminated line and a terminated line whose authored text equals the internal no-newline
+    /// sentinel never compare equal inside the LCS-backtracked changed region
+    /// </summary>
+    [TestMethod]
+    public void GenerateDistinguishesUnterminatedContentFromTerminatedSentinelLikeContentInLcsRegion()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", "p\n}", $"q\n}}{SentinelLikeAuthoredText}\nr\n");
+
+        // Assert
+        Assert.Contains("-}\n", result);
+        Assert.Contains("\\ No newline at end of file\n", result);
+        Assert.Contains($"+}}{SentinelLikeAuthoredText}\n", result);
+        Assert.DoesNotContain($" }}{SentinelLikeAuthoredText}", result);
+    }
+
+    /// <summary>
+    /// Verifies that an unterminated final line whose authored text already ends with the internal no-newline
+    /// sentinel still renders with the full authored text and exactly one no-newline marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersUnterminatedFinalLineAlreadyEndingInSentinelLikeTextVerbatim()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", $"x\n}}{SentinelLikeAuthoredText}", $"y\n}}{SentinelLikeAuthoredText}");
+
+        // Assert
+        Assert.AreEqual("--- a/test.cs\n"
+                        + "+++ b/test.cs\n"
+                        + "@@ -1,2 +1,2 @@\n"
+                        + "-x\n"
+                        + "+y\n"
+                        + $" }}{SentinelLikeAuthoredText}\n"
+                        + "\\ No newline at end of file\n",
+                        result);
+    }
+
+    /// <summary>
+    /// Verifies that authored text containing the sentinel text away from the end of the line never renders as
+    /// unterminated, since only a line ending with the exact sentinel text is eligible for misclassification
+    /// </summary>
+    [TestMethod]
+    public void GenerateDoesNotTreatSentinelLikeTextInMiddleOfLineAsUnterminated()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", $"a\n{SentinelLikeAuthoredText} tail\nb\n", $"a\n{SentinelLikeAuthoredText} tail\nc\n");
+
+        // Assert
+        Assert.Contains($" {SentinelLikeAuthoredText} tail\n", result);
+        Assert.DoesNotContain("\\ No newline at end of file", result);
+    }
+
+    /// <summary>
+    /// Verifies that content differing only in line endings still produces an empty diff when a line's authored
+    /// text equals the internal no-newline sentinel, so line-ending-only changes stay a no-op
+    /// </summary>
+    [TestMethod]
+    public void GenerateLineEndingOnlyChangeWithSentinelLikeLineStaysEmptyDiff()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", $"a\r\n// {SentinelLikeAuthoredText}\r\nb\r\n", $"a\n// {SentinelLikeAuthoredText}\nb\n");
+
+        // Assert
+        Assert.AreEqual(string.Empty, result);
+    }
+
     #endregion // Methods
 }

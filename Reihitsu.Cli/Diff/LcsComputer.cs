@@ -13,7 +13,7 @@ internal static class LcsComputer
     /// <param name="originalLines">The original lines</param>
     /// <param name="formattedLines">The formatted lines</param>
     /// <returns>A two-dimensional LCS length table</returns>
-    public static int[,] ComputeTable(string[] originalLines, string[] formattedLines)
+    public static int[,] ComputeTable(DiffLine[] originalLines, DiffLine[] formattedLines)
     {
         var originalLength = originalLines.Length;
         var formattedLength = formattedLines.Length;
@@ -23,7 +23,7 @@ internal static class LcsComputer
         {
             for (var column = 1; column <= formattedLength; column++)
             {
-                if (string.Equals(originalLines[row - 1], formattedLines[column - 1], StringComparison.Ordinal))
+                if (originalLines[row - 1].Equals(formattedLines[column - 1]))
                 {
                     table[row, column] = table[row - 1, column - 1] + 1;
                 }
