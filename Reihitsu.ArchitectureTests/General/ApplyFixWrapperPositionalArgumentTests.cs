@@ -14,6 +14,7 @@ namespace Reihitsu.ArchitectureTests.General;
 /// instead of being swallowed as the wrapper's own install-skip option
 /// </summary>
 [TestClass]
+[DoNotParallelize]
 public sealed class ApplyFixWrapperPositionalArgumentTests
 {
     #region Constants

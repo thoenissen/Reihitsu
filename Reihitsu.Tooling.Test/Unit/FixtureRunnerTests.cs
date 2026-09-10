@@ -211,7 +211,7 @@ public sealed class FixtureRunnerTests
     public async Task RunAsyncConvergesWhenOnlyTheDocumentNameChanges()
     {
         // Arrange
-        var target = CreateTarget(new TextReportingFakeAnalyzer(source => source.Contains("Sample", StringComparison.Ordinal) == false),
+        var target = CreateTarget(new DocumentPathReportingFakeAnalyzer(filePath => filePath.EndsWith("Fixture.cs", StringComparison.Ordinal)),
                                   new DocumentReplacingFakeCodeFix(_ => "Renamed.cs"));
 
         // Act

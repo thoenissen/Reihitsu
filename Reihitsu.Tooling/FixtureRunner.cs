@@ -23,6 +23,22 @@ public static class FixtureRunner
     /// </summary>
     private const string AnalyzerFailureDiagnosticId = "AD0001";
 
+    /// <summary>
+    /// Global analyzer-config content that disables Roslyn's own generated-code heuristic. Every fixture is now
+    /// named after its real on-disk path (see <see cref="CreateDocument"/>), and without this override a fixture
+    /// whose name happens to match a generated-file pattern (<c>*.g.cs</c>, <c>*.designer.cs</c>, …) would be
+    /// silently skipped by every rule that opts out of generated-code analysis — exactly the "silently skipped
+    /// fixture is indistinguishable from a fixture that reports nothing" failure this runner exists to avoid
+    /// </summary>
+    private const string DisableGeneratedCodeHeuristicConfig = "is_global = true\ngenerated_code = false\n";
+
+    /// <summary>
+    /// Placeholder path for the analyzer-config document. Roslyn requires an absolute path to parse an
+    /// analyzer-config document, but a global config applies to every tree in the project regardless of location,
+    /// so the path itself carries no meaning beyond satisfying that requirement
+    /// </summary>
+    private const string AnalyzerConfigPath = "/fixture-project/.globalconfig";
+
     #endregion // Constants
 
     #region Methods
@@ -287,7 +303,7 @@ public static class FixtureRunner
     {
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false)
                               ?? throw new InvalidOperationException("Failed to compile the fixture document.");
-        var diagnostics = await compilation.WithAnalyzers(target.Analyzers)
+        var diagnostics = await compilation.WithAnalyzers(target.Analyzers, document.Project.AnalyzerOptions)
                                            .GetAnalyzerDiagnosticsAsync(cancellationToken)
                                            .ConfigureAwait(false);
 
@@ -381,8 +397,10 @@ public static class FixtureRunner
     /// <summary>
     /// Creates an ad-hoc document for the fixture source, named after the fixture's own document path so that
     /// analyzers reading the document's file name (such as RH4001) observe the fixture's real identity instead of
-    /// a constant. References come from the running host rather than from a package restore, so the runner needs
-    /// no network access
+    /// a constant. The project also carries a global analyzer config that disables Roslyn's own generated-code
+    /// heuristic, so a fixture whose real name looks generated is still analyzed like every other fixture.
+    /// References come from the running host rather than from a package restore, so the runner needs no network
+    /// access
     /// </summary>
     /// <param name="workspace">Workspace hosting the document</param>
     /// <param name="source">Fixture source</param>
@@ -392,6 +410,7 @@ public static class FixtureRunner
     {
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
+        var configId = DocumentId.CreateNewId(projectId);
         var trustedPlatformAssemblies = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
         var references = (trustedPlatformAssemblies?.Split(Path.PathSeparator) ?? []).Where(path => string.IsNullOrEmpty(path) == false)
                                                                                      .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path));
@@ -406,7 +425,8 @@ public static class FixtureRunner
                                                                LanguageNames.CSharp,
                                                                parseOptions: new CSharpParseOptions(LanguageVersion.Latest),
                                                                metadataReferences: references))
-                                .AddDocument(documentId, name, SourceText.From(source), folders, documentPath);
+                                .AddDocument(documentId, name, SourceText.From(source), folders, documentPath)
+                                .AddAnalyzerConfigDocument(configId, ".globalconfig", SourceText.From(DisableGeneratedCodeHeuristicConfig), filePath: AnalyzerConfigPath);
         var document = solution.GetDocument(documentId)
                            ?? throw new InvalidOperationException("Failed to create the fixture document.");
 
