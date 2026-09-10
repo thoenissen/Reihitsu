@@ -13,8 +13,8 @@ public class DiffGeneratorTests
     #region Constants
 
     /// <summary>
-    /// The internal no-newline sentinel text, written out literally so a test can plant it inside authored source
-    /// without seeing <see cref="DiffGenerator"/>'s own private constant
+    /// Authored text matching what used to be <see cref="DiffGenerator"/>'s internal no-newline sentinel before this
+    /// text-encoded representation was replaced by an out-of-band termination flag
     /// </summary>
     private const string SentinelLikeAuthoredText = "￼NO-NEWLINE-AT-END-OF-FILE￼";
 
@@ -308,14 +308,14 @@ public class DiffGeneratorTests
                                             $"class B\n{{\n}}\n// {SentinelLikeAuthoredText}\n");
 
         // Assert
-        Assert.AreEqual("--- a/test.cs\n"
-                        + "+++ b/test.cs\n"
-                        + "@@ -1,4 +1,4 @@\n"
-                        + "-class A\n"
-                        + "+class B\n"
-                        + " {\n"
-                        + " }\n"
-                        + $" // {SentinelLikeAuthoredText}\n",
+        Assert.AreEqual(ExpectedDiff("--- a/test.cs",
+                                     "+++ b/test.cs",
+                                     "@@ -1,4 +1,4 @@",
+                                     "-class A",
+                                     "+class B",
+                                     " {",
+                                     " }",
+                                     $" // {SentinelLikeAuthoredText}"),
                         result);
     }
 
@@ -332,14 +332,14 @@ public class DiffGeneratorTests
                                             $"class B\r\n{{\r\n}}\r\n// {SentinelLikeAuthoredText}\r\n");
 
         // Assert
-        Assert.AreEqual("--- a/test.cs\n"
-                        + "+++ b/test.cs\n"
-                        + "@@ -1,4 +1,4 @@\n"
-                        + "-class A\n"
-                        + "+class B\n"
-                        + " {\n"
-                        + " }\n"
-                        + $" // {SentinelLikeAuthoredText}\n",
+        Assert.AreEqual(ExpectedDiff("--- a/test.cs",
+                                     "+++ b/test.cs",
+                                     "@@ -1,4 +1,4 @@",
+                                     "-class A",
+                                     "+class B",
+                                     " {",
+                                     " }",
+                                     $" // {SentinelLikeAuthoredText}"),
                         result);
     }
 
@@ -356,13 +356,13 @@ public class DiffGeneratorTests
                                             $"a\n// {SentinelLikeAuthoredText}\nc\n");
 
         // Assert
-        Assert.AreEqual("--- a/test.cs\n"
-                        + "+++ b/test.cs\n"
-                        + "@@ -1,3 +1,3 @@\n"
-                        + " a\n"
-                        + $" // {SentinelLikeAuthoredText}\n"
-                        + "-b\n"
-                        + "+c\n",
+        Assert.AreEqual(ExpectedDiff("--- a/test.cs",
+                                     "+++ b/test.cs",
+                                     "@@ -1,3 +1,3 @@",
+                                     " a",
+                                     $" // {SentinelLikeAuthoredText}",
+                                     "-b",
+                                     "+c"),
                         result);
     }
 
@@ -378,12 +378,12 @@ public class DiffGeneratorTests
         var result = DiffGenerator.Generate("test.cs", "}", $"}}{SentinelLikeAuthoredText}\n");
 
         // Assert
-        Assert.AreEqual("--- a/test.cs\n"
-                        + "+++ b/test.cs\n"
-                        + "@@ -1,1 +1,1 @@\n"
-                        + "-}\n"
-                        + "\\ No newline at end of file\n"
-                        + $"+}}{SentinelLikeAuthoredText}\n",
+        Assert.AreEqual(ExpectedDiff("--- a/test.cs",
+                                     "+++ b/test.cs",
+                                     "@@ -1,1 +1,1 @@",
+                                     "-}",
+                                     "\\ No newline at end of file",
+                                     $"+}}{SentinelLikeAuthoredText}"),
                         result);
     }
 
@@ -400,14 +400,14 @@ public class DiffGeneratorTests
                                             $"class B\r{{\r}}\r// {SentinelLikeAuthoredText}\r");
 
         // Assert
-        Assert.AreEqual("--- a/test.cs\n"
-                        + "+++ b/test.cs\n"
-                        + "@@ -1,4 +1,4 @@\n"
-                        + "-class A\n"
-                        + "+class B\n"
-                        + " {\n"
-                        + " }\n"
-                        + $" // {SentinelLikeAuthoredText}\n",
+        Assert.AreEqual(ExpectedDiff("--- a/test.cs",
+                                     "+++ b/test.cs",
+                                     "@@ -1,4 +1,4 @@",
+                                     "-class A",
+                                     "+class B",
+                                     " {",
+                                     " }",
+                                     $" // {SentinelLikeAuthoredText}"),
                         result);
     }
 
@@ -422,7 +422,7 @@ public class DiffGeneratorTests
         var result = DiffGenerator.Generate("test.cs", $"a\n// {SentinelLikeAuthoredText}\nb\n", "a\nb\n");
 
         // Assert
-        Assert.Contains($"-// {SentinelLikeAuthoredText}\n", result);
+        Assert.Contains(Line($"-// {SentinelLikeAuthoredText}"), result);
         Assert.DoesNotContain("\\ No newline at end of file", result);
     }
 
@@ -437,7 +437,7 @@ public class DiffGeneratorTests
         var result = DiffGenerator.Generate("test.cs", "a\nb\n", $"a\n// {SentinelLikeAuthoredText}\nb\n");
 
         // Assert
-        Assert.Contains($"+// {SentinelLikeAuthoredText}\n", result);
+        Assert.Contains(Line($"+// {SentinelLikeAuthoredText}"), result);
         Assert.DoesNotContain("\\ No newline at end of file", result);
     }
 
@@ -454,11 +454,11 @@ public class DiffGeneratorTests
                                             $"a\n// {SentinelLikeAuthoredText}\n// {SentinelLikeAuthoredText}\nc\n");
 
         // Assert
-        var contextLineCount = result.Split('\n').Count(line => line == $" // {SentinelLikeAuthoredText}");
+        var contextLineCount = result.Split(Environment.NewLine).Count(line => line == $" // {SentinelLikeAuthoredText}");
 
         Assert.AreEqual(2, contextLineCount);
-        Assert.Contains("-b\n", result);
-        Assert.Contains("+c\n", result);
+        Assert.Contains(Line("-b"), result);
+        Assert.Contains(Line("+c"), result);
         Assert.DoesNotContain("\\ No newline at end of file", result);
     }
 
@@ -474,9 +474,9 @@ public class DiffGeneratorTests
 
         // Assert
         Assert.AreNotEqual(string.Empty, result);
-        Assert.Contains("-}\n", result);
-        Assert.Contains("\\ No newline at end of file\n", result);
-        Assert.Contains($"+}}{SentinelLikeAuthoredText}\n", result);
+        Assert.Contains(Line("-}"), result);
+        Assert.Contains(Line("\\ No newline at end of file"), result);
+        Assert.Contains(Line($"+}}{SentinelLikeAuthoredText}"), result);
     }
 
     /// <summary>
@@ -490,11 +490,11 @@ public class DiffGeneratorTests
         var result = DiffGenerator.Generate("test.cs", "A\n}", $"B\n}}{SentinelLikeAuthoredText}\n");
 
         // Assert
-        Assert.Contains("-A\n", result);
-        Assert.Contains("-}\n", result);
-        Assert.Contains("\\ No newline at end of file\n", result);
-        Assert.Contains("+B\n", result);
-        Assert.Contains($"+}}{SentinelLikeAuthoredText}\n", result);
+        Assert.Contains(Line("-A"), result);
+        Assert.Contains(Line("-}"), result);
+        Assert.Contains(Line("\\ No newline at end of file"), result);
+        Assert.Contains(Line("+B"), result);
+        Assert.Contains(Line($"+}}{SentinelLikeAuthoredText}"), result);
         Assert.DoesNotContain($" }}{SentinelLikeAuthoredText}", result);
     }
 
@@ -509,9 +509,9 @@ public class DiffGeneratorTests
         var result = DiffGenerator.Generate("test.cs", "p\n}", $"q\n}}{SentinelLikeAuthoredText}\nr\n");
 
         // Assert
-        Assert.Contains("-}\n", result);
-        Assert.Contains("\\ No newline at end of file\n", result);
-        Assert.Contains($"+}}{SentinelLikeAuthoredText}\n", result);
+        Assert.Contains(Line("-}"), result);
+        Assert.Contains(Line("\\ No newline at end of file"), result);
+        Assert.Contains(Line($"+}}{SentinelLikeAuthoredText}"), result);
         Assert.DoesNotContain($" }}{SentinelLikeAuthoredText}", result);
     }
 
@@ -526,13 +526,13 @@ public class DiffGeneratorTests
         var result = DiffGenerator.Generate("test.cs", $"x\n}}{SentinelLikeAuthoredText}", $"y\n}}{SentinelLikeAuthoredText}");
 
         // Assert
-        Assert.AreEqual("--- a/test.cs\n"
-                        + "+++ b/test.cs\n"
-                        + "@@ -1,2 +1,2 @@\n"
-                        + "-x\n"
-                        + "+y\n"
-                        + $" }}{SentinelLikeAuthoredText}\n"
-                        + "\\ No newline at end of file\n",
+        Assert.AreEqual(ExpectedDiff("--- a/test.cs",
+                                     "+++ b/test.cs",
+                                     "@@ -1,2 +1,2 @@",
+                                     "-x",
+                                     "+y",
+                                     $" }}{SentinelLikeAuthoredText}",
+                                     "\\ No newline at end of file"),
                         result);
     }
 
@@ -547,7 +547,7 @@ public class DiffGeneratorTests
         var result = DiffGenerator.Generate("test.cs", $"a\n{SentinelLikeAuthoredText} tail\nb\n", $"a\n{SentinelLikeAuthoredText} tail\nc\n");
 
         // Assert
-        Assert.Contains($" {SentinelLikeAuthoredText} tail\n", result);
+        Assert.Contains(Line($" {SentinelLikeAuthoredText} tail"), result);
         Assert.DoesNotContain("\\ No newline at end of file", result);
     }
 
@@ -563,6 +563,28 @@ public class DiffGeneratorTests
 
         // Assert
         Assert.AreEqual(string.Empty, result);
+    }
+
+    /// <summary>
+    /// Builds the expected output of a rendered diff line, using the platform's own line separator so assertions
+    /// stay correct regardless of whether <see cref="Environment.NewLine"/> is LF or CRLF
+    /// </summary>
+    /// <param name="text">The rendered line's text, without a trailing separator</param>
+    /// <returns><paramref name="text"/> followed by <see cref="Environment.NewLine"/></returns>
+    private static string Line(string text)
+    {
+        return text + Environment.NewLine;
+    }
+
+    /// <summary>
+    /// Builds the expected output of a complete rendered diff from its individual lines, using the platform's own
+    /// line separator so assertions stay correct regardless of whether <see cref="Environment.NewLine"/> is LF or CRLF
+    /// </summary>
+    /// <param name="lines">The rendered lines, each without a trailing separator</param>
+    /// <returns>The concatenation of every line, each followed by <see cref="Environment.NewLine"/></returns>
+    private static string ExpectedDiff(params string[] lines)
+    {
+        return string.Concat(lines.Select(Line));
     }
 
     #endregion // Methods
