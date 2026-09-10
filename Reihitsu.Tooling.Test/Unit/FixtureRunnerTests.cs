@@ -229,6 +229,35 @@ public sealed class FixtureRunnerTests
     }
 
     /// <summary>
+    /// Verifies that the source of a document-replacing fix's replacement is what the runner reports, not the
+    /// pre-fix text carried forward unchanged. A fix that both renames and edits text is exactly the shape the
+    /// fallback resolution in <see cref="FixtureRunner.RunAsync"/> must read from the replacement document rather
+    /// than from the stale prior iteration state
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsReplacementTextFromADocumentReplacingFix()
+    {
+        // Arrange
+        var target = CreateTarget(new DocumentPathReportingFakeAnalyzer(filePath => filePath.EndsWith("Fixture.cs", StringComparison.Ordinal)),
+                                  new DocumentReplacingFakeCodeFix(_ => "Renamed.cs",
+                                                                   source => source.Replace("Sample", "Renamed", StringComparison.Ordinal)));
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.LineFeed,
+                                                  10,
+                                                  "Fixture.cs",
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.AreEqual("Renamed.cs", result.FinalDocumentPath);
+        Assert.AreEqual("internal class Renamed\n{\n}\n", result.FinalSource);
+    }
+
+    /// <summary>
     /// Verifies that a fix which renames the document back and forth forever, without ever stopping the diagnostic,
     /// still stops at the iteration cap rather than looping forever now that a rename counts as progress
     /// </summary>
