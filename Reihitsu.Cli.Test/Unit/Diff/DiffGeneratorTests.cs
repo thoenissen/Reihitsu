@@ -10,6 +10,16 @@ namespace Reihitsu.Cli.Test.Unit.Diff;
 [TestClass]
 public class DiffGeneratorTests
 {
+    #region Constants
+
+    /// <summary>
+    /// The internal no-newline sentinel text, written out literally so a test can plant it inside authored source
+    /// without seeing <see cref="DiffGenerator"/>'s own private constant
+    /// </summary>
+    private const string SentinelLikeAuthoredText = "￼NO-NEWLINE-AT-END-OF-FILE￼";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -283,6 +293,98 @@ public class DiffGeneratorTests
         Assert.IsTrue(lines.Contains("-b"));
         Assert.IsTrue(lines.Contains("+b"));
         Assert.IsTrue(lines.Contains("+c"));
+    }
+
+    /// <summary>
+    /// Verifies that an unchanged, newline-terminated final line whose authored text happens to equal the internal
+    /// no-newline sentinel renders verbatim, without truncating the comment or emitting a false no-newline marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersTerminatedFinalLineContainingSentinelLikeTextVerbatim()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs",
+                                            $"class A\n{{\n}}\n// {SentinelLikeAuthoredText}\n",
+                                            $"class B\n{{\n}}\n// {SentinelLikeAuthoredText}\n");
+
+        // Assert
+        Assert.AreEqual("--- a/test.cs\n"
+                        + "+++ b/test.cs\n"
+                        + "@@ -1,4 +1,4 @@\n"
+                        + "-class A\n"
+                        + "+class B\n"
+                        + " {\n"
+                        + " }\n"
+                        + $" // {SentinelLikeAuthoredText}\n",
+                        result);
+    }
+
+    /// <summary>
+    /// Verifies that an unchanged, CRLF-terminated final line whose authored text happens to equal the internal
+    /// no-newline sentinel renders verbatim, without truncating the comment or emitting a false no-newline marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersTerminatedFinalLineContainingSentinelLikeTextVerbatimCrlf()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs",
+                                            $"class A\r\n{{\r\n}}\r\n// {SentinelLikeAuthoredText}\r\n",
+                                            $"class B\r\n{{\r\n}}\r\n// {SentinelLikeAuthoredText}\r\n");
+
+        // Assert
+        Assert.AreEqual("--- a/test.cs\n"
+                        + "+++ b/test.cs\n"
+                        + "@@ -1,4 +1,4 @@\n"
+                        + "-class A\n"
+                        + "+class B\n"
+                        + " {\n"
+                        + " }\n"
+                        + $" // {SentinelLikeAuthoredText}\n",
+                        result);
+    }
+
+    /// <summary>
+    /// Verifies that a non-final line whose authored text equals the internal no-newline sentinel renders verbatim
+    /// and never emits the no-newline marker, which only a genuinely unterminated final line may carry
+    /// </summary>
+    [TestMethod]
+    public void GenerateRendersNonFinalLineContainingSentinelLikeTextVerbatim()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs",
+                                            $"a\n// {SentinelLikeAuthoredText}\nb\n",
+                                            $"a\n// {SentinelLikeAuthoredText}\nc\n");
+
+        // Assert
+        Assert.AreEqual("--- a/test.cs\n"
+                        + "+++ b/test.cs\n"
+                        + "@@ -1,3 +1,3 @@\n"
+                        + " a\n"
+                        + $" // {SentinelLikeAuthoredText}\n"
+                        + "-b\n"
+                        + "+c\n",
+                        result);
+    }
+
+    /// <summary>
+    /// Verifies that an unterminated line and a terminated line whose authored text equals the internal no-newline
+    /// sentinel never compare equal, so a real change is rendered as a change rather than collapsed into one
+    /// context line. The comparison key has to carry termination state, not only line text
+    /// </summary>
+    [TestMethod]
+    public void GenerateDistinguishesUnterminatedContentFromTerminatedContentEndingInSentinelLikeText()
+    {
+        // Act
+        var result = DiffGenerator.Generate("test.cs", "}", $"}}{SentinelLikeAuthoredText}\n");
+
+        // Assert
+        Assert.AreEqual("--- a/test.cs\n"
+                        + "+++ b/test.cs\n"
+                        + "@@ -1,1 +1,1 @@\n"
+                        + "-}\n"
+                        + "\\ No newline at end of file\n"
+                        + $"+}}{SentinelLikeAuthoredText}\n",
+                        result);
     }
 
     #endregion // Methods
