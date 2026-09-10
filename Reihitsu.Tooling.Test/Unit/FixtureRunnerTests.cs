@@ -54,6 +54,7 @@ public sealed class FixtureRunnerTests
                                                   CombinedFieldSource,
                                                   FixtureLineEndings.LineFeed,
                                                   10,
+                                                  "Fixture.cs",
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -78,6 +79,7 @@ public sealed class FixtureRunnerTests
                                                   CombinedFieldSource,
                                                   FixtureLineEndings.CarriageReturnLineFeed,
                                                   10,
+                                                  "Fixture.cs",
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -118,6 +120,7 @@ public sealed class FixtureRunnerTests
                                                   "internal class Sample\n{\n}\n",
                                                   FixtureLineEndings.LineFeed,
                                                   10,
+                                                  "Fixture.cs",
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -141,6 +144,7 @@ public sealed class FixtureRunnerTests
                                                   "internal class Sample\n{\n}\n",
                                                   FixtureLineEndings.LineFeed,
                                                   10,
+                                                  "Fixture.cs",
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -166,6 +170,7 @@ public sealed class FixtureRunnerTests
                                                   "internal class Sample\n{\n}\n",
                                                   FixtureLineEndings.CarriageReturnLineFeed,
                                                   10,
+                                                  "Fixture.cs",
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -189,11 +194,142 @@ public sealed class FixtureRunnerTests
                                                   "internal class Sample\n{\n}\n",
                                                   FixtureLineEndings.LineFeed,
                                                   10,
+                                                  "Fixture.cs",
                                                   TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(FixtureOutcome.AnalyzerFailure, result.Outcome);
         Assert.AreEqual(0, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a fix which only renames the document (identical text, different name) counts as progress and
+    /// converges once the renamed document is no longer reported, rather than being classified as no-progress
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncConvergesWhenOnlyTheDocumentNameChanges()
+    {
+        // Arrange
+        var target = CreateTarget(new DocumentPathReportingFakeAnalyzer(filePath => filePath.EndsWith("Fixture.cs", StringComparison.Ordinal)),
+                                  new DocumentReplacingFakeCodeFix(_ => "Renamed.cs"));
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.LineFeed,
+                                                  10,
+                                                  "Fixture.cs",
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+        Assert.AreEqual("Renamed.cs", result.FinalDocumentPath);
+    }
+
+    /// <summary>
+    /// Verifies that the source of a document-replacing fix's replacement is what the runner reports, not the
+    /// pre-fix text carried forward unchanged. A fix that both renames and edits text is exactly the shape the
+    /// fallback resolution in <see cref="FixtureRunner.RunAsync"/> must read from the replacement document rather
+    /// than from the stale prior iteration state
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsReplacementTextFromADocumentReplacingFix()
+    {
+        // Arrange
+        var target = CreateTarget(new DocumentPathReportingFakeAnalyzer(filePath => filePath.EndsWith("Fixture.cs", StringComparison.Ordinal)),
+                                  new DocumentReplacingFakeCodeFix(_ => "Renamed.cs",
+                                                                   source => source.Replace("Sample", "Renamed", StringComparison.Ordinal)));
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.LineFeed,
+                                                  10,
+                                                  "Fixture.cs",
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.AreEqual("Renamed.cs", result.FinalDocumentPath);
+        Assert.AreEqual("internal class Renamed\n{\n}\n", result.FinalSource);
+    }
+
+    /// <summary>
+    /// Verifies that a fix which renames the document back and forth forever, without ever stopping the diagnostic,
+    /// still stops at the iteration cap rather than looping forever now that a rename counts as progress
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsNotConvergedWhenRenamesNeverStabilize()
+    {
+        // Arrange
+        var target = CreateTarget(new TextReportingFakeAnalyzer(_ => true),
+                                  new DocumentReplacingFakeCodeFix(name => name == "A.cs" ? "B.cs" : "A.cs"));
+
+        // Act
+        var result = await FixtureRunner.RunAsync(target,
+                                                  "internal class Sample\n{\n}\n",
+                                                  FixtureLineEndings.LineFeed,
+                                                  3,
+                                                  "A.cs",
+                                                  TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.NotConverged, result.Outcome);
+        Assert.AreEqual(3, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a fix leaving the fixture project with no candidate document is reported through the
+    /// exception message rather than an unhandled resolution failure, naming the fixture, the arm, and the count
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncThrowsWithFixtureDetailsWhenNoDocumentRemains()
+    {
+        // Arrange
+        var target = CreateTarget(new TextReportingFakeAnalyzer(_ => true), new DocumentCountChangingFakeCodeFix(0));
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => FixtureRunner.RunAsync(target,
+                                                                                                                "internal class Sample\n{\n}\n",
+                                                                                                                FixtureLineEndings.LineFeed,
+                                                                                                                10,
+                                                                                                                "Mismatch.cs",
+                                                                                                                TestContext.CancellationToken));
+
+        // Assert
+        Assert.Contains("Mismatch.cs", exception.Message);
+        Assert.Contains("LF", exception.Message);
+        Assert.Contains("0", exception.Message);
+    }
+
+    /// <summary>
+    /// Verifies that a fix leaving the fixture project with two candidate documents is reported through the
+    /// exception message rather than silently picking one, naming the fixture, the arm, and the count
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncThrowsWithFixtureDetailsWhenTwoDocumentsRemain()
+    {
+        // Arrange
+        var target = CreateTarget(new TextReportingFakeAnalyzer(_ => true), new DocumentCountChangingFakeCodeFix(2));
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => FixtureRunner.RunAsync(target,
+                                                                                                                "internal class Sample\n{\n}\n",
+                                                                                                                FixtureLineEndings.LineFeed,
+                                                                                                                10,
+                                                                                                                "Mismatch.cs",
+                                                                                                                TestContext.CancellationToken));
+
+        // Assert
+        Assert.Contains("Mismatch.cs", exception.Message);
+        Assert.Contains("LF", exception.Message);
+        Assert.Contains("2", exception.Message);
     }
 
     /// <summary>

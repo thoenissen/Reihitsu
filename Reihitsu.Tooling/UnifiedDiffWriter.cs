@@ -14,12 +14,6 @@ public static class UnifiedDiffWriter
     /// </summary>
     private const string NoNewlineMarker = "\\ No newline at end of file";
 
-    /// <summary>
-    /// Internal sentinel appended to an unterminated last line so it differs from an otherwise identical terminated
-    /// line during comparison; it is stripped before output and replaced by <see cref="NoNewlineMarker"/>
-    /// </summary>
-    private const string NoNewlineSentinel = "￼NO-NEWLINE-AT-END-OF-FILE￼";
-
     #endregion // Constants
 
     #region Methods
@@ -56,38 +50,41 @@ public static class UnifiedDiffWriter
     }
 
     /// <summary>
-    /// Splits content into diff lines, encoding the trailing-newline state into the last line
+    /// Splits content into diff lines, carrying the trailing-newline state as a flag on the last line rather than
+    /// encoding it into the line's authored text. Only the last line can ever be unterminated
     /// </summary>
     /// <param name="content">Content to split</param>
-    /// <returns>The diff lines, with an unterminated last line carrying the no-newline sentinel</returns>
-    private static List<string> ToDiffLines(string content)
+    /// <returns>The diff lines, each paired with whether it is followed by a line break in the source</returns>
+    private static List<(string Text, bool IsTerminated)> ToDiffLines(string content)
     {
         var lines = FixtureLineEndings.SplitLines(content);
+        var lastLineIsTerminated = EndsWithLineBreak(content);
+        var result = new List<(string Text, bool IsTerminated)>(lines.Count);
 
-        if (lines.Count > 0 && EndsWithLineBreak(content) == false)
+        for (var index = 0; index < lines.Count; index++)
         {
-            lines[^1] += NoNewlineSentinel;
+            var isLastLine = index == lines.Count - 1;
+
+            result.Add((lines[index], isLastLine == false || lastLineIsTerminated));
         }
 
-        return lines;
+        return result;
     }
 
     /// <summary>
-    /// Appends a diff line, replacing the internal no-newline sentinel with the standard marker
+    /// Appends a diff line, rendering the authored text verbatim and emitting the no-newline marker only when the
+    /// line itself is genuinely unterminated
     /// </summary>
     /// <param name="builder">Builder receiving the line</param>
     /// <param name="kind">Unified-diff line prefix</param>
-    /// <param name="line">Line text, possibly carrying the no-newline sentinel</param>
-    private static void AppendLine(StringBuilder builder, char kind, string line)
+    /// <param name="line">Line text and its termination state</param>
+    private static void AppendLine(StringBuilder builder, char kind, (string Text, bool IsTerminated) line)
     {
-        if (line.EndsWith(NoNewlineSentinel, StringComparison.Ordinal))
+        builder.Append(kind).Append(line.Text).Append('\n');
+
+        if (line.IsTerminated == false)
         {
-            builder.Append(kind).Append(line[..^NoNewlineSentinel.Length]).Append('\n');
             builder.Append(NoNewlineMarker).Append('\n');
-        }
-        else
-        {
-            builder.Append(kind).Append(line).Append('\n');
         }
     }
 
@@ -102,21 +99,24 @@ public static class UnifiedDiffWriter
     }
 
     /// <summary>
-    /// Compares two line sequences and yields each line with its unified-diff prefix
+    /// Compares two line sequences and yields each line with its unified-diff prefix. Two lines are equal only
+    /// when both their text and their termination state match, so a real change in trailing-newline state is
+    /// never collapsed into an unchanged context line
     /// </summary>
     /// <param name="beforeLines">Lines before the fix</param>
     /// <param name="afterLines">Lines after the fix</param>
     /// <returns>The prefixed lines, in output order</returns>
-    private static List<(char Kind, string Line)> Compare(List<string> beforeLines, List<string> afterLines)
+    private static List<(char Kind, (string Text, bool IsTerminated) Line)> Compare(List<(string Text, bool IsTerminated)> beforeLines,
+                                                                                    List<(string Text, bool IsTerminated)> afterLines)
     {
         var commonLength = ComputeCommonSubsequenceLengths(beforeLines, afterLines);
-        var result = new List<(char Kind, string Line)>();
+        var result = new List<(char Kind, (string Text, bool IsTerminated) Line)>();
         var beforeIndex = 0;
         var afterIndex = 0;
 
         while (beforeIndex < beforeLines.Count && afterIndex < afterLines.Count)
         {
-            if (string.Equals(beforeLines[beforeIndex], afterLines[afterIndex], StringComparison.Ordinal))
+            if (LinesEqual(beforeLines[beforeIndex], afterLines[afterIndex]))
             {
                 result.Add((' ', beforeLines[beforeIndex]));
                 beforeIndex++;
@@ -155,7 +155,7 @@ public static class UnifiedDiffWriter
     /// <param name="beforeLines">Lines before the fix</param>
     /// <param name="afterLines">Lines after the fix</param>
     /// <returns>A table whose entry [i, j] is the common length of the suffixes starting at i and j</returns>
-    private static int[,] ComputeCommonSubsequenceLengths(List<string> beforeLines, List<string> afterLines)
+    private static int[,] ComputeCommonSubsequenceLengths(List<(string Text, bool IsTerminated)> beforeLines, List<(string Text, bool IsTerminated)> afterLines)
     {
         var lengths = new int[beforeLines.Count + 1, afterLines.Count + 1];
 
@@ -163,13 +163,25 @@ public static class UnifiedDiffWriter
         {
             for (var afterIndex = afterLines.Count - 1; afterIndex >= 0; afterIndex--)
             {
-                lengths[beforeIndex, afterIndex] = string.Equals(beforeLines[beforeIndex], afterLines[afterIndex], StringComparison.Ordinal)
+                lengths[beforeIndex, afterIndex] = LinesEqual(beforeLines[beforeIndex], afterLines[afterIndex])
                                                        ? lengths[beforeIndex + 1, afterIndex + 1] + 1
                                                        : Math.Max(lengths[beforeIndex + 1, afterIndex], lengths[beforeIndex, afterIndex + 1]);
             }
         }
 
         return lengths;
+    }
+
+    /// <summary>
+    /// Determines whether two diff lines are equal, which requires both their text and their termination state to
+    /// match
+    /// </summary>
+    /// <param name="first">First line</param>
+    /// <param name="second">Second line</param>
+    /// <returns><see langword="true"/> when the lines are equal; otherwise, <see langword="false"/></returns>
+    private static bool LinesEqual((string Text, bool IsTerminated) first, (string Text, bool IsTerminated) second)
+    {
+        return first.IsTerminated == second.IsTerminated && string.Equals(first.Text, second.Text, StringComparison.Ordinal);
     }
 
     #endregion // Methods
