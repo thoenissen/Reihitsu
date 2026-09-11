@@ -300,6 +300,112 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
                      Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
     }
 
+    /// <summary>
+    /// EXPERIMENT: split-region shape from issue #749 (literal example), LF. No expected diagnostics supplied so
+    /// any actual diagnostic/compiler-diagnostic appears in the failure message for inspection
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue749SplitRegionProbe()
+    {
+        const string testData = "public class Example\n" +
+                                 "{\n" +
+                                 "#if false\n" +
+                                 "#region Disabled\n" +
+                                 "#endif\n" +
+                                 "    public bool Value => true;\n" +
+                                 "#endregion\n" +
+                                 "}\n";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// EXPERIMENT: split-region shape from issue #749 (literal example), CRLF counterpart of <see cref="Issue749SplitRegionProbe"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue749SplitRegionProbeCarriageReturnLineFeed()
+    {
+        var testData = NormalizeToCarriageReturnLineFeed("public class Example\n" +
+                                                          "{\n" +
+                                                          "#if false\n" +
+                                                          "#region Disabled\n" +
+                                                          "#endif\n" +
+                                                          "    public bool Value => true;\n" +
+                                                          "#endregion\n" +
+                                                          "}\n");
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// EXPERIMENT: sibling shape from issue #749 question 3 - region opened under the taken <c>#if</c> branch and
+    /// closed under the untaken <c>#else</c> branch, crossing a branch boundary within the same conditional group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue749SplitRegionAcrossElseProbe()
+    {
+        const string testData = "public class Example\n" +
+                                 "{\n" +
+                                 "#if DEBUG\n" +
+                                 "#region Disabled\n" +
+                                 "    public bool Value => true;\n" +
+                                 "#else\n" +
+                                 "#endregion\n" +
+                                 "#endif\n" +
+                                 "}\n";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// EXPERIMENT: sibling shape from issue #749 question 3 - region opened under an untaken <c>#if false</c>
+    /// branch and closed under the taken <c>#elif</c> branch, crossing a branch boundary within the same
+    /// conditional group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue749SplitRegionAcrossElifProbe()
+    {
+        const string testData = "public class Example\n" +
+                                 "{\n" +
+                                 "#if false\n" +
+                                 "#region Disabled\n" +
+                                 "#elif true\n" +
+                                 "    public bool Value => true;\n" +
+                                 "#endregion\n" +
+                                 "#endif\n" +
+                                 "}\n";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// EXPERIMENT: sibling shape from issue #749 question 3 - a region that nests properly around an entire,
+    /// wholly-nested <c>#if false</c> block (region and endregion both sit in the active branch, no crossing),
+    /// to check whether the disabled token in between still leaves <c>GetExpectedIndentation</c> with no live
+    /// token to anchor on
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task Issue749NestedIfFalseInsideRegionProbe()
+    {
+        const string testData = "public class Example\n" +
+                                 "{\n" +
+                                 "#if true\n" +
+                                 "#region Disabled\n" +
+                                 "#if false\n" +
+                                 "    public bool Value => true;\n" +
+                                 "#endif\n" +
+                                 "#endregion\n" +
+                                 "#endif\n" +
+                                 "}\n";
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
