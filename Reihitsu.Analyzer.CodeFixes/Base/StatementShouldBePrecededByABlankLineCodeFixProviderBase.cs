@@ -188,11 +188,14 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     /// merely the innermost statement enclosing <paramref name="previousToken"/>: when the preceding sibling
     /// itself has an unbraced embedded body ("if (Check()) Baz();"), <paramref name="previousToken"/> sits inside
     /// that embedded statement, one level deeper than the sibling whose column the target must actually match.
-    /// When the anchor line is itself led by the target's own switch-section label rather than by the preceding
-    /// sibling, the label's column is one indentation level shallower than the section's statements, so that one
-    /// level is added on top of the whitespace read (issue #786). A label that is not itself first on its own
-    /// line - the whole <c>switch</c> statement written on one physical line, for example - has no whitespace run
-    /// that equals its column, so this branch cannot compensate that shape and leaves it unchanged
+    /// When the anchor line is itself led by a label of the target's own switch statement rather than by the
+    /// preceding sibling - the target's own section's label, an earlier sibling section's label sharing the
+    /// physical line, or trivia attached ahead of either - that label region is one indentation level shallower
+    /// than the section's statements, so one level is added on top of the whitespace read
+    /// (see <see cref="SyntaxIndentationUtilities.ComputeAnchorDerivedIndentation"/>, issue #786). A label that is
+    /// not itself first on its own line - the whole <c>switch</c> statement written on one physical line, for
+    /// example - has no whitespace run that equals its column, so this branch cannot compensate that shape and
+    /// leaves it unchanged
     /// </summary>
     /// <param name="sourceText">Document source text</param>
     /// <param name="token">Diagnostic target token</param>
@@ -214,10 +217,7 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
             var previousLine = sourceText.Lines.GetLineFromPosition(anchorPosition);
             var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, previousLine));
 
-            return targetStatement.Parent is SwitchSectionSyntax switchSection
-                   && SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(switchSection, previousLine.Start + indentation.Length)
-                       ? indentation + new string(' ', SyntaxIndentationUtilities.IndentSize)
-                       : indentation;
+            return SyntaxIndentationUtilities.ComputeAnchorDerivedIndentation(targetStatement, previousLine, indentation);
         }
 
         return new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
