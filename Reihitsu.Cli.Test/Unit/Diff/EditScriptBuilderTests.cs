@@ -19,7 +19,7 @@ public class EditScriptBuilderTests
     [TestMethod]
     public void BuildIdenticalArraysReturnsAllEqual()
     {
-        var lines = new[] { "a", "b", "c" };
+        var lines = ToDiffLines("a", "b", "c");
 
         var operations = EditScriptBuilder.Build(lines, lines);
 
@@ -37,8 +37,8 @@ public class EditScriptBuilderTests
     [TestMethod]
     public void BuildCompletelyDifferentReturnsDeleteAndInsert()
     {
-        var original = new[] { "a", "b" };
-        var formatted = new[] { "x", "y" };
+        var original = ToDiffLines("a", "b");
+        var formatted = ToDiffLines("x", "y");
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
@@ -57,8 +57,8 @@ public class EditScriptBuilderTests
     [TestMethod]
     public void BuildSingleInsertionReturnsCorrectScript()
     {
-        var original = new[] { "a", "c" };
-        var formatted = new[] { "a", "b", "c" };
+        var original = ToDiffLines("a", "c");
+        var formatted = ToDiffLines("a", "b", "c");
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
@@ -74,8 +74,8 @@ public class EditScriptBuilderTests
     [TestMethod]
     public void BuildSingleDeletionReturnsCorrectScript()
     {
-        var original = new[] { "a", "b", "c" };
-        var formatted = new[] { "a", "c" };
+        var original = ToDiffLines("a", "b", "c");
+        var formatted = ToDiffLines("a", "c");
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
@@ -91,8 +91,8 @@ public class EditScriptBuilderTests
     [TestMethod]
     public void BuildEmptyOriginalReturnsAllInserts()
     {
-        var original = Array.Empty<string>();
-        var formatted = new[] { "a", "b" };
+        var original = Array.Empty<DiffLine>();
+        var formatted = ToDiffLines("a", "b");
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
@@ -110,8 +110,8 @@ public class EditScriptBuilderTests
     [TestMethod]
     public void BuildEmptyFormattedReturnsAllDeletes()
     {
-        var original = new[] { "a", "b" };
-        var formatted = Array.Empty<string>();
+        var original = ToDiffLines("a", "b");
+        var formatted = Array.Empty<DiffLine>();
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
@@ -133,13 +133,13 @@ public class EditScriptBuilderTests
         const int lineCount = 10_000;
         const int changedLine = 5_000;
 
-        var original = new string[lineCount];
-        var formatted = new string[lineCount];
+        var original = new DiffLine[lineCount];
+        var formatted = new DiffLine[lineCount];
 
         for (var index = 0; index < lineCount; index++)
         {
-            original[index] = $"line{index}";
-            formatted[index] = index == changedLine ? "changed" : $"line{index}";
+            original[index] = new DiffLine($"line{index}", true);
+            formatted[index] = new DiffLine(index == changedLine ? "changed" : $"line{index}", true);
         }
 
         var operations = EditScriptBuilder.Build(original, formatted);
@@ -161,13 +161,13 @@ public class EditScriptBuilderTests
     {
         const int lineCount = 4_000;
 
-        var original = new string[lineCount];
-        var formatted = new string[lineCount];
+        var original = new DiffLine[lineCount];
+        var formatted = new DiffLine[lineCount];
 
         for (var index = 0; index < lineCount; index++)
         {
-            original[index] = $"original{index}";
-            formatted[index] = $"formatted{index}";
+            original[index] = new DiffLine($"original{index}", true);
+            formatted[index] = new DiffLine($"formatted{index}", true);
         }
 
         var operations = EditScriptBuilder.Build(original, formatted);
@@ -179,6 +179,17 @@ public class EditScriptBuilderTests
         Assert.AreEqual(lineCount, deleteCount);
         Assert.AreEqual(lineCount, insertCount);
         Assert.AreEqual(0, equalCount);
+    }
+
+    /// <summary>
+    /// Converts plain line text into terminated <see cref="DiffLine"/> values for tests that only exercise structural
+    /// edit-script behavior and are indifferent to termination state
+    /// </summary>
+    /// <param name="texts">The line texts</param>
+    /// <returns>A <see cref="DiffLine"/> array with every line marked terminated</returns>
+    private static DiffLine[] ToDiffLines(params string[] texts)
+    {
+        return Array.ConvertAll(texts, text => new DiffLine(text, true));
     }
 
     #endregion // Methods
