@@ -14,11 +14,12 @@ internal static class CopyrightHeaderTemplateResolver
     #region Fields
 
     /// <summary>
-    /// Placeholder pattern. The match timeout is wall-clock rather than CPU time, so it is set well above any
-    /// plausible matching cost for a header template; a timeout would surface as AD0001 and disable the analyzer for
-    /// the whole compilation
+    /// Placeholder pattern. This pattern carries no nested quantifier and cannot backtrack pathologically, and it
+    /// only ever matches a repository-configured header template, so it uses
+    /// <see cref="Regex.InfiniteMatchTimeout"/> rather than a wall-clock budget: a timeout is wall-clock rather than
+    /// CPU time, so it would surface as AD0001 and silently disable the analyzer for the whole compilation
     /// </summary>
-    private static readonly Regex _placeholderPattern = new(@"\{(?<name>[A-Za-z_][A-Za-z0-9_]*)\}", RegexOptions.CultureInvariant | RegexOptions.Compiled, TimeSpan.FromSeconds(2));
+    private static readonly Regex _placeholderPattern = new(@"\{(?<name>[A-Za-z_][A-Za-z0-9_]*)\}", RegexOptions.CultureInvariant | RegexOptions.Compiled, Regex.InfiniteMatchTimeout);
 
     #endregion // Fields
 

@@ -10,6 +10,12 @@ namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 /// Discovers and parses the <c>### Violation</c> / <c>### Correction</c> examples embedded in
 /// <c>documentation/rules/</c> pages
 /// </summary>
+/// <remarks>
+/// Both regexes below only ever match repository-owned rule documentation and carry no nested quantifier capable
+/// of pathological backtracking, so a wall-clock timeout would guard against nothing and only risks a spurious
+/// <see cref="RegexMatchTimeoutException"/> when the test host is under load; each one uses
+/// <see cref="Regex.InfiniteMatchTimeout"/>
+/// </remarks>
 internal static class RuleDocumentationExampleDiscovery
 {
     #region Fields
@@ -17,12 +23,12 @@ internal static class RuleDocumentationExampleDiscovery
     /// <summary>
     /// Regex for rule document title headings
     /// </summary>
-    private static readonly Regex _titleRegex = new(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] ", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _titleRegex = new(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] ", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     /// <summary>
     /// Regex for the metadata table's <c>Code Fix</c> row
     /// </summary>
-    private static readonly Regex _codeFixRowRegex = new(@"^\|\s*\*\*Code Fix\*\*\s*\|\s*(?<marker>✓|❌)\s*\|$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _codeFixRowRegex = new(@"^\|\s*\*\*Code Fix\*\*\s*\|\s*(?<marker>✓|❌)\s*\|$", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     #endregion // Fields
 

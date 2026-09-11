@@ -90,9 +90,15 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// Regex that strips Roslyn analyzer-test markup from source text
     /// </summary>
     /// <returns>The markup-stripping regex</returns>
+    /// <remarks>
+    /// Only ever matches in-repository test fixture source and carries no nested quantifier capable of
+    /// pathological backtracking, so a wall-clock timeout would guard against nothing and only risks a spurious
+    /// <see cref="RegexMatchTimeoutException"/> when the test host is under load; it uses
+    /// <see cref="Regex.InfiniteMatchTimeout"/>
+    /// </remarks>
     private static Regex MarkupRegex()
     {
-        return new Regex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline, TimeSpan.FromSeconds(2));
+        return new Regex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline, Regex.InfiniteMatchTimeout);
     }
 
     /// <summary>

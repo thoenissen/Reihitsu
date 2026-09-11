@@ -27,9 +27,12 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
     #region Fields
 
     /// <summary>
-    /// Pattern for Razor code blocks
+    /// Pattern for Razor code blocks. This pattern carries a single quantifier and cannot backtrack pathologically,
+    /// and it only ever matches an additional file Roslyn already accepted into the compilation, so it uses
+    /// <see cref="Regex.InfiniteMatchTimeout"/> rather than a wall-clock budget: a timeout would surface as AD0001
+    /// and silently disable this analyzer for the whole compilation
     /// </summary>
-    private static readonly Regex _codeBlockPattern = new(@"@code\s*\{", RegexOptions.Compiled | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _codeBlockPattern = new(@"@code\s*\{", RegexOptions.Compiled | RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     #endregion // Fields
 
