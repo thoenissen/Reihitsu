@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -301,109 +302,155 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     }
 
     /// <summary>
-    /// EXPERIMENT: split-region shape from issue #749 (literal example), LF. No expected diagnostics supplied so
-    /// any actual diagnostic/compiler-diagnostic appears in the failure message for inspection
+    /// Verifies that a region directive split across an <c>#if</c>/<c>#endif</c> boundary is rejected by the
+    /// compiler's own conditional-compilation nesting rule before this rule ever sees a live token to report on
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task Issue749SplitRegionProbe()
+    public async Task VerifyRegionSplitAcrossEndIfBoundaryFailsToCompileAndIsIgnored()
     {
-        const string testData = "public class Example\n" +
-                                 "{\n" +
-                                 "#if false\n" +
-                                 "#region Disabled\n" +
-                                 "#endif\n" +
-                                 "    public bool Value => true;\n" +
-                                 "#endregion\n" +
-                                 "}\n";
+        const string testData = """
+                                public class Example
+                                {
+                                #if false
+                                #region Disabled
+                                #endif
+                                    public bool Value => true;
+                                #endregion
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// CRLF counterpart of <see cref="VerifyRegionSplitAcrossEndIfBoundaryFailsToCompileAndIsIgnored"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionSplitAcrossEndIfBoundaryFailsToCompileAndIsIgnoredCarriageReturnLineFeed()
+    {
+        var testData = NormalizeToCarriageReturnLineFeed("""
+                                                         public class Example
+                                                         {
+                                                         #if false
+                                                         #region Disabled
+                                                         #endif
+                                                             public bool Value => true;
+                                                         #endregion
+                                                         }
+                                                         """);
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a region directive split across an <c>#if</c>/<c>#else</c> boundary still fails to compile
+    /// (the compiler's own conditional-compilation nesting rule rejects it), but that this rule and RH5204
+    /// report identically on the error-recovered pair rather than diverging - confirmed by running the
+    /// equivalent input through <c>RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer</c> directly, which
+    /// reports at the same two spans despite already applying the <c>IsInactiveDirective</c> guard
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionSplitAcrossElseBoundaryStillReportsInParityWithRH5204()
+    {
+        const string testData = """
+                                public class Example
+                                {
+                                #if true
+                                {|#0:#region Split|}
+
+                                    public bool Value => true;
+
+                                #else
+                                {|#1:#endregion|}
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.CompilerDiagnostics = CompilerDiagnostics.None,
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a region directive split across an <c>#if false</c>/<c>#elif</c> boundary is likewise
+    /// rejected by the compiler before this rule can report on it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionSplitAcrossElifBoundaryFailsToCompileAndIsIgnored()
+    {
+        const string testData = """
+                                public class Example
+                                {
+                                #if false
+                                #region Disabled
+                                #elif true
+                                    public bool Value => true;
+                                #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a region wholly containing a nested <c>#if false</c> block leaves no live token for the
+    /// pair to anchor on, so the directive is ignored just like the formatter and RH5204 ignore it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionWhollyContainingSkippedBranchStaysSilent()
+    {
+        const string testData = """
+                                public class Example
+                                {
+                                #if true
+                                #region Disabled
+                                #if false
+                                    public bool Value => true;
+                                #endif
+                                #endregion
+                                #endif
+                                }
+                                """;
 
         await Verify(testData);
     }
 
     /// <summary>
-    /// EXPERIMENT: split-region shape from issue #749 (literal example), CRLF counterpart of <see cref="Issue749SplitRegionProbe"/>
+    /// Verifies that an inactive region pair stays silent even while a differently-indented active region pair
+    /// in the same file is still reported, so the compiler's own skip of disabled text - not a policy this rule
+    /// applies - is what keeps inactive directives out of its report
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task Issue749SplitRegionProbeCarriageReturnLineFeed()
+    public async Task VerifyInactiveRegionPairStaysSilentBesideReportedActivePair()
     {
-        var testData = NormalizeToCarriageReturnLineFeed("public class Example\n" +
-                                                          "{\n" +
-                                                          "#if false\n" +
-                                                          "#region Disabled\n" +
-                                                          "#endif\n" +
-                                                          "    public bool Value => true;\n" +
-                                                          "#endregion\n" +
-                                                          "}\n");
+        const string testData = """
+                                public class Example
+                                {
+                                #if true
+                                {|#0:#region Active|}
 
-        await Verify(testData);
-    }
+                                    public bool Value => true;
 
-    /// <summary>
-    /// EXPERIMENT: sibling shape from issue #749 question 3 - region opened under the taken <c>#if</c> branch and
-    /// closed under the untaken <c>#else</c> branch, crossing a branch boundary within the same conditional group
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task Issue749SplitRegionAcrossElseProbe()
-    {
-        const string testData = "public class Example\n" +
-                                 "{\n" +
-                                 "#if DEBUG\n" +
-                                 "#region Disabled\n" +
-                                 "    public bool Value => true;\n" +
-                                 "#else\n" +
-                                 "#endregion\n" +
-                                 "#endif\n" +
-                                 "}\n";
+                                {|#1:#endregion // Active|}
+                                #else
+                                #region Inactive
 
-        await Verify(testData);
-    }
+                                    public bool OtherValue => true;
 
-    /// <summary>
-    /// EXPERIMENT: sibling shape from issue #749 question 3 - region opened under an untaken <c>#if false</c>
-    /// branch and closed under the taken <c>#elif</c> branch, crossing a branch boundary within the same
-    /// conditional group
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task Issue749SplitRegionAcrossElifProbe()
-    {
-        const string testData = "public class Example\n" +
-                                 "{\n" +
-                                 "#if false\n" +
-                                 "#region Disabled\n" +
-                                 "#elif true\n" +
-                                 "    public bool Value => true;\n" +
-                                 "#endregion\n" +
-                                 "#endif\n" +
-                                 "}\n";
+                                #endregion // Inactive
+                                #endif
+                                }
+                                """;
 
-        await Verify(testData);
-    }
-
-    /// <summary>
-    /// EXPERIMENT: sibling shape from issue #749 question 3 - a region that nests properly around an entire,
-    /// wholly-nested <c>#if false</c> block (region and endregion both sit in the active branch, no crossing),
-    /// to check whether the disabled token in between still leaves <c>GetExpectedIndentation</c> with no live
-    /// token to anchor on
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task Issue749NestedIfFalseInsideRegionProbe()
-    {
-        const string testData = "public class Example\n" +
-                                 "{\n" +
-                                 "#if true\n" +
-                                 "#region Disabled\n" +
-                                 "#if false\n" +
-                                 "    public bool Value => true;\n" +
-                                 "#endif\n" +
-                                 "#endregion\n" +
-                                 "#endif\n" +
-                                 "}\n";
-
-        await Verify(testData);
+        await Verify(testData,
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
     }
 
     #endregion // Tests
