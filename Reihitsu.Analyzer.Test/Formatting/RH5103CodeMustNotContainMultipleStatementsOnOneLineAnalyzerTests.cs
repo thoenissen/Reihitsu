@@ -281,6 +281,257 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that no extra indentation level is added when the anchor line's own leading content is a comment
+    /// rather than the section's own label: the moved statement keeps its sibling's column instead of gaining a
+    /// spurious level (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySplitStatementKeepsSiblingColumnWhenPrecedingLineStartsWithComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0:
+                                                    /* note */ Method(1); {|#0:Method(2);|}
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0:
+                                                     /* note */ Method(1);
+                                                     Method(2);
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the same non-compensation under Fix All, where every split statement's indentation is computed
+    /// against the unmodified document (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixAllKeepsSiblingColumnWhenPrecedingLineStartsWithComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0:
+                                                    /* note */ Method(1); {|#0:Method(2);|} {|#1:Method(3);|}
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0:
+                                                     /* note */ Method(1);
+                                                     Method(2);
+                                                     Method(3);
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that, when the switch-section label itself is not first on its own line - the whole
+    /// <c>switch</c> statement written on one physical line - the split statement is not compensated: no
+    /// whitespace run on that line equals the label's column, so the line's own leading whitespace is used
+    /// unchanged. This is a deliberate behavior change from the label-relative column this provider used to add
+    /// unconditionally for any anchor-scope target that was not first on its own line (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySplitStatementDoesNotCompensateWhenSwitchLabelIsNotFirstOnItsLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value) { case 0: Method(1); {|#0:Method(2);|}
+                                                break; }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value) { case 0: Method(1);
+                                             Method(2);
+                                                 break; }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that, when the physical line's own leading content is a different switch section's label rather
+    /// than the target's own section, the split statement is not compensated: the label relationship belongs to
+    /// the section that owns that label, not to a later section merely sharing its line (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySplitStatementDoesNotCompensateWhenLineStartsWithAnotherSectionsLabel()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1: break; case 0: Method(1); {|#0:Method(2);|}
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1: break; case 0: Method(1);
+                                                 Method(2);
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies a fix is withheld when an empty statement lies between the analyzed non-empty siblings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

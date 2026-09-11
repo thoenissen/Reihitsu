@@ -73,18 +73,26 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
             return indentation;
         }
 
-        // statement.Parent is a SwitchSectionSyntax whose statements still share a line with their label, so
-        // previousLine's own leading whitespace is the label's column rather than the statements' - a section's
-        // statements always sit exactly one level deeper than the label they belong to. That relationship is only
-        // safe to read from the label's current text column when an object initializer or anonymous object sits
-        // between the section and its nearest brace scope, because only there does no level derived by walking
-        // ancestors recover the anchor-derived column (issue #748). Otherwise the label's own column may itself be
-        // a stray extra space or tab, and the canonical, level-derived column self-corrects it instead of
-        // propagating it - the same distinction SyntaxIndentationUtilities.HasAnchorScopeAncestor's other two
-        // callers already make
+        // statement.Parent is a SwitchSectionSyntax whose statements share a line with something other than the
+        // previous statement itself. When that something is the section's own label, previousLine's own leading
+        // whitespace is the label's column rather than the statements' - a section's statements always sit exactly
+        // one level deeper than the label they belong to. That relationship is only safe to read from the label's
+        // current text column when an object initializer or anonymous object sits between the section and its
+        // nearest brace scope, because only there does no level derived by walking ancestors recover the
+        // anchor-derived column (issue #748). When the shared line's leading content is not the section's own
+        // label - an earlier sibling statement, trivia, or a different section's label - that one level must not
+        // be added, or it lands one level too deep (issue #786); the whitespace read is already correct there and
+        // is returned unchanged rather than falling through to the canonical, level-derived column, which
+        // deliberately understates an anchor-derived column (issue #748) and would undercount either way.
+        // Otherwise, outside any anchor scope, the label's own column may itself be a stray extra space or tab,
+        // and the canonical, level-derived column self-corrects it instead of propagating it - the same
+        // distinction SyntaxIndentationUtilities.HasAnchorScopeAncestor's other two callers already make
         if (SyntaxIndentationUtilities.HasAnchorScopeAncestor(statement))
         {
-            return indentation + new string(' ', SyntaxIndentationUtilities.IndentSize);
+            return statement.Parent is SwitchSectionSyntax switchSection
+                   && SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(switchSection, previousLine.Start + indentation.Length)
+                       ? indentation + new string(' ', SyntaxIndentationUtilities.IndentSize)
+                       : indentation;
         }
 
         return new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(statement) * SyntaxIndentationUtilities.IndentSize);

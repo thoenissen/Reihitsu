@@ -143,6 +143,26 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
+    /// Determines whether a position that leads a shared source line falls inside a switch section's own label
+    /// region rather than a sibling statement, trivia, or a different section's label. A section's own statements
+    /// sit exactly one indentation level deeper than the labels they belong to - see
+    /// <see cref="GetIndentingScopeRange"/> - so a caller that reads a shared line's leading whitespace as an
+    /// anchor-derived column (issue #748) has to add that one level only when the line is actually led by this
+    /// section's own label, never merely because the line's leading whitespace does not already match the target's
+    /// own preceding sibling. Applying the level whenever that weaker condition holds misfires on every other thing
+    /// that can lead such a line - an earlier sibling statement, trivia before the section's first statement, or a
+    /// different section's label - and adds a spurious level there instead (issue #786)
+    /// </summary>
+    /// <param name="switchSection">Switch section that directly owns the statement being indented</param>
+    /// <param name="contentStart">Position immediately following the shared line's own leading whitespace</param>
+    /// <returns><see langword="true"/> if <paramref name="contentStart"/> lies inside the section's own label region</returns>
+    public static bool IsWithinSwitchSectionLabelRegion(SwitchSectionSyntax switchSection, int contentStart)
+    {
+        return contentStart >= switchSection.SpanStart
+               && contentStart < switchSection.Labels[switchSection.Labels.Count - 1].Span.End;
+    }
+
+    /// <summary>
     /// Determines whether an ancestor owns an indenting scope containing the specified position. This model
     /// additionally recognizes <see cref="InitializerExpressionSyntax"/> and
     /// <see cref="AnonymousObjectCreationExpressionSyntax"/>, unlike <see cref="GetIndentingScopeRange"/>, because
