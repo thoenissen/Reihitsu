@@ -121,6 +121,30 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
+    /// Determines whether an object initializer or anonymous object sits between a node and its nearest brace
+    /// scope. Both are anchor-derived rather than level-derived: their members align to a token's own column plus
+    /// one indentation size, not to a multiple of <see cref="IndentSize"/> counted from ancestry, so no caller of
+    /// <see cref="ComputeBaseIndentLevel"/> or <see cref="ComputeStatementIndentLevel"/> can turn "one more
+    /// initializer" into the column the formatter's own alignment contributors would place it at. A caller that
+    /// needs that column when this returns <see langword="true"/> has to read it from the current source text
+    /// instead of computing it (issue #748)
+    /// </summary>
+    /// <param name="node">Node to inspect</param>
+    /// <returns><see langword="true"/> if such an ancestor exists</returns>
+    public static bool HasAnchorScopeAncestor(SyntaxNode node)
+    {
+        for (var ancestor = node.Parent; ancestor != null; ancestor = ancestor.Parent)
+        {
+            if (ancestor is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether an ancestor owns an indenting scope containing the specified position
     /// </summary>
     /// <param name="node">Ancestor to inspect</param>

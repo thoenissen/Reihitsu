@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -96,18 +97,24 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
             var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
 
-            // The indentation of the inserted line is computed from the attribute list's syntactic nesting depth
-            // rather than read from source text or trivia. Text- and trivia-based derivations both have to special
-            // case every shape that can precede the list on its line or share its line — another token, a
-            // directive, a multi-line comment, a multi-line string literal, a multi-line attribute list, parameter
-            // list, or initializer — and each such case is its own way to read the wrong thing as indentation.
-            // Nesting depth answers the same question without reading any of that: it depends only on which
-            // braced scopes contain the attribute list, matching Reihitsu.Formatter's own IndentationPhase
-            var indentLevel = SyntaxIndentationUtilities.ComputeBaseIndentLevel(attributeList);
+            // The indentation of the inserted line is normally the declaration's nesting depth, which is
+            // canonical: it self-corrects a stray extra space or tab on the attribute list's own line instead of
+            // propagating it. That canonical value does not exist when an object initializer or anonymous object
+            // sits between the declaration and its nearest brace scope, because neither is a level -
+            // SyntaxIndentationUtilities' nesting-depth model has no way to turn "one more initializer" into the
+            // anchor-derived column the formatter's own alignment contributors would place it at (issue #748). In
+            // that situation there is nothing to compute from, so the declaration's own first token - the
+            // earliest attribute list already on it, or this list itself when it is the first one - is read
+            // directly from the current source text instead, which also keeps a Fix All pass over several
+            // attribute lists sharing one line correct, since every split member still aligns to the same first
+            // token regardless of which list is being split
+            var indentColumn = SyntaxIndentationUtilities.HasAnchorScopeAncestor(attributeList)
+                                   ? ReihitsuFormatterHelpers.ComputeTokenColumn(attributeList.Parent.GetFirstToken(), root)
+                                   : SyntaxIndentationUtilities.ComputeBaseIndentLevel(attributeList) * SyntaxIndentationUtilities.IndentSize;
 
-            if (indentLevel > 0)
+            if (indentColumn > 0)
             {
-                trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', indentLevel * SyntaxIndentationUtilities.IndentSize)));
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', indentColumn)));
             }
 
             updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);
@@ -125,10 +132,11 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     }
 
     /// <summary>
-    /// Determines whether an enclosing scope that <see cref="SyntaxIndentationUtilities.ComputeBaseIndentLevel"/>
-    /// would count owns a brace the parser could not find. Such a scope silently drops out of the computed
-    /// indentation level instead of raising an error, which would strip the member's indentation on exactly the
-    /// transient, mid-edit documents where an IDE offers "Fix all in document" most often
+    /// Determines whether an enclosing scope owns a brace the parser could not find. Such a scope silently drops
+    /// out of <see cref="SyntaxIndentationUtilities.ComputeBaseIndentLevel"/>'s count instead of raising an error,
+    /// which would understate the level-fallback indentation on exactly the transient, mid-edit documents where an
+    /// IDE offers "Fix all in document" most often. This is unrelated to whether the level fallback is actually
+    /// taken for a given attribute list, so the guard stays unconditional rather than trying to predict it
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
     /// <returns><see langword="true"/> when an enclosing scope has a missing brace</returns>
@@ -196,10 +204,6 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
 
         placementMode = ResolvePlacementMode(attributeList);
 
-        // ComputeBaseIndentLevel counts an enclosing scope by its brace pair; a scope whose brace the parser
-        // could not find silently drops out of that count instead of raising an error, understating the
-        // indentation level. There is no way to recover the intended depth from a scope the parser never closed,
-        // so the fix stays unregistered rather than guessing at a document that is still being edited
         if (placementMode == TargetAttributePlacementMode.SeparateLine
             && HasIncompleteEnclosingScope(attributeList))
         {

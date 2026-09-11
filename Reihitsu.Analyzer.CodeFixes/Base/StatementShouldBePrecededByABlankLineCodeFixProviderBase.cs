@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Core;
@@ -71,10 +72,15 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
         var previousToken = token.GetPreviousToken();
 
-        return previousToken.IsKind(SyntaxKind.None) == false
-               && TokenGapAnalysis.Between(previousToken, token).RequiredLineBreakCountForBlankLine == 2
-                   ? ReplaceFormattingOnlyGap(document, syntaxRoot, previousToken, token, endOfLine)
-                   : InsertLeadingLineBreak(document, syntaxRoot, token, endOfLine);
+        if (previousToken.IsKind(SyntaxKind.None) == false
+            && TokenGapAnalysis.Between(previousToken, token).RequiredLineBreakCountForBlankLine == 2)
+        {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            return ReplaceFormattingOnlyGap(document, syntaxRoot, sourceText, previousToken, token, endOfLine);
+        }
+
+        return InsertLeadingLineBreak(document, syntaxRoot, token, endOfLine);
     }
 
     /// <summary>
@@ -97,18 +103,20 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     /// </summary>
     /// <param name="document">Document being updated</param>
     /// <param name="syntaxRoot">Document syntax root</param>
+    /// <param name="sourceText">Document source text</param>
     /// <param name="previousToken">Token before the target</param>
     /// <param name="token">Target token</param>
     /// <param name="endOfLine">Line-ending sequence</param>
     /// <returns>The updated document</returns>
     private static Document ReplaceFormattingOnlyGap(Document document,
                                                      SyntaxNode syntaxRoot,
+                                                     SourceText sourceText,
                                                      SyntaxToken previousToken,
                                                      SyntaxToken token,
                                                      string endOfLine)
     {
         var newPreviousToken = previousToken.WithTrailingTrivia(TrimTrailingWhitespace(previousToken.TrailingTrivia));
-        var updatedToken = token.WithLeadingTrivia(CreateBlankLineLeadingTrivia(token, endOfLine));
+        var updatedToken = token.WithLeadingTrivia(CreateBlankLineLeadingTrivia(token, sourceText, previousToken, endOfLine));
         var updatedRoot = syntaxRoot.ReplaceTokens([previousToken, token],
                                                    (originalToken, _) => originalToken == previousToken
                                                                              ? newPreviousToken
@@ -121,9 +129,11 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     /// Builds the target token's leading trivia after inserting a blank line
     /// </summary>
     /// <param name="token">Target token</param>
+    /// <param name="sourceText">Document source text</param>
+    /// <param name="previousToken">Token before the target, whose line supplies the indentation</param>
     /// <param name="endOfLine">Line-ending sequence</param>
     /// <returns>The rebuilt leading trivia</returns>
-    private static SyntaxTriviaList CreateBlankLineLeadingTrivia(SyntaxToken token, string endOfLine)
+    private static SyntaxTriviaList CreateBlankLineLeadingTrivia(SyntaxToken token, SourceText sourceText, SyntaxToken previousToken, string endOfLine)
     {
         var targetLeadingTrivia = token.LeadingTrivia;
         var suffixStart = 0;
@@ -138,7 +148,7 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
                                         SyntaxFactory.EndOfLine(endOfLine),
                                         SyntaxFactory.EndOfLine(endOfLine)
                                     };
-        var indentation = GetIndentation(token);
+        var indentation = GetIndentation(sourceText, token, previousToken);
 
         if (indentation.Length > 0)
         {
@@ -166,17 +176,36 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     }
 
     /// <summary>
-    /// Gets the syntax-derived indentation of a same-line diagnostic target
+    /// Gets the indentation to apply after moving the target token onto its own line. Normally this is the
+    /// target statement's syntactic nesting depth, which is canonical: it self-corrects a stray extra space or
+    /// tab on the previous line instead of propagating it. That canonical value does not exist when an object
+    /// initializer or anonymous object sits between the statement and its nearest brace scope, because neither
+    /// is a level - <see cref="SyntaxIndentationUtilities.ComputeStatementIndentLevel"/> has no way to turn "one
+    /// more initializer" into the anchor-derived column the formatter's own alignment contributors would place
+    /// it at (issue #748). In that situation the previous token's line supplies the column instead, since that
+    /// line has not moved and its leading whitespace is still correct
     /// </summary>
-    /// <param name="token">First token of the diagnostic target</param>
+    /// <param name="sourceText">Document source text</param>
+    /// <param name="token">Diagnostic target token</param>
+    /// <param name="previousToken">Token before the diagnostic target</param>
     /// <returns>Indentation to apply to the target after moving it to its own line</returns>
-    private static string GetIndentation(SyntaxToken token)
+    private static string GetIndentation(SourceText sourceText, SyntaxToken token, SyntaxToken previousToken)
     {
         var targetStatement = token.Parent?.FirstAncestorOrSelf<StatementSyntax>();
 
-        return targetStatement == null
-                   ? string.Empty
-                   : new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
+        if (targetStatement == null)
+        {
+            return string.Empty;
+        }
+
+        if (SyntaxIndentationUtilities.HasAnchorScopeAncestor(targetStatement))
+        {
+            var previousLine = sourceText.Lines.GetLineFromPosition(previousToken.SpanStart);
+
+            return FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, previousLine));
+        }
+
+        return new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
     }
 
     #endregion // Methods

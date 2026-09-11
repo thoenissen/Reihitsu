@@ -73,9 +73,13 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
             return indentation;
         }
 
-        var indentationColumn = SyntaxIndentationUtilities.ComputeStatementIndentLevel(statement) * SyntaxIndentationUtilities.IndentSize;
-
-        return new string(' ', indentationColumn);
+        // statement.Parent is a SwitchSectionSyntax whose statements still share a line with their label, so
+        // previousLine's own leading whitespace is the label's column rather than the statements' - a section's
+        // statements always sit exactly one level deeper than the label they belong to. Reading the label's
+        // current column from text keeps that relationship correct even when the switch is itself inside an
+        // object initializer or anonymous object, where no level derived by walking ancestors can recover the
+        // anchor-derived column (issue #748)
+        return indentation + new string(' ', SyntaxIndentationUtilities.IndentSize);
     }
 
     /// <summary>
