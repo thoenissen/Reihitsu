@@ -264,6 +264,71 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that, when the target statement's anchor is inside an object initializer and the preceding
+    /// statement shares its switch-section <c>case</c> label's own line, the inserted blank line's indentation is
+    /// the label's column plus one <see cref="Reihitsu.Core.SyntaxIndentationUtilities.IndentSize"/> - matching
+    /// where the section's own <c>break;</c> already sits - rather than the label's own column (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAnchorsOnLabelColumnPlusIndentSizeWhenPrecedingStatementSharesSwitchLabelLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                                          case 0: Method(1); {|#0:var|} y = 1;
+                                                                              break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                                           case 0: Method(1);
+
+                                                                               var y = 1;
+                                                                               break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported when a local declaration in a switch section directly follows a statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
