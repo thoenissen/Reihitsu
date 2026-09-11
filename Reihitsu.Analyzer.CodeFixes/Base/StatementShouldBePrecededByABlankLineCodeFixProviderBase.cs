@@ -182,11 +182,12 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     /// an object initializer or anonymous object sits between the statement and its nearest brace scope, because
     /// neither is a level - <see cref="SyntaxIndentationUtilities.ComputeStatementIndentLevel"/> has no way to
     /// turn "one more initializer" into the anchor-derived column the formatter's own alignment contributors
-    /// would place it at (issue #748). In that situation the previous statement's own start line supplies the
-    /// column instead, since that line has not moved and its leading whitespace is still correct - anchored on
-    /// the statement's start rather than <paramref name="previousToken"/>'s own line, because a multi-line
-    /// previous statement's last token can sit on an unrelated continuation line whose indentation carries no
-    /// such meaning
+    /// would place it at (issue #748). In that situation the target's own preceding sibling in its statement
+    /// list supplies the column instead, since that sibling's start line has not moved and its leading
+    /// whitespace is still correct. The anchor has to be the target's actual preceding sibling rather than
+    /// merely the innermost statement enclosing <paramref name="previousToken"/>: when the preceding sibling
+    /// itself has an unbraced embedded body ("if (Check()) Baz();"), <paramref name="previousToken"/> sits inside
+    /// that embedded statement, one level deeper than the sibling whose column the target must actually match
     /// </summary>
     /// <param name="sourceText">Document source text</param>
     /// <param name="token">Diagnostic target token</param>
@@ -203,7 +204,7 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
 
         if (SyntaxIndentationUtilities.HasAnchorScopeAncestor(targetStatement))
         {
-            var previousStatement = previousToken.Parent?.FirstAncestorOrSelf<StatementSyntax>();
+            var previousStatement = GetPrecedingSiblingStatement(targetStatement);
             var anchorPosition = previousStatement?.SpanStart ?? previousToken.SpanStart;
             var previousLine = sourceText.Lines.GetLineFromPosition(anchorPosition);
 
@@ -211,6 +212,28 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
         }
 
         return new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
+    }
+
+    /// <summary>
+    /// Gets the statement immediately preceding <paramref name="statement"/> in its own statement list
+    /// </summary>
+    /// <param name="statement">Statement whose preceding sibling should be found</param>
+    /// <returns>The preceding sibling statement, or <see langword="null"/> when there is none</returns>
+    private static StatementSyntax GetPrecedingSiblingStatement(StatementSyntax statement)
+    {
+        if (statement.Parent is BlockSyntax block)
+        {
+            return block.Statements.TakeWhile(currentStatement => currentStatement != statement)
+                                   .LastOrDefault();
+        }
+
+        if (statement.Parent is SwitchSectionSyntax switchSection)
+        {
+            return switchSection.Statements.TakeWhile(currentStatement => currentStatement != statement)
+                                           .LastOrDefault();
+        }
+
+        return null;
     }
 
     #endregion // Methods

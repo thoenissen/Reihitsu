@@ -195,6 +195,75 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that the anchor is the target's actual preceding sibling statement, not merely the innermost
+    /// statement enclosing the previous token. When the preceding sibling has an unbraced embedded body, the
+    /// previous token sits inside that embedded statement - one indentation level deeper than the sibling whose
+    /// column the target must actually match (issue #748)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAnchorsOnPrecedingSiblingRatherThanItsUnbracedEmbeddedStatement()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = () =>
+                                        {
+                                                                          if (Check())
+                                                                              Baz(1, 2); {|#0:var|} y = 1;
+                                        }
+                                    };
+
+                                    private static bool Check()
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Baz(int a, int b)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = () =>
+                                         {
+                                                                           if (Check())
+                                                                               Baz(1, 2);
+
+                                                                           var y = 1;
+                                         }
+                                     };
+
+                                     private static bool Check()
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Baz(int a, int b)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported when a local declaration in a switch section directly follows a statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
