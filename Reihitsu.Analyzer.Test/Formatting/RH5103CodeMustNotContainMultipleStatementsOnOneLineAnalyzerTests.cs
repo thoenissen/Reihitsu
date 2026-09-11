@@ -172,6 +172,72 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that a switch-section statement chain sharing its case label's line lands on the label's own
+    /// column plus one indentation level, even when that label's column is anchored to an object initializer
+    /// rather than derived from brace-scope nesting depth. Under Roslyn's batch fix-all provider both actions are
+    /// computed against the unmodified document, so neither previous statement is first on its own line and the
+    /// level-based fallback this test exercises cannot be bypassed by iterative reformatting (issue #748)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SwitchSectionChainInsideObjectInitializerFixAllKeepsLabelRelativeIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                                          case 0: Method(1); {|#0:Method(2);|} {|#1:break;|}
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                                           case 0: Method(1);
+                                                                               Method(2);
+                                                                               break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies a fix is withheld when an empty statement lies between the analyzed non-empty siblings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

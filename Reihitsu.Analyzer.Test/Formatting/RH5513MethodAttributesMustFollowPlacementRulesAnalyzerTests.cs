@@ -57,6 +57,114 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifies that splitting the attribute list inside an object initializer lands the member on the attribute
+    /// list's own column rather than the enclosing brace-scope nesting level, which understates an anchor-derived
+    /// column by not accounting for the initializer's own alignment (issue #748)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixAlignsToAttributeListColumnInsideObjectInitializer()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = () =>
+                                        {
+                                                                          {|#0:[First]|} void Local()
+                                                                          {
+                                                                          }
+                                        }
+                                    };
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action Handler { get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = () =>
+                                         {
+                                                                           [First]
+                                                                           void Local()
+                                                                           {
+                                                                           }
+                                         }
+                                     };
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action Handler { get; set; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the same anchor-column alignment inside an anonymous object, which is recognized by
+    /// <see cref="Reihitsu.Core.SyntaxIndentationUtilities.ComputeBaseIndentLevel"/> exactly like an object
+    /// initializer (issue #748)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixAlignsToAttributeListColumnInsideAnonymousObject()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private readonly object _config = new
+                                    {
+                                        Handler = (System.Action)(() =>
+                                        {
+                                                                          {|#0:[First]|} void Local()
+                                                                          {
+                                                                          }
+                                        })
+                                    };
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private readonly object _config = new
+                                     {
+                                         Handler = (System.Action)(() =>
+                                         {
+                                                                           [First]
+                                                                           void Local()
+                                                                           {
+                                                                           }
+                                         })
+                                     };
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that compliant code is not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

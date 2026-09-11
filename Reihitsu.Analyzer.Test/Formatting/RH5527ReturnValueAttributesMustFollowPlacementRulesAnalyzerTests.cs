@@ -57,6 +57,60 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that splitting the attribute list inside an object initializer lands the member on the attribute
+    /// list's own column rather than the enclosing brace-scope nesting level, which understates an anchor-derived
+    /// column by not accounting for the initializer's own alignment (issue #748)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixAlignsToAttributeListColumnInsideObjectInitializer()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = () =>
+                                        {
+                                                                          {|#0:[return: First]|} int Local() => 0;
+                                        }
+                                    };
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action Handler { get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = () =>
+                                         {
+                                                                           [return: First]
+                                                                           int Local() => 0;
+                                         }
+                                     };
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action Handler { get; set; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that compliant code is not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

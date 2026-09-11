@@ -68,6 +68,72 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that the inserted blank line's indentation matches the preceding statement's own column when that
+    /// column is anchored to an object initializer rather than derived from brace-scope nesting depth, which
+    /// understates an anchor-derived column by not accounting for the initializer's own alignment (issue #748)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenLocalDeclarationInsideObjectInitializerIsNotPrecededByBlankLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = () =>
+                                        {
+                                                                          Consume(); {|#0:var|} value = GetValue();
+                                        }
+                                    };
+
+                                    private static string GetValue()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    private static void Consume()
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = () =>
+                                         {
+                                                                           Consume();
+
+                                                                           var value = GetValue();
+                                         }
+                                     };
+
+                                     private static string GetValue()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     private static void Consume()
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported when a local declaration in a switch section directly follows a statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
