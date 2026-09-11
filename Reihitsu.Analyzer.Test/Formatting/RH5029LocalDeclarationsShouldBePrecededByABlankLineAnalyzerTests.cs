@@ -765,6 +765,74 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that, when the physical line's own leading content is an earlier sibling section's own
+    /// statement rather than that section's label, the inserted blank line is not compensated: a statement
+    /// sharing the textual stretch between two labels is not itself a label, so it carries no one-level
+    /// relationship, even though it lies between the enclosing switch statement's opening brace and this
+    /// section's own last label (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticDoesNotCompensateWhenLineStartsWithAnEarlierSiblingSectionsStatement()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1:
+                                                    break; case 0: Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1:
+                                                     break; case 0: Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that a tab-indented anchor line is compensated by appending four spaces, matching
     /// <see cref="Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider"/>'s
     /// own behavior for the identical shape, rather than repeating the line's own indentation character

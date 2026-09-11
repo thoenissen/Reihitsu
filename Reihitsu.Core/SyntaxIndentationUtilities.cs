@@ -144,27 +144,41 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
-    /// Determines whether a position that leads a shared source line falls inside a switch statement's label
-    /// region rather than a sibling statement or trivia attached to one. A section's own statements sit exactly
-    /// one indentation level deeper than every label of the enclosing <c>switch</c> - not only its own - because
-    /// sibling sections share one nesting depth; see <see cref="GetIndentingScopeRange"/>. So a caller that reads
-    /// a shared line's leading whitespace as an anchor-derived column (issue #748) has to add that one level
-    /// whenever the line is led by any label of the same <c>switch</c> statement - this section's own label, an
-    /// earlier sibling section's label sharing the physical line, or trivia (such as a comment) attached ahead of
-    /// either - and only that. The region therefore spans from right after the enclosing switch statement's own
-    /// opening brace - excluding the <c>switch</c> keyword and its parenthesized expression, which own no label
-    /// relationship - through the end of this section's own last label, since only a position at or before that
-    /// point can share a physical line with the label rather than with this section's own statements
-    /// (issue #786)
+    /// Determines whether a position that leads a shared source line falls inside some label of the enclosing
+    /// switch statement, including that label's own leading trivia, rather than inside a sibling statement or
+    /// trivia attached to one. A section's own statements sit exactly one indentation level deeper than every
+    /// label of the enclosing <c>switch</c> - not only its own - because sibling sections share one nesting
+    /// depth; see <see cref="GetIndentingScopeRange"/>. So a caller that reads a shared line's leading whitespace
+    /// as an anchor-derived column (issue #748) has to add that one level whenever the line is led by any label
+    /// of the same <c>switch</c> statement - this section's own label, an earlier sibling section's label sharing
+    /// the physical line, or trivia (such as a comment) attached ahead of either - and only that. Membership is
+    /// therefore decided per label's own token span, not by a contiguous position range from the switch
+    /// statement's opening brace: that range would also admit an earlier sibling section's own statement, or a
+    /// nested switch's closing brace, sharing the same textual stretch without being a label at all - the
+    /// spurious-level defect this predicate exists to prevent, moved rather than closed (issue #786)
     /// </summary>
-    /// <param name="switchSection">Switch section that directly owns the statement being indented; its <see cref="SwitchSectionSyntax.Labels"/> must be non-empty and its parent must be the enclosing <see cref="SwitchStatementSyntax"/>, which always holds for a section reachable from a parsed <c>switch</c> statement</param>
+    /// <param name="switchSection">Switch section that directly owns the statement being indented; its parent must be the enclosing <see cref="SwitchStatementSyntax"/>, which always holds for a section reachable from a parsed <c>switch</c> statement</param>
     /// <param name="contentStart">Position immediately following the shared line's own leading whitespace</param>
-    /// <returns><see langword="true"/> if <paramref name="contentStart"/> lies inside the switch statement's label region relative to this section</returns>
+    /// <returns><see langword="true"/> if <paramref name="contentStart"/> lies inside some label of the enclosing switch statement</returns>
     public static bool IsWithinSwitchSectionLabelRegion(SwitchSectionSyntax switchSection, int contentStart)
     {
-        return switchSection.Parent is SwitchStatementSyntax switchStatement
-               && contentStart >= switchStatement.OpenBraceToken.Span.End
-               && contentStart < switchSection.Labels[switchSection.Labels.Count - 1].Span.End;
+        if (switchSection.Parent is not SwitchStatementSyntax switchStatement)
+        {
+            return false;
+        }
+
+        foreach (var section in switchStatement.Sections)
+        {
+            foreach (var label in section.Labels)
+            {
+                if (contentStart >= label.FullSpan.Start && contentStart < label.Span.End)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

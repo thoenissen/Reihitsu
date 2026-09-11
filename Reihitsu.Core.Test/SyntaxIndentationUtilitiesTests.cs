@@ -526,6 +526,40 @@ public class SyntaxIndentationUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a position at an earlier sibling section's own statement - as opposed to that section's
+    /// label - is excluded: only a label itself, never a statement sharing the same textual stretch between two
+    /// labels, carries the one-level relationship (issue #786)
+    /// </summary>
+    [TestMethod]
+    public void IsWithinSwitchSectionLabelRegionExcludesAnEarlierSiblingSectionsStatement()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                              Consume(); case 2: Consume();
+                                                  break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var sections = CoreSyntaxTestHelper.ParseCompilationUnit(source).DescendantNodes().OfType<SwitchSectionSyntax>().ToArray();
+        var firstSection = sections[0];
+        var secondSection = sections[1];
+
+        Assert.IsFalse(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(secondSection, firstSection.Statements[0].SpanStart));
+    }
+
+    /// <summary>
     /// Verifies that a position before the enclosing switch statement's own opening brace - such as the
     /// <c>switch</c> keyword itself - is excluded, since it owns no label relationship to any section's
     /// statements (issue #786)

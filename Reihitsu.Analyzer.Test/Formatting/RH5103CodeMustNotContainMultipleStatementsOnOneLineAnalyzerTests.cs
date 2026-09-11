@@ -595,6 +595,72 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that, when the physical line's own leading content is an earlier sibling section's own
+    /// statement rather than that section's label, the split statement is not compensated: a statement sharing
+    /// the textual stretch between two labels is not itself a label, so it carries no one-level relationship,
+    /// even though it lies between the enclosing switch statement's opening brace and this section's own last
+    /// label (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySplitStatementDoesNotCompensateWhenLineStartsWithAnEarlierSiblingSectionsStatement()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1:
+                                                    break; case 0: Method(1); {|#0:Method(2);|}
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1:
+                                                     break; case 0: Method(1);
+                                                     Method(2);
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies a fix is withheld when an empty statement lies between the analyzed non-empty siblings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
