@@ -141,7 +141,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     {
         if (token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CloseBraceToken))
         {
-            return token.Parent != null && SyntaxIndentationUtilities.IsIndentingBraceScope(token.Parent);
+            return token.Parent != null && SyntaxIndentationUtilities.IsIndentingScope(token.Parent);
         }
 
         if (token.Parent == null || token.Parent.GetFirstToken() != token)

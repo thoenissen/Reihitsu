@@ -312,7 +312,7 @@ public class SyntaxIndentationUtilitiesTests
 
         Assert.IsTrue(block.CloseBraceToken.IsMissing);
         Assert.AreEqual(0, SyntaxIndentationUtilities.GetChildIndentLevel(block, block.Statements[0], 0));
-        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingBraceScope(block));
+        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingScope(block));
     }
 
     /// <summary>
@@ -347,11 +347,11 @@ public class SyntaxIndentationUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies which node kinds own an indenting brace range. Initializers are deliberately absent: their columns are
+    /// Verifies which node kinds own an indenting scope. Initializers are deliberately absent: their columns are
     /// owned by the formatter's alignment contributors, not by block indentation
     /// </summary>
     [TestMethod]
-    public void IsIndentingBraceScopeRecognizesBlockScopesOnly()
+    public void IsIndentingScopeRecognizesBraceScopesOnly()
     {
         const string source = """
                               internal class C
@@ -365,9 +365,65 @@ public class SyntaxIndentationUtilitiesTests
 
         var root = CoreSyntaxTestHelper.ParseCompilationUnit(source);
 
-        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingBraceScope(CoreSyntaxTestHelper.GetSingleTypeDeclaration(source)));
-        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingBraceScope(root.DescendantNodes().OfType<AccessorListSyntax>().Single()));
-        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingBraceScope(root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single()));
+        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingScope(CoreSyntaxTestHelper.GetSingleTypeDeclaration(source)));
+        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingScope(root.DescendantNodes().OfType<AccessorListSyntax>().Single()));
+        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingScope(root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single()));
+    }
+
+    /// <summary>
+    /// Verifies that a non-empty switch section owns an indenting scope, expressed as the interval spanning its
+    /// own statements rather than as a brace pair, since it owns no braces of its own. RH5204's own output is
+    /// unaffected: no brace token's direct parent is ever a switch section (issue #748)
+    /// </summary>
+    [TestMethod]
+    public void IsIndentingScopeRecognizesNonEmptySwitchSection()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                              Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+
+        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingScope(section));
+    }
+
+    /// <summary>
+    /// Verifies that an empty switch section owns no indenting scope
+    /// </summary>
+    [TestMethod]
+    public void IsIndentingScopeReturnsFalseForEmptySwitchSection()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                      }
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+
+        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingScope(section));
     }
 
     #endregion // Tests
