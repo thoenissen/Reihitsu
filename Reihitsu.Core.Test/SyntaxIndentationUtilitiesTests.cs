@@ -235,6 +235,67 @@ public class SyntaxIndentationUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a switch section's own label gains no indentation level, only its statements do. This is the
+    /// boundary a switch-section-as-interval rewrite must preserve: routing the section through the same
+    /// <c>&gt;</c> comparison used for brace scopes rather than the inclusive <c>&gt;=</c> the statements interval
+    /// needs would silently misclassify the section's own start (issue #748)
+    /// </summary>
+    [TestMethod]
+    public void GetChildIndentLevelAddsNoLevelForASwitchSectionLabel()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                              Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+
+        Assert.AreEqual(0, SyntaxIndentationUtilities.GetChildIndentLevel(section, section.Labels[0], 0));
+        Assert.AreEqual(1, SyntaxIndentationUtilities.GetChildIndentLevel(section, section.Statements[0], 0));
+    }
+
+    /// <summary>
+    /// Verifies that a switch section with no statements of its own adds no level for its label and does not throw.
+    /// An interval built from <c>Statements[0]</c> must guard this empty case explicitly rather than indexing into
+    /// an empty list (issue #748)
+    /// </summary>
+    [TestMethod]
+    public void GetChildIndentLevelHandlesEmptySwitchSectionLabelWithoutThrowing()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                      }
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+
+        Assert.IsEmpty(section.Statements);
+        Assert.AreEqual(0, SyntaxIndentationUtilities.GetChildIndentLevel(section, section.Labels[0], 0));
+    }
+
+    /// <summary>
     /// Verifies that a scope whose braces are missing adds no indentation level. Malformed source must not shift the
     /// whole file, and the brace-range lookup is the single guard that prevents it
     /// </summary>
@@ -251,7 +312,7 @@ public class SyntaxIndentationUtilitiesTests
 
         Assert.IsTrue(block.CloseBraceToken.IsMissing);
         Assert.AreEqual(0, SyntaxIndentationUtilities.GetChildIndentLevel(block, block.Statements[0], 0));
-        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingBraceScope(block));
+        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingScope(block));
     }
 
     /// <summary>
@@ -286,11 +347,11 @@ public class SyntaxIndentationUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies which node kinds own an indenting brace range. Initializers are deliberately absent: their columns are
+    /// Verifies which node kinds own an indenting scope. Initializers are deliberately absent: their columns are
     /// owned by the formatter's alignment contributors, not by block indentation
     /// </summary>
     [TestMethod]
-    public void IsIndentingBraceScopeRecognizesBlockScopesOnly()
+    public void IsIndentingScopeRecognizesBraceScopesOnly()
     {
         const string source = """
                               internal class C
@@ -304,9 +365,65 @@ public class SyntaxIndentationUtilitiesTests
 
         var root = CoreSyntaxTestHelper.ParseCompilationUnit(source);
 
-        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingBraceScope(CoreSyntaxTestHelper.GetSingleTypeDeclaration(source)));
-        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingBraceScope(root.DescendantNodes().OfType<AccessorListSyntax>().Single()));
-        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingBraceScope(root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single()));
+        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingScope(CoreSyntaxTestHelper.GetSingleTypeDeclaration(source)));
+        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingScope(root.DescendantNodes().OfType<AccessorListSyntax>().Single()));
+        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingScope(root.DescendantNodes().OfType<InitializerExpressionSyntax>().Single()));
+    }
+
+    /// <summary>
+    /// Verifies that a non-empty switch section owns an indenting scope, expressed as the interval spanning its
+    /// own statements rather than as a brace pair, since it owns no braces of its own. RH5204's own output is
+    /// unaffected: no brace token's direct parent is ever a switch section (issue #748)
+    /// </summary>
+    [TestMethod]
+    public void IsIndentingScopeRecognizesNonEmptySwitchSection()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                              Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+
+        Assert.IsTrue(SyntaxIndentationUtilities.IsIndentingScope(section));
+    }
+
+    /// <summary>
+    /// Verifies that an empty switch section owns no indenting scope
+    /// </summary>
+    [TestMethod]
+    public void IsIndentingScopeReturnsFalseForEmptySwitchSection()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                      }
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+
+        Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingScope(section));
     }
 
     #endregion // Tests
