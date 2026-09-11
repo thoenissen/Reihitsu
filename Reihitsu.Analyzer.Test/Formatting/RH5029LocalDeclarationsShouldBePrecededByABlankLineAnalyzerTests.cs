@@ -264,6 +264,740 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that, when the target statement's anchor is inside an object initializer and the preceding
+    /// statement shares its switch-section <c>case</c> label's own line, the inserted blank line's indentation is
+    /// the label's column plus one <see cref="Reihitsu.Core.SyntaxIndentationUtilities.IndentSize"/> - matching
+    /// where the section's own <c>break;</c> already sits - rather than the label's own column (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAnchorsOnLabelColumnPlusIndentSizeWhenPrecedingStatementSharesSwitchLabelLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                                          case 0: Method(1); {|#0:var|} y = 1;
+                                                                              break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                                           case 0: Method(1);
+
+                                                                               var y = 1;
+                                                                               break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no extra indentation level is added when the anchor line's own leading content is an earlier
+    /// sibling statement rather than the section's own label. That sibling's column is already correct, so adding
+    /// a level - the same mistake the issue's own suggested predicate would make - would place the target one
+    /// level too deep (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticKeepsSiblingColumnWhenPrecedingLineStartsWithEarlierSibling()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0:
+                                                    Method(1); Method(2); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0:
+                                                     Method(1); Method(2);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no extra indentation level is added when the anchor line's own leading content is a comment
+    /// rather than the section's own label (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticKeepsSiblingColumnWhenPrecedingLineStartsWithComment()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0:
+                                                    /* note */ Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0:
+                                                     /* note */ Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an explicitly braced switch section is unaffected: the target's direct parent is the block,
+    /// not the section itself, so no label relationship applies (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticUsesBlockIndentationForExplicitlyBracedSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0:
+                                                {
+                                                    Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0:
+                                                 {
+                                                     Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                                 }
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that, outside any anchor scope, a switch label's own mis-indented column is never propagated: the
+    /// canonical, level-derived column self-corrects it instead (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticUsesCanonicalIndentationWhenLabelSharesLineWithoutAnchorScope()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                                          case 0: Method(1); {|#0:var|} y = 1;
+                                                              break;
+                                        }
+                                    }
+
+                                    private void Method(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                                           case 0: Method(1);
+
+                                                 var y = 1;
+                                                               break;
+                                         }
+                                     }
+
+                                     private void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that, when the switch-section label itself is not first on its own line - the whole
+    /// <c>switch</c> statement written on one physical line - the shared base cannot compensate: no whitespace
+    /// run on that line equals the label's column, so the line's own leading whitespace is used unchanged. This
+    /// is a documented limitation rather than a defect (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticDoesNotCompensateWhenSwitchLabelItselfIsNotFirstOnItsLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value) { case 0: Method(1); {|#0:var|} y = 1; break; }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value) { case 0: Method(1);
+
+                                             var y = 1; break; }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that, when the physical line's own leading content is an earlier sibling switch section's label,
+    /// the inserted blank line is compensated exactly like a line led by the target's own section's label:
+    /// sibling sections of one <c>switch</c> statement share the same nesting depth, so their labels share the
+    /// same one-level relationship to this section's statements (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAnchorsOnLabelColumnPlusIndentSizeWhenLineStartsWithAnotherSectionsLabel()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1: break; case 0: Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1: break; case 0: Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that, when a comment precedes the target's own section's label on that label's shared line, the
+    /// inserted blank line is still compensated: the comment is attached to the label, not to a statement, so the
+    /// line is still a label line (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAnchorsOnLabelColumnPlusIndentSizeWhenCommentPrecedesTheLabelOnItsLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                /* note */ case 0: Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 /* note */ case 0: Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that, when the physical line's own leading content is an earlier sibling section's own
+    /// statement rather than that section's label, the inserted blank line is not compensated: a statement
+    /// sharing the textual stretch between two labels is not itself a label, so it carries no one-level
+    /// relationship, even though it lies between the enclosing switch statement's opening brace and this
+    /// section's own last label (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticDoesNotCompensateWhenLineStartsWithAnEarlierSiblingSectionsStatement()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1:
+                                                    break; case 0: Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1:
+                                                     break; case 0: Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab-indented anchor line is compensated by appending four spaces, matching
+    /// <see cref="Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider"/>'s
+    /// own behavior for the identical shape, rather than repeating the line's own indentation character
+    /// (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticCompensatesTabIndentedLabelLineByAppendingFourSpaces()
+    {
+        const string testCode = "internal class RH5029\n{\n\tprivate readonly Config _config = new Config\n\t{\n\t\tHandler = value =>\n\t\t{\n\t\t\tswitch (value)\n\t\t\t{\n\t\t\t\tcase 0: Method(1); {|#0:var|} y = 1;\n\t\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t};\n\n\tprivate static void Method(int value)\n\t{\n\t}\n}\ninternal sealed class Config\n{\n\tpublic System.Action<int> Handler { get; set; }\n}";
+        const string fixedCode = "internal class RH5029\n{\n\tprivate readonly Config _config = new Config\n\t{\n\t\tHandler = value =>\n\t\t{\n\t\t\tswitch (value)\n\t\t\t{\n\t\t\t\tcase 0: Method(1);\n\n\t\t\t\t    var y = 1;\n\t\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t};\n\n\tprivate static void Method(int value)\n\t{\n\t}\n}\ninternal sealed class Config\n{\n\tpublic System.Action<int> Handler { get; set; }\n}";
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All computes each target's indentation against the unmodified document, so a second
+    /// diagnostic sharing the same label line is not compensated twice once the first has conceptually moved to
+    /// its own line (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllCompensatesBothDiagnosticsOnSharedLabelLineWithoutDoubleCompensation()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0: Method(1); {|#0:var|} y = 1; Method(2); {|#1:var|} z = 2;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0: Method(1);
+
+                                                     var y = 1; Method(2);
+
+                                                     var z = 2;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Characterizes the documented limitation for a switch label that itself spans multiple physical lines,
+    /// such as a <c>case</c> pattern with a <c>when</c> clause: the target statement shares a physical line with
+    /// the label's own continuation line rather than with a preceding sibling statement, so the anchor column
+    /// read from that line is the continuation's own column, not the label's first-line column, and the fix adds
+    /// one indentation level too many. This is a known, documented limitation (see RH5103.md), not a defect this
+    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate
+    /// (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticOverIndentsWhenLabelSpansMultipleLinesAndPrecedingStatementSharesItsContinuationLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value): Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1 when
+                                                     Check(value): Method(1);
+
+                                                         var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported when a local declaration in a switch section directly follows a statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
@@ -140,6 +141,71 @@ public static class SyntaxIndentationUtilities
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether a position that leads a shared source line falls inside some label of the enclosing
+    /// switch statement, including that label's own leading trivia, rather than inside a sibling statement or
+    /// trivia attached to one. A section's own statements sit exactly one indentation level deeper than every
+    /// label of the enclosing <c>switch</c> - not only its own - because sibling sections share one nesting
+    /// depth; see <see cref="GetIndentingScopeRange"/>. So a caller that reads a shared line's leading whitespace
+    /// as an anchor-derived column (issue #748) has to add that one level whenever the line is led by any label
+    /// of the same <c>switch</c> statement - this section's own label, an earlier sibling section's label sharing
+    /// the physical line, or trivia (such as a comment) attached ahead of either - and only that. Membership is
+    /// therefore decided per label's own token span, not by a contiguous position range from the switch
+    /// statement's opening brace: that range would also admit an earlier sibling section's own statement, or a
+    /// nested switch's closing brace, sharing the same textual stretch without being a label at all - the
+    /// spurious-level defect this predicate exists to prevent, moved rather than closed (issue #786). A label's
+    /// own span can itself span multiple physical lines - a <c>case</c> pattern with a <c>when</c> clause, for
+    /// example - and a statement sharing one of that label's continuation lines still matches here even though
+    /// the anchor column read from that line is the continuation's own column, not the label's first-line column;
+    /// this is a documented, known limitation (see <c>RH5103.md</c>) rather than a correctness target of this
+    /// predicate
+    /// </summary>
+    /// <param name="switchSection">Switch section that directly owns the statement being indented; its parent must be the enclosing <see cref="SwitchStatementSyntax"/>, which always holds for a section reachable from a parsed <c>switch</c> statement</param>
+    /// <param name="contentStart">Position immediately following the shared line's own leading whitespace</param>
+    /// <returns><see langword="true"/> if <paramref name="contentStart"/> lies inside some label of the enclosing switch statement</returns>
+    public static bool IsWithinSwitchSectionLabelRegion(SwitchSectionSyntax switchSection, int contentStart)
+    {
+        if (switchSection.Parent is not SwitchStatementSyntax switchStatement)
+        {
+            return false;
+        }
+
+        foreach (var section in switchStatement.Sections)
+        {
+            foreach (var label in section.Labels)
+            {
+                if (contentStart >= label.FullSpan.Start && contentStart < label.Span.End)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Computes the indentation for a statement whose column must be read from an anchor line's leading
+    /// whitespace rather than computed from syntactic nesting depth (see <see cref="HasAnchorScopeAncestor"/>).
+    /// When the anchor line is led by a switch statement's label region - see
+    /// <see cref="IsWithinSwitchSectionLabelRegion"/> - one additional <see cref="IndentSize"/> is added, since a
+    /// section's own statements always sit exactly one level deeper than the labels that precede them; otherwise
+    /// the anchor line's own leading whitespace is used unchanged. Centralizing this composition keeps the
+    /// decision that consumes the label-region predicate in one place rather than duplicated per caller
+    /// (issue #786)
+    /// </summary>
+    /// <param name="statement">Statement whose indentation is being computed</param>
+    /// <param name="anchorLine">Source line supplying the anchor column</param>
+    /// <param name="anchorLineIndentation">The anchor line's own leading whitespace, already read from source text</param>
+    /// <returns>The indentation to place before <paramref name="statement"/></returns>
+    public static string ComputeAnchorDerivedIndentation(StatementSyntax statement, TextLine anchorLine, string anchorLineIndentation)
+    {
+        return statement.Parent is SwitchSectionSyntax switchSection
+               && IsWithinSwitchSectionLabelRegion(switchSection, anchorLine.Start + anchorLineIndentation.Length)
+                   ? anchorLineIndentation + new string(' ', IndentSize)
+                   : anchorLineIndentation;
     }
 
     /// <summary>

@@ -422,6 +422,68 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
                      Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the shared code-fix base's switch-label indentation compensation (issue #786) applies to
+    /// every diagnostic derived from <c>StatementShouldBePrecededByABlankLineCodeFixProviderBase</c>, not only
+    /// RH5029, confirming the base's single call site rather than a per-rule copy
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAnchorsOnLabelColumnPlusIndentSizeWhenPrecedingStatementSharesSwitchLabelLine()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0: Method(1); {|#0:return|};
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5008
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0: Method(1);
+
+                                                     return;
+                                             }
+                                         }
+                                     };
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

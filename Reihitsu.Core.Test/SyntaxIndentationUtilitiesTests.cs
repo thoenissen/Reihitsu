@@ -426,5 +426,204 @@ public class SyntaxIndentationUtilitiesTests
         Assert.IsFalse(SyntaxIndentationUtilities.IsIndentingScope(section));
     }
 
+    /// <summary>
+    /// Verifies that a position at the section's own start, or anywhere inside its label region, is recognized
+    /// (issue #786)
+    /// </summary>
+    [TestMethod]
+    public void IsWithinSwitchSectionLabelRegionRecognizesPositionsInsideTheLabel()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1: Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+        var label = section.Labels[0];
+
+        Assert.IsTrue(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(section, section.SpanStart));
+        Assert.IsTrue(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(section, label.Span.End - 1));
+    }
+
+    /// <summary>
+    /// Verifies that the label's own end position is excluded, since the section's statements start there and sit
+    /// one indentation level deeper than the label (issue #786)
+    /// </summary>
+    [TestMethod]
+    public void IsWithinSwitchSectionLabelRegionExcludesTheLabelsOwnEndBoundary()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1: Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+        var label = section.Labels[0];
+
+        Assert.IsFalse(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(section, label.Span.End));
+        Assert.IsFalse(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(section, section.Statements[0].SpanStart));
+    }
+
+    /// <summary>
+    /// Verifies that a position at an earlier sibling section's label - such as a preceding section's label
+    /// sharing the same physical line as this section's own label - is recognized: sibling sections of one
+    /// <c>switch</c> statement share the same nesting depth, so their labels share the same one-level
+    /// relationship to this section's statements (issue #786)
+    /// </summary>
+    [TestMethod]
+    public void IsWithinSwitchSectionLabelRegionRecognizesAnEarlierSiblingSectionsLabel()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1: break;
+                                          case 2: Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var sections = CoreSyntaxTestHelper.ParseCompilationUnit(source).DescendantNodes().OfType<SwitchSectionSyntax>().ToArray();
+        var firstSection = sections[0];
+        var secondSection = sections[1];
+
+        Assert.IsTrue(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(secondSection, firstSection.SpanStart));
+    }
+
+    /// <summary>
+    /// Verifies that a position at an earlier sibling section's own statement - as opposed to that section's
+    /// label - is excluded: only a label itself, never a statement sharing the same textual stretch between two
+    /// labels, carries the one-level relationship (issue #786)
+    /// </summary>
+    [TestMethod]
+    public void IsWithinSwitchSectionLabelRegionExcludesAnEarlierSiblingSectionsStatement()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                              Consume(); case 2: Consume();
+                                                  break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var sections = CoreSyntaxTestHelper.ParseCompilationUnit(source).DescendantNodes().OfType<SwitchSectionSyntax>().ToArray();
+        var firstSection = sections[0];
+        var secondSection = sections[1];
+
+        Assert.IsFalse(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(secondSection, firstSection.Statements[0].SpanStart));
+    }
+
+    /// <summary>
+    /// Verifies that a position before the enclosing switch statement's own opening brace - such as the
+    /// <c>switch</c> keyword itself - is excluded, since it owns no label relationship to any section's
+    /// statements (issue #786)
+    /// </summary>
+    [TestMethod]
+    public void IsWithinSwitchSectionLabelRegionExcludesPositionsBeforeTheEnclosingSwitchStatement()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1: Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var switchStatement = CoreSyntaxTestHelper.GetSingleNode<SwitchStatementSyntax>(source);
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+
+        Assert.IsFalse(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(section, switchStatement.SwitchKeyword.SpanStart));
+    }
+
+    /// <summary>
+    /// Verifies that a position at the last of several labels belonging to the same section is recognized, and
+    /// not only a position at the first: a section's statements sit one level below whichever label immediately
+    /// precedes them on a shared line (issue #786)
+    /// </summary>
+    [TestMethod]
+    public void IsWithinSwitchSectionLabelRegionRecognizesTheLastOfSeveralLabels()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  void M(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                                          case 2: Consume();
+                                              break;
+                                      }
+                                  }
+
+                                  void Consume()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var section = CoreSyntaxTestHelper.GetSingleNode<SwitchSectionSyntax>(source);
+        var lastLabel = section.Labels[section.Labels.Count - 1];
+
+        Assert.AreEqual(2, section.Labels.Count);
+        Assert.IsTrue(SyntaxIndentationUtilities.IsWithinSwitchSectionLabelRegion(section, lastLabel.SpanStart));
+    }
+
     #endregion // Tests
 }
