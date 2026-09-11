@@ -155,7 +155,12 @@ public static class SyntaxIndentationUtilities
     /// therefore decided per label's own token span, not by a contiguous position range from the switch
     /// statement's opening brace: that range would also admit an earlier sibling section's own statement, or a
     /// nested switch's closing brace, sharing the same textual stretch without being a label at all - the
-    /// spurious-level defect this predicate exists to prevent, moved rather than closed (issue #786)
+    /// spurious-level defect this predicate exists to prevent, moved rather than closed (issue #786). A label's
+    /// own span can itself span multiple physical lines - a <c>case</c> pattern with a <c>when</c> clause, for
+    /// example - and a statement sharing one of that label's continuation lines still matches here even though
+    /// the anchor column read from that line is the continuation's own column, not the label's first-line column;
+    /// this is a documented, known limitation (see <c>RH5103.md</c>) rather than a correctness target of this
+    /// predicate
     /// </summary>
     /// <param name="switchSection">Switch section that directly owns the statement being indented; its parent must be the enclosing <see cref="SwitchStatementSyntax"/>, which always holds for a section reachable from a parsed <c>switch</c> statement</param>
     /// <param name="contentStart">Position immediately following the shared line's own leading whitespace</param>

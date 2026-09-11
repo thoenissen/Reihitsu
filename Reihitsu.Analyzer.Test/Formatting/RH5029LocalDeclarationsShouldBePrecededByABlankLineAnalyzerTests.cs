@@ -918,6 +918,86 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Characterizes the documented limitation for a switch label that itself spans multiple physical lines,
+    /// such as a <c>case</c> pattern with a <c>when</c> clause: the target statement shares a physical line with
+    /// the label's own continuation line rather than with a preceding sibling statement, so the anchor column
+    /// read from that line is the continuation's own column, not the label's first-line column, and the fix adds
+    /// one indentation level too many. This is a known, documented limitation (see RH5103.md), not a defect this
+    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate
+    /// (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticOverIndentsWhenLabelSpansMultipleLinesAndPrecedingStatementSharesItsContinuationLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value): Method(1); {|#0:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1 when
+                                                     Check(value): Method(1);
+
+                                                         var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported when a local declaration in a switch section directly follows a statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

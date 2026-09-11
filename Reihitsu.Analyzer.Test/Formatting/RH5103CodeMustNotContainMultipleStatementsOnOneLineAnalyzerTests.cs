@@ -661,6 +661,84 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Characterizes the documented limitation for a switch label that itself spans multiple physical lines,
+    /// such as a <c>case</c> pattern with a <c>when</c> clause: the split statement shares a physical line with
+    /// the label's own continuation line rather than with a preceding sibling statement, so the anchor column
+    /// read from that line is the continuation's own column, not the label's first-line column, and the fix adds
+    /// one indentation level too many. This is a known, documented limitation (see RH5103.md), not a defect this
+    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate
+    /// (issue #786)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySplitStatementOverIndentsWhenLabelSpansMultipleLinesAndStatementSharesItsContinuationLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value): Method(1); {|#0:Method(2);|}
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1 when
+                                                     Check(value): Method(1);
+                                                         Method(2);
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies a fix is withheld when an empty statement lies between the analyzed non-empty siblings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
