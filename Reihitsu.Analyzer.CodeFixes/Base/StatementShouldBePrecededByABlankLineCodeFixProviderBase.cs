@@ -178,12 +178,15 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     /// <summary>
     /// Gets the indentation to apply after moving the target token onto its own line. Normally this is the
     /// target statement's syntactic nesting depth, which is canonical: it self-corrects a stray extra space or
-    /// tab on the previous line instead of propagating it. That canonical value does not exist when an object
-    /// initializer or anonymous object sits between the statement and its nearest brace scope, because neither
-    /// is a level - <see cref="SyntaxIndentationUtilities.ComputeStatementIndentLevel"/> has no way to turn "one
-    /// more initializer" into the anchor-derived column the formatter's own alignment contributors would place
-    /// it at (issue #748). In that situation the previous token's line supplies the column instead, since that
-    /// line has not moved and its leading whitespace is still correct
+    /// tab on the previous statement's line instead of propagating it. That canonical value does not exist when
+    /// an object initializer or anonymous object sits between the statement and its nearest brace scope, because
+    /// neither is a level - <see cref="SyntaxIndentationUtilities.ComputeStatementIndentLevel"/> has no way to
+    /// turn "one more initializer" into the anchor-derived column the formatter's own alignment contributors
+    /// would place it at (issue #748). In that situation the previous statement's own start line supplies the
+    /// column instead, since that line has not moved and its leading whitespace is still correct - anchored on
+    /// the statement's start rather than <paramref name="previousToken"/>'s own line, because a multi-line
+    /// previous statement's last token can sit on an unrelated continuation line whose indentation carries no
+    /// such meaning
     /// </summary>
     /// <param name="sourceText">Document source text</param>
     /// <param name="token">Diagnostic target token</param>
@@ -200,7 +203,9 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
 
         if (SyntaxIndentationUtilities.HasAnchorScopeAncestor(targetStatement))
         {
-            var previousLine = sourceText.Lines.GetLineFromPosition(previousToken.SpanStart);
+            var previousStatement = previousToken.Parent?.FirstAncestorOrSelf<StatementSyntax>();
+            var anchorPosition = previousStatement?.SpanStart ?? previousToken.SpanStart;
+            var previousLine = sourceText.Lines.GetLineFromPosition(anchorPosition);
 
             return FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, previousLine));
         }

@@ -134,6 +134,67 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that the inserted blank line's indentation is read from the preceding statement's own start line
+    /// rather than from whichever line its last token happens to sit on. A multi-line preceding statement's own
+    /// column is anchored, inside an object initializer, to the same anchor as the moved statement, but its last
+    /// token sits on an unrelated continuation line whose indentation carries no such meaning (issue #748)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAnchorsOnPrecedingStatementsOwnLineWhenItSpansMultipleLines()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = () =>
+                                        {
+                                                                          Baz(
+                                                                              1,
+                                                                              2); {|#0:var|} y = 1;
+                                        }
+                                    };
+
+                                    private static void Baz(int a, int b)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action Handler { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = () =>
+                                         {
+                                                                           Baz(
+                                                                               1,
+                                                                               2);
+
+                                                                           var y = 1;
+                                         }
+                                     };
+
+                                     private static void Baz(int a, int b)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported when a local declaration in a switch section directly follows a statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -75,11 +75,19 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
 
         // statement.Parent is a SwitchSectionSyntax whose statements still share a line with their label, so
         // previousLine's own leading whitespace is the label's column rather than the statements' - a section's
-        // statements always sit exactly one level deeper than the label they belong to. Reading the label's
-        // current column from text keeps that relationship correct even when the switch is itself inside an
-        // object initializer or anonymous object, where no level derived by walking ancestors can recover the
-        // anchor-derived column (issue #748)
-        return indentation + new string(' ', SyntaxIndentationUtilities.IndentSize);
+        // statements always sit exactly one level deeper than the label they belong to. That relationship is only
+        // safe to read from the label's current text column when an object initializer or anonymous object sits
+        // between the section and its nearest brace scope, because only there does no level derived by walking
+        // ancestors recover the anchor-derived column (issue #748). Otherwise the label's own column may itself be
+        // a stray extra space or tab, and the canonical, level-derived column self-corrects it instead of
+        // propagating it - the same distinction SyntaxIndentationUtilities.HasAnchorScopeAncestor's other two
+        // callers already make
+        if (SyntaxIndentationUtilities.HasAnchorScopeAncestor(statement))
+        {
+            return indentation + new string(' ', SyntaxIndentationUtilities.IndentSize);
+        }
+
+        return new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(statement) * SyntaxIndentationUtilities.IndentSize);
     }
 
     /// <summary>

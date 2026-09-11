@@ -117,13 +117,15 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
-    /// Determines whether an object initializer or anonymous object sits between a node and its nearest brace
-    /// scope. Both are anchor-derived rather than level-derived: their members align to a token's own column plus
-    /// one indentation size, not to a multiple of <see cref="IndentSize"/> counted from ancestry, so no caller of
-    /// <see cref="ComputeBaseIndentLevel"/> or <see cref="ComputeStatementIndentLevel"/> can turn "one more
-    /// initializer" into the column the formatter's own alignment contributors would place it at. A caller that
-    /// needs that column when this returns <see langword="true"/> has to read it from the current source text
-    /// instead of computing it (issue #748)
+    /// Determines whether any ancestor of a node, all the way to the root, is an object initializer or an
+    /// anonymous object - not only the nearest one. Both are anchor-derived rather than level-derived: their
+    /// members align to a token's own column plus one indentation size, not to a multiple of
+    /// <see cref="IndentSize"/> counted from ancestry, so no caller of <see cref="ComputeBaseIndentLevel"/> or
+    /// <see cref="ComputeStatementIndentLevel"/> can turn "one more initializer" into the column the formatter's
+    /// own alignment contributors would place it at. The search cannot stop at the first brace scope it meets:
+    /// a block nested inside an initializer is itself anchor-positioned, even though the block itself is a
+    /// recognized brace scope. A caller that needs that column when this returns <see langword="true"/> has to
+    /// read it from the current source text instead of computing it (issue #748)
     /// </summary>
     /// <param name="node">Node to inspect</param>
     /// <returns><see langword="true"/> if such an ancestor exists</returns>
@@ -220,12 +222,14 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
-    /// Gets the range of a syntax scope that adds one indentation level to its children. A switch section is
-    /// expressed as the interval spanning its own statements rather than as a brace pair, because a section owns
-    /// no braces of its own; the interval starts at the first statement's own start so that statement is included,
-    /// matching the direct-child arm this model previously carried for switch sections. This model deliberately
-    /// omits <see cref="InitializerExpressionSyntax"/> and <see cref="AnonymousObjectCreationExpressionSyntax"/>:
-    /// their members are anchor-derived, aligned to a token's own column plus one indentation size rather than a
+    /// Gets the range of a syntax scope that adds one indentation level to its children, backing
+    /// <see cref="GetChildIndentLevel"/>, <see cref="GetTriviaIndentLevel"/>, and <see cref="IsIndentingScope"/>.
+    /// A switch section is expressed as the interval spanning its own statements rather than as a brace pair,
+    /// because a section owns no braces of its own; the interval starts at the first statement's own start so
+    /// that statement is included, matching the direct-child arm this model previously carried for switch
+    /// sections. This model deliberately omits <see cref="InitializerExpressionSyntax"/> and
+    /// <see cref="AnonymousObjectCreationExpressionSyntax"/>, unlike <see cref="IsIndentingAncestor"/>: their
+    /// members are anchor-derived, aligned to a token's own column plus one indentation size rather than a
     /// brace-scope level, and pass-2 alignment contributors in <c>Reihitsu.Formatter.Pipeline.Indentation</c> -
     /// which this model's consumers (<see cref="GetChildIndentLevel"/>'s <c>LayoutComputer</c> and RH5204 callers)
     /// already delegate to for those columns - already own them (issue #748)

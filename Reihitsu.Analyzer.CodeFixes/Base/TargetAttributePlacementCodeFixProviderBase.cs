@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -136,7 +135,10 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     /// out of <see cref="SyntaxIndentationUtilities.ComputeBaseIndentLevel"/>'s count instead of raising an error,
     /// which would understate the level-fallback indentation on exactly the transient, mid-edit documents where an
     /// IDE offers "Fix all in document" most often. This is unrelated to whether the level fallback is actually
-    /// taken for a given attribute list, so the guard stays unconditional rather than trying to predict it
+    /// taken for a given attribute list, so the guard stays unconditional rather than trying to predict it. Its
+    /// node-kind set is a private mirror of <see cref="SyntaxIndentationUtilities"/>'s internal
+    /// <c>IsIndentingAncestor</c> brace kinds and must be kept in parity with it - this repository has already
+    /// let such a mirror drift once, in the incident issue #255 fixed
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
     /// <returns><see langword="true"/> when an enclosing scope has a missing brace</returns>
