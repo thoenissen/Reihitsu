@@ -594,9 +594,14 @@ public sealed class SelfReferentialTrackerReferenceTests
     }
 
     /// <summary>
-    /// Determines whether a file sits under a build-output directory or matches a generated-file suffix. The
-    /// build-output segment check mirrors <c>FormatCommandHandler</c>'s own <c>bin</c>/<c>obj</c> skip for the
-    /// same internal-visibility reason as <see cref="_generatedFileSuffixes"/>
+    /// Determines whether a file sits under a build-output directory or matches a generated-file suffix.
+    /// <c>FormatCommandHandler.IsInBuildOutputDirectory</c> implements the same policy — skip <c>bin</c>/<c>obj</c>
+    /// — but is <see langword="private"/> in a different assembly, so this repeats the policy rather than
+    /// referencing it. The two checks differ in scope on purpose: the CLI's own check walks only the segments
+    /// between a selection root and the file, using the platform-specific path comparer a real file-system scan
+    /// needs, while this repository-wide scan compares every segment with <see cref="StringComparison.OrdinalIgnoreCase"/>
+    /// because both trees it runs against — the checked-out repository and this test's own disposable fixtures —
+    /// use the same separator regardless of host platform
     /// </summary>
     /// <param name="filePath">File path to check</param>
     /// <returns><see langword="true"/> if the file is excluded from the scan; otherwise, <see langword="false"/></returns>

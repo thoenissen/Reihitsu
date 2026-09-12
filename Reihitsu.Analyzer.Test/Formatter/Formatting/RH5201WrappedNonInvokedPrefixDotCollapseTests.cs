@@ -19,7 +19,7 @@ public class RH5201WrappedNonInvokedPrefixDotCollapseTests : FormatterTestsBase<
     #region Tests
 
     /// <summary>
-    /// Runs the formatter over an input built from a wrapped, uncommented non-invoked
+    /// Runs the formatter over an input built from (a wrapped, uncommented non-invoked
     /// <c>.Prop</c> prefix dot, then a comment directly above the first invoked link) and asserts
     /// that both the raw and the fixed source are analyzer-clean, and that the fixed source is
     /// stable on a second formatter pass, under both LF and CRLF
