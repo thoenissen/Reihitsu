@@ -163,7 +163,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that every field generated from a documented declaration with more than two declarators is placed
-    /// at the member indentation (issue #592)
+    /// at the member indentation.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedFieldsWithThreeDeclaratorsAreSplitAtMemberIndentation()
@@ -196,7 +196,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documented combined field declaration carrying an attribute list is split at the member
-    /// indentation, so the generated attribute lists line up with the generated fields (issue #592)
+    /// indentation, so the generated attribute lists line up with the generated fields.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedFieldsWithAttributeAreSplitAtMemberIndentation()
@@ -231,7 +231,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a combined field declaration preceded by an inline block comment is split at the indentation of
-    /// the line the field starts on, instead of accumulating the whitespace on both sides of the comment (issue #592)
+    /// the line the field starts on, instead of accumulating the whitespace on both sides of the comment.
     /// </summary>
     [TestMethod]
     public void InlineBlockCommentCombinedFieldsAreSplitAtMemberIndentation()
@@ -288,7 +288,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// Verifies that a combined field declaration documented with a delimited documentation comment keeps its
     /// current, already correct indentation. Unlike a single-line documentation comment this form does not carry its
     /// line break internally, so it is the side of the boundary that a fix widened to "documentation comments" would
-    /// break (issue #592)
+    /// break.
     /// </summary>
     [TestMethod]
     public void MultiLineDocumentationCommentCombinedFieldsAreSplitAtMemberIndentation()
@@ -315,7 +315,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a documented combined field declaration in a struct is split at the member indentation (issue #592)
+    /// Verifies that a documented combined field declaration in a struct is split at the member indentation.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedStructFieldsAreSplitAtMemberIndentation()
@@ -346,7 +346,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a documented combined field declaration in a record is split at the member indentation (issue #592)
+    /// Verifies that a documented combined field declaration in a record is split at the member indentation.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedRecordFieldsAreSplitAtMemberIndentation()
@@ -377,7 +377,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a documented combined field declaration in a record struct is split at the member indentation (issue #592)
+    /// Verifies that a documented combined field declaration in a record struct is split at the member indentation.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedRecordStructFieldsAreSplitAtMemberIndentation()
@@ -408,7 +408,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a documented combined field declaration in an interface is split at the member indentation (issue #592)
+    /// Verifies that a documented combined field declaration in an interface is split at the member indentation.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedInterfaceFieldsAreSplitAtMemberIndentation()
@@ -441,7 +441,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a documentation comment preceding a later declarator is preserved and documents the field it
     /// precedes. Before the fix the split rebuilt the generated field's trivia from a comment set that excluded
-    /// documentation comments, which deleted it outright (issue #592)
+    /// documentation comments, which deleted it outright.
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeDeclaratorIsPreserved()
@@ -473,7 +473,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a delimited documentation comment preceding a later declarator is preserved. This form carries
-    /// no line break of its own, so the split has to supply one (issue #592)
+    /// no line break of its own, so the split has to supply one.
     /// </summary>
     [TestMethod]
     public void MultiLineDocumentationCommentBeforeDeclaratorIsPreserved()
@@ -504,7 +504,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a documentation comment written after the separator documents the following field. Roslyn files
     /// it as leading trivia of the next declarator, unlike the line comment in
-    /// <see cref="TrailingCommentAfterSeparatorIsPreserved"/>, which stays trailing on the first field (issue #592)
+    /// <see cref="TrailingCommentAfterSeparatorIsPreserved"/>, which stays trailing on the first field.
     /// </summary>
     [TestMethod]
     public void DocumentationCommentAfterSeparatorDocumentsFollowingField()
@@ -536,7 +536,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a block comment written before the separator stays before the semicolon the separator becomes.
     /// The separator terminates the first declarator exactly as the semicolon terminates the last, so the split
-    /// preserves the comment's position instead of relocating it across the generated semicolon (issue #625)
+    /// preserves the comment's position instead of relocating it across the generated semicolon.
     /// </summary>
     [TestMethod]
     public void BlockCommentBeforeSeparatorStaysBeforeTheGeneratedSemicolon()
@@ -563,7 +563,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment on the declaration and a documentation comment on a later declarator are
-    /// both preserved, each documenting its own generated field (issue #592)
+    /// both preserved, each documenting its own generated field.
     /// </summary>
     [TestMethod]
     public void FieldAndDeclaratorDocumentationCommentsAreBothPreserved()
@@ -599,7 +599,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment preceding the second of three declarators is preserved on that field
-    /// only, leaving the third field undocumented (issue #592)
+    /// only, leaving the third field undocumented.
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeSecondOfThreeDeclaratorsIsPreserved()
@@ -633,7 +633,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a line comment and a documentation comment preceding the same declarator are both preserved in
-    /// source order (issue #592)
+    /// source order.
     /// </summary>
     [TestMethod]
     public void LineAndDocumentationCommentBeforeDeclaratorArePreserved()
@@ -667,7 +667,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment preceding a later declarator is preserved at the nested member
-    /// indentation (issue #592)
+    /// indentation.
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeDeclaratorInNestedTypeIsPreserved()
@@ -704,7 +704,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a documentation comment preceding a later declarator is preserved in an interface (issue #592)
+    /// Verifies that a documentation comment preceding a later declarator is preserved in an interface.
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeDeclaratorInInterfaceIsPreserved()
@@ -736,7 +736,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment written before the semicolon of a combined field declaration appears
-    /// exactly once in the split output, in the position the author wrote it (issue #625)
+    /// exactly once in the split output, in the position the author wrote it.
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeSemicolonIsNotDuplicated()

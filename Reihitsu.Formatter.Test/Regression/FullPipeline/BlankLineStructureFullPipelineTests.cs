@@ -46,7 +46,7 @@ public class BlankLineStructureFullPipelineTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single blank line before a multi-line block comment whose closing token sits on its own line
-    /// is preserved instead of being doubled (see issue #307)
+    /// is preserved instead of being doubled
     /// </summary>
     [TestMethod]
     public void PreservesSingleBlankLineBeforeMultiLineBlockComment()

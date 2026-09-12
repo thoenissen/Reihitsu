@@ -134,7 +134,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifying that an argument list carrying a comment in the join gap is not flagged, because the formatter
-    /// refuses to collapse the first argument across that comment (issue #444)
+    /// refuses to collapse the first argument across that comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -159,7 +159,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifying that no code fix action is registered for an argument list carrying a comment in the join gap,
-    /// so the code fix does not offer a no-op action (issue #444)
+    /// so the code fix does not offer a no-op action.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -193,7 +193,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifying that an argument list carrying a preprocessor directive in the join gap is not flagged, because the
-    /// formatter refuses to collapse the first argument across that directive (issue #444)
+    /// formatter refuses to collapse the first argument across that directive.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -220,7 +220,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifying that a documentation comment in the join gap is gated like other comments, so the gate and the
-    /// formatter agree on what counts as a comment (issue #226)
+    /// formatter agree on what counts as a comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -254,8 +254,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying that the argument list of the issue's literal example, which carries a comment after the closing
-    /// parenthesis, is reported (issue #650)
+    /// Verifying that an argument list which carries a comment after the closing parenthesis is reported.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -279,8 +278,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying that the argument list of the issue's literal example, which carries a comment after the closing
-    /// parenthesis, is offered a code fix (issue #650)
+    /// Verifying that an argument list which carries a comment after the closing parenthesis is offered a code fix.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -313,8 +311,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying the control case of the issue's literal example: the identical input without the trailing comment is
-    /// reported (issue #650)
+    /// Verifying the control case: the identical input without the trailing comment is reported.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -338,8 +335,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying the control case of the issue's literal example: the identical input without the trailing comment is
-    /// offered a code fix (issue #650)
+    /// Verifying the control case: the identical input without the trailing comment is offered a code fix.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -372,8 +368,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying that a comment after the closing parenthesis is fixed and the comment stays where it was written
-    /// (issue #650)
+    /// Verifying that a comment after the closing parenthesis is fixed and the comment stays where it was written.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -412,7 +407,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// <summary>
     /// Verifying that a comment written before the opening parenthesis still withholds the code fix. The rewrite is
     /// delegated to the shared formatter, which restores the first token's leading trivia only when that token does
-    /// not start a line, so this region is not released together with the trailing one (issue #650)
+    /// not start a line, so this region is not released together with the trailing one.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -447,7 +442,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifying that a comment written directly against the closing parenthesis, without a separating space, is
-    /// offered a code fix like the space-separated shape (issue #650)
+    /// offered a code fix like the space-separated shape.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

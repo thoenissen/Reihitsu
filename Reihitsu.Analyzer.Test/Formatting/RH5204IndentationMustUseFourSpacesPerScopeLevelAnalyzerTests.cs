@@ -96,7 +96,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// <summary>
     /// Verifies that a member preceded by a documentation comment is detected and fixed. Previously the
     /// code fix registered but produced no change for documented members because the underlying formatter
-    /// never reset its line-start tracking after documentation comment trivia (issue #429)
+    /// never reset its line-start tracking after documentation comment trivia.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -410,7 +410,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a correctly indented, unbraced <c>while</c> body does not produce a diagnostic (issue #416).
+    /// Verifies that a correctly indented, unbraced <c>while</c> body does not produce a diagnostic.
     /// The body is a keyword-led <c>return</c> statement because <c>ShouldAnalyzeToken</c> only analyzes tokens
     /// whose immediate parent is a <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax"/>, so an
     /// expression-statement body would not exercise the fix
@@ -434,7 +434,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a correctly indented, unbraced <c>for</c> body does not produce a diagnostic (issue #416)
+    /// Verifies that a correctly indented, unbraced <c>for</c> body does not produce a diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -455,7 +455,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a correctly indented, unbraced <c>foreach</c> body does not produce a diagnostic (issue #416)
+    /// Verifies that a correctly indented, unbraced <c>foreach</c> body does not produce a diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

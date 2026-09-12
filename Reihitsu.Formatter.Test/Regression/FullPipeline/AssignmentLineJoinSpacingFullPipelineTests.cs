@@ -5,7 +5,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
 /// <summary>
-/// Regression tests for issue #426: joining a line-broken assignment operator onto the target line
+/// Regression tests verifying that joining a line-broken assignment operator onto the target line
 /// must not leave a double space once the horizontal-spacing phase adds its own separating space
 /// </summary>
 [TestClass]
