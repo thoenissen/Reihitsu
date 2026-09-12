@@ -476,7 +476,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a correctly indented, unbraced <c>using</c> body does not produce a diagnostic (issue #416)
+    /// Verifies that a correctly indented, unbraced <c>using</c> body does not produce a diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -497,7 +497,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a correctly indented, unbraced <c>lock</c> body does not produce a diagnostic (issue #416)
+    /// Verifies that a correctly indented, unbraced <c>lock</c> body does not produce a diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -520,7 +520,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a correctly indented, unbraced <c>do</c> body does not produce a diagnostic (issue #416)
+    /// Verifies that a correctly indented, unbraced <c>do</c> body does not produce a diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -542,7 +542,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a correctly indented, unbraced <c>fixed</c> body does not produce a diagnostic (issue #416)
+    /// Verifies that a correctly indented, unbraced <c>fixed</c> body does not produce a diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -563,7 +563,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that correctly indented, unbraced nested <c>if</c> bodies do not produce a diagnostic (issue #416)
+    /// Verifies that correctly indented, unbraced nested <c>if</c> bodies do not produce a diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -586,7 +586,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that an <c>else if</c> chain with correctly indented, unbraced bodies does not produce a
-    /// diagnostic, and that the chained <c>if</c> keywords stay flat rather than accumulating indentation (issue #416)
+    /// diagnostic, and that the chained <c>if</c> keywords stay flat rather than accumulating indentation.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -612,7 +612,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that a wrongly indented, unbraced <c>while</c> body is detected and fixed to one level
-    /// deeper than the <c>while</c> statement (issue #416)
+    /// deeper than the <c>while</c> statement.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -646,7 +646,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that a wrongly indented, unbraced <c>fixed</c> body is detected and fixed to one level
-    /// deeper than the <c>fixed</c> statement (issue #416)
+    /// deeper than the <c>fixed</c> statement.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

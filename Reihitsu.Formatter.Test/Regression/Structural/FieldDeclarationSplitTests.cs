@@ -856,7 +856,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment written before the separator is preserved on the field the author
-    /// wrote it on, instead of being dropped with the separator's leading trivia (issue #624)
+    /// wrote it on, instead of being dropped with the separator's leading trivia.
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeSeparatorIsPreserved()
@@ -882,7 +882,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single line documentation comment written before the separator is preserved (issue #624)
+    /// Verifies that a single line documentation comment written before the separator is preserved.
     /// </summary>
     [TestMethod]
     public void SingleLineDocumentationCommentBeforeSeparatorIsPreserved()
@@ -996,8 +996,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment written before the first declarator is preserved where the author wrote it. It sits
-    /// in the first declarator's leading trivia, which the split used to strip without any call site reading it
-    /// (issue #636)
+    /// in the first declarator's leading trivia, which the split used to strip without any call site reading it.
     /// </summary>
     [TestMethod]
     public void CommentBeforeFirstDeclaratorIsPreserved()
@@ -1027,7 +1026,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a line comment written before the first declarator is preserved. It ends its own line, so the
-    /// declarator stays on the following line rather than being commented out (issue #636)
+    /// declarator stays on the following line rather than being commented out.
     /// </summary>
     [TestMethod]
     public void LineCommentBeforeFirstDeclaratorIsPreserved()
@@ -1059,7 +1058,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single line documentation comment written before the first declarator is preserved and
-    /// normalized to its multi line form (issue #636)
+    /// normalized to its multi line form.
     /// </summary>
     [TestMethod]
     public void SingleLineDocumentationCommentBeforeFirstDeclaratorIsPreserved()
@@ -1093,7 +1092,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a delimited documentation comment written before the first declarator is preserved. It carries
-    /// no line break of its own, so the declarator stays on its line (issue #636)
+    /// no line break of its own, so the declarator stays on its line.
     /// </summary>
     [TestMethod]
     public void DelimitedDocumentationCommentBeforeFirstDeclaratorIsPreserved()
@@ -1122,8 +1121,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that two comments written before the first declarator are both preserved in their source order
-    /// (issue #636)
+    /// Verifies that two comments written before the first declarator are both preserved in their source order.
     /// </summary>
     [TestMethod]
     public void TwoCommentsBeforeFirstDeclaratorArePreserved()
@@ -1152,8 +1150,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment written before the first of three declarators lands on the first generated field only
-    /// (issue #636)
+    /// Verifies that a comment written before the first of three declarators lands on the first generated field only.
     /// </summary>
     [TestMethod]
     public void CommentBeforeFirstOfThreeDeclaratorsLandsOnTheFirstFieldOnly()

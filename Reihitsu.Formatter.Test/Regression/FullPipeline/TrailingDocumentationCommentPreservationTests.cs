@@ -310,7 +310,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that documentation with no following declaration stays on the line the author wrote it on. It
     /// documents nothing - the closing brace does not open the type declaration - so relocating it would be a
-    /// placement decision the formatter cannot make (issues #591, #625)
+    /// placement decision the formatter cannot make
     /// </summary>
     [TestMethod]
     public void PreservesTrailingDocumentationWithoutFollowingMember()
@@ -397,7 +397,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that a delimited documentation comment written after a field's semicolon, with another field
     /// following it, reaches its final layout in the first pass. The comment documents the following field, so
     /// relocating it above that field is correct, but the relocation and the blank-line separation must not be
-    /// spread across two passes (issue #637)
+    /// spread across two passes
     /// </summary>
     [TestMethod]
     public void MovesDelimitedDocumentationAfterFieldSemicolonAboveFollowingMemberInOnePass()
@@ -425,7 +425,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that the same one-pass separation applies to a delimited documentation comment written after a
     /// property's closing brace. The owning token differs from the field case, so it proves the behavior follows
-    /// from the trivia position rather than from the preceding member's kind (issue #637)
+    /// from the trivia position rather than from the preceding member's kind
     /// </summary>
     [TestMethod]
     public void MovesDelimitedDocumentationAfterPropertyAboveFollowingMemberInOnePass()
@@ -453,7 +453,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that the interior lines of a multi-line delimited documentation comment are carried along unchanged
     /// while the comment itself is separated in one pass. Only the boundary in front of the comment moves, so the
-    /// text the author wrote inside it is not re-laid-out (issue #637)
+    /// text the author wrote inside it is not re-laid-out
     /// </summary>
     [TestMethod]
     public void MovesMultilineDelimitedDocumentationAboveFollowingMemberInOnePass()
@@ -482,7 +482,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that documentation already written above the following member is kept below the relocated comment
-    /// and that the whole layout is still reached in one pass (issue #637)
+    /// and that the whole layout is still reached in one pass
     /// </summary>
     [TestMethod]
     public void MovesDelimitedDocumentationAboveAlreadyDocumentedFollowingMemberInOnePass()
@@ -513,7 +513,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that several delimited documentation comments converge together rather than one per pass. Each one
-    /// owns its own boundary, so a fix that only settled the first would still need a pass per comment (issue #637)
+    /// owns its own boundary, so a fix that only settled the first would still need a pass per comment
     /// </summary>
     [TestMethod]
     public void MovesSeveralDelimitedDocumentationCommentsInOnePass()
@@ -545,7 +545,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a delimited documentation comment the author already put on its own line receives exactly one
     /// line break. This is the other side of the boundary the one-pass separation turns on: the comment does not
-    /// share the preceding token's line, so only the blank line is missing (issue #637)
+    /// share the preceding token's line, so only the blank line is missing
     /// </summary>
     [TestMethod]
     public void SeparatesOwnLineDelimitedDocumentationWithASingleLineBreak()
@@ -575,7 +575,6 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that a delimited documentation comment preceded by a multi-line block comment in the gap is left
     /// alone. The boundary is measured on rendered lines, so the block comment's own lines already satisfy it;
     /// counting end-of-line trivia instead would insert a blank line here and change a file that is stable today
-    /// (issue #637)
     /// </summary>
     [TestMethod]
     public void PreservesDelimitedDocumentationAfterMultilineBlockCommentInGap()
@@ -600,7 +599,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// <see cref="Reihitsu.Core.TokenGapAnalysis.RequiredLineBreakCountForBlankLine"/> disagree, so the output is
     /// pinned here: the blank line the rule asks for is missing, the file is still a fixed point, and the layout
     /// is the same one the formatter produced before the one-pass separation existed. Closing that gap means
-    /// changing a stable file and belongs to its own issue (issue #637)
+    /// changing a stable file and belongs to its own fix
     /// </summary>
     [TestMethod]
     public void MovesDelimitedDocumentationBelowMultilineBlockCommentEndingOnItsLine()
@@ -629,7 +628,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that an own-line banner comment followed by delimited documentation is left alone. Splitting the
     /// pair is the single line documentation behavior, and reaching it from here would mean widening the relocation
-    /// filter instead of settling the boundary (issue #637)
+    /// filter instead of settling the boundary
     /// </summary>
     [TestMethod]
     public void PreservesOwnLineBannerAndDelimitedDocumentationPair()
@@ -651,7 +650,6 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that a single line documentation comment written after a field's semicolon, with another field
     /// following it, still reaches its final layout in one pass. It travels the relocation path in the
     /// documentation-comment phase rather than the boundary path, so it proves that path was left untouched
-    /// (issue #637)
     /// </summary>
     [TestMethod]
     public void MovesSingleLineDocumentationAfterFieldSemicolonAboveFollowingMemberInOnePass()
@@ -695,7 +693,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a delimited documentation comment written before a single field's semicolon stays in place.
     /// No split is involved here, which is what makes the split field's output identical to the declaration the
-    /// author would have written by hand (issue #625)
+    /// author would have written by hand
     /// </summary>
     [TestMethod]
     public void PreservesDelimitedDocumentationBeforeSingleFieldSemicolon()
@@ -712,7 +710,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment inside an attribute list stays where it is. The closing bracket does
-    /// not open the attribute list, so the comment documents nothing and must not be relocated (issue #591)
+    /// not open the attribute list, so the comment documents nothing and must not be relocated
     /// </summary>
     [TestMethod]
     public void PreservesDocumentationInsideAttributeList()
@@ -743,7 +741,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     /// Verifies that an ordinary comment before a closing brace is not relocated. The exemption from relocation
     /// is scoped to documentation comments, which are the ones the compiler rejects in a position that documents
     /// nothing, so an ordinary comment in the same slot must be unaffected by it — it only gains the blank line
-    /// every trailing scope comment is preceded by (issue #694)
+    /// every trailing scope comment is preceded by
     /// </summary>
     [TestMethod]
     public void KeepsOrdinaryCommentHandlingAtBlockEnd()
