@@ -53,7 +53,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
     /// <remarks>
     /// The interior-scoped check mirrors the analyzer, so the fix stays offered for exactly the
     /// diagnostics the analyzer reports. The rewrite only joins the gaps between the brackets, which
-    /// leaves a comment behind the closing bracket untouched (see issue #610)
+    /// leaves a comment behind the closing bracket untouched
     /// </remarks>
     private static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
     {

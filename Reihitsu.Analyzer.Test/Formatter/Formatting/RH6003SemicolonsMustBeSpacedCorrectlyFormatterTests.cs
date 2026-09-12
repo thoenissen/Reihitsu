@@ -70,7 +70,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyFormatterTests : FormatterTest
     /// <summary>
     /// Verifies that a documentation comment in front of the terminating semicolon leaves the formatter output analyzer-clean. The
     /// horizontal spacing rewriter exempts the gap in front of such a comment from normalization, so the exemption
-    /// must not be wide enough to leave a space this analyzer reports (issues #591, #625)
+    /// must not be wide enough to leave a space this analyzer reports
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

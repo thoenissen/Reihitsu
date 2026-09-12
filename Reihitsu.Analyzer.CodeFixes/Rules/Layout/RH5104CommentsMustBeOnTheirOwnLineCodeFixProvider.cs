@@ -57,7 +57,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     /// <summary>
     /// Gets the span to remove when moving the comment, and the text that replaces it. A multi-line
     /// comment that carries the only line break between surrounding code is replaced with a line break
-    /// instead of nothing, so removing it does not join the two sides onto one line (RH5103, issue #412)
+    /// instead of nothing, so removing it does not join the two sides onto one line (RH5103)
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="diagnosticSpan">Comment span</param>
@@ -102,7 +102,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Determines whether the relocated comment needs a preceding blank line to satisfy the RH5020
-    /// policy (issue #412)
+    /// policy
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>

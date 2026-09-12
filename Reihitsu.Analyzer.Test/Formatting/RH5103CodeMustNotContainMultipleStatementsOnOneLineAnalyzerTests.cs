@@ -99,7 +99,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
 
     /// <summary>
     /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -176,7 +176,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// column plus one indentation level, even when that label's column is anchored to an object initializer
     /// rather than derived from brace-scope nesting depth. Under Roslyn's batch fix-all provider both actions are
     /// computed against the unmodified document, so neither previous statement is first on its own line and the
-    /// anchor-derived fallback this test exercises cannot be bypassed by iterative reformatting (issue #748)
+    /// anchor-derived fallback this test exercises cannot be bypassed by iterative reformatting.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -241,7 +241,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// Verifies that a switch-section statement chain sharing a mis-indented case label's line still lands at the
     /// canonical, level-derived column rather than propagating the label's own miskeyed indentation, because no
     /// object initializer or anonymous object sits between the section and its nearest brace scope here. Only when
-    /// such an anchor scope is present does the label's own column become the correct source of truth (issue #748)
+    /// such an anchor scope is present does the label's own column become the correct source of truth.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -283,7 +283,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// <summary>
     /// Verifies that no extra indentation level is added when the anchor line's own leading content is a comment
     /// rather than the section's own label: the moved statement keeps its sibling's column instead of gaining a
-    /// spurious level (issue #786)
+    /// spurious level.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -346,7 +346,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
 
     /// <summary>
     /// Verifies the same non-compensation under Fix All, where every split statement's indentation is computed
-    /// against the unmodified document (issue #786)
+    /// against the unmodified document.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -416,7 +416,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// <c>switch</c> statement written on one physical line - the split statement is not compensated: no
     /// whitespace run on that line equals the label's column, so the line's own leading whitespace is used
     /// unchanged. This is a deliberate behavior change from the label-relative column this provider used to add
-    /// unconditionally for any anchor-scope target that was not first on its own line (issue #786)
+    /// unconditionally for any anchor-scope target that was not first on its own line.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -473,7 +473,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// Verifies that, when the physical line's own leading content is an earlier sibling switch section's label,
     /// the split statement is compensated exactly like a line led by the target's own section's label: sibling
     /// sections of one <c>switch</c> statement share the same nesting depth, so their labels share the same
-    /// one-level relationship to this section's statements (issue #786)
+    /// one-level relationship to this section's statements.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -535,7 +535,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// <summary>
     /// Verifies that, when a comment precedes the target's own section's label on that label's shared line, the
     /// split statement is still compensated: the comment is attached to the label, not to a statement, so the
-    /// line is still a label line (issue #786)
+    /// line is still a label line.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

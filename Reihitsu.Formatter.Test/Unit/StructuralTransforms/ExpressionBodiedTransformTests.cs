@@ -597,7 +597,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied method survives conversion (issue #422)
+    /// Verifies that a comment trailing the arrow token of an expression-bodied method survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentTrailingArrowInMethod()
@@ -627,7 +627,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment leading the semicolon token of an expression-bodied method survives conversion (issue #422)
+    /// Verifies that a comment leading the semicolon token of an expression-bodied method survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentLeadingSemicolonInMethod()
@@ -660,7 +660,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that a preprocessor directive leading the semicolon token of an expression-bodied method
-    /// survives conversion (issue #422). A directive cannot land in the arrow token's trailing trivia,
+    /// survives conversion. A directive cannot land in the arrow token's trailing trivia,
     /// because a directive must start its own line and trailing trivia never spans past the first
     /// end-of-line, so only the semicolon-leading position is reachable for this trivia kind
     /// </summary>
@@ -694,7 +694,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied constructor survives conversion (issue #422)
+    /// Verifies that a comment trailing the arrow token of an expression-bodied constructor survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentTrailingArrowInConstructor()
@@ -726,7 +726,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment leading the semicolon token of an expression-bodied constructor survives conversion (issue #422)
+    /// Verifies that a comment leading the semicolon token of an expression-bodied constructor survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentLeadingSemicolonInConstructor()
@@ -760,7 +760,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied operator survives conversion (issue #422)
+    /// Verifies that a comment trailing the arrow token of an expression-bodied operator survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentTrailingArrowInOperator()
@@ -790,7 +790,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment leading the semicolon token of an expression-bodied operator survives conversion (issue #422)
+    /// Verifies that a comment leading the semicolon token of an expression-bodied operator survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentLeadingSemicolonInOperator()
@@ -822,7 +822,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied indexer survives conversion (issue #422)
+    /// Verifies that a comment trailing the arrow token of an expression-bodied indexer survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentTrailingArrowInIndexer()
@@ -854,7 +854,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment leading the semicolon token of an expression-bodied indexer survives conversion (issue #422)
+    /// Verifies that a comment leading the semicolon token of an expression-bodied indexer survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentLeadingSemicolonInIndexer()

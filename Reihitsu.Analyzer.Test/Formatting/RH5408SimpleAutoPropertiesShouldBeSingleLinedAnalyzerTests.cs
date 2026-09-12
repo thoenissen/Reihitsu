@@ -164,7 +164,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a multi-line auto-property with accessor attributes is not flagged, because an accessor
     /// carrying its own attribute list is no longer considered simple — its layout belongs to RH5530/RH5531
-    /// instead, and RH5408 must not force it onto one line (issue #729)
+    /// instead, and RH5408 must not force it onto one line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -194,7 +194,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// Verifying that a multi-line auto-property combining a property-level attribute with accessor-level
     /// attributes is not flagged. This is the issue's exact reported shape: the shipped code fix could not
     /// converge on it because the analyzer kept reporting the same location after every fix application
-    /// (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -224,7 +223,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a multi-line auto-property is not flagged when only one of its two accessors carries an
     /// attribute list, so the exemption applies per accessor list rather than requiring every accessor to carry
-    /// one (issue #729)
+    /// one
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -252,7 +251,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that no code fix action is registered for an auto-property carrying an accessor-level
     /// attribute, so a diagnostic from an earlier analyzer version or a stale IDE session is never offered a
-    /// fix that would force the accessor-attributed shape onto one line (issue #729)
+    /// fix that would force the accessor-attributed shape onto one line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -409,7 +408,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property carrying a comment inside its accessor list is not flagged, because the
-    /// formatter bails out on accessor-list comments and never collapses the property (issue #247)
+    /// formatter bails out on accessor-list comments and never collapses the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -430,7 +429,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that an auto-property carrying a comment between its accessors is not flagged (issue #247)
+    /// Verifying that an auto-property carrying a comment between its accessors is not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -453,7 +452,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property carrying a comment in the gap between the signature and the accessor list
-    /// is not flagged, because the formatter refuses to join the accessor brace across that comment (issue #444)
+    /// is not flagged, because the formatter refuses to join the accessor brace across that comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -476,7 +475,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that an auto-property carrying a preprocessor directive in the gap between the signature and the
     /// accessor list is not flagged, because the formatter refuses to join the accessor brace across that directive
-    /// (issue #444)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -500,7 +498,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that no code fix action is registered for an auto-property carrying a comment in the gap between
-    /// the signature and the accessor list, so the code fix does not offer a no-op action (issue #444)
+    /// the signature and the accessor list, so the code fix does not offer a no-op action
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

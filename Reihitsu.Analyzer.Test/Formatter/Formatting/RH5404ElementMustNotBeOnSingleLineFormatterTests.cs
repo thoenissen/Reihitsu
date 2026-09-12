@@ -41,7 +41,7 @@ public class RH5404ElementMustNotBeOnSingleLineFormatterTests : FormatterTestsBa
 
     /// <summary>
     /// Verifies that the formatter moves the opening brace onto its own line when a leading using
-    /// directive precedes the single-line type (regression test for issue #314)
+    /// directive precedes the single-line type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

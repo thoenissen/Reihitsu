@@ -136,7 +136,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         // top-level end-of-line trivia is wrong twice over: a single-line documentation comment terminates its line
         // inside its own structure, so no top-level end-of-line follows it and the scan restarts at the beginning,
         // summing the whitespace of every preceding line; and an inline comment leaves a second whitespace run on
-        // the same line, which the scan appends to the first (issue #592).
+        // the same line, which the scan appends to the first.
         var runStart = leadingTrivia.Count;
 
         while (runStart > 0
@@ -219,7 +219,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         // put a blank line between the comment and the field it documents. The pipeline's blank-line phase
         // absorbs that break, but the RH7101 code fix runs this transform on its own and would emit the detached
         // comment verbatim. A delimited documentation comment (/** … */) carries no break and still needs one,
-        // which is why the question is asked of the trivia text rather than of its kind (issue #592).
+        // which is why the question is asked of the trivia text rather than of its kind.
         if (EndsLine(comment) == false)
         {
             trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
@@ -297,8 +297,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
         // Only a later declarator's leading trivia is dropped, because BuildLeadingTrivia rebuilds it below. The
         // first declarator is carried over unchanged so comments between the type and declarator remain in that slot.
-        // Trailing trivia stays on its declarator so comments are not moved into a leading position (issues #625,
-        // #636).
+        // Trailing trivia stays on its declarator so comments are not moved into a leading position.
         var declarator = variableIndex == 0
                              ? variable
                              : variable.WithoutTrivia()
@@ -310,8 +309,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
                            : updatedField.WithLeadingTrivia(BuildLeadingTrivia(indentationTrivia, variable.GetLeadingTrivia()));
 
         // The separator for every non-final declarator and the declaration semicolon for the final declarator become
-        // the generated field's terminator. Trivia before and after that token remains on the same side (issues #624,
-        // #625).
+        // the generated field's terminator. Trivia before and after that token remains on the same side.
         var isFinalVariable = variableIndex == variables.Count - 1;
         var terminator = isFinalVariable ? fieldDeclaration.SemicolonToken : variables.GetSeparator(variableIndex);
 

@@ -56,7 +56,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
     /// <summary>
     /// Verifies that the formatter's own output for a wrapped chain whose first invoked link is
     /// introduced by <c>?.</c> after a plain (non-invoked) property access satisfies RH5201 and stays
-    /// stable on a second pass, closing the format-fix-format oscillation reported in issue #680
+    /// stable on a second pass, closing the format-fix-format oscillation this shape used to trigger
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -139,7 +139,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
     /// introduced by <c>!.</c> after a plain (non-invoked) property access satisfies RH5201 and stays
     /// stable on a second pass. <c>!.</c> selects a different anchor token than <c>?.</c>
     /// (<see cref="Reihitsu.Core.FluentChainUtilities.GetInvokedLinkOperator"/> returns the <c>!</c>,
-    /// not the following <c>.</c>), so this is the arm most able to drift from the analyzer (issue #680)
+    /// not the following <c>.</c>), so this is the arm most able to drift from the analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -219,7 +219,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
     /// <summary>
     /// Verifies that the formatter's output for a chain whose own first dot is wrapped is
-    /// RH5201-clean, so the formatter and the analyzer no longer disagree on this shape (issue #683)
+    /// RH5201-clean, so the formatter and the analyzer no longer disagree on this shape
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -243,7 +243,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
     /// <summary>
     /// Verifies that the formatter's output for a chain rooted in a single-line array initializer is
-    /// RH5201-clean, so the code fix no longer moves a column the formatter puts back (issue #684)
+    /// RH5201-clean, so the code fix no longer moves a column the formatter puts back
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -267,7 +267,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
     /// <summary>
     /// Verifies that the formatter's output for a chain whose member name was split from its own dot
-    /// is RH5201-clean once the name is rejoined (issue #685)
+    /// is RH5201-clean once the name is rejoined
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
