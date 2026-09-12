@@ -68,7 +68,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
 
     /// <summary>
     /// Verifies that the violation is not flagged when the token gap contains a preprocessor directive, because the
-    /// formatter refuses to collapse the first parameter across that directive (issue #444)
+    /// formatter refuses to collapse the first parameter across that directive.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -91,7 +91,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
 
     /// <summary>
     /// Verifies that the violation is not flagged when a comment sits in the token gap, because the formatter
-    /// refuses to collapse the first parameter across that comment (issue #444)
+    /// refuses to collapse the first parameter across that comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

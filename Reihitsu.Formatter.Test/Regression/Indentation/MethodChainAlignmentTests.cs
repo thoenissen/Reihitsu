@@ -216,7 +216,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a property access split across lines is rejoined onto a single line
-    /// when the chain has no invocation to keep it broken (issue #310 case 3, isolated)
+    /// when the chain has no invocation to keep it broken (formatter-level coverage of this case in
+    /// isolation, apart from the full-pipeline test)
     /// </summary>
     [TestMethod]
     public void SplitPropertyAccessIsRejoined()
@@ -237,7 +238,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a split null-conditional chain ending in a property access is rejoined
-    /// onto a single line, including the dangling <c>?.</c> (issue #310 case 12)
+    /// onto a single line, including the dangling <c>?.</c>
     /// </summary>
     [TestMethod]
     public void ConditionalAccessChainWithTrailingPropertyIsRejoined()
@@ -259,7 +260,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an oddly spaced null-conditional access (<c>? .Length</c>) is collapsed
-    /// to <c>?.Length</c> (issue #310 case 11)
+    /// to <c>?.Length</c>
     /// </summary>
     [TestMethod]
     public void OddlySpacedConditionalAccessIsCollapsed()

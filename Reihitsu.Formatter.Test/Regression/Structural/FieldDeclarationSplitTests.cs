@@ -1182,7 +1182,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the field's own documentation comment and a comment written before the first declarator are
-    /// both preserved, in their own slots, and that neither is duplicated (issue #636)
+    /// both preserved, in their own slots, and that neither is duplicated.
     /// </summary>
     [TestMethod]
     public void FieldDocumentationAndCommentBeforeFirstDeclaratorAreBothPreserved()
@@ -1218,7 +1218,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the attribute list is still duplicated onto every generated field while a comment written
-    /// before the first declarator lands on the first field only (issue #636)
+    /// before the first declarator lands on the first field only.
     /// </summary>
     [TestMethod]
     public void AttributeListAndCommentBeforeFirstDeclaratorAreBothPreserved()
@@ -1251,7 +1251,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment written before the first declarator is preserved when the declarators carry
-    /// initializers (issue #636)
+    /// initializers.
     /// </summary>
     [TestMethod]
     public void CommentBeforeFirstDeclaratorWithInitializersIsPreserved()
@@ -1281,7 +1281,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment written before the first declarator and a comment written after its separator are
-    /// both preserved on the first generated field, on either side of the generated semicolon (issue #636)
+    /// both preserved on the first generated field, on either side of the generated semicolon.
     /// </summary>
     [TestMethod]
     public void CommentsBeforeAndAfterTheFirstDeclaratorAreBothPreserved()
@@ -1311,7 +1311,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment written before the first declarator of a struct field is preserved (issue #636)
+    /// Verifies that a comment written before the first declarator of a struct field is preserved.
     /// </summary>
     [TestMethod]
     public void CommentBeforeFirstDeclaratorInStructIsPreserved()
@@ -1340,7 +1340,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment written before the first declarator of a record struct field is preserved (issue #636)
+    /// Verifies that a comment written before the first declarator of a record struct field is preserved.
     /// </summary>
     [TestMethod]
     public void CommentBeforeFirstDeclaratorInRecordStructIsPreserved()
@@ -1369,8 +1369,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment written before the first declarator of a static interface field is preserved
-    /// (issue #636)
+    /// Verifies that a comment written before the first declarator of a static interface field is preserved.
     /// </summary>
     [TestMethod]
     public void CommentBeforeFirstDeclaratorInInterfaceIsPreserved()

@@ -52,7 +52,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// <summary>
     /// Verifies that a comment written behind the closing bracket does not suppress the diagnostic or
     /// the code fix. The comment sits outside the interior the fix rewrites, so it is not a join
-    /// barrier (issue #610)
+    /// barrier.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

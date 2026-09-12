@@ -680,7 +680,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that a wrongly indented, unbraced nested <c>while</c> body is detected and fixed to two levels
-    /// deeper than the outer <c>while</c> statement (issue #416). Nested <c>while</c> loops are used instead of
+    /// deeper than the outer <c>while</c> statement. Nested <c>while</c> loops are used instead of
     /// nested <c>if</c> statements because the code fix formats the smallest enclosing multi-line scope, and for
     /// an unbraced <c>if</c> body that scope is the <c>if</c> statement itself, whose braces are then normalized
     /// by the structural-transform phase — a separate, pre-existing concern unrelated to indentation
