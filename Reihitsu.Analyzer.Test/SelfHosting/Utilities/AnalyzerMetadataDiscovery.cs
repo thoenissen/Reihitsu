@@ -19,6 +19,13 @@ namespace Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 /// <summary>
 /// Reflection-based discovery helpers for analyzer metadata validation
 /// </summary>
+/// <remarks>
+/// Every regex below only ever matches repository-owned content (the package README, rule documentation,
+/// reflected type names, and message-format strings), and none carries a nested quantifier capable of
+/// pathological backtracking. A wall-clock timeout guards against neither threat here and only risks a spurious
+/// <see cref="RegexMatchTimeoutException"/> when the test host is under load, so each one uses
+/// <see cref="Regex.InfiniteMatchTimeout"/>
+/// </remarks>
 internal static class AnalyzerMetadataDiscovery
 {
     #region Fields
@@ -26,30 +33,30 @@ internal static class AnalyzerMetadataDiscovery
     /// <summary>
     /// Regex that collapses repeated whitespace for rule title normalization
     /// </summary>
-    private static readonly Regex _whitespaceCollapseRegex = new(@"\s+", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _whitespaceCollapseRegex = new(@"\s+", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     /// <summary>
     /// Regex for rule rows in the analyzer package README
     /// </summary>
     /// <returns>The package rule row regex</returns>
-    private static readonly Regex _packageRuleRowRegex = new(@"^\| \[(RH\d{4}[A-Z]?)\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _packageRuleRowRegex = new(@"^\| \[(RH\d{4}[A-Z]?)\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     /// <summary>
     /// Regex for rule document title headings
     /// </summary>
     /// <returns>The rule documentation title regex</returns>
-    private static readonly Regex _ruleDocumentationTitleRegex = new(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _ruleDocumentationTitleRegex = new(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     /// <summary>
     /// Regex for diagnostic IDs encoded in formatter test class names
     /// </summary>
     /// <returns>The formatter test class diagnostic ID regex</returns>
-    private static readonly Regex _formatterTestClassDiagnosticIdRegex = new(@"^(RH\d{4}(?:[A-Z](?=[A-Z]))?)", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _formatterTestClassDiagnosticIdRegex = new(@"^(RH\d{4}(?:[A-Z](?=[A-Z]))?)", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     /// <summary>
     /// Regex that detects numbered message-format placeholders such as <c>{0}</c>
     /// </summary>
-    private static readonly Regex _messageFormatPlaceholderRegex = new(@"\{\d+\}", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+    private static readonly Regex _messageFormatPlaceholderRegex = new(@"\{\d+\}", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     #endregion // Fields
 
@@ -188,7 +195,7 @@ internal static class AnalyzerMetadataDiscovery
                                    .Replace(@"\<", "<", StringComparison.Ordinal)
                                    .Replace(@"\>", ">", StringComparison.Ordinal);
 
-        normalizedValue = Regex.Replace(normalizedValue, @"<(?<name>[A-Za-z][A-Za-z0-9]*)\s*/>", "<${name}>", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+        normalizedValue = Regex.Replace(normalizedValue, @"<(?<name>[A-Za-z][A-Za-z0-9]*)\s*/>", "<${name}>", RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
         return _whitespaceCollapseRegex.Replace(normalizedValue, " ")
                                        .Trim()

@@ -15,13 +15,13 @@ public static class UsingDirectiveOrderingSafety
     #region Fields
 
     /// <summary>
-    /// Matches a preprocessor directive line within a using block. The match timeout is a wall-clock budget, not a
-    /// CPU one, so a thread descheduled on a loaded machine throws even though this pattern carries no nested
-    /// quantifier and cannot backtrack pathologically. A timeout here surfaces as AD0001 and disables the consuming
-    /// analyzer for the whole compilation, so the budget is set well above any plausible matching cost rather than
-    /// tight enough to double as a scheduling probe
+    /// Matches a preprocessor directive line within a using block. This pattern carries no nested quantifier and
+    /// cannot backtrack pathologically, and it only ever matches source Roslyn has already parsed, so it uses
+    /// <see cref="Regex.InfiniteMatchTimeout"/> rather than a wall-clock budget: a thread merely descheduled on a
+    /// loaded machine would otherwise throw and surface as AD0001, silently disabling the consuming analyzer for
+    /// the whole compilation
     /// </summary>
-    private static readonly Regex _preprocessorDirectiveRegex = new(@"(^|\r?\n)\s*#", RegexOptions.CultureInvariant | RegexOptions.Compiled, TimeSpan.FromSeconds(2));
+    private static readonly Regex _preprocessorDirectiveRegex = new(@"(^|\r?\n)\s*#", RegexOptions.CultureInvariant | RegexOptions.Compiled, Regex.InfiniteMatchTimeout);
 
     #endregion // Fields
 
