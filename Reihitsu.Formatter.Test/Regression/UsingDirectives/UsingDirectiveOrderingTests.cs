@@ -369,7 +369,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a banner stays at the top of the scope when reordering demotes the original first
-    /// alias directive (issue #432)
+    /// alias directive.
     /// </summary>
     [TestMethod]
     public void BannerStaysAtTopWithAliasReordering()
@@ -398,7 +398,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a banner indented inside a namespace scope keeps its original indentation, rather
-    /// than duplicating it, when reordering demotes the original first directive (issue #432)
+    /// than duplicating it, when reordering demotes the original first directive.
     /// </summary>
     [TestMethod]
     public void IndentedBannerIsNotDuplicatedWhenOriginalFirstDirectiveIsDemoted()
@@ -427,7 +427,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a same-group reorder inside a file-scoped namespace whose using block is the last
-    /// content in the file still separates the reordered directives onto their own lines (issue #728)
+    /// content in the file still separates the reordered directives onto their own lines.
     /// </summary>
     [TestMethod]
     public void FileScopedNamespaceUsingOnlyBlockKeepsSeparatorsWhenBlockEndsTheFile()
@@ -452,7 +452,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a same-group reorder of global using directives that make up the whole file still
-    /// separates the reordered directives onto their own lines (issue #728)
+    /// separates the reordered directives onto their own lines.
     /// </summary>
     [TestMethod]
     public void GlobalUsingOnlyFileSameGroupReorderStaysOnSeparateLines()

@@ -122,7 +122,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a compact interpolation-alignment comma stays unchanged and analyzer-clean (issue #696)
+    /// Verifies that a compact interpolation-alignment comma stays unchanged and analyzer-clean
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -143,7 +143,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
 
     /// <summary>
     /// Verifies that the formatter removes a space after an interpolation-alignment comma, clears the
-    /// analyzer diagnostic, and remains stable on a second pass (issue #696)
+    /// analyzer diagnostic, and remains stable on a second pass
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

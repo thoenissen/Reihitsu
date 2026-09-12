@@ -74,7 +74,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     /// a closing brace, positioning it below the directive rather than skipping it or inserting it above the
     /// directive inside the conditional region. RH5030 has no directive exemption, so the formatter must stay
     /// in parity with <see cref="Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5030BlankLineAfterClosingBraceCodeFixProvider"/>
-    /// here rather than exempt the statement entirely (issue #415)
+    /// here rather than exempt the statement entirely
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -429,7 +429,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line after a closing brace even when a comment separates it
-    /// from the next statement, since a single line break on each side of a comment is not a blank line (issue #440)
+    /// from the next statement, since a single line break on each side of a comment is not a blank line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -95,7 +95,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a documented combined field declaration is split at the member indentation on the first pass.
     /// A documentation comment carries its line break inside its own structure, so the indentation anchor must not
-    /// look for a top-level end-of-line trivia after it (issue #592)
+    /// look for a top-level end-of-line trivia after it.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedFieldsAreSplitAtMemberIndentation()
@@ -125,7 +125,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documented combined field declaration in a nested type is split at the nested member
-    /// indentation rather than at a multiple of it (issue #592)
+    /// indentation rather than at a multiple of it.
     /// </summary>
     [TestMethod]
     public void DocumentedCombinedFieldsInNestedTypeAreSplitAtMemberIndentation()
