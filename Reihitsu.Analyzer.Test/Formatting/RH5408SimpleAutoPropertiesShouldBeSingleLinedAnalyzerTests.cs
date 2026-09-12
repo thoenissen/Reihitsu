@@ -993,7 +993,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that several auto-properties with own-line terminating semicolons in one document are all detected
-    /// and fixed together (issue #612)
+    /// and fixed together
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1025,7 +1025,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment in the gap between the initializer value and the terminating semicolon exempts the
-    /// auto-property, because the formatter refuses to join across that comment (issue #612)
+    /// auto-property, because the formatter refuses to join across that comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1045,7 +1045,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a preprocessor directive in the gap between the initializer value and the terminating
-    /// semicolon exempts the auto-property, because the formatter refuses to join across that directive (issue #612)
+    /// semicolon exempts the auto-property, because the formatter refuses to join across that directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1066,7 +1066,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a region directive around the terminating semicolon exempts the auto-property, because the
-    /// formatter refuses to join across that directive (issue #612)
+    /// formatter refuses to join across that directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1087,7 +1087,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment trailing the initializer value on its own line keeps exempting the auto-property
-    /// through the initializer guard, so the semicolon-gap guard does not claim a shape it does not own (issue #612)
+    /// through the initializer guard, so the semicolon-gap guard does not claim a shape it does not own
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1106,7 +1106,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that no code fix is offered for an auto-property whose terminating semicolon is separated by a
-    /// comment, because the formatter cannot collapse that shape (issue #612)
+    /// comment, because the formatter cannot collapse that shape
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1133,7 +1133,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment between the initializer value and a semicolon on the same line no longer exempts the
-    /// property. The collapse never joins across that gap, and the formatter already reformats the shape (issue #650)
+    /// property. The collapse never joins across that gap, and the formatter already reformats the shape
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

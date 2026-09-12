@@ -477,7 +477,7 @@ public class BlankLineRegionTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted between a comment and a <c>#region</c> directive instead of the
-    /// comment's own line terminator being mistaken for the required blank line (issue #428)
+    /// comment's own line terminator being mistaken for the required blank line
     /// </summary>
     [TestMethod]
     public void BlankLineInsertedBetweenCommentAndRegion()

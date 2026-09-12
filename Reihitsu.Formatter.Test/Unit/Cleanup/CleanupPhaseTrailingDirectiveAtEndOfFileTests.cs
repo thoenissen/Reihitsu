@@ -6,8 +6,9 @@ using Reihitsu.Formatter.Pipeline.Cleanup;
 namespace Reihitsu.Formatter.Test.Unit.Cleanup;
 
 /// <summary>
-/// Reproduction tests for issue #769 — a trailing <c>#pragma</c> directive (or trailing single-line
-/// comment) at end of file is merged onto the preceding closing brace line by <see cref="CleanupPhase"/>
+/// Tests verifying that a trailing <c>#pragma</c> directive (or trailing single-line comment) at end
+/// of file is kept on its own line by <see cref="CleanupPhase"/>, instead of being merged onto the
+/// preceding closing brace line
 /// </summary>
 [TestClass]
 public class CleanupPhaseTrailingDirectiveAtEndOfFileTests

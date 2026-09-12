@@ -137,7 +137,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
     /// <summary>
     /// Verifies that a documentation comment does not suppress the diagnostic. The list-pattern phase only
     /// inserts line breaks, it never joins, so it reshapes the pattern without losing the comment and a
-    /// documented pattern must be reported exactly like an undocumented one (issue #420)
+    /// documented pattern must be reported exactly like an undocumented one.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -159,7 +159,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
 
     /// <summary>
     /// Verifies that the fix offered for a documented list pattern preserves the documentation comment. The rule
-    /// reports on a documentation comment on purpose, so the formatter-backed fix has to keep it (issue #420)
+    /// reports on a documentation comment on purpose, so the formatter-backed fix has to keep it.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
