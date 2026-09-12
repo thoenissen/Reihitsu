@@ -93,9 +93,9 @@ public class TokenLocatorTests
 
     /// <summary>
     /// Verifies that a stale token is not silently resolved to a different same-kind token whose
-    /// span start coincides after a tree mutation shifted positions. This reproduces the resolution
-    /// hazard behind issue #306 / #329: refreshing a token captured before an edit must never return
-    /// an unrelated token that merely shares the original kind and span start
+    /// span start coincides after a tree mutation shifted positions. Refreshing a token captured
+    /// before an edit must never return an unrelated token that merely shares the original kind and
+    /// span start
     /// </summary>
     [TestMethod]
     public void GetCurrentTokenDoesNotResolveStaleTokenToDifferentSameKindToken()

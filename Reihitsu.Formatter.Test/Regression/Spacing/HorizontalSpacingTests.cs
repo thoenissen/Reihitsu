@@ -918,7 +918,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the space between an address-of operator and an address-of operand is kept so the tokens do not glue into the logical-and operator (issue #413)
+    /// Verifies that the space between an address-of operator and an address-of operand is kept so the tokens do not glue into the logical-and operator
     /// </summary>
     [TestMethod]
     public void NestedAddressOfKeepsSpace()

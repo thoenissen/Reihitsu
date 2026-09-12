@@ -83,7 +83,7 @@ public class TokenGapNormalizerTests
     /// Verifies that a directive gap whose last significant trivia embeds its own terminating line
     /// break (a directive always ends its own line, unlike a comment) still keeps the blank-line run
     /// preceding it, since that run belongs to the directive's own placement, not to the token's
-    /// adjacency requirement (issue #711)
+    /// adjacency requirement.
     /// </summary>
     [TestMethod]
     public void NormalizeLeadingGapPreservesBlankLineBeforeDirective()
@@ -103,7 +103,7 @@ public class TokenGapNormalizerTests
     /// <summary>
     /// Verifies that a directive gap emits no further line break after the directive's own embedded
     /// terminating newline — emitting one unconditionally would recreate a blank line directly adjacent
-    /// to the token that this fix's guard exists to remove (issue #711)
+    /// to the token that this fix's guard exists to remove.
     /// </summary>
     [TestMethod]
     public void NormalizeLeadingGapEmitsNoExtraBreakAfterDirective()

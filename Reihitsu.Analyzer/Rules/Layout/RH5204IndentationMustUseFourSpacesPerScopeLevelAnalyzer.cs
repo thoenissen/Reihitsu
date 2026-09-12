@@ -162,7 +162,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
 
     /// <summary>
     /// Sets the indentation for region directives. A directive inside a branch the compiler skipped is left where the
-    /// author wrote it, matching the formatter's <c>LayoutComputer.SetDirectiveIndentation</c> (issue #434): the code
+    /// author wrote it, matching the formatter's <c>LayoutComputer.SetDirectiveIndentation</c>: the code
     /// around it is untouched disabled text, so re-indenting the directive alone would half-format a region nobody
     /// compiles. Because the code fix's directive path reads this same map, the analyzer and the formatter would
     /// otherwise write different text for identical input

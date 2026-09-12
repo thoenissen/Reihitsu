@@ -9,9 +9,9 @@ using Reihitsu.Formatter.Pipeline;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #420: the collapse guards must treat a documentation comment like any other
-/// comment. Guarding only on <c>//</c> and <c>/* */</c> let the auto-property collapse run over a
-/// documentation comment and delete it, and let the bracketed-argument collapse reshape a list it could not
+/// The collapse guards must treat a documentation comment like any other comment. Guarding only
+/// on <c>//</c> and <c>/* */</c> let the auto-property collapse run over a documentation
+/// comment and delete it, and let the bracketed-argument collapse reshape a list it could not
 /// join
 /// </summary>
 [TestClass]

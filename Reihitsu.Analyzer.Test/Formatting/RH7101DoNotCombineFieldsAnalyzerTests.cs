@@ -63,7 +63,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
     /// <summary>
     /// Verifies that the fix splits only the flagged field and leaves unrelated members in the type untouched,
-    /// so the fix diff does not inherit unrelated whole-type reformatting (issue #456)
+    /// so the fix diff does not inherit unrelated whole-type reformatting
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -126,7 +126,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <summary>
     /// Verifies that a documentation comment written before the semicolon appears exactly once and keeps its
     /// position. The fix applies the split transform without running the formatting pipeline, so this output is
-    /// what the user sees (issue #625)
+    /// what the user sees
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -152,7 +152,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
     /// <summary>
     /// Verifies that a documentation comment written before the separator is preserved rather than dropped on the
-    /// code fix surface, where no later phase runs to recover it (issue #624)
+    /// code fix surface, where no later phase runs to recover it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -179,7 +179,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <summary>
     /// Verifies that the fix indents every generated field at the member level when the declaration is documented.
     /// The fix applies the split transform without running the formatting pipeline, so no later indentation phase
-    /// repairs the anchor and this output is what the user sees (issue #592)
+    /// repairs the anchor and this output is what the user sees
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -211,7 +211,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
     /// <summary>
     /// Verifies that the fix anchors the generated fields on the line the field declaration starts on rather than on
-    /// the documentation comment, which may be indented differently (issue #592)
+    /// the documentation comment, which may be indented differently
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -243,7 +243,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
     /// <summary>
     /// Verifies that the fix still finds the field's own indentation when the documentation comment starts on the
-    /// opening brace line, so the generated field does not fall back to column zero (issue #592)
+    /// opening brace line, so the generated field does not fall back to column zero
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -274,7 +274,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <summary>
     /// Verifies that a single-line documentation comment re-attached to a generated field is not followed by a blank
     /// line. This form carries its own line break, so the split must not append a second one. The formatting
-    /// pipeline's blank-line phase absorbs the stray break, which is why only the code fix can observe it (issue #592)
+    /// pipeline's blank-line phase absorbs the stray break, which is why only the code fix can observe it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -304,7 +304,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <summary>
     /// Verifies that a delimited documentation comment re-attached to a generated field keeps a line break after it.
     /// Unlike a single-line documentation comment it carries none of its own, so this is the side of the boundary
-    /// that a guard written against the trivia kind instead of the trivia text would break (issue #592)
+    /// that a guard written against the trivia kind instead of the trivia text would break
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -334,7 +334,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <summary>
     /// Verifies that a comment written before the first declarator is preserved by the fix. The fix runs the split
     /// transform without the formatting pipeline behind it, so this is the surface where the comment's own whitespace
-    /// reaches the user unchanged (issue #636)
+    /// reaches the user unchanged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -364,7 +364,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <summary>
     /// Verifies that the fix emits the comment's own indentation verbatim. No later phase runs on this surface, so
     /// the column the author wrote the comment at is the column the user sees, unlike the formatter surface where the
-    /// indentation phase re-anchors it (issue #636)
+    /// indentation phase re-anchors it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -394,7 +394,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     /// <summary>
     /// Verifies that the fix keeps the first declarator's indentation when its slot holds no comment at all. This is
     /// the other side of the boundary from a preserved comment, and the code fix is the only surface that can tell
-    /// the two apart, because no later phase re-anchors the declarator here (issue #636)
+    /// the two apart, because no later phase re-anchors the declarator here
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -423,7 +423,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
     /// <summary>
     /// Verifies that the fix is not offered when the combined field carries a preprocessor directive, because the
-    /// split transform leaves directive-bearing fields intact and the fix would otherwise be a no-op (issue #456)
+    /// split transform leaves directive-bearing fields intact and the fix would otherwise be a no-op
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

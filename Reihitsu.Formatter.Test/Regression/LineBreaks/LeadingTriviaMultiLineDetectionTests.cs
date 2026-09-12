@@ -10,9 +10,9 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #423: <see cref="LineBreakDetection.IsMultiLine"/> measured
+/// <see cref="LineBreakDetection.IsMultiLine"/> must measure a node's own span, not its
 /// <c>FullSpan</c>, so a blank line or comment line directly above an otherwise single-line
-/// node made it count as multi-line, causing single-line ternaries and lists to explode
+/// node does not make it count as multi-line and explode single-line ternaries and lists
 /// </summary>
 [TestClass]
 public class LeadingTriviaMultiLineDetectionTests

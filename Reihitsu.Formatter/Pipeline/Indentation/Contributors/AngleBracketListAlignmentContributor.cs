@@ -14,8 +14,8 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// <remarks>
 /// No contributor covered these lists before this one, so a list the line-break phase left wrapped —
 /// an interior comment, a directive, or a multi-line element refuses the join — fell through to the
-/// block-indentation fallback and every continuation line slid to the enclosing block's column
-/// (issue #693). Unlike <see cref="BaseTypeListContributor"/>, this contributor does not skip a
+/// block-indentation fallback and every continuation line slid to the enclosing block's column.
+/// Unlike <see cref="BaseTypeListContributor"/>, this contributor does not skip a
 /// single-element list: a one-argument list can still wrap after its opening bracket, and its closing
 /// bracket can still land on its own line, so both need the same alignment as a multi-element list
 /// </remarks>

@@ -9,8 +9,8 @@ using Reihitsu.Formatter.Pipeline.LineBreaks;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #406: line-join operations must never remove the end-of-line that
-/// terminates a preprocessor directive, which would re-emit the directive mid-line (CS1040).
+/// Line-join operations must never remove the end-of-line that terminates a preprocessor
+/// directive, which would re-emit the directive mid-line (CS1040).
 /// These mirror <see cref="CommentJoinTests"/> for the directive family that previously passed the
 /// comment-only join guard
 /// </summary>

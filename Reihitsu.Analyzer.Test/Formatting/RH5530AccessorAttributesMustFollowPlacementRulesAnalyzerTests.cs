@@ -107,7 +107,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// Verifies that a single-line accessor attribute remains valid even when the property also carries a
     /// property-level attribute on its own line. Before the span repair, the shared single-line predicate
     /// counted the property attribute's own line and misclassified the declaration as multi-line, wrongly
-    /// forcing this compliant accessor attribute apart (issue #729)
+    /// forcing this compliant accessor attribute apart
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -133,7 +133,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// <summary>
     /// Verifies that a property-level attribute does not exempt a genuinely multi-line property from the
     /// separate-line placement rule for its own accessor attributes — the span repair only excludes the
-    /// property's own attribute lists, not the accessor list that still spans multiple lines (issue #729)
+    /// property's own attribute lists, not the accessor list that still spans multiple lines
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -250,7 +250,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// <summary>
     /// Verifies that a comment between the closing bracket and the accessor keyword keeps the diagnostic from being
     /// reported. The multi-line property resolves to separate-line placement, and the fix refuses that gap under
-    /// either placement, so reporting here would leave a diagnostic nobody can clear (issue #420)
+    /// either placement, so reporting here would leave a diagnostic nobody can clear
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -276,7 +276,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// <summary>
     /// Verifies that the single-line span repair applies to indexers, not only ordinary properties — the
     /// shared predicate is not property-specific, so an indexer combining a property-level attribute with a
-    /// single-line accessor attribute must be classified the same way (issue #729)
+    /// single-line accessor attribute must be classified the same way
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -303,7 +303,6 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// Verifies that the single-line span repair applies to events with block-bodied single-line accessors. An
     /// event's <c>Type</c> follows the <c>event</c> keyword, so an anchor built from the first modifier or type
     /// token — rather than the first token after the last attribute list — would misclassify this shape
-    /// (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -329,7 +328,6 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// <summary>
     /// Verifies that the single-line span repair applies to an interface property member, which carries no
     /// modifiers at all. An anchor that assumes a first modifier token exists would misclassify this shape
-    /// (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

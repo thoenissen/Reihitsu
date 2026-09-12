@@ -117,7 +117,7 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -146,7 +146,7 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// <summary>
     /// Verifies that the member's own documentation comment does not withhold the code fix. It sits in the
     /// leading trivia of the attribute list, so a full-span guard would treat a documented class differently
-    /// from an identical undocumented one (issue #420)
+    /// from an identical undocumented one
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -5,10 +5,10 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #604: a comment that trails the accessor list of an auto-property sits
-/// outside that list and is never rewritten by the single-line collapse, so it must not force the
-/// accessor list apart. Trivia the collapse would cross - inside the accessor list, or in the gap
-/// between the property signature and the opening brace - remains a join barrier
+/// A comment that trails the accessor list of an auto-property sits outside that list and is
+/// never rewritten by the single-line collapse, so it must not force the accessor list apart.
+/// Trivia the collapse would cross - inside the accessor list, or in the gap between the
+/// property signature and the opening brace - remains a join barrier
 /// </summary>
 [TestClass]
 public class AutoPropertyTrailingCommentTests : FormatterTestsBase
@@ -311,7 +311,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a property whose wrapped generic type refuses the join — an interior comment
     /// sits inside the type-argument list — keeps its signature wrapped and its accessor list
-    /// expanded, and that the trailing comment after the accessor list stays untouched (issue #693)
+    /// expanded, and that the trailing comment after the accessor list stays untouched
     /// </summary>
     [TestMethod]
     public void RefusedJoinSignatureWithTrailingCommentRemainsUnchanged()
@@ -342,7 +342,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a property whose wrapped generic type can safely join — no interior comment or
     /// directive — has its signature joined onto one line and its accessor list collapsed, and that
-    /// the trailing comment after the (now collapsed) accessor list is not crossed (issue #693)
+    /// the trailing comment after the (now collapsed) accessor list is not crossed
     /// </summary>
     [TestMethod]
     public void JoinableSignatureWithTrailingCommentCollapses()

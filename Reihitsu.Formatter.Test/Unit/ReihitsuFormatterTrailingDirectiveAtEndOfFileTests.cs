@@ -4,8 +4,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Unit;
 
 /// <summary>
-/// End-to-end reproduction test for issue #769 via <see cref="ReihitsuFormatter.FormatSyntaxTree"/> —
-/// the public entry point the issue itself names, as opposed to unit-level <c>CleanupPhase</c> access
+/// End-to-end test verifying that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> — the public entry
+/// point — keeps a trailing <c>#pragma</c> directive at end of file on its own line, as opposed to
+/// unit-level <c>CleanupPhase</c> access
 /// </summary>
 [TestClass]
 public class ReihitsuFormatterTrailingDirectiveAtEndOfFileTests
@@ -23,7 +24,7 @@ public class ReihitsuFormatterTrailingDirectiveAtEndOfFileTests
 
     /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> keeps a trailing <c>#pragma</c>
-    /// directive at end of file on its own line, separate from the preceding closing brace (issue #769)
+    /// directive at end of file on its own line, separate from the preceding closing brace.
     /// </summary>
     [TestMethod]
     public void FormatSyntaxTreeKeepsTrailingPragmaOnOwnLineAtEndOfFile()

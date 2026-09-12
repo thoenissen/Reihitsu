@@ -9,9 +9,8 @@ using Reihitsu.Formatter.Pipeline;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #306: a single-line auto-property accessor list must stay on the
-/// property declaration line even when the source uses CRLF line endings and enough content
-/// precedes the property
+/// A single-line auto-property accessor list must stay on the property declaration line even
+/// when the source uses CRLF line endings and enough content precedes the property
 /// </summary>
 [TestClass]
 public class AutoPropertyAccessorListCrlfTests

@@ -53,7 +53,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// <remarks>
     /// This mirrors RH5030, which carries no directive exemption, unlike the statement-kind rules in
     /// <see cref="NeedsBlankLineForStatementKind"/>. Callers must reposition the insertion past a leading
-    /// directive rather than skip it (issue #415)
+    /// directive rather than skip it.
     /// </remarks>
     private static bool IsAfterClosingBrace(StatementSyntax statement, StatementSyntax previous)
     {

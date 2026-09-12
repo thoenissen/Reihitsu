@@ -392,7 +392,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// <summary>
     /// Verifies a diagnostic is reported for a break statement that directly follows a closing brace outside a
     /// switch section, matching the formatter, which does not exempt break statements based on what precedes
-    /// them outside switch sections (issue #440)
+    /// them outside switch sections
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -450,7 +450,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// <see cref="VerifyDiagnosticForBreakStatementAfterClosingBraceOutsideSwitchSection"/> and
     /// <see cref="RH5030BlankLineAfterClosingBraceAnalyzerTests.VerifyDiagnosticAndFixForBreakStatementAfterClosingBraceOutsideSwitchSection"/>,
     /// this shows fixing either rule's diagnostic first always satisfies the other, so no double blank line can
-    /// result from applying both rules' code fixes (PR #546 review)
+    /// result from applying both rules' code fixes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

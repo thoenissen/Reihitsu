@@ -118,7 +118,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// <see cref="ChainWalker.CollectInvokedLinkDots"/> reports invoked links only, so a chain whose
     /// own first dot is a plain, non-invoked property access (<c>a</c> ⏎ <c>.Prop?.ToString()</c>)
     /// never offered that dot to the collapse at all, and the chain stayed split at a boundary no
-    /// predicate ever tested (issue #683). Taking the first dot from the wider alignment set — the
+    /// predicate ever tested. Taking the first dot from the wider alignment set — the
     /// same set <c>MethodChainAlignmentContributor</c> aligns against — closes that gap.
     /// </para>
     /// <para>
@@ -134,15 +134,15 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// today's behavior for every shape without a null-forgiving operator. The one exception is a
     /// leading null-forgiving operator that is <em>not</em> itself wrapped (<c>a!</c> ⏎ <c>.Prop...</c>):
     /// such an operator is attached to the root rather than starting its own line, so it is skipped and
-    /// the dot right after it is tested instead — the shape #683 already handles. When that leading
+    /// the dot right after it is tested instead — the shape already handled above. When that leading
     /// operator <em>is</em> wrapped instead (<c>a</c> ⏎ <c>!.Prop.Foo()</c>), it is not skipped and
-    /// becomes the candidate itself, the same way a plain wrapped prefix dot already is (issue #719).
+    /// becomes the candidate itself, the same way a plain wrapped prefix dot already is.
     /// When the null-forgiving operator stands in for a directly-invoked link (<c>a</c> ⏎ <c>!.Foo()</c>),
     /// it is already <paramref name="firstInvokedDot"/> itself, so finding it here and returning it
     /// changes nothing. The position check below still refuses a candidate that does not sit at or
     /// before <paramref name="firstInvokedDot"/> and falls back to it instead, so a wrap that lands on
     /// a later link never joins across a link the rest of the chain still treats as wrapped, which
-    /// never settles (issue #699's escaped guard)
+    /// would otherwise let repeated formatting passes oscillate instead of converging to a fixed point
     /// </para>
     /// </summary>
     /// <param name="node">The outermost chain node</param>
@@ -189,7 +189,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// every other chain decision tests a token's leading trivia, so the split survives untouched and
     /// the orphaned name is later re-indented to block level. The only existing code that clears the
     /// slot is <see cref="CollapseChainToSingleLine"/>, which a chain reaches only while
-    /// <see cref="IsCollapsibleChain"/> holds (issue #685).
+    /// <see cref="IsCollapsibleChain"/> holds.
     /// </para>
     /// <para>
     /// The dot is always immediately followed by its own name token, so the pair being joined is the
@@ -244,7 +244,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Rejoins split member names on a chain that no other normalization step visits, so the
     /// <c>x.</c> ⏎ <c>Name</c> split is closed on member-access chains as well as on the invoked
-    /// chains <see cref="NormalizeChain"/> handles (issue #685)
+    /// chains <see cref="NormalizeChain"/> handles
     /// </summary>
     /// <param name="node">The outermost chain node</param>
     /// <returns>The node with split member names rejoined</returns>
@@ -401,18 +401,18 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// <para>
     /// Three decisions are made against three different token sets, and keeping them apart is what
     /// makes the chain converge. The collapse candidate comes from the wider alignment set bounded by
-    /// the first invoked link, so a wrapped non-invoked property access is considered too (issue
-    /// #683). The member-name rejoin walks the spine's trailing trivia, which no other step inspects
-    /// (issue #685). Whether every continuation link must start its own line stays a question about
+    /// the first invoked link, so a wrapped non-invoked property access is considered too. The
+    /// member-name rejoin walks the spine's trailing trivia, which no other step inspects.
+    /// Whether every continuation link must start its own line stays a question about
     /// the <em>invoked</em> links alone: a chain that only wrapped a non-invoked prefix dot collapses
     /// back onto one line and must not have breaks inserted into it.
     /// </para>
     /// <para>
     /// A comment directly above the collapse candidate is likewise a decision about one of the three,
     /// not about the chain as a whole: it refuses that one join, and leaves the rejoin and the
-    /// continuation breaks to their own trivia guards (issues #685, #689). A comment further down the
+    /// continuation breaks to their own trivia guards. A comment further down the
     /// chain — for example above the first invoked link, while an earlier, uncommented non-invoked
-    /// prefix dot is the actual collapse candidate — no longer suppresses the collapse (issue #699):
+    /// prefix dot is the actual collapse candidate — no longer suppresses the collapse:
     /// the gap it occupies is never the one <see cref="TryCollapseFirstChainDot"/> would join across.
     /// </para>
     /// </summary>
@@ -438,7 +438,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         // A comment directly above the collapse candidate refuses that one join; it must not
         // suppress the rejoin or the continuation-break pass, which do not touch the commented gap.
         // The predicate stays comment-only and deliberately does not use the wider
-        // WouldJoinAcrossUnjoinableTrivia that the alignment phase applies (issue #489): widening it
+        // WouldJoinAcrossUnjoinableTrivia that the alignment phase applies: widening it
         // would newly suppress the collapse for a chain carrying a directive above the candidate,
         // which today collapses the wrapped prefix dot and aligns the remaining links under it — a
         // strictly better layout than leaving it wrapped at block indentation.

@@ -5,9 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Spacing;
 
 /// <summary>
-/// Formatter regression tests for the interpolated-string alignment comma (issue #696): the comma
-/// separating the interpolated expression from its alignment component is a fixed grammatical
-/// delimiter, not a value separator, and must stay compact regardless of the alignment's sign, operand
+/// Formatter regression tests for the interpolated-string alignment comma: the comma separating
+/// the interpolated expression from its alignment component is a fixed grammatical delimiter,
+/// not a value separator, and must stay compact regardless of the alignment's sign, operand
 /// shape, or the presence of a format specifier
 /// </summary>
 [TestClass]
@@ -16,7 +16,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Literal scenario from issue #696: a negative alignment component should stay adjacent to the comma
+    /// Verifies that a negative alignment component stays adjacent to the comma
     /// </summary>
     [TestMethod]
     public void NegativeAlignmentComponentStaysAdjacentToComma()

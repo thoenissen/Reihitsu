@@ -58,7 +58,7 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
     /// Determines whether the trivia is a region or end-region directive the compiler kept. A directive
     /// inside a branch that was not taken sits between disabled-text trivia, so a line break inserted
     /// next to it merges into that text where the blank-line queries cannot find it again and the next
-    /// run inserts another one (issue #434)
+    /// run inserts another one.
     /// </summary>
     /// <param name="trivia">The trivia to inspect</param>
     /// <returns><see langword="true"/> if the trivia is an active region directive</returns>

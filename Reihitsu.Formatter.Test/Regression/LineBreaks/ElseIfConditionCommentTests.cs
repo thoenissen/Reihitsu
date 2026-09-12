@@ -5,8 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #424: moving a trailing <c>if</c>-condition comment onto its own line must
-/// not split an <c>else if</c> across two lines by inserting the comment between the <c>else</c> and
+/// Moving a trailing <c>if</c>-condition comment onto its own line must not split an
+/// <c>else if</c> across two lines by inserting the comment between the <c>else</c> and
 /// <c>if</c> keywords
 /// </summary>
 [TestClass]

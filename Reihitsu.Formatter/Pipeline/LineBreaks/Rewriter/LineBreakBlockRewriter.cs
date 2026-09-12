@@ -66,7 +66,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     /// <see cref="TokenGapUtilities.CountBlankLinesBetween"/> sums the blank lines on both sides into one
     /// number, so a single blank line on each side is miscounted as two — exactly the excess this method's
     /// caller is trying to detect. Withholding the correction here leaves the earlier, run-aware phase's
-    /// answer standing instead of adding a blank line the gap never actually had (issue #695)
+    /// answer standing instead of adding a blank line the gap never actually had
     /// </remarks>
     private static bool GapCarriesDirectiveOrDisabledText(SyntaxToken previousToken, SyntaxToken currentToken)
     {

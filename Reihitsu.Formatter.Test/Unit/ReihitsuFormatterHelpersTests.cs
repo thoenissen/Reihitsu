@@ -741,7 +741,7 @@ public class ReihitsuFormatterHelpersTests
     /// <summary>
     /// Verifies that <see cref="ReihitsuFormatterHelpers.AdjustNodeIndentation"/> inserts new leading whitespace,
     /// rather than dropping the offset, when a line that needs to move right currently starts at column zero and
-    /// carries no whitespace trivia at all for the loop to adjust (issue #725)
+    /// carries no whitespace trivia at all for the loop to adjust.
     /// </summary>
     [TestMethod]
     public void AdjustNodeIndentationInsertsWhitespaceWhenLineStartsAtColumnZero()
@@ -772,7 +772,7 @@ public class ReihitsuFormatterHelpersTests
     /// Verifies that <see cref="ReihitsuFormatterHelpers.AdjustNodeIndentation"/> does not insert leading
     /// whitespace for a node's own first token when that token is not genuinely preceded by a real end-of-line
     /// — only forced to look like a line start by the first-token special case — while a later token that is
-    /// genuinely preceded by one still gains the offset (issue #725 preflight finding 3)
+    /// genuinely preceded by one still gains the offset.
     /// </summary>
     [TestMethod]
     public void AdjustNodeIndentationDoesNotInsertWhitespaceForFirstTokenNotGenuinelyAfterEndOfLine()

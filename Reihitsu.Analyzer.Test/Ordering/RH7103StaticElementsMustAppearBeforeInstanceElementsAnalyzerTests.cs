@@ -56,7 +56,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
 
     /// <summary>
     /// Verifying the blank line that separated the two members survives the reorder under CRLF line endings,
-    /// so the fix does not introduce mixed line endings while relocating the separator (issue #727)
+    /// so the fix does not introduce mixed line endings while relocating the separator
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -95,7 +95,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
 
     /// <summary>
     /// Verifying the blank line already above the moved member's documentation stays at its position instead of
-    /// vanishing under the type's opening brace once the fix moves the documented member to the front (issue #727)
+    /// vanishing under the type's opening brace once the fix moves the documented member to the front
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -139,7 +139,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <summary>
     /// Verifying the separator before a documented target member already survives the reorder today, because the
     /// blank-line boundary before a comment reinserts it independently of this fix; this locks the already-correct
-    /// output in place so a change to the trivia split does not regress it (issue #727)
+    /// output in place so a change to the trivia split does not regress it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -182,7 +182,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
 
     /// <summary>
     /// Verifying the separator survives the reorder today when both members carry documentation, and continues to
-    /// after the fix (issue #727)
+    /// after the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -232,7 +232,6 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <summary>
     /// Verifying the separator stays at the position it already occupied when only the target member (not the
     /// moved member) was preceded by a blank line, instead of following the moved member to its new position
-    /// (issue #727)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -272,7 +271,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <summary>
     /// Verifying that a separator between two unrelated members is relocated rather than lost when the target
     /// member is not the first member of the type, proving the fix repositions the existing separator instead of
-    /// merely re-adding one that lands under the type's opening brace (issue #727)
+    /// merely re-adding one that lands under the type's opening brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -311,7 +310,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
 
     /// <summary>
     /// Verifying every separator keeps its position when the move crosses another member and the crossed gaps are
-    /// uniform, so the swap only permutes which member sits at each position (issue #727)
+    /// uniform, so the swap only permutes which member sits at each position
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -357,7 +356,6 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <summary>
     /// Verifying every separator keeps its position when the move crosses another member and the crossed gaps are
     /// not uniform, so the gap sequence is preserved rather than exchanged between the moved and target member
-    /// (issue #727)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -401,7 +399,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <summary>
     /// Verifying that several blank lines above the moved member collapse to exactly one at the relocated
     /// separator position, since the raw move relocates the whole gap and the formatter's own blank-line collapse
-    /// still applies afterward (issue #727)
+    /// still applies afterward
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -441,7 +439,6 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <summary>
     /// Verifying that a balanced <c>#if false</c> block sitting entirely inside the moved member's own leading
     /// trivia travels with the member intact, while the blank line preceding the directive stays positional
-    /// (issue #727)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1006,7 +1003,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                  }
                                  """;
 
-        // Verifying that Fix All keeps every separator at its position when two static members are reordered in the same document, so the gap sequence converges correctly instead of depending on application order (issue #727)
+        // Verifying that Fix All keeps every separator at its position when two static members are reordered in the same document, so the gap sequence converges correctly instead of depending on application order
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat, 2),

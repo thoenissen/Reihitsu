@@ -27,7 +27,7 @@ public class ContainedBlockRewriterTests
     /// <summary>
     /// Verifies that an <c>if</c> statement whose open brace is inline with the condition is fully normalized
     /// in a single rewriter pass, even though the open-brace edit shifts the positions of the first statement
-    /// and the close brace (issue #241)
+    /// and the close brace.
     /// </summary>
     [TestMethod]
     public void IfStatementWithInlineBracesIsNormalizedInSinglePass()

@@ -585,7 +585,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that a multi-line (/** */) documentation comment spanning several lines is replaced with
-    /// &lt;inheritdoc/&gt; instead of the code fix registering a no-op action (issue #463)
+    /// &lt;inheritdoc/&gt; instead of the code fix registering a no-op action
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -644,7 +644,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that a multi-line (/** */) documentation comment written on a single line is replaced with
-    /// &lt;inheritdoc/&gt; (issue #463)
+    /// &lt;inheritdoc/&gt;
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -701,7 +701,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that a multi-line (/** */) documentation comment on an overridden property is replaced with
-    /// &lt;inheritdoc/&gt; (issue #463)
+    /// &lt;inheritdoc/&gt;
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -754,7 +754,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that a leading comment placed before a multi-line (/** */) documentation comment is preserved
-    /// when the documentation comment is replaced with &lt;inheritdoc/&gt; (issue #463)
+    /// when the documentation comment is replaced with &lt;inheritdoc/&gt;
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -813,7 +813,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that only the flagged multi-line (/** */) documentation comment is replaced when a member
-    /// carries a second documentation comment (issue #463).
+    /// carries a second documentation comment.
     /// The surviving second comment is intentional and matches the single-line behavior asserted by
     /// <see cref="VerifyOnlyFirstDocumentationCommentIsReplaced"/>: the analyzer flags only the first
     /// documentation comment, so the fix replaces only that one. The compiler concatenates both comments into
@@ -878,7 +878,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia replacing a multi-line (/** */) documentation
-    /// comment uses the environment's end-of-line sequence (issue #463)
+    /// comment uses the environment's end-of-line sequence
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -915,7 +915,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// <summary>
     /// Verifies that a trailing comment sharing the line with a multi-line (/** */) documentation comment
     /// survives the replacement and keeps its own line. The fix drops the line break that terminated the
-    /// replaced comment, so this guards that deletion against consuming the trailing comment (issue #463)
+    /// replaced comment, so this guards that deletion against consuming the trailing comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -975,7 +975,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// Verifies that a preprocessor directive between a multi-line (/** */) documentation comment and the
     /// member keeps its own line when the comment is replaced. The fix drops the line break that terminated
     /// the replaced comment, so this guards that deletion against joining the directive onto the
-    /// &lt;inheritdoc/&gt; line, which would not compile (issue #463)
+    /// &lt;inheritdoc/&gt; line, which would not compile
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1064,7 +1064,6 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia uses the environment's end-of-line sequence
-    /// (issue #257)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1169,7 +1168,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        // Verifies that Fix All replaces every multi-line (/** */) documentation comment in a type in one iteration, which is the common shape when a type overrides several documented members (issue #463)
+        // Verifies that Fix All replaces every multi-line (/** */) documentation comment in a type in one iteration, which is the common shape when a type overrides several documented members
         return new FixAllScenario(testData,
                                   resultData,
                                   Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2),

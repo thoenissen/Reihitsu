@@ -59,7 +59,7 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// <summary>
     /// Verifies that splitting the attribute list inside an object initializer lands the member on the attribute
     /// list's own column rather than the enclosing brace-scope nesting level, which understates an anchor-derived
-    /// column by not accounting for the initializer's own alignment (issue #748)
+    /// column by not accounting for the initializer's own alignment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -117,7 +117,7 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// <summary>
     /// Verifies the same anchor-column alignment inside an anonymous object, which is recognized by
     /// <see cref="Reihitsu.Core.SyntaxIndentationUtilities.ComputeBaseIndentLevel"/> exactly like an object
-    /// initializer (issue #748)
+    /// initializer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

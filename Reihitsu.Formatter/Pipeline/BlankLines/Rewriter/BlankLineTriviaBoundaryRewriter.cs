@@ -75,7 +75,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// it onto its own line and separating it with a blank line is a placement decision rather than spacing - the
     /// boundary insert produces both, which is why the boundary is skipped rather than adjusted. The exemption
     /// deliberately stops at the line boundary: a documentation comment the author put on its own line still gets
-    /// its blank line, which is what keeps the formatter in step with RH8303 (issues #591, #625)
+    /// its blank line, which is what keeps the formatter in step with RH8303.
     /// </remarks>
     private static bool IsStrandedInlineDocumentation(SyntaxToken token, SyntaxToken previousToken)
     {
@@ -211,13 +211,13 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
-    /// mirroring the exemption RH5020 applies (issue #415).
+    /// mirroring the exemption RH5020 applies.
     /// <para>
     /// How many line breaks the boundary is short of depends on where the comment starts. A documentation comment
     /// the author wrote behind code is filed as the following token's leading trivia while still sitting on the
     /// preceding token's line, so it needs two: one to end that line and one for the blank line. Every other
     /// comment needs only the blank line. Emitting one break in both cases left the first case finished a pass
-    /// later, which made the formatter report a file it had just written (issue #637)
+    /// later, which made the formatter report a file it had just written.
     /// </para>
     /// <para>
     /// The count is decided from the two rendered line numbers rather than from
@@ -314,7 +314,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             // directives inside a branch the compiler skipped, because the line break it inserts merges into the
             // surrounding disabled text and is inserted again on the next run. Disabled text attaches as leading
             // trivia of the following token, so no fixture reaches this list with such a directive - the guard is
-            // here so the two copies of the policy cannot drift apart (issue #434)
+            // here so the two copies of the policy cannot drift apart.
             if (trivia[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia)
                 && SyntaxTriviaUtilities.IsInactiveDirective(trivia[triviaIndex]) == false)
             {

@@ -9,10 +9,10 @@ using Reihitsu.Formatter.Pipeline;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #314: expanding a single-line type that contains a member must place
-/// the opening brace on its own line (Allman style) even when a leading <c>using</c> directive
-/// precedes the type. The offset introduced by the using directive previously caused the
-/// brace-placement edit to operate on a stale token, leaving the opening brace on the declaration line
+/// Expanding a single-line type that contains a member must place the opening brace on its own
+/// line (Allman style) even when a leading <c>using</c> directive precedes the type, and the
+/// offset introduced by the using directive must not cause the brace-placement edit to operate
+/// on a stale token and leave the opening brace on the declaration line
 /// </summary>
 [TestClass]
 public class SingleLineTypeBraceWithLeadingUsingTests

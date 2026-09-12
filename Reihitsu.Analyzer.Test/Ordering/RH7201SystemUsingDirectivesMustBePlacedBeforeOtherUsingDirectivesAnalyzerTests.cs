@@ -220,8 +220,8 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     }
 
     /// <summary>
-    /// Reproduction for issue #728: verifies the blank line between two cross-group reordered usings is
-    /// preserved when the using block is the only content in the file (no following declaration)
+    /// Verifies the blank line between two cross-group reordered usings is preserved when the using block is
+    /// the only content in the file (no following declaration)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -5,10 +5,10 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #685: a member-access dot immediately followed by a line break, with
-/// the member name on the next line (<c>x.</c> ⏎ <c>Name</c>), must be rejoined. That break sits in
-/// the dot's trailing trivia, which every other chain predicate ignores, so the split survived and
-/// the orphaned name was re-indented to block level
+/// A member-access dot immediately followed by a line break, with the member name on the next
+/// line (<c>x.</c> ⏎ <c>Name</c>), must be rejoined. That break sits in the dot's trailing
+/// trivia, which every other chain predicate ignores, so without this fix the split survives and
+/// the orphaned name gets re-indented to block level
 /// </summary>
 [TestClass]
 public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
@@ -16,8 +16,8 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a plain, non-conditional chain rejoins its split member name — the first fixture
-    /// reported in issue #685
+    /// Verifies that a plain, non-conditional chain rejoins its split member name in the simplest
+    /// case — a single split dot with no conditional access, directive, or comment involved
     /// </summary>
     [TestMethod]
     public void SplitMemberNameRejoinsOntoItsDot()
@@ -358,10 +358,10 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the remaining arm from issue #685's follow-up comment: a chain whose first invoked
-    /// link dot carries a comment directly above it must still rejoin a split member name elsewhere
-    /// in the chain. The comment sits above <c>.Foo()</c>, nowhere near the <c>.Bar()</c> split, but
-    /// the whole-chain bail for a commented first invoked link runs before the rejoin today
+    /// Verifies that a chain whose first invoked link dot carries a comment directly above it must
+    /// still rejoin a split member name elsewhere in the chain. The comment sits above
+    /// <c>.Foo()</c>, nowhere near the <c>.Bar()</c> split, but the whole-chain bail for a
+    /// commented first invoked link runs before the rejoin today
     /// </summary>
     [TestMethod]
     public void CommentAboveFirstInvokedLinkDotStillRejoinsLaterSplitMemberName()

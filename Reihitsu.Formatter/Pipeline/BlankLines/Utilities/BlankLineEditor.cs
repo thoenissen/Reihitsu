@@ -98,10 +98,10 @@ internal sealed class BlankLineEditor
     /// Determines whether the specified token is exempt from requiring a blank line before a region or end
     /// region directive, matching the Core policy in
     /// <see cref="RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>. Unlike
-    /// <see cref="IsFirstInBlock"/>, a switch-label colon is not exempt here (issue #428). An opening brace is
+    /// <see cref="IsFirstInBlock"/>, a switch-label colon is not exempt here. An opening brace is
     /// only exempt when nothing but whitespace follows it on its own line — Core's
     /// <see cref="FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken"/> excludes a brace line that
-    /// carries a trailing comment, so the exemption must too (issue #428 review)
+    /// carries a trailing comment, so the exemption must too.
     /// </summary>
     /// <param name="previousToken">The token that precedes the token being evaluated</param>
     /// <returns><see langword="true"/> if no blank line is required before the directive</returns>
@@ -127,7 +127,7 @@ internal sealed class BlankLineEditor
     /// <param name="previousToken">
     /// The token that precedes <paramref name="token"/> in the original, unmodified tree. Must be captured
     /// before any earlier trivia edit to <paramref name="token"/> in the same rewrite step rather than
-    /// re-derived from a possibly detached <paramref name="token"/> (issue #428 review)
+    /// re-derived from a possibly detached <paramref name="token"/>.
     /// </param>
     /// <returns><see langword="true"/> if the line immediately before the index is blank</returns>
     /// <remarks>
@@ -136,7 +136,7 @@ internal sealed class BlankLineEditor
     /// which only ever inspects the single line directly above the directive. Counting blank lines anywhere in
     /// the full gap (as <see cref="CountBlankLinesBeforeLeadingTriviaIndex(SyntaxToken, int)"/> does) would let
     /// an unrelated blank line further up the gap — for example above a preceding header comment — incorrectly
-    /// satisfy the requirement (issue #428 review)
+    /// satisfy the requirement.
     /// </remarks>
     public static bool HasBlankLineImmediatelyBeforeIndex(SyntaxToken token, int leadingTriviaEndExclusive, SyntaxToken previousToken)
     {
@@ -229,8 +229,7 @@ internal sealed class BlankLineEditor
     /// <param name="previousToken">
     /// The token that precedes <paramref name="token"/> in the original, unmodified tree. Callers must capture
     /// this before making any earlier trivia edit to <paramref name="token"/> in the same rewrite step and pass
-    /// it through rather than letting it be re-derived from a possibly detached <paramref name="token"/>
-    /// (issue #428 review)
+    /// it through rather than letting it be re-derived from a possibly detached <paramref name="token"/>.
     /// </param>
     /// <returns>The token with a blank line inserted before the first matching directive, or the original if one already exists</returns>
     /// <remarks>
@@ -240,7 +239,7 @@ internal sealed class BlankLineEditor
     /// (for example <c>code();\n// header\n#region R</c>) ends its own line with a single end-of-line trivia
     /// that is not itself a blank line, but a run-length count could mistake it for one; and an unrelated blank
     /// line further up the gap — for example above the header comment itself — must not satisfy the
-    /// requirement either (issue #428)
+    /// requirement either.
     /// </remarks>
     public SyntaxToken EnsureBlankLineBeforeFirstDirective(SyntaxToken token, SyntaxKind directiveKind, SyntaxToken previousToken)
     {
@@ -251,7 +250,7 @@ internal sealed class BlankLineEditor
         {
             // A directive inside a branch the compiler skipped is surrounded by disabled text, so the inserted
             // line break merges into that text and HasBlankLineImmediatelyBeforeIndex can never see it again -
-            // the next run inserts another one (issue #434)
+            // the next run inserts another one.
             if (trivia[triviaIndex].IsKind(directiveKind)
                 && SyntaxTriviaUtilities.IsInactiveDirective(trivia[triviaIndex]) == false)
             {
@@ -291,7 +290,7 @@ internal sealed class BlankLineEditor
     /// <returns>The statement with a blank line inserted before it, or the original if one already exists</returns>
     /// <remarks>
     /// No blank line is inserted when the statement is immediately preceded by a preprocessor directive,
-    /// mirroring the exemption the PrecededBy/FollowedBy analyzer bases apply (issue #415). Callers whose
+    /// mirroring the exemption the PrecededBy/FollowedBy analyzer bases apply. Callers whose
     /// rule has no such exemption, such as the "blank line after a closing brace" rule, must use
     /// <see cref="EnsureBlankLineAfterClosingBrace"/> instead
     /// </remarks>

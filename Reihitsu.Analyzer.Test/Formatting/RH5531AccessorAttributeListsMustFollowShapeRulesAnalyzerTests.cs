@@ -159,8 +159,7 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// Verifies that two separate single-attribute lists on a single-line accessor are merged into one list even
     /// when the property also carries a property-level attribute on its own line. Before the span repair, the
     /// shared single-line predicate misclassified the declaration as multi-line and left the two lists
-    /// unmerged, which is one of the latent defects the RH5408 non-convergence report traced back to (issue
-    /// #729)
+    /// unmerged, which is one of the latent defects the RH5408 non-convergence report traced back to
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -207,7 +206,7 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// <summary>
     /// Verifies that a property-level attribute does not exempt a genuinely multi-line property carrying already
     /// correctly split accessor attribute lists — the span repair only excludes the property's own attribute
-    /// lists, so this compliant multi-line shape stays silent exactly as it did before the repair (issue #729)
+    /// lists, so this compliant multi-line shape stays silent exactly as it did before the repair
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

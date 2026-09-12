@@ -584,7 +584,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -612,7 +612,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// column reports nothing. This pins the parse-time boundary only — it does not cover the case
     /// where <c>DEBUG</c> is defined, in which the same text is still flagged because
     /// <c>reihitsu-format</c> parses with no preprocessor symbols while the analyzer uses the
-    /// project's (issue #489)
+    /// project's own compilation symbols.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

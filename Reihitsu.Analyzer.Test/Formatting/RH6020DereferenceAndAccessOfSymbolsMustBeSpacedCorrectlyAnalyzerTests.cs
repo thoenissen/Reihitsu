@@ -74,7 +74,7 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that no diagnostic is reported when the space separates two address-of operators, because removing it would glue them into the logical-and operator (issue #413)
+    /// Verifies that no diagnostic is reported when the space separates two address-of operators, because removing it would glue them into the logical-and operator
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -94,7 +94,7 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that the fix is not offered when deleting the space would glue two address-of operators into the logical-and operator (issue #413)
+    /// Verifies that the fix is not offered when deleting the space would glue two address-of operators into the logical-and operator
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

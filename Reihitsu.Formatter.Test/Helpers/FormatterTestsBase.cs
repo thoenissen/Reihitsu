@@ -18,7 +18,7 @@ public abstract class FormatterTestsBase
     /// <summary>
     /// The line endings every fixture is exercised against. Running both LF and CRLF makes
     /// line-ending–sensitive offset and width calculations a standard, always-on dimension of the
-    /// suite rather than a one-off per bug (issue #330)
+    /// suite rather than a one-off per bug
     /// </summary>
     protected static readonly string[] _lineEndings = ["\n", "\r\n"];
 
@@ -28,7 +28,7 @@ public abstract class FormatterTestsBase
 
     /// <summary>
     /// Applies the formatter rule and verifies both first-pass and second-pass results under both
-    /// LF and CRLF line endings (issue #330)
+    /// LF and CRLF line endings
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected formatted output, or <see langword="null"/> when the input is already formatted</param>

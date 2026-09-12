@@ -62,7 +62,7 @@ public class BracePlacerTests
     /// <summary>
     /// Verifies that a single-line contained block whose open brace is inline with the header is fully
     /// normalized in a single pass, even though the open-brace edit shifts the positions of the first
-    /// statement and the close brace (issue #241)
+    /// statement and the close brace.
     /// </summary>
     [TestMethod]
     public void NormalizeContainedBlockFullyNormalizesInlineOpenBraceInSinglePass()

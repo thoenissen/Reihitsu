@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
 /// <summary>
-/// Verifies issue #699: once an uncommented, separately wrapped non-invoked prefix dot collapses
+/// Verifies that once an uncommented, separately wrapped non-invoked prefix dot collapses
 /// onto the chain root even though a comment sits above the first invoked link, both the raw,
 /// as-typed source and the formatter's fixed output stay <see cref="RH5201MethodChainsShouldBeAlignedAnalyzer"/>-clean,
 /// and a second formatter pass is a no-op

@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — chain line breaks inside
-/// an argument or lambda body of a conditional access chain (issue #475)
+/// an argument or lambda body of a conditional access chain
 /// </summary>
 [TestClass]
 public class ChainInsideConditionalAccessArgumentTests : FormatterTestsBase

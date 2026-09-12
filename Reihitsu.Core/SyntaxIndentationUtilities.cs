@@ -126,7 +126,7 @@ public static class SyntaxIndentationUtilities
     /// own alignment contributors would place it at. The search cannot stop at the first brace scope it meets:
     /// a block nested inside an initializer is itself anchor-positioned, even though the block itself is a
     /// recognized brace scope. A caller that needs that column when this returns <see langword="true"/> has to
-    /// read it from the current source text instead of computing it (issue #748)
+    /// read it from the current source text instead of computing it
     /// </summary>
     /// <param name="node">Node to inspect</param>
     /// <returns><see langword="true"/> if such an ancestor exists</returns>
@@ -149,13 +149,13 @@ public static class SyntaxIndentationUtilities
     /// trivia attached to one. A section's own statements sit exactly one indentation level deeper than every
     /// label of the enclosing <c>switch</c> - not only its own - because sibling sections share one nesting
     /// depth; see <see cref="GetIndentingScopeRange"/>. So a caller that reads a shared line's leading whitespace
-    /// as an anchor-derived column (issue #748) has to add that one level whenever the line is led by any label
+    /// as an anchor-derived column has to add that one level whenever the line is led by any label
     /// of the same <c>switch</c> statement - this section's own label, an earlier sibling section's label sharing
     /// the physical line, or trivia (such as a comment) attached ahead of either - and only that. Membership is
     /// therefore decided per label's own token span, not by a contiguous position range from the switch
     /// statement's opening brace: that range would also admit an earlier sibling section's own statement, or a
     /// nested switch's closing brace, sharing the same textual stretch without being a label at all - the
-    /// spurious-level defect this predicate exists to prevent, moved rather than closed (issue #786). A label's
+    /// spurious-level defect this predicate exists to prevent, moved rather than closed. A label's
     /// own span can itself span multiple physical lines - a <c>case</c> pattern with a <c>when</c> clause, for
     /// example - and a statement sharing one of that label's continuation lines still matches here even though
     /// the anchor column read from that line is the continuation's own column, not the label's first-line column;
@@ -194,7 +194,6 @@ public static class SyntaxIndentationUtilities
     /// section's own statements always sit exactly one level deeper than the labels that precede them; otherwise
     /// the anchor line's own leading whitespace is used unchanged. Centralizing this composition keeps the
     /// decision that consumes the label-region predicate in one place rather than duplicated per caller
-    /// (issue #786)
     /// </summary>
     /// <param name="statement">Statement whose indentation is being computed</param>
     /// <param name="anchorLine">Source line supplying the anchor column</param>
@@ -215,7 +214,7 @@ public static class SyntaxIndentationUtilities
     /// its only uncancelled consumer - <see cref="ComputeBaseIndentLevel"/>'s callers in
     /// <c>ReihitsuFormatter.FormatNode</c> and the document-scoped overloads - needs an absolute level for every
     /// node, including one nested in an initializer, rather than a level that stops at the nearest brace scope.
-    /// The approximation this produces for an initializer-nested node is deliberately inexact (issue #748): it
+    /// The approximation this produces for an initializer-nested node is deliberately inexact: it
     /// undercounts the anchor-derived column by not accounting for the initializer's own alignment, but the two
     /// document-scoped overloads cancel that undercount as a uniform column offset against the node's own
     /// original position, and the detached overload's only production caller can never reach an initializer
@@ -298,7 +297,7 @@ public static class SyntaxIndentationUtilities
     /// members are anchor-derived, aligned to a token's own column plus one indentation size rather than a
     /// brace-scope level, and pass-2 alignment contributors in <c>Reihitsu.Formatter.Pipeline.Indentation</c> -
     /// which this model's consumers (<see cref="GetChildIndentLevel"/>'s <c>LayoutComputer</c> and RH5204 callers)
-    /// already delegate to for those columns - already own them (issue #748)
+    /// already delegate to for those columns - already own them
     /// </summary>
     /// <param name="node">Potential scope owner</param>
     /// <returns>Start and end of the indenting range; otherwise, <see langword="null"/></returns>

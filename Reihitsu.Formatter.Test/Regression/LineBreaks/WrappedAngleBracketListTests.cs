@@ -8,7 +8,7 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 /// Regression tests for joining a wrapped angle-bracket delimited list (type argument, type
 /// parameter, or function-pointer parameter list) onto a single line when safe, and for aligning its
 /// continuation lines to the first element's column when the join is refused, across every syntactic
-/// position such a list can occupy (issue #693)
+/// position such a list can occupy
 /// </summary>
 [TestClass]
 public class WrappedAngleBracketListTests : FormatterTestsBase

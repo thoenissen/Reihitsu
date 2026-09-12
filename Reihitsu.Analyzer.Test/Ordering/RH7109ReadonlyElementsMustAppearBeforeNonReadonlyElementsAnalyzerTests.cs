@@ -46,7 +46,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
 
     /// <summary>
     /// Verifying the blank line that already separated the readonly field from the mutable field survives the
-    /// reorder (issue #727)
+    /// reorder
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

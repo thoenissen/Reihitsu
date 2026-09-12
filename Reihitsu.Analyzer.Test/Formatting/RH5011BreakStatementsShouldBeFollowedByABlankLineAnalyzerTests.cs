@@ -172,7 +172,6 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// <summary>
     /// Verifies no diagnostics are reported when a break statement is immediately followed by an
     /// <c>#endregion</c> directive, mirroring the exemption the PrecededBy analyzer bases apply
-    /// (issue #415)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

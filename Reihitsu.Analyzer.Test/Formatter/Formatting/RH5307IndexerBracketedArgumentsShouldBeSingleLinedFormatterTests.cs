@@ -51,7 +51,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
     /// <summary>
     /// Verifies that the formatter collapses multiline indexer arguments that carry a comment behind
     /// the closing bracket, and that analyzer and formatter agree on that decision under both line
-    /// endings (issue #610)
+    /// endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -84,7 +84,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
 
     /// <summary>
     /// Verifies that the formatter leaves an indexer argument list alone when a comment sits between
-    /// the brackets, because that gap is crossed by the collapse (issue #610)
+    /// the brackets, because that gap is crossed by the collapse
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

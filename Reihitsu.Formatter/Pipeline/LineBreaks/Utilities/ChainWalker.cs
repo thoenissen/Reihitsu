@@ -15,7 +15,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 /// member access.
 /// The sets are chosen per decision rather than per phase: the line-break and indentation phases both
 /// read the operator set, so that the dot a chain is collapsed at and the dot it is aligned to are
-/// the same token (issue #683)
+/// the same token
 /// </summary>
 internal static class ChainWalker
 {
@@ -86,7 +86,7 @@ internal static class ChainWalker
     /// is collected instead of the <c>.</c> from the <see cref="MemberBindingExpressionSyntax"/>,
     /// because the <c>?</c> is the first token on a continuation line.
     /// The indentation phase aligns continuation dots against this set, and the line-break phase picks
-    /// its collapse candidate from it, so both decisions are made about the same tokens (issue #683)
+    /// its collapse candidate from it, so both decisions are made about the same tokens
     /// </summary>
     /// <param name="expr">The expression to walk</param>
     /// <param name="dots">The list to accumulate dot tokens into</param>
@@ -206,7 +206,7 @@ internal static class ChainWalker
     /// Determines whether a syntax node is an inner link of a <see cref="ConditionalAccessExpressionSyntax"/>
     /// chain. The walk follows the chain spine only, so an expression that merely sits inside an
     /// argument, a lambda body, or another nested construct of a conditional access chain is not
-    /// treated as part of that chain (issue #475)
+    /// treated as part of that chain
     /// </summary>
     /// <param name="node">The node to check</param>
     /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/></returns>
@@ -259,7 +259,7 @@ internal static class ChainWalker
     /// Determines whether a single chain dot token has an intermediate member access between
     /// the dot and the chain root. A postfix null-forgiving operator is checked the same way, through
     /// its own operand, since <c>a.Prop!.Foo()</c> belongs to the same fluent chain the plain-dot check
-    /// keeps wrapped for <c>a.Prop.Foo()</c> (issue #719)
+    /// keeps wrapped for <c>a.Prop.Foo()</c>
     /// </summary>
     /// <param name="dotToken">The dot or null-forgiving operator token from a chain link</param>
     /// <returns><see langword="true"/> if there is an intermediate member access; otherwise, <see langword="false"/></returns>

@@ -558,7 +558,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that an auto-property whose initializer wraps onto multiple lines keeps the
-    /// <c>{ get; set; }</c> accessor list on a single line (see issue #311)
+    /// <c>{ get; set; }</c> accessor list on a single line.
     /// </summary>
     [TestMethod]
     public void KeepsAutoPropertyAccessorListInlineWhenInitializerWraps()
@@ -613,7 +613,7 @@ public class LineBreakRewriterTests
     /// <summary>
     /// Verifies that a multi-line auto-property with accessor attributes is left exactly as written. An
     /// accessor carrying its own attribute list is no longer simple, so RH5408's collapse must not force it
-    /// onto one line (issue #729)
+    /// onto one line.
     /// </summary>
     [TestMethod]
     public void LeavesAccessorAttributedAutoPropertyAsWritten()
@@ -784,7 +784,7 @@ public class LineBreakRewriterTests
     /// <summary>
     /// Verifies that an auto-property whose wrapped generic type can safely join — no interior
     /// comment or directive — has its signature joined onto one line and its accessor list
-    /// collapsed, since the joined signature becomes single-line (issue #693)
+    /// collapsed, since the joined signature becomes single-line.
     /// </summary>
     [TestMethod]
     public void CollapsesAutoPropertyWithJoinableWrappedSignature()

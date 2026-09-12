@@ -14,7 +14,7 @@ namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 /// Tests for <see cref="BlankLineRegionDirectiveRewriter"/> in isolation, without the <c>BlankLineCollapser</c>
 /// subphase that normally runs after it in <see cref="BlankLinePhase"/>. Isolation matters here because the
 /// collapser would silently absorb a double blank-line insertion, masking a regression where the rewriter
-/// mistakes an existing blank line for a missing one (issue #428 review)
+/// mistakes an existing blank line for a missing one.
 /// </summary>
 [TestClass]
 public class BlankLineRegionDirectiveRewriterTests
@@ -34,8 +34,7 @@ public class BlankLineRegionDirectiveRewriterTests
     /// Verifies that an already-correct blank line before a <c>#region</c> directive is left as a single blank
     /// line, even though the same leading trivia also requires a blank line to be inserted after the directive.
     /// The "after" insertion replaces the token with a detached copy before the "before" check runs; re-deriving
-    /// the previous token from that detached copy must not undercount the existing blank line and double it
-    /// (issue #428 review)
+    /// the previous token from that detached copy must not undercount the existing blank line and double it.
     /// </summary>
     [TestMethod]
     public void ExistingBlankLineBeforeRegionIsNotDuplicatedWhenBlankLineAfterIsAlsoInserted()

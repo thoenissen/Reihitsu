@@ -14,7 +14,7 @@ namespace Reihitsu.Formatter.Test.Idempotency;
 /// Self-hosting tests that run the formatter over every C# file in the Reihitsu solution.
 /// These tests verify that the formatter produces no unwanted changes on correctly-formatted code
 /// and that formatting is idempotent (formatting twice yields the same result), exercised under
-/// both LF and CRLF line endings (issue #330)
+/// both LF and CRLF line endings
 /// </summary>
 [TestClass]
 public class SelfHostingTests : FormatterTestsBase

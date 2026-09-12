@@ -217,7 +217,7 @@ internal static class LayoutComputer
     /// <summary>
     /// Applies indentation entries for region-related directive trivia. A directive inside a branch the
     /// compiler skipped is left where the author wrote it: the code around it is untouched disabled
-    /// text, so re-indenting the directive alone would half-format a region nobody compiles (issue #434)
+    /// text, so re-indenting the directive alone would half-format a region nobody compiles
     /// </summary>
     /// <param name="token">The token whose leading trivia is inspected</param>
     /// <param name="parent">The syntax node that owns the token</param>

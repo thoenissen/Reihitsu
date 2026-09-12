@@ -568,7 +568,7 @@ public class IdempotencyTests : FormatterTestsBase
 
     /// <summary>
     /// Input source used to verify that comments and directives attached to the arrow or semicolon
-    /// token survive expression-body-to-block conversion, under repeated formatting (issue #422)
+    /// token survive expression-body-to-block conversion, under repeated formatting
     /// </summary>
     private const string ExpressionBodiedCommentTestData = """
                                                            internal class ExpressionBodiedCommentTestData
@@ -636,7 +636,7 @@ public class IdempotencyTests : FormatterTestsBase
                                                          """;
 
     /// <summary>
-    /// Input source used to verify tab-normalization idempotency (issue #441): a tab used as the gap before
+    /// Input source used to verify tab-normalization idempotency: a tab used as the gap before
     /// a trailing comment must convert to spaces and stay converted on a second pass. A regular string
     /// literal is used here, rather than this file's usual raw string literal, so the tab character is an
     /// explicit escape rather than an invisible byte in the source
@@ -891,7 +891,7 @@ public class IdempotencyTests : FormatterTestsBase
                                                            """;
 
     /// <summary>
-    /// Input source used to verify that line joins never collapse code into a trailing comment (issue #226)
+    /// Input source used to verify that line joins never collapse code into a trailing comment
     /// </summary>
     private const string CommentJoinTestData = """
                                                internal class CommentJoinTestData
@@ -949,7 +949,7 @@ public class IdempotencyTests : FormatterTestsBase
                                                           """;
 
     /// <summary>
-    /// Input source used to verify complex-element (dictionary-style pair) initializer layout idempotency (issue #425)
+    /// Input source used to verify complex-element (dictionary-style pair) initializer layout idempotency
     /// </summary>
     private const string ComplexElementInitializerLayoutTestData = """
                                                                    using System.Collections.Generic;
@@ -967,7 +967,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// <summary>
     /// Input source used to verify layout idempotency for initializer constructs no contributor
     /// previously claimed: with-expression initializers, bare <c>EqualsValueClauseSyntax</c>-attached
-    /// array initializers, and typed/implicit <c>stackalloc</c> initializers (issue #430)
+    /// array initializers, and typed/implicit <c>stackalloc</c> initializers
     /// </summary>
     private const string UncoveredInitializerLayoutTestData = """
                                                               using System;
@@ -1024,7 +1024,7 @@ public class IdempotencyTests : FormatterTestsBase
 
     /// <summary>
     /// Input source used to verify that embedded (unbraced) control-flow statement bodies keep a stable,
-    /// one-level-deeper indentation under repeated formatting instead of being de-indented (issue #416)
+    /// one-level-deeper indentation under repeated formatting instead of being de-indented
     /// </summary>
     private const string UnbracedEmbeddedStatementTestData = """
                                                              internal class UnbracedEmbeddedStatementTestData
@@ -1142,7 +1142,7 @@ public class IdempotencyTests : FormatterTestsBase
     /// <summary>
     /// Verifies that applying the formatter twice to ExpressionBodiedComment test data produces the same
     /// result and that the arrow-trailing comment, semicolon-leading comment, and semicolon-leading
-    /// directive all survive both passes (issue #422)
+    /// directive all survive both passes
     /// </summary>
     [TestMethod]
     public void ExpressionBodiedCommentIsIdempotent()
@@ -1223,7 +1223,7 @@ public class IdempotencyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that line joins never collapse code into a trailing comment and remain idempotent (issue #226)
+    /// Verifies that line joins never collapse code into a trailing comment and remain idempotent
     /// </summary>
     [TestMethod]
     public void CommentJoinIsIdempotent()
@@ -1252,7 +1252,7 @@ public class IdempotencyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to ComplexElementInitializerLayout test data produces the same result (issue #425)
+    /// Verifies that applying the formatter twice to ComplexElementInitializerLayout test data produces the same result
     /// </summary>
     [TestMethod]
     public void ComplexElementInitializerLayoutIsIdempotent()
@@ -1261,7 +1261,7 @@ public class IdempotencyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to UncoveredInitializerLayout test data produces the same result (issue #430)
+    /// Verifies that applying the formatter twice to UncoveredInitializerLayout test data produces the same result
     /// </summary>
     [TestMethod]
     public void UncoveredInitializerLayoutIsIdempotent()
@@ -1270,7 +1270,7 @@ public class IdempotencyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to UnbracedEmbeddedStatement test data produces the same result (issue #416)
+    /// Verifies that applying the formatter twice to UnbracedEmbeddedStatement test data produces the same result
     /// </summary>
     [TestMethod]
     public void UnbracedEmbeddedStatementIsIdempotent()
@@ -1280,7 +1280,7 @@ public class IdempotencyTests : FormatterTestsBase
 
     /// <summary>
     /// Asserts that formatting the given source twice yields the same result and that the formatter
-    /// honors the requested line ending verbatim, under both LF and CRLF (issue #330)
+    /// honors the requested line ending verbatim, under both LF and CRLF
     /// </summary>
     /// <param name="input">The source text to format</param>
     private void AssertIdempotentUnderBothEndings(string input)
@@ -1299,7 +1299,7 @@ public class IdempotencyTests : FormatterTestsBase
 
     /// <summary>
     /// Asserts that the formatter produces no changes for the given already-formatted source under
-    /// both LF and CRLF (issue #330)
+    /// both LF and CRLF
     /// </summary>
     /// <param name="input">The already-formatted source text</param>
     private void AssertNoChangesUnderBothEndings(string input)

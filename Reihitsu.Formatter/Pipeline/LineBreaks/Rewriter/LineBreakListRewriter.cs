@@ -236,8 +236,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// brackets - opening bracket to first argument, the separators, and last argument to closing
     /// bracket - so a comment trailing the closing bracket is never crossed and must not force the
     /// list apart. RH5307 applies the same interior-scoped guard in its analyzer and its code fix, so
-    /// all three surfaces agree on the decision (see issue #610, and issue #604 for the auto-property
-    /// counterpart)
+    /// all three surfaces agree on the decision, including for the equivalent auto-property collapse
     /// </remarks>
     private static bool CanSafelyCollapseBracketedArguments(BracketedArgumentListSyntax node)
     {

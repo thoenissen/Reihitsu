@@ -89,7 +89,7 @@ public class LineBreakDetectionTests
 
     /// <summary>
     /// Verifies that a node whose own text is single-line is not reported as multi-line when a
-    /// blank line precedes it in leading trivia (issue #423)
+    /// blank line precedes it in leading trivia.
     /// </summary>
     [TestMethod]
     public void IsMultiLineReturnsFalseForSingleLineNodeWithLeadingBlankLine()
@@ -106,7 +106,7 @@ public class LineBreakDetectionTests
 
     /// <summary>
     /// Verifies that a node whose own text is single-line is not reported as multi-line when a
-    /// comment line precedes it in leading trivia (issue #423)
+    /// comment line precedes it in leading trivia.
     /// </summary>
     [TestMethod]
     public void IsMultiLineReturnsFalseForSingleLineNodeWithLeadingCommentLine()
@@ -123,7 +123,7 @@ public class LineBreakDetectionTests
 
     /// <summary>
     /// Verifies that a node whose own text is single-line is not reported as multi-line when a
-    /// trailing comment on its last token pushes trailing trivia onto a new line (issue #423)
+    /// trailing comment on its last token pushes trailing trivia onto a new line.
     /// </summary>
     [TestMethod]
     public void IsMultiLineReturnsFalseForSingleLineNodeWithTrailingCommentLine()

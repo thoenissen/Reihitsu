@@ -65,7 +65,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// brace that shares its line with earlier content (<c>new[] { 1, 2, 3 }.Select(…)</c>, or a
     /// multi-line initializer closed by <c>2 }</c>) keeps its own line's indentation, so the rebase
     /// would shift the anchor by the initializer's printed width; such a chain falls back to the
-    /// ordinary lookup instead (issue #684)
+    /// ordinary lookup instead.
     /// </summary>
     /// <param name="anchorDot">The chain-link token chosen as the alignment anchor</param>
     /// <param name="firstDot">The chain's first collected dot, used to detect an initializer-rooted chain</param>
@@ -131,7 +131,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// the chain under its root even when the root sits far into the line, for example inside an
     /// argument or a lambda body. Once the first invoked link's own line is final, it does have an
     /// anchor — itself — so every collected dot after it aligns to that link's own rendered column
-    /// instead, matching the column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires (issue #698)
+    /// instead, matching the column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires.
     /// </summary>
     /// <param name="node">The chain node being laid out</param>
     /// <param name="model">The layout model</param>
@@ -167,7 +167,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
                 // Once the first invoked link is set (or, if it already shared a line with an
                 // earlier collected dot, resolved through that dot's now-final line), it becomes the
                 // anchor for every dot after it — the same "first invoked link" column RH5201 measures,
-                // rather than the chain-root column used up to this point (issue #698)
+                // rather than the chain-root column used up to this point.
                 if (passedFirstInvokedLink == false
                     && ChainWalker.IsInvokedLinkDot(dot))
                 {
@@ -271,7 +271,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// line whenever the line-break phase refused to join it onto the root line, which happens for
     /// every kind of unjoinable trivia — a comment, a preprocessor directive, or disabled text. This
     /// mirrors <see cref="LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia"/> so the alignment
-    /// phase stays in lock-step with the refusal instead of recognizing comments only (issue #489)
+    /// phase stays in lock-step with the refusal instead of recognizing comments only.
     /// </summary>
     /// <param name="firstDot">The first chain link token</param>
     /// <returns><see langword="true"/> if the chain should be skipped; otherwise, <see langword="false"/></returns>

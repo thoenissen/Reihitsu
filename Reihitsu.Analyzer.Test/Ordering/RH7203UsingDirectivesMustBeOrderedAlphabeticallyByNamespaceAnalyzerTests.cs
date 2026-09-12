@@ -312,7 +312,7 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// <summary>
     /// Verifies that a file-header banner above the original first using directive stays at the top of
     /// the scope when the code fix demotes that directive, instead of moving into the middle of the
-    /// using block (issue #432)
+    /// using block
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -362,8 +362,8 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Reproduction for issue #728: verifies the separator between two same-group reordered usings is
-    /// preserved when the using block is the only content in the file (no following declaration)
+    /// Verifies the separator between two same-group reordered usings is preserved when the using block is
+    /// the only content in the file (no following declaration)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

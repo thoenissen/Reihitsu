@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 
 /// <summary>
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — blank line preservation
-/// before a comment that is the final content of a scope (see issue #694)
+/// before a comment that is the final content of a scope
 /// </summary>
 [TestClass]
 public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
@@ -15,7 +15,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating a statement from a trailing comment that is the
-    /// last content of a constructor body is preserved (see issue #694)
+    /// last content of a constructor body is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingCommentInConstructorBodyIsPreserved()
@@ -39,7 +39,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating a statement from a trailing multi-line comment that is
-    /// the last content of a block is preserved (see issue #694)
+    /// the last content of a block is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingMultiLineCommentIsPreserved()
@@ -64,7 +64,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating a member from a trailing comment that is the last
-    /// content of a nested type declaration is preserved (see issue #694)
+    /// content of a nested type declaration is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingCommentInTypeDeclarationIsPreserved()
