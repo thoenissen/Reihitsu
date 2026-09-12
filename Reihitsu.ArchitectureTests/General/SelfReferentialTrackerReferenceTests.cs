@@ -38,7 +38,11 @@ public sealed class SelfReferentialTrackerReferenceTests
     private const string RepositoryName = "Reihitsu";
 
     /// <summary>
-    /// File-name suffixes that mark generated source excluded from the scan
+    /// File-name suffixes that mark generated source excluded from the scan, matching
+    /// <c>Reihitsu.Cli.GeneratedFileUtilities.IsGeneratedFile</c>. That helper is <see langword="internal"/> to
+    /// <c>Reihitsu.Cli</c> with no <c>InternalsVisibleTo</c> to this project — hence no resolvable <c>cref</c>
+    /// above — so this repeats the list rather than referencing it, the same intentional duplication this
+    /// project already accepts for <see cref="FindRepositoryRoot"/>
     /// </summary>
     private static readonly string[] _generatedFileSuffixes = [".Designer.cs", ".g.cs", ".g.i.cs"];
 
@@ -144,6 +148,97 @@ public sealed class SelfReferentialTrackerReferenceTests
 
         // Assert
         Assert.IsEmpty(findings);
+    }
+
+    /// <summary>
+    /// Verifies that a comment attached to a directive token — for example the common
+    /// <c>#endregion // &lt;name&gt;</c> shape — is reached even though it lives inside structured directive
+    /// trivia rather than as an ordinary token's leading or trailing trivia
+    /// </summary>
+    [TestMethod]
+    public void CommentScanDetectsTrackerReferenceInDirectiveTrailingComment()
+    {
+        // Arrange and act
+        IReadOnlyList<TrackerReference> findings;
+
+        using (var fixture = new TrackerReferenceFixtureDirectory())
+        {
+            fixture.WriteFile("Sample.cs",
+                              "internal class Sample\n"
+                              + "{\n"
+                              + "    #region Methods\n"
+                              + "    #endregion // issue #720\n"
+                              + "}\n");
+
+            findings = ScanForCommentReferences(fixture.Path);
+        }
+
+        // Assert
+        Assert.HasCount(1, findings);
+        Assert.Contains(finding => finding.Line == 4 && finding.MatchedText == "#720", findings);
+    }
+
+    /// <summary>
+    /// Verifies the two shapes that stay deliberately out of reach even with directive descent enabled: a
+    /// directive's own message text (<c>PreprocessingMessageTrivia</c>, not comment trivia) and a comment inside
+    /// disabled (<c>#if false</c>) text (<c>DisabledTextTrivia</c>, not comment trivia) — reporting on code
+    /// nobody compiles would be a false positive, not closure
+    /// </summary>
+    [TestMethod]
+    public void CommentScanIgnoresDirectiveMessageTextAndDisabledTextTrackerShapes()
+    {
+        // Arrange and act
+        IReadOnlyList<TrackerReference> findings;
+
+        using (var fixture = new TrackerReferenceFixtureDirectory())
+        {
+            fixture.WriteFile("Sample.cs",
+                              "internal class Sample\n"
+                              + "{\n"
+                              + "    #region Fix for issue #720\n"
+                              + "    #endregion\n"
+                              + "#if false\n"
+                              + "    // issue #720\n"
+                              + "#endif\n"
+                              + "}\n");
+
+            findings = ScanForCommentReferences(fixture.Path);
+        }
+
+        // Assert
+        Assert.IsEmpty(findings);
+    }
+
+    /// <summary>
+    /// Verifies that a match past the first line of a multi-line documentation comment is reported at its own
+    /// line, not at the trivia's starting line — the boundary <see cref="CountLineBreaksBefore"/> exists for
+    /// </summary>
+    [TestMethod]
+    public void CommentScanReportsTheMatchLineInsideMultiLineTrivia()
+    {
+        // Arrange and act
+        IReadOnlyList<TrackerReference> findings;
+
+        using (var fixture = new TrackerReferenceFixtureDirectory())
+        {
+            fixture.WriteFile("Sample.cs",
+                              "internal class Sample\n"
+                              + "{\n"
+                              + "    /// <summary>\n"
+                              + "    /// Line one is clean\n"
+                              + "    /// Line two references issue #720\n"
+                              + "    /// </summary>\n"
+                              + "    private static void M()\n"
+                              + "    {\n"
+                              + "    }\n"
+                              + "}\n");
+
+            findings = ScanForCommentReferences(fixture.Path);
+        }
+
+        // Assert
+        Assert.HasCount(1, findings);
+        Assert.Contains(finding => finding.Line == 5 && finding.MatchedText == "#720", findings);
     }
 
     /// <summary>
@@ -307,7 +402,11 @@ public sealed class SelfReferentialTrackerReferenceTests
 
     /// <summary>
     /// Scans every non-generated C# file under a root directory for a self-referential tracker number in a
-    /// comment or documentation comment
+    /// comment or documentation comment. Descends into structured trivia so a comment attached to a directive
+    /// token — the common <c>#endregion // &lt;name&gt;</c> shape — is reached, unlike a plain-text scan. A
+    /// directive's own message text and a comment inside disabled (<c>#if false</c>) text are deliberately out
+    /// of reach: neither is comment trivia, and reaching into disabled text would report on code nobody
+    /// compiles
     /// </summary>
     /// <param name="rootDirectory">Directory to scan</param>
     /// <returns>Every self-referential tracker reference found</returns>
@@ -320,7 +419,7 @@ public sealed class SelfReferentialTrackerReferenceTests
             var root = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath)).GetRoot();
             var relativePath = Path.GetRelativePath(rootDirectory, filePath);
 
-            foreach (var trivia in root.DescendantTrivia())
+            foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
             {
                 if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
                 {
@@ -358,18 +457,14 @@ public sealed class SelfReferentialTrackerReferenceTests
 
             foreach (var node in root.DescendantNodes())
             {
-                var identifier = GetDeclaredIdentifier(node);
-
-                if (identifier is not { } token)
+                foreach (var token in GetDeclaredIdentifiers(node))
                 {
-                    continue;
-                }
+                    var nameMatch = _trackerNamePattern.Match(token.ValueText);
 
-                var nameMatch = _trackerNamePattern.Match(token.ValueText);
-
-                if (nameMatch.Success)
-                {
-                    findings.Add(new TrackerReference(relativePath, token.GetLocation().GetLineSpan().StartLinePosition.Line + 1, nameMatch.Value));
+                    if (nameMatch.Success)
+                    {
+                        findings.Add(new TrackerReference(relativePath, token.GetLocation().GetLineSpan().StartLinePosition.Line + 1, nameMatch.Value));
+                    }
                 }
             }
         }
@@ -406,22 +501,78 @@ public sealed class SelfReferentialTrackerReferenceTests
     }
 
     /// <summary>
-    /// Returns the declared-name identifier of a syntax node, when the node is a type, method, delegate,
-    /// property, or enum-member declaration
+    /// Returns every declared-name identifier a syntax node introduces: a type, method, constructor, property,
+    /// event, delegate, or enum-member declaration, or a field or event-field's own variable declarators (a
+    /// field declaration has no single identifier of its own — <c>private int a, b;</c> declares two). A local
+    /// variable, a parameter, a local function, a type parameter, and a namespace are a deliberate ceiling: none
+    /// is a declared type or member name, which is what the repository's own convention statement governs
     /// </summary>
     /// <param name="node">Node to inspect</param>
-    /// <returns>The declared identifier, or <see langword="null"/> when the node declares no name</returns>
-    private static SyntaxToken? GetDeclaredIdentifier(SyntaxNode node)
+    /// <returns>Every identifier the node declares; empty when the node declares no name</returns>
+    private static IEnumerable<SyntaxToken> GetDeclaredIdentifiers(SyntaxNode node)
     {
-        return node switch
-               {
-                   BaseTypeDeclarationSyntax typeDeclaration => typeDeclaration.Identifier,
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.Identifier,
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier,
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.Identifier,
-                   EnumMemberDeclarationSyntax enumMemberDeclaration => enumMemberDeclaration.Identifier,
-                   _ => null
-               };
+        switch (node)
+        {
+            case BaseTypeDeclarationSyntax typeDeclaration:
+                {
+                    yield return typeDeclaration.Identifier;
+                }
+                break;
+
+            case MethodDeclarationSyntax methodDeclaration:
+                {
+                    yield return methodDeclaration.Identifier;
+                }
+                break;
+
+            case ConstructorDeclarationSyntax constructorDeclaration:
+                {
+                    yield return constructorDeclaration.Identifier;
+                }
+                break;
+
+            case PropertyDeclarationSyntax propertyDeclaration:
+                {
+                    yield return propertyDeclaration.Identifier;
+                }
+                break;
+
+            case EventDeclarationSyntax eventDeclaration:
+                {
+                    yield return eventDeclaration.Identifier;
+                }
+                break;
+
+            case DelegateDeclarationSyntax delegateDeclaration:
+                {
+                    yield return delegateDeclaration.Identifier;
+                }
+                break;
+
+            case EnumMemberDeclarationSyntax enumMemberDeclaration:
+                {
+                    yield return enumMemberDeclaration.Identifier;
+                }
+                break;
+
+            case FieldDeclarationSyntax fieldDeclaration:
+                {
+                    foreach (var variable in fieldDeclaration.Declaration.Variables)
+                    {
+                        yield return variable.Identifier;
+                    }
+                }
+                break;
+
+            case EventFieldDeclarationSyntax eventFieldDeclaration:
+                {
+                    foreach (var variable in eventFieldDeclaration.Declaration.Variables)
+                    {
+                        yield return variable.Identifier;
+                    }
+                }
+                break;
+        }
     }
 
     /// <summary>
@@ -443,7 +594,9 @@ public sealed class SelfReferentialTrackerReferenceTests
     }
 
     /// <summary>
-    /// Determines whether a file sits under a build-output directory or matches a generated-file suffix
+    /// Determines whether a file sits under a build-output directory or matches a generated-file suffix. The
+    /// build-output segment check mirrors <c>FormatCommandHandler</c>'s own <c>bin</c>/<c>obj</c> skip for the
+    /// same internal-visibility reason as <see cref="_generatedFileSuffixes"/>
     /// </summary>
     /// <param name="filePath">File path to check</param>
     /// <returns><see langword="true"/> if the file is excluded from the scan; otherwise, <see langword="false"/></returns>

@@ -30,7 +30,7 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
     #region Tests
 
     /// <summary>
-    /// Runs the actual formatter over the issue's reported input (a chain root token, a wrapping
+    /// Runs the actual formatter over an input built from a chain root token, a wrapping
     /// comment, a non-invoked <c>.Prop</c> prefix on the commented line, then the invoked
     /// <c>.Foo()</c>/<c>.Bar()</c>/<c>.Baz()</c> links) and asserts that the formatter's own output is
     /// reported clean by <see cref="RH5201MethodChainsShouldBeAlignedAnalyzer"/>
