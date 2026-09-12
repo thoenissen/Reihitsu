@@ -409,7 +409,7 @@ public class CleanupPhaseTests
 
     /// <summary>
     /// Verifies that a final blank line made of whitespace-then-newline is still trimmed away entirely —
-    /// the strip-side boundary of the widened end-of-file predicate (issue #769): end-of-file leading
+    /// the strip-side boundary of the widened end-of-file predicate: end-of-file leading
     /// trivia that holds only whitespace and end-of-line trivia must still be treated as "nothing left
     /// to print", not as content that blocks the strip
     /// </summary>

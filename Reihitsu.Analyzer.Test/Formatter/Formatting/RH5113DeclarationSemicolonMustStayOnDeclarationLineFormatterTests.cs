@@ -95,7 +95,6 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
 
     /// <summary>
     /// Verifies that the formatter collapses a stray property-declaration semicolon onto the declaration line
-    /// (issue #612)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -122,7 +121,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
 
     /// <summary>
     /// Verifies that the formatter leaves an expression-bodied property's wrapped terminating semicolon untouched,
-    /// so the new join stays limited to declarations carrying an initializer (issue #612)
+    /// so the new join stays limited to declarations carrying an initializer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -144,7 +143,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
     /// generated semicolon on that next line, and that the result stays analyzer-clean. The separator terminates
     /// its declarator exactly as the semicolon terminates the last one, so preserving the author's line break is
     /// the split doing nothing rather than the formatter choosing a layout; this analyzer exempts the shape
-    /// because a comment sits in the gap (issue #625)
+    /// because a comment sits in the gap
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

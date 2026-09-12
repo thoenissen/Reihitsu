@@ -950,7 +950,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied finalizer survives conversion (issue #422)
+    /// Verifies that a comment trailing the arrow token of an expression-bodied finalizer survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentTrailingArrowInFinalizer()
@@ -980,7 +980,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment leading the semicolon token of an expression-bodied finalizer survives conversion (issue #422)
+    /// Verifies that a comment leading the semicolon token of an expression-bodied finalizer survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentLeadingSemicolonInFinalizer()
