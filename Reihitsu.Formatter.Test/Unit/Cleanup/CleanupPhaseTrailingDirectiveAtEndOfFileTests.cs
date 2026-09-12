@@ -26,12 +26,12 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
 
     /// <summary>
     /// Verifies that the line break between a closing brace and a trailing <c>#pragma</c> directive at
-    /// end of file is preserved (CRLF), using the issue's own minimal repro verbatim (issue #769)
+    /// end of file is preserved (CRLF), using a minimal repro of the reported scenario verbatim
     /// </summary>
     [TestMethod]
     public void TrailingPragmaAtEndOfFileKeepsSeparateLineCrLf()
     {
-        // Arrange — verbatim from issue #769's minimal repro
+        // Arrange — verbatim from the reported minimal repro
         const string input = "class Foo\r\n{\r\n}\r\n#pragma warning restore CS1591\r\n";
         const string expected = "class Foo\r\n{\r\n}\r\n#pragma warning restore CS1591\r\n";
 
@@ -46,7 +46,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     }
 
     /// <summary>
-    /// Verifies the same scenario under LF line endings (issue #769)
+    /// Verifies the same scenario under LF line endings.
     /// </summary>
     [TestMethod]
     public void TrailingPragmaAtEndOfFileKeepsSeparateLineLf()
@@ -68,7 +68,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     /// <summary>
     /// Verifies that the line break between a closing brace and a trailing single-line comment at end
     /// of file is preserved (CRLF) — the same-shape, lower-severity variant the issue also reports,
-    /// since the merged result is still syntactically valid C# (issue #769)
+    /// since the merged result is still syntactically valid C#.
     /// </summary>
     [TestMethod]
     public void TrailingCommentAtEndOfFileKeepsSeparateLineCrLf()
@@ -88,7 +88,7 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     }
 
     /// <summary>
-    /// Verifies the same trailing-comment scenario under LF line endings (issue #769)
+    /// Verifies the same trailing-comment scenario under LF line endings.
     /// </summary>
     [TestMethod]
     public void TrailingCommentAtEndOfFileKeepsSeparateLineLf()
@@ -109,8 +109,8 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
 
     /// <summary>
     /// Verifies that a blank line separating a closing brace from a trailing <c>#pragma</c> directive
-    /// at end of file is preserved rather than collapsed (CRLF) — the chat-reported additional scenario
-    /// tied to issue #769
+    /// at end of file is preserved rather than collapsed (CRLF) — an additional scenario beyond the
+    /// minimal repro
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingPragmaAtEndOfFileIsPreservedCrLf()
@@ -130,8 +130,8 @@ public class CleanupPhaseTrailingDirectiveAtEndOfFileTests
     }
 
     /// <summary>
-    /// Verifies the same blank-line scenario under LF line endings — the chat-reported additional
-    /// scenario tied to issue #769
+    /// Verifies the same blank-line scenario under LF line endings — an additional scenario beyond
+    /// the minimal repro
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingPragmaAtEndOfFileIsPreservedLf()

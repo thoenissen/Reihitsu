@@ -1163,7 +1163,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that the documentation comment of a property carrying a trailing initializer comment survives the
-    /// collapse (issue #650)
+    /// collapse
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1198,7 +1198,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that the documentation comment of a property without a trailing initializer comment is expanded the
     /// same way. This control pins the expansion as pre-existing behavior of the documentation phase rather than a
-    /// side effect of the guard narrowing in issue #650
+    /// side effect of the guard narrowing that scopes the semicolon-gap exemption
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1231,7 +1231,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that an init accessor with a trailing initializer comment is collapsed (issue #650)
+    /// Verifying that an init accessor with a trailing initializer comment is collapsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1261,7 +1261,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an accessor modifier is preserved when a property with a trailing initializer comment is
-    /// collapsed (issue #650)
+    /// collapsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1290,7 +1290,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that a single-line generic initializer value with a trailing comment is collapsed (issue #650)
+    /// Verifying that a single-line generic initializer value with a trailing comment is collapsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1324,7 +1324,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment before the initializer equals token still exempts the property. The gap guard between
-    /// the accessor list and the initializer is, after issue #650, the only owner of that region
+    /// the accessor list and the initializer is the only owner of that region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1347,7 +1347,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a directive before the initializer equals token still exempts the property. The gap guard
-    /// between the accessor list and the initializer is, after issue #650, the only owner of that region
+    /// between the accessor list and the initializer is the only owner of that region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1372,7 +1372,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a line comment between the initializer value and the semicolon still exempts the property. Such
-    /// a comment runs to the end of the line, so the gap spans lines and its own guard owns it (issue #650)
+    /// a comment runs to the end of the line, so the gap spans lines and its own guard owns it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1396,7 +1396,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a block comment between the initializer value and a semicolon on a later line still exempts the
     /// property. This is the negative side of the same boundary and the same trivia kind as the reported shape, so it
-    /// pins the line-span condition rather than the comment kind (issue #650)
+    /// pins the line-span condition rather than the comment kind
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1420,7 +1420,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a comment between the equals token and the initializer value still exempts the property. The
     /// collapse would be safe there, but the interior guard is the only owner of that gap, so the shape is left to
-    /// manual correction (issue #650)
+    /// manual correction
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1441,7 +1441,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that a multi-line initializer value with a trailing comment still exempts the property (issue #650)
+    /// Verifying that a multi-line initializer value with a trailing comment still exempts the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

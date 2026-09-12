@@ -5,8 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Cleanup;
 
 /// <summary>
-/// Full-pipeline reproduction tests for issue #769 — a trailing <c>#pragma</c> directive at end of
-/// file is merged onto the preceding closing brace line, producing invalid C#
+/// Full-pipeline reproduction tests verifying that a trailing <c>#pragma</c> directive at end of file
+/// stays on its own line rather than being merged onto the preceding closing brace line, which would
+/// produce invalid C#
 /// </summary>
 [TestClass]
 public class TrailingPragmaAtEndOfFileTests : FormatterTestsBase
@@ -15,7 +16,7 @@ public class TrailingPragmaAtEndOfFileTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a trailing <c>#pragma</c> directive following the outermost closing brace at end
-    /// of file stays on its own line, using the issue's own reported scenario (issue #769)
+    /// of file stays on its own line, using the reported scenario
     /// </summary>
     [TestMethod]
     public void TrailingPragmaAfterNamespaceClosingBraceStaysOnOwnLine()
@@ -41,7 +42,7 @@ public class TrailingPragmaAtEndOfFileTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a trailing <c>#pragma</c> directive following a top-level type's closing brace at
-    /// end of file (no enclosing namespace) stays on its own line (issue #769)
+    /// end of file (no enclosing namespace) stays on its own line
     /// </summary>
     [TestMethod]
     public void TrailingPragmaAfterTopLevelClassClosingBraceStaysOnOwnLine()

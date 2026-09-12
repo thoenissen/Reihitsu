@@ -110,7 +110,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     /// <summary>
     /// Verifies that the formatter leaves a multi-line accessor-attributed auto-property exactly as written,
     /// because an accessor carrying its own attribute list is no longer simple and RH5408 must not force it
-    /// onto one line (issue #729)
+    /// onto one line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -138,7 +138,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     /// Verifies that the formatter leaves the issue's exact reported shape — a property-level attribute
     /// combined with accessor-level attributes, written multi-line — exactly as written under LF and CRLF, and
     /// stable on a second pass. This is the shape the shipped code fix could not converge on before the fix
-    /// (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -167,7 +166,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     /// Verifies that the formatter never routes a single-line accessor-attributed auto-property into the
     /// Allman brace-normalization branch. A guard that merely refuses to collapse (rather than bypassing both
     /// branches) would force this already-correct single-line declaration apart — precisely the forced
-    /// multi-line expansion this fix must not reintroduce (issue #729)
+    /// multi-line expansion this fix must not reintroduce
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -190,7 +189,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     /// attribute on its own line with accessor-level attributes inline. Before the span repair, the shared
     /// single-line predicate wrongly counted the property attribute's own line and treated the declaration as
     /// multi-line, which made RH5530 tear the accessor attributes apart on a document RH5408 never touched
-    /// (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -211,7 +209,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
     /// <summary>
     /// Verifies that the formatter collapses a multi-line auto-property whose accessor list is followed by a
-    /// trailing comment, so analyzer and formatter agree on that shape (issue #604)
+    /// trailing comment, so analyzer and formatter agree on that shape
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -241,7 +239,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
     /// <summary>
     /// Verifies that the formatter leaves a single-line auto-property with a trailing comment untouched, so
-    /// analyzer-clean code stays stable (issue #604)
+    /// analyzer-clean code stays stable
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -259,7 +257,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
     /// <summary>
     /// Verifies that the formatter joins a terminating semicolon that sits on its own line, so the diagnostic the
-    /// analyzer reports for that shape can be cleared (issue #612)
+    /// analyzer reports for that shape can be cleared
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -286,7 +284,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
     /// <summary>
     /// Verifies that the formatter collapses the accessor list and joins the terminating semicolon in one pass, so
-    /// the two line-break subphases cooperate on the same declaration (issue #612)
+    /// the two line-break subphases cooperate on the same declaration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -318,7 +316,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     /// <summary>
     /// Verifies that the formatter collapses an auto-property carrying a comment between the initializer value and a
     /// semicolon on the same line, so the shape RH5408 newly reports is also corrected by the CLI, and that a second
-    /// pass over the result changes nothing under both line endings (issue #650)
+    /// pass over the result changes nothing under both line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

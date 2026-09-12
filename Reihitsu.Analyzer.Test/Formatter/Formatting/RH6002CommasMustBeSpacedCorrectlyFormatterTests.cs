@@ -105,7 +105,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
     /// <summary>
     /// Verifies that a comment in front of an argument comma leaves the formatter output analyzer-clean. The
     /// horizontal spacing rewriter exempts the gap in front of such a comment from normalization, so the exemption
-    /// must not be wide enough to leave a space this analyzer reports (issues #591, #625)
+    /// must not be wide enough to leave a space this analyzer reports
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -516,7 +516,7 @@ public class BlankLineRegionTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted between a comment and an <c>#endregion</c> directive, the
-    /// symmetric counterpart of the <c>#region</c> case (issue #428)
+    /// symmetric counterpart of the <c>#region</c> case
     /// </summary>
     [TestMethod]
     public void BlankLineInsertedBetweenCommentAndEndRegion()
@@ -552,8 +552,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>#region</c> directive when the opening brace it directly
     /// follows carries a trailing comment. Core's policy only exempts a line ending with an opening brace when
-    /// nothing but whitespace follows the brace on that line, so a trailing comment disqualifies it (issue #428
-    /// review)
+    /// nothing but whitespace follows the brace on that line, so a trailing comment disqualifies it
     /// </summary>
     [TestMethod]
     public void BlankLineInsertedBeforeRegionAfterOpenBraceWithTrailingComment()

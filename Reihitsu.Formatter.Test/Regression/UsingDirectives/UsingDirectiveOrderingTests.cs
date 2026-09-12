@@ -277,7 +277,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a file-header banner above the original first using directive stays at the top of
     /// the scope when reordering demotes that directive, instead of traveling into the middle of the
-    /// using block (issue #432)
+    /// using block.
     /// </summary>
     [TestMethod]
     public void BannerStaysAtTopWhenOriginalFirstDirectiveIsDemoted()
@@ -306,7 +306,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line banner stays intact at the top of the scope when the demoted
-    /// directive moves into a different group and picks up its own blank-line separator (issue #432)
+    /// directive moves into a different group and picks up its own blank-line separator.
     /// </summary>
     [TestMethod]
     public void MultiLineBannerStaysAtTopWhenOriginalFirstDirectiveIsDemotedAcrossGroups()
@@ -340,7 +340,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a banner stays at the top of the scope when reordering demotes the original first
-    /// global using directive (issue #432)
+    /// global using directive.
     /// </summary>
     [TestMethod]
     public void BannerStaysAtTopWithGlobalUsingReordering()

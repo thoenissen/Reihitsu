@@ -5,11 +5,10 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 
 /// <summary>
-/// Reproduction tests for the chat-reported additional scenario tied to issue #769: a blank line
-/// preceding a trailing <c>#pragma</c> directive being removed. Covers both the end-of-file position
-/// (the same position the issue's own scenario reports) and a position clearly not at end of file, to
-/// tell apart the reported <c>CleanupPhase</c> end-of-file mechanism from a distinct blank-line-collapsing
-/// defect elsewhere
+/// Reproduction tests for an additional scenario: a blank line preceding a trailing <c>#pragma</c>
+/// directive being removed. Covers both the end-of-file position and a position clearly not at end of
+/// file, to tell apart the <c>CleanupPhase</c> end-of-file mechanism from a distinct
+/// blank-line-collapsing defect elsewhere
 /// </summary>
 [TestClass]
 public class BlankLineBeforePragmaAtEndOfFileTests : FormatterTestsBase

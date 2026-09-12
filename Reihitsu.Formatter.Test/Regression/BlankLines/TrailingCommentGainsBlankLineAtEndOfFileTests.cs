@@ -5,8 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 
 /// <summary>
-/// Regression tests for the accepted end-to-end side effect of the issue #769 fix (decision D1, chosen
-/// by the user as "Option A"): once <c>CleanupPhase</c> stops silently deleting the end-of-file newline
+/// Regression tests for the accepted end-to-end side effect of fixing <c>CleanupPhase</c>'s silent
+/// deletion of the end-of-file newline (decision D1, chosen by the user as "Option A"): once
+/// <c>CleanupPhase</c> stops silently deleting the end-of-file newline
 /// that <c>BlankLinePhase</c> already inserts before a trailing comment or <c>#endregion</c>, that
 /// existing insertion policy becomes visible for the first time. A trailing comment/region that used to
 /// sit directly against the closing brace, with no blank line, now gets exactly one
