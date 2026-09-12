@@ -18,7 +18,7 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 /// expected-versus-actual difference, so an unrelated layout guess cannot produce a false failure
 /// </summary>
 [TestClass]
-public class Issue764AuditFanOutTests : FormatterTestsBase
+public class ElseKeywordClosingBraceAuditFanOutTests : FormatterTestsBase
 {
     #region Methods
 

@@ -5,13 +5,13 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
 /// <summary>
-/// Reproduction tests for three separate method-chain alignment defects: collapsing a wrapped
+/// Regression tests for three separate method-chain alignment defects: collapsing a wrapped
 /// non-invoked first dot onto the chain root, aligning a chain rooted in a single-line initializer,
 /// and rejoining a trailing dot immediately followed by a line break. Each test is asserted against
 /// its own literal expected output so a failing run shows the exact observed-vs-expected difference
 /// </summary>
 [TestClass]
-public class Issue683To685ReproductionTests : FormatterTestsBase
+public class MethodChainAlignmentDefectsRegressionTests : FormatterTestsBase
 {
     #region Methods
 
@@ -20,7 +20,7 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
     /// preceding the first invoked link collapses onto the chain root
     /// </summary>
     [TestMethod]
-    public void Issue683WrappedNonInvokedFirstDotCollapsesOntoRoot()
+    public void WrappedNonInvokedFirstDotCollapsesOntoRoot()
     {
         // Arrange — a chain whose first wrapped dot is a plain, non-invoked property access
         const string input = """
@@ -56,7 +56,7 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
     /// continuation dot the same way a multi-line initializer already does
     /// </summary>
     [TestMethod]
-    public void Issue684ChainRootedInSingleLineInitializerAlignsCorrectly()
+    public void ChainRootedInSingleLineInitializerAlignsCorrectly()
     {
         // Arrange — a chain rooted in a single-line object initializer
         const string input = """
@@ -120,7 +120,7 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
     /// initializer-rooted, conditional-access variant
     /// </summary>
     [TestMethod]
-    public void Issue685TrailingDotBeforeLineBreakRejoinsWithMemberName()
+    public void TrailingDotBeforeLineBreakRejoinsWithMemberName()
     {
         // Arrange — the plain, non-conditional case: a trailing dot immediately before a line break
         const string input = """
@@ -162,7 +162,7 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
     /// </para>
     /// </summary>
     [TestMethod]
-    public void Issue685TrailingDotAfterInitializerCloseBraceDoesNotOrphanMemberName()
+    public void TrailingDotAfterInitializerCloseBraceDoesNotOrphanMemberName()
     {
         // Arrange — the initializer-rooted, conditional-access fixture
         const string input = """

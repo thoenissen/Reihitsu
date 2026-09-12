@@ -126,7 +126,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task Issue469ThreeStatementChainFixAllKeepsBlockIndentation()
+    public async Task ThreeStatementChainFixAllKeepsBlockIndentation()
     {
         const string testData = """
                                 internal class TestClass

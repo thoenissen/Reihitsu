@@ -205,7 +205,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task Issue469SameLineBreakFixSeparatesAndConverges()
+    public async Task SameLineBreakFixSeparatesAndConverges()
     {
         const string testCode = """
                                 internal class RH5011

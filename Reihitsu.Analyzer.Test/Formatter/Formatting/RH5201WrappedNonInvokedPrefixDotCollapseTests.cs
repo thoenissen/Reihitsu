@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 /// and a second formatter pass is a no-op
 /// </summary>
 [TestClass]
-public class RH5201Issue699Tests : FormatterTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer>
+public class RH5201WrappedNonInvokedPrefixDotCollapseTests : FormatterTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer>
 {
     #region Tests
 

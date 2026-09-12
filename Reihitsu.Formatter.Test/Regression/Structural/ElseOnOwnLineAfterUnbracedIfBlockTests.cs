@@ -9,16 +9,16 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 /// the <c>else</c> keyword on its own line after the inserted if-block closing brace
 /// </summary>
 [TestClass]
-public class Issue764ReproductionTests : FormatterTestsBase
+public class ElseOnOwnLineAfterUnbracedIfBlockTests : FormatterTestsBase
 {
     #region Methods
 
     /// <summary>
-    /// Reproduces the issue's literal example verbatim: both the if-body and the else-body are unbraced,
+    /// Reproduces the reported scenario verbatim: both the if-body and the else-body are unbraced,
     /// single statements
     /// </summary>
     [TestMethod]
-    public void Issue764LiteralExampleBothBranchesUnbraced()
+    public void LiteralExampleBothBranchesUnbraced()
     {
         // Arrange
         const string input = """

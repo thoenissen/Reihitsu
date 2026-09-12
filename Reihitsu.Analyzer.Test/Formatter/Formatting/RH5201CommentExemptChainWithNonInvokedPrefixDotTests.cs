@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 /// on the commented line, the two columns can differ
 /// </summary>
 [TestClass]
-public class RH5201Issue698ReproductionTests : FormatterTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer>
+public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer>
 {
     #region Properties
 

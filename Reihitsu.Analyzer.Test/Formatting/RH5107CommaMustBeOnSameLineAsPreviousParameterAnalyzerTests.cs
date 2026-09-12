@@ -77,7 +77,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyIssue724OneColumnOffsetIsFixedCorrectly()
+    public async Task VerifyOneColumnOffsetIsFixedCorrectly()
     {
         const string testData = """
                                 internal class TestClass
@@ -108,7 +108,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyIssue724BaseIndentationOffsetIsFixedCorrectly()
+    public async Task VerifyBaseIndentationOffsetIsFixedCorrectly()
     {
         const string testData = """
                                 internal class TestClass
