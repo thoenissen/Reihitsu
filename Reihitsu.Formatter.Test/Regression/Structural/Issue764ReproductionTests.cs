@@ -5,7 +5,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Reproduction-gate test for issue #764: an unbraced if/else where both branches are unbraced must place
+/// Reproduction-gate test verifying that an unbraced if/else where both branches are unbraced places
 /// the <c>else</c> keyword on its own line after the inserted if-block closing brace
 /// </summary>
 [TestClass]

@@ -13,9 +13,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Escalated-confirmation audit fan-out for issue #764. Each fixture asserts only the issue's own
-/// expected-versus-actual difference — the <c>else</c> keyword sharing a line with the closing brace
-/// of the inserted if-block — so an unrelated layout guess cannot produce a false failure
+/// Escalated-confirmation audit fan-out verifying that the <c>else</c> keyword shares a line with the
+/// closing brace of an inserted if-block. Each fixture asserts only that one reported
+/// expected-versus-actual difference, so an unrelated layout guess cannot produce a false failure
 /// </summary>
 [TestClass]
 public class Issue764AuditFanOutTests : FormatterTestsBase
