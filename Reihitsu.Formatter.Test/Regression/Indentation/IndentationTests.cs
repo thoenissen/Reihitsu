@@ -104,7 +104,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a member preceded by a documentation comment is re-indented as a unit,
-    /// with every documentation comment line and the member itself moving to the target column (issue #429)
+    /// with every documentation comment line and the member itself moving to the target column
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeMemberIsReIndented()
@@ -140,7 +140,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment with XML elements spanning multiple lines is re-indented
-    /// together with the member it documents (issue #429)
+    /// together with the member it documents
     /// </summary>
     [TestMethod]
     public void DocumentationCommentWithXmlSummaryBeforeMemberIsReIndented()
@@ -178,7 +178,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment preceding a field is re-indented together with the field,
-    /// confirming the fix is not limited to method declarations (issue #429)
+    /// confirming the fix is not limited to method declarations
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeFieldIsReIndented()
@@ -210,7 +210,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment continuation line already sitting at column 0 is still
-    /// realigned to the target column, rather than being mistaken for the comment's opening line (issue #429)
+    /// realigned to the target column, rather than being mistaken for the comment's opening line
     /// </summary>
     [TestMethod]
     public void DocumentationCommentContinuationLineAtColumnZeroIsRealigned()
@@ -226,7 +226,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a documentation comment continuation line indented with a tab is realigned to the
-    /// target column using spaces, rather than being mistaken for the comment's opening line (issue #429)
+    /// target column using spaces, rather than being mistaken for the comment's opening line
     /// </summary>
     [TestMethod]
     public void DocumentationCommentContinuationLineWithTabIsRealigned()
@@ -243,7 +243,7 @@ public class IndentationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a member preceded by a documentation comment is still re-indented correctly when a
     /// preprocessor directive sits between the comment and the member. The directive itself stays at
-    /// column 0, matching existing non-region directive handling (issue #429)
+    /// column 0, matching existing non-region directive handling
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeMemberAcrossDirectiveIsReIndented()
@@ -3102,7 +3102,7 @@ public class IndentationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a bare array initializer attached through <c>EqualsValueClauseSyntax</c>
     /// (no <c>new</c> keyword) indents its members one level deeper than the declaration instead
-    /// of being flattened to the declaration's column (issue #430)
+    /// of being flattened to the declaration's column
     /// </summary>
     [TestMethod]
     public void EqualsValueClauseArrayInitializerIndentsMembersCorrectly()
@@ -3141,7 +3141,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a <c>with</c>-expression initializer aligns its braces and members to the
-    /// <c>with</c> keyword instead of being flattened to the statement's column (issue #430)
+    /// <c>with</c> keyword instead of being flattened to the statement's column
     /// </summary>
     [TestMethod]
     public void WithExpressionInitializerAlignsToWithKeyword()
@@ -3185,7 +3185,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a typed <c>stackalloc</c> array initializer aligns its braces and members to
-    /// the <c>stackalloc</c> keyword instead of being flattened to the statement's column (issue #430)
+    /// the <c>stackalloc</c> keyword instead of being flattened to the statement's column
     /// </summary>
     [TestMethod]
     public void StackAllocInitializerAlignsToStackAllocKeyword()
@@ -3226,7 +3226,7 @@ public class IndentationTests : FormatterTestsBase
     /// <summary>
     /// Verifies that an implicitly-typed <c>stackalloc[]</c> initializer aligns its braces and
     /// members to the <c>stackalloc</c> keyword instead of being flattened to the statement's
-    /// column (issue #430)
+    /// column
     /// </summary>
     [TestMethod]
     public void ImplicitStackAllocInitializerAlignsToStackAllocKeyword()
@@ -3266,7 +3266,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the embedded (unbraced) body of a <c>while</c> statement stays indented one level
-    /// deeper than the <c>while</c> statement itself, rather than being de-indented to its column (issue #416)
+    /// deeper than the <c>while</c> statement itself, rather than being de-indented to its column
     /// </summary>
     [TestMethod]
     public void UnbracedWhileBodyStaysIndentedOneLevelDeeper()
@@ -3291,7 +3291,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the embedded (unbraced) body of a <c>for</c> statement stays indented one level
-    /// deeper than the <c>for</c> statement itself (issue #416)
+    /// deeper than the <c>for</c> statement itself
     /// </summary>
     [TestMethod]
     public void UnbracedForBodyStaysIndentedOneLevelDeeper()
@@ -3314,7 +3314,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the embedded (unbraced) body of a <c>foreach</c> statement stays indented one level
-    /// deeper than the <c>foreach</c> statement itself (issue #416)
+    /// deeper than the <c>foreach</c> statement itself
     /// </summary>
     [TestMethod]
     public void UnbracedForEachBodyStaysIndentedOneLevelDeeper()
@@ -3337,7 +3337,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the embedded (unbraced) body of a <c>using</c> statement stays indented one level
-    /// deeper than the <c>using</c> statement itself (issue #416)
+    /// deeper than the <c>using</c> statement itself
     /// </summary>
     [TestMethod]
     public void UnbracedUsingBodyStaysIndentedOneLevelDeeper()
@@ -3360,7 +3360,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the embedded (unbraced) body of a <c>lock</c> statement stays indented one level
-    /// deeper than the <c>lock</c> statement itself (issue #416)
+    /// deeper than the <c>lock</c> statement itself
     /// </summary>
     [TestMethod]
     public void UnbracedLockBodyStaysIndentedOneLevelDeeper()
@@ -3385,7 +3385,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the embedded (unbraced) body of a <c>fixed</c> statement stays indented one level
-    /// deeper than the <c>fixed</c> statement itself (issue #416)
+    /// deeper than the <c>fixed</c> statement itself
     /// </summary>
     [TestMethod]
     public void UnbracedFixedBodyStaysIndentedOneLevelDeeper()
@@ -3408,7 +3408,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an embedded <c>while</c> body wrongly de-indented to the <c>while</c> statement's own
-    /// column is corrected back to one level deeper, matching the exact regression reported in issue #416
+    /// column is corrected back to one level deeper
     /// </summary>
     [TestMethod]
     public void UnbracedWhileBodyWrongIndentationIsCorrected()
@@ -3446,7 +3446,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an embedded <c>fixed</c> body wrongly de-indented to the <c>fixed</c> statement's own
-    /// column is corrected back to one level deeper (issue #416)
+    /// column is corrected back to one level deeper
     /// </summary>
     [TestMethod]
     public void UnbracedFixedBodyWrongIndentationIsCorrected()
@@ -3480,7 +3480,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that nested embedded (unbraced) <c>while</c> bodies accumulate one indentation level per
-    /// nesting level instead of collapsing to a single level (issue #416)
+    /// nesting level instead of collapsing to a single level
     /// </summary>
     [TestMethod]
     public void UnbracedNestedWhileBodyIndentsEachLevel()

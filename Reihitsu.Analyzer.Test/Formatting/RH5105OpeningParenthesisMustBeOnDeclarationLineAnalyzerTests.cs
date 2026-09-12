@@ -99,7 +99,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that no diagnostic is reported when a comment sits in the gap before the parenthesis, because the
-    /// formatter refuses to collapse the opening parenthesis across that comment (issue #444)
+    /// formatter refuses to collapse the opening parenthesis across that comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -121,7 +121,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that no diagnostic is reported when a preprocessor directive sits in the gap before the parenthesis,
-    /// because the formatter refuses to collapse the opening parenthesis across that directive (issue #444)
+    /// because the formatter refuses to collapse the opening parenthesis across that directive.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

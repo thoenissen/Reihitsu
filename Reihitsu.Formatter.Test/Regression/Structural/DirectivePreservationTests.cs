@@ -9,10 +9,10 @@ using Reihitsu.Formatter.Pipeline;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Regression tests for issue #406: structural transforms that rebuild trivia (switch-case brace
-/// insertion and removal, control-flow brace insertion, field-declaration splitting) must not drop
-/// preprocessor directives, which would silently remove conditional compilation. The transform is
-/// refused when a directive is entangled with the trivia it would rebuild, leaving the directive intact
+/// Structural transforms that rebuild trivia (switch-case brace insertion and removal,
+/// control-flow brace insertion, field-declaration splitting) must not drop preprocessor
+/// directives, which would silently remove conditional compilation. The transform is refused
+/// when a directive is entangled with the trivia it would rebuild, leaving the directive intact
 /// </summary>
 [TestClass]
 public class DirectivePreservationTests
@@ -116,7 +116,7 @@ public class DirectivePreservationTests
     /// <summary>
     /// Verifies that control-flow brace insertion is refused when a directive wraps the statement, so the
     /// <c>#if</c>/<c>#endif</c> around the conditional body are not deleted, and that the still-unbraced body
-    /// is indented one level deeper than the <c>if</c> statement rather than left at its column (issue #416)
+    /// is indented one level deeper than the <c>if</c> statement rather than left at its column
     /// </summary>
     [TestMethod]
     public void ControlFlowBraceInsertionKeepsDirectivesAroundBody()

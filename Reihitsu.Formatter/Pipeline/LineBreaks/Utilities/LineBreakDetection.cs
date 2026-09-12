@@ -26,7 +26,7 @@ internal static class LineBreakDetection
     /// force the braces apart.
     /// The property collapse path in <c>PropertyLayoutLineBreakRewriter</c> applies a second guard of
     /// its own, which is interior-scoped for the same reason, so a property and an indexer agree that a
-    /// comment following the accessor list is not a join barrier (see issue #604).
+    /// comment following the accessor list is not a join barrier.
     /// </remarks>
     public static bool ShouldNormalizeAccessorListBraces(AccessorListSyntax accessorList)
     {

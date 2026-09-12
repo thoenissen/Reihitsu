@@ -9,8 +9,8 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Regression tests for issue #725: repeated application of the RH5302 code fix on a chain with more than one
-/// trailing logical operator must converge instead of growing the line without bound
+/// Regression tests verifying that repeated application of the RH5302 code fix on a chain with more than one
+/// trailing logical operator converges instead of growing the line without bound
 /// </summary>
 [TestClass]
 public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests : BatchCodeFixTestsBase<RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
@@ -104,7 +104,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests 
                                  }
                                  """;
 
-        // Reproduces issue #725 under Fix All rather than under a single code-fix application: all three
+        // Verifies the same convergence under Fix All rather than under a single code-fix application: all three
         // trailing operators belong to one chain, so every diagnostic resolves to the same outermost logical
         // expression. The batch fixer discards the two overlapping actions, and the single surviving fix must
         // still converge the whole chain in this one batch application, leaving no RH5302 diagnostic behind

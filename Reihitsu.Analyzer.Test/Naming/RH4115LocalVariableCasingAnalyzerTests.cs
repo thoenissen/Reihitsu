@@ -979,7 +979,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task Issue469LocalRenameDoesNotProduceDuplicateDeclaration()
+    public async Task LocalRenameDoesNotProduceDuplicateDeclaration()
     {
         const string testCode = """
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources

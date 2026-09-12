@@ -219,7 +219,7 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
         if (isElseIfBranch)
         {
             // The if-keyword's leading trivia sits between the 'else' and 'if' keywords for an else-if
-            // branch, so moving the comment there would split 'else if' across two lines (issue #424)
+            // branch, so moving the comment there would split 'else if' across two lines
             return node;
         }
 

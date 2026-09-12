@@ -7,7 +7,7 @@ namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 
 /// <summary>
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — the number of blank lines
-/// separating a statement from a following preprocessor directive or disabled text (issue #695)
+/// separating a statement from a following preprocessor directive or disabled text
 /// </summary>
 [TestClass]
 public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
@@ -16,7 +16,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single blank line already present between a statement and a following
-    /// <c>#if</c> directive is preserved rather than doubled (issue #695)
+    /// <c>#if</c> directive is preserved rather than doubled
     /// </summary>
     [TestMethod]
     public void SingleBlankLineBeforeIfDirectiveIsPreserved()
@@ -44,7 +44,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that two blank lines before an <c>#if</c> directive collapse to one when a single
-    /// blank line already follows the directive block (issue #695)
+    /// blank line already follows the directive block
     /// </summary>
     [TestMethod]
     public void ExcessBlankLinesBeforeIfDirectiveCollapseToOneWhenOneBlankLineFollows()
@@ -89,7 +89,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that two blank lines after an <c>#if</c> directive block collapse to one when a
-    /// single blank line already precedes the directive (issue #695)
+    /// single blank line already precedes the directive
     /// </summary>
     [TestMethod]
     public void ExcessBlankLinesAfterIfDirectiveCollapseToOneWhenOneBlankLinePrecedes()
@@ -134,7 +134,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that excess blank lines on both sides of an <c>#if</c> directive block each
-    /// independently collapse to one (issue #695)
+    /// independently collapse to one
     /// </summary>
     [TestMethod]
     public void ExcessBlankLinesOnBothSidesOfIfDirectiveCollapseToOne()
@@ -180,7 +180,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line before an <c>#if</c> directive is left alone when exactly one
-    /// blank line follows the directive block (issue #695)
+    /// blank line follows the directive block
     /// </summary>
     [TestMethod]
     public void NoBlankLineBeforeIfDirectiveIsPreservedWhenOneBlankLineFollows()
@@ -207,7 +207,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that one blank line before an <c>#if</c> directive is left alone when no blank line
-    /// follows the directive block (issue #695)
+    /// follows the directive block
     /// </summary>
     [TestMethod]
     public void OneBlankLineBeforeIfDirectiveIsPreservedWhenNoneFollows()
@@ -233,7 +233,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive block with no blank line on either side is left alone (issue #695)
+    /// Verifies that a directive block with no blank line on either side is left alone
     /// </summary>
     [TestMethod]
     public void NoBlankLinesAroundIfDirectiveArePreserved()
@@ -259,8 +259,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that excess blank lines before an <c>#if</c> directive still collapse to one when no
-    /// blank line follows the directive block — already correct before issue #695's fix, and must not
-    /// regress
+    /// blank line follows the directive block — already correct beforehand, and must not regress
     /// </summary>
     [TestMethod]
     public void ExcessBlankLinesBeforeIfDirectiveCollapseToOneWhenNoneFollow()
@@ -303,8 +302,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that excess blank lines after an <c>#if</c> directive block still collapse to one
-    /// when no blank line precedes the directive — already correct before issue #695's fix, and must
-    /// not regress
+    /// when no blank line precedes the directive — already correct beforehand, and must not regress
     /// </summary>
     [TestMethod]
     public void ExcessBlankLinesAfterIfDirectiveCollapseToOneWhenNonePrecede()
@@ -347,7 +345,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single blank line before an <c>#if</c> directive inside a switch section is
-    /// preserved rather than doubled (issue #695)
+    /// preserved rather than doubled
     /// </summary>
     [TestMethod]
     public void SingleBlankLineBeforeIfDirectiveIsPreservedInSwitchSection()
@@ -380,7 +378,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that excess blank lines before an <c>#if</c> directive inside a switch section
-    /// collapse to one (issue #695)
+    /// collapse to one
     /// </summary>
     [TestMethod]
     public void ExcessBlankLinesBeforeIfDirectiveCollapseToOneInSwitchSection()
@@ -435,7 +433,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single blank line before a <c>#pragma</c> directive is preserved rather than
-    /// doubled — the mechanism is directive-kind agnostic, not specific to <c>#if</c> (issue #695)
+    /// doubled — the mechanism is directive-kind agnostic, not specific to <c>#if</c>
     /// </summary>
     [TestMethod]
     public void SingleBlankLineBeforePragmaDirectiveIsPreserved()
@@ -461,7 +459,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single blank line before a <c>#nullable</c> directive is preserved rather than
-    /// doubled (issue #695)
+    /// doubled
     /// </summary>
     [TestMethod]
     public void SingleBlankLineBeforeNullableDirectiveIsPreserved()
@@ -487,7 +485,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single blank line before a <c>#line</c> directive is preserved rather than
-    /// doubled (issue #695)
+    /// doubled
     /// </summary>
     [TestMethod]
     public void SingleBlankLineBeforeLineDirectiveIsPreserved()
@@ -513,7 +511,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single blank line before a <c>#warning</c> directive is preserved rather than
-    /// doubled (issue #695)
+    /// doubled
     /// </summary>
     [TestMethod]
     public void SingleBlankLineBeforeWarningDirectiveIsPreserved()
@@ -539,7 +537,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a <c>#region</c>/<c>#endregion</c> block between two statements still receives
-    /// its own required blank lines without any run holding two consecutive blank lines (issue #695)
+    /// its own required blank lines without any run holding two consecutive blank lines
     /// </summary>
     [TestMethod]
     public void RegionDirectiveBetweenStatementsHoldsNoDoubledBlankLine()
@@ -586,7 +584,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that an <c>#if</c> directive whose active branch supplies a real statement is
     /// unaffected — the active statement splits the gap into two one-blank-line gaps, so the doubling
-    /// mechanism never applies (issue #695)
+    /// mechanism never applies
     /// </summary>
     [TestMethod]
     public void ActiveIfBranchStatementSeparatesGapAndIsUnaffected()
@@ -614,7 +612,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an <c>#if</c> directive whose symbol is defined is unaffected in the same way as
-    /// a literal <c>#if true</c> — the active branch again supplies a real statement (issue #695)
+    /// a literal <c>#if true</c> — the active branch again supplies a real statement
     /// </summary>
     [TestMethod]
     public void DefinedSymbolIfBranchStatementSeparatesGapAndIsUnaffected()
@@ -642,7 +640,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a directive block between two type members is unaffected — the changed rewriter
-    /// only visits block and switch-section statement lists, not a member list (issue #695)
+    /// only visits block and switch-section statement lists, not a member list
     /// </summary>
     [TestMethod]
     public void DirectiveBlockBetweenTypeMembersIsUnaffected()
@@ -667,7 +665,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a directive block between top-level statements is unaffected — top-level
-    /// statements live directly on the compilation unit, not inside a block (issue #695)
+    /// statements live directly on the compilation unit, not inside a block
     /// </summary>
     [TestMethod]
     public void DirectiveBlockBetweenTopLevelStatementsIsUnaffected()
@@ -689,7 +687,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an empty statement adjacent to a directive-carrying gap keeps the pair exempt
-    /// from the excess-blank-line correction, unaffected by issue #695's fix
+    /// from the excess-blank-line correction
     /// </summary>
     [TestMethod]
     public void EmptyStatementSiblingWithDirectiveGapIsUnaffected()
@@ -719,7 +717,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a blank line before a directive block that is the last content of a block is
     /// preserved, matching the "blank lines are preserved unless there's a reason to change them"
-    /// policy applied everywhere else in the formatter (issue #711)
+    /// policy applied everywhere else in the formatter
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveWithNoFollowingStatementKeepsItsBlankLine()
@@ -745,7 +743,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a directive that is the last content ahead of an opening
-    /// brace is preserved (issue #711)
+    /// brace is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeOpenBraceKeepsItsBlankLine()
@@ -768,7 +766,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a directive that is the last content ahead of an <c>else</c>
-    /// keyword is preserved (issue #711)
+    /// keyword is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeElseKeepsItsBlankLine()
@@ -797,7 +795,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a directive that is the last content ahead of a <c>catch</c>
-    /// keyword is preserved (issue #711)
+    /// keyword is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeCatchKeepsItsBlankLine()
@@ -826,7 +824,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a directive that is the last content ahead of a
-    /// <c>finally</c> keyword is preserved (issue #711)
+    /// <c>finally</c> keyword is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeFinallyKeepsItsBlankLine()
@@ -855,7 +853,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a directive that is the last content ahead of a do-<c>while</c>
-    /// footer is preserved (issue #711)
+    /// footer is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeDoWhileFooterKeepsItsBlankLine()
@@ -882,7 +880,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before disabled text (an inactive <c>#if false</c> branch) that is
-    /// the last content of a block is preserved (issue #711)
+    /// the last content of a block is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDisabledTextWithNoFollowingStatementKeepsItsBlankLine()
@@ -908,7 +906,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a <c>#nullable</c> directive that is the last content of a
-    /// block is preserved (issue #711)
+    /// block is preserved
     /// </summary>
     [TestMethod]
     public void TrailingNullableDirectiveWithNoFollowingStatementKeepsItsBlankLine()
@@ -932,7 +930,6 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that two blank lines before a trailing directive collapse to one rather than to zero
-    /// (issue #711)
     /// </summary>
     [TestMethod]
     public void ExcessBlankLinesBeforeTrailingDirectiveCollapseToOne()
@@ -973,7 +970,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line directly above a closing brace, with no directive interposed, is
-    /// still removed — the guard's non-exempt boundary, matching RH5024 (issue #711)
+    /// still removed — the guard's non-exempt boundary, matching RH5024
     /// </summary>
     [TestMethod]
     public void BlankLineDirectlyAboveClosingBraceWithNoDirectiveIsStillRemoved()
@@ -1006,7 +1003,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line directly after an opening brace, ahead of a directive block that is
-    /// the block's only content, is still removed — RH5022's region, untouched by this fix (issue #711)
+    /// the block's only content, is still removed — RH5022's region, untouched by this fix
     /// </summary>
     [TestMethod]
     public void BlankLineAfterOpenBraceBeforeDirectiveBlockIsStillRemoved()
@@ -1043,7 +1040,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line at the very start of the file, ahead of a directive, is still
-    /// removed — RH5028's region, untouched by this fix (issue #711)
+    /// removed — RH5028's region, untouched by this fix
     /// </summary>
     [TestMethod]
     public void BlankLineAtFileStartBeforeDirectiveIsStillRemoved()
@@ -1067,7 +1064,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that when a blank line precedes a trailing directive and another blank line follows it
     /// directly above the closing brace, the first is preserved and the second is removed — the two
-    /// owners of this fix now agree with each other and with RH5024 (issue #711)
+    /// owners of this fix now agree with each other and with RH5024
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeAndAfterTrailingDirectiveKeepsOnlyTheFirst()
@@ -1109,7 +1106,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that when no blank line precedes a trailing directive but one follows it directly
     /// above the closing brace, neither blank line is written — no unauthored insertion, and the
-    /// RH5024-flagged blank line is removed (issue #711)
+    /// RH5024-flagged blank line is removed
     /// </summary>
     [TestMethod]
     public void BlankLineOnlyAfterTrailingDirectiveWritesNeitherBlankLine()
@@ -1151,7 +1148,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// directive, is removed — the same rule as <see cref="BlankLineOnlyAfterTrailingDirectiveWritesNeitherBlankLine"/>,
     /// but for an anchor that <see cref="Pipeline.LineBreaks.Utilities.TokenGapNormalizer"/>'s node-scoped
     /// calls cannot reach, so <see cref="Pipeline.BlankLines.Rewriter.BlankLineTokenCleanupRewriter"/> must
-    /// enforce it directly (issue #711)
+    /// enforce it directly
     /// </summary>
     [TestMethod]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeElseIsRemoved()
@@ -1196,7 +1193,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line directly above a chained <c>catch</c> keyword, after a trailing
-    /// directive, is removed (issue #711)
+    /// directive, is removed
     /// </summary>
     [TestMethod]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeCatchIsRemoved()
@@ -1241,7 +1238,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line directly above a chained <c>finally</c> keyword, after a trailing
-    /// directive, is removed (issue #711)
+    /// directive, is removed
     /// </summary>
     [TestMethod]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeFinallyIsRemoved()
@@ -1286,7 +1283,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line directly above a do-<c>while</c> footer, after a trailing directive,
-    /// is removed (issue #711)
+    /// is removed
     /// </summary>
     [TestMethod]
     public void BlankLineOnlyAfterTrailingDirectiveBeforeDoWhileFooterIsRemoved()
@@ -1327,7 +1324,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of a type declaration's closing
-    /// brace is preserved — the same guard reached through a different owning rewriter (issue #711)
+    /// brace is preserved — the same guard reached through a different owning rewriter
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeTypeDeclarationClosingBraceKeepsItsBlankLine()
@@ -1349,7 +1346,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of an enum's closing brace is
     /// preserved — the trailing comma on the last member is a separate, pre-existing structural
-    /// decision this fix does not own (issue #711)
+    /// decision this fix does not own
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeEnumClosingBraceKeepsItsBlankLine()
@@ -1387,7 +1384,6 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     /// Neither behavior is owned by this fix: the leading blank survives because a directive precedes
     /// it anywhere in the gap, and the trailing blank is removed by the pre-existing own-line-comment
     /// rule, which the last significant trivia here — the comment, not the directive — still reaches
-    /// (issue #711)
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeDirectiveThenOwnLineCommentKeepsLeadingBlankRemovesTrailingBlank()
@@ -1426,7 +1422,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of a property accessor list's
-    /// closing brace is preserved (issue #711)
+    /// closing brace is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforePropertyAccessorListClosingBraceKeepsItsBlankLine()
@@ -1453,7 +1449,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of an object initializer's closing
-    /// brace is preserved (issue #711)
+    /// brace is preserved
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeInitializerClosingBraceKeepsItsBlankLine()
@@ -1495,7 +1491,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of a closing bracket is left
-    /// unchanged — a closing bracket is not one of this fix's anchor tokens (issue #711)
+    /// unchanged — a closing bracket is not one of this fix's anchor tokens
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeCloseBracketIsUnaffected()
@@ -1538,7 +1534,7 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of a closing parenthesis is left
-    /// unchanged — a closing parenthesis is not one of this fix's anchor tokens (issue #711)
+    /// unchanged — a closing parenthesis is not one of this fix's anchor tokens
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforeCloseParenIsUnaffected()

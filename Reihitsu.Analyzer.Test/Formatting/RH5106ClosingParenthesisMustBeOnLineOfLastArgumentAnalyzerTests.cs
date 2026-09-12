@@ -123,7 +123,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
 
     /// <summary>
     /// Verifies that no diagnostic is reported and no fix is offered when the token gap contains a preprocessor
-    /// directive, because the formatter refuses to collapse the closing parenthesis across that directive (issue #444)
+    /// directive, because the formatter refuses to collapse the closing parenthesis across that directive.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -170,7 +170,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
 
     /// <summary>
     /// Verifies that no diagnostic is reported and no fix is offered when a comment sits in the gap before the
-    /// closing parenthesis, because the formatter refuses to collapse across that comment (issue #444)
+    /// closing parenthesis, because the formatter refuses to collapse across that comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

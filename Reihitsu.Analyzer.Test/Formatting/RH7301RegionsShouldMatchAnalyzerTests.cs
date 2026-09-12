@@ -135,7 +135,6 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// <summary>
     /// Verifies that the synthesized endregion comment uses the document's detected CRLF end-of-line sequence
     /// instead of <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings
-    /// (issue #257)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

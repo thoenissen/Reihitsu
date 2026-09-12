@@ -169,7 +169,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
 
     /// <summary>
     /// Verifies that arms sharing a line with a previous arm are not flagged, because no formatter phase splits
-    /// switch-expression arms onto separate lines (issue #247)
+    /// switch-expression arms onto separate lines.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

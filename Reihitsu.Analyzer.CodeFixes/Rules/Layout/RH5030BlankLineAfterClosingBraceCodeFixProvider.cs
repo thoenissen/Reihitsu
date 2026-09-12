@@ -34,7 +34,7 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
     /// <remarks>
     /// The insertion point is placed after any leading directive rather than at trivia index 0, which
     /// would otherwise land the blank line inside the conditional/region block the directive opens or
-    /// closes (issue #415)
+    /// closes
     /// </remarks>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {

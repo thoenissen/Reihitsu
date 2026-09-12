@@ -56,7 +56,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     /// <remarks>
     /// The interior-scoped check matches the region the code fix and the formatter actually rewrite,
     /// which runs from the opening to the closing bracket. A comment behind the closing bracket lies
-    /// outside it and must not suppress the diagnostic (see issue #610). The reported location ends at
+    /// outside it and must not suppress the diagnostic. The reported location ends at
     /// the closing bracket as well, so narrowing the guard cannot produce a diagnostic the fix is
     /// unable to clear
     /// </remarks>

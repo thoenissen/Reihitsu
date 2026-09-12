@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 
 /// <summary>
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — blank line preservation
-/// before a comment that is the final content of a scope (see issue #694)
+/// before a comment that is the final content of a scope
 /// </summary>
 [TestClass]
 public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
@@ -15,7 +15,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating a statement from a trailing comment that is the
-    /// last content of a constructor body is preserved (see issue #694)
+    /// last content of a constructor body is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingCommentInConstructorBodyIsPreserved()
@@ -39,7 +39,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating a statement from a trailing multi-line comment that is
-    /// the last content of a block is preserved (see issue #694)
+    /// the last content of a block is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingMultiLineCommentIsPreserved()
@@ -64,7 +64,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating a member from a trailing comment that is the last
-    /// content of a nested type declaration is preserved (see issue #694)
+    /// content of a nested type declaration is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingCommentInTypeDeclarationIsPreserved()
@@ -88,7 +88,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating a statement from a trailing comment that is the last
-    /// content of a local function body is preserved (see issue #694)
+    /// content of a local function body is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingCommentInLocalFunctionIsPreserved()
@@ -117,7 +117,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line separating an element from a trailing comment that is the last
-    /// content of an object initializer is preserved (see issue #694)
+    /// content of an object initializer is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeTrailingCommentInObjectInitializerIsPreserved()
@@ -161,7 +161,6 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// Verifies that when a blank line separates a statement from a trailing comment, and another
     /// blank line separates that comment from the closing brace, only the blank line above the
     /// comment is preserved — the one directly before the closing brace is removed, matching RH5024
-    /// (see issue #694)
     /// </summary>
     [TestMethod]
     public void BlankLineDirectlyBeforeClosingBraceIsRemovedWhenTrailingCommentPrecedesIt()
@@ -198,7 +197,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a trailing comment with no blank line above it gains one, matching the blank
-    /// line RH5020 already requires before an own-line comment (see issue #694)
+    /// line RH5020 already requires before an own-line comment
     /// </summary>
     [TestMethod]
     public void BlankLineIsInsertedBeforeTrailingCommentThatHasNone()
@@ -233,8 +232,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment immediately following the opening brace of a block is not preceded by
-    /// a blank line, since it is the first content of the scope rather than trailing content (see
-    /// issue #694)
+    /// a blank line, since it is the first content of the scope rather than trailing content
     /// </summary>
     [TestMethod]
     public void NoBlankLineIsInsertedBeforeCommentFirstInBlock()
@@ -259,7 +257,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// Verifies that a documentation comment on its own line before a closing brace is left alone by
     /// this fix — its blank-line placement is already governed elsewhere (<see cref="Pipeline.BlankLines.BlankLinePhase"/>),
     /// and folding a structured comment into this fix's decision is out of scope. The blank line
-    /// appears either way, unchanged by this fix (see issue #694)
+    /// appears either way, unchanged by this fix
     /// </summary>
     [TestMethod]
     public void DocumentationCommentBeforeClosingBraceIsUnaffected()
@@ -295,8 +293,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a trailing comment following an <c>#if</c>/<c>#endif</c> block between two
     /// statements stays directly attached to the statement it documents — the fix must not spend the
-    /// statement-separation blank-line budget between the comment and that statement (see issue #694),
-    /// and the single blank line ahead of the directive is preserved rather than doubled (issue #695)
+    /// statement-separation blank-line budget between the comment and that statement, and the single
+    /// blank line ahead of the directive is preserved rather than doubled
     /// </summary>
     [TestMethod]
     public void CommentAfterDirectiveBlockStaysAttachedToFollowingStatement()
@@ -342,8 +340,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a trailing comment following disabled text (an inactive <c>#if</c> branch) between
-    /// two statements stays directly attached to the statement it documents (see issue #694), and the
-    /// single blank line ahead of the directive is preserved rather than doubled (issue #695)
+    /// two statements stays directly attached to the statement it documents, and the single blank
+    /// line ahead of the directive is preserved rather than doubled
     /// </summary>
     [TestMethod]
     public void CommentAfterDisabledTextStaysAttachedToFollowingStatement()
@@ -389,8 +387,8 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a trailing comment following a <c>#pragma</c> directive between two statements
-    /// stays directly attached to the statement it documents (see issue #694), and the single blank
-    /// line ahead of the directive is preserved rather than doubled (issue #695)
+    /// stays directly attached to the statement it documents, and the single blank line ahead of the
+    /// directive is preserved rather than doubled
     /// </summary>
     [TestMethod]
     public void CommentAfterPragmaDirectiveStaysAttachedToFollowingStatement()
@@ -433,7 +431,7 @@ public class BlankLineBeforeTrailingScopeCommentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a trailing comment following a <c>#pragma</c> directive, immediately before the
     /// closing brace of the enclosing block, keeps its own blank line while the directive's blank-line
-    /// placement stays exactly as authored — the directive is not owned by this fix (see issue #694)
+    /// placement stays exactly as authored — the directive is not owned by this fix
     /// </summary>
     [TestMethod]
     public void CommentAfterPragmaDirectiveBeforeClosingBraceIsPreserved()

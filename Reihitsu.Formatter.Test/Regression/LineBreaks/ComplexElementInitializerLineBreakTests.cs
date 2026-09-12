@@ -10,9 +10,9 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #425: <see cref="LineBreakInitializerRewriter"/> must not explode
-/// already-single-line complex element initializers (dictionary-style key/value pairs)
-/// one-token-per-line. Pairs whose contents become multi-line are recursively expanded
+/// <see cref="LineBreakInitializerRewriter"/> must not explode already-single-line complex
+/// element initializers (dictionary-style key/value pairs) one-token-per-line. Pairs whose
+/// contents become multi-line are recursively expanded
 /// </summary>
 [TestClass]
 public class ComplexElementInitializerLineBreakTests
@@ -60,8 +60,8 @@ public class ComplexElementInitializerLineBreakTests
     #region Tests
 
     /// <summary>
-    /// Verifies the issue #425 reproduction: dictionary-style pairs inside a collection initializer
-    /// keep their single-line layout instead of being exploded one-token-per-line
+    /// Verifies that dictionary-style pairs inside a collection initializer keep their
+    /// single-line layout instead of being exploded one-token-per-line
     /// </summary>
     [TestMethod]
     public void DictionaryStylePairsStaySingleLine()

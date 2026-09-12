@@ -20,7 +20,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesFormatterTests : Fo
     /// line, and that the resulting multi-line property stays exactly there on a second pass. RH5408 no longer
     /// collapses this property afterward, because an attributed accessor is no longer simple — before that
     /// change, RH5408 additionally collapsed the whole declaration onto one line here, which masked RH5530's
-    /// own fix as a mere intermediate state (issue #729)
+    /// own fix as a mere intermediate state
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

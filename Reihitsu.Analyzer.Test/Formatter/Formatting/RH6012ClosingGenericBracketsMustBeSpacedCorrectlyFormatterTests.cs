@@ -50,7 +50,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
 
     /// <summary>
     /// Verifies that a wrapped continuation-line closing generic bracket is joined onto the
-    /// declaration line by the formatter's angle-bracket list join (issue #693), and that the joined
+    /// declaration line by the formatter's angle-bracket list join, and that the joined
     /// result remains analyzer-clean with LF and CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

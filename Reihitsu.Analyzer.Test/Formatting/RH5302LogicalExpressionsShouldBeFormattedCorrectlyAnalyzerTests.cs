@@ -124,7 +124,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
 
     /// <summary>
     /// Verifying that a chain with more than one trailing operator converges to the leading-operator form in a
-    /// single fix application (issue #725)
+    /// single fix application.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

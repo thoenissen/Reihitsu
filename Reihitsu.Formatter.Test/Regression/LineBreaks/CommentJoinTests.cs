@@ -9,8 +9,8 @@ using Reihitsu.Formatter.Pipeline.LineBreaks;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #226: line-join operations must never remove the end-of-line
-/// that terminates a single-line comment, which would absorb the joined token into the comment
+/// Line-join operations must never remove the end-of-line that terminates a single-line
+/// comment, which would absorb the joined token into the comment
 /// </summary>
 [TestClass]
 public class CommentJoinTests

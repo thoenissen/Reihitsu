@@ -176,7 +176,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
 
     /// <summary>
     /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -203,7 +203,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
     /// <summary>
     /// Verifies that a comment inside an interpolation hole on a continuation line of a multi-line
     /// verbatim interpolated string does not produce a diagnostic, since relocating it would insert
-    /// text into the string's literal content (issue #412)
+    /// text into the string's literal content.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -226,7 +226,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
     /// <summary>
     /// Verifies that a comment inside an interpolation hole on a continuation line of a multi-line
     /// raw interpolated string literal does not produce a diagnostic, since relocating it would insert
-    /// text into the string's literal content (issue #412)
+    /// text into the string's literal content.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -252,7 +252,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
     /// Verifies that a comment inside a single-line interpolated string nested within a hole of an
     /// outer multi-line verbatim interpolated string does not produce a diagnostic. The exemption must
     /// walk every enclosing interpolated string, not just the innermost one, since relocating the comment
-    /// would still insert text into the outer string's literal content (issue #412 review follow-up)
+    /// would still insert text into the outer string's literal content.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -274,7 +274,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
 
     /// <summary>
     /// Verifies that a comment inside an interpolation hole of a single-line interpolated string is
-    /// still detected and fixed, confirming the multi-line exemption is scoped narrowly (issue #412)
+    /// still detected and fixed, confirming the multi-line exemption is scoped narrowly.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -305,8 +305,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
 
     /// <summary>
     /// Verifies that relocating a trailing comment inserts a blank line above it when the preceding
-    /// line is code, matching the RH5020 policy so the fix does not immediately raise a new diagnostic
-    /// (issue #412)
+    /// line is code, matching the RH5020 policy so the fix does not immediately raise a new diagnostic.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -346,7 +345,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
 
     /// <summary>
     /// Verifies that relocating a trailing comment does not duplicate an already-existing blank line
-    /// above the target line (issue #412)
+    /// above the target line.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -388,7 +387,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
     /// <summary>
     /// Verifies that removing a multi-line comment which carries the only line break between two
     /// statements re-inserts the break, so the two statements are not joined onto one line and RH5103
-    /// is not immediately raised (issue #412)
+    /// is not immediately raised.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

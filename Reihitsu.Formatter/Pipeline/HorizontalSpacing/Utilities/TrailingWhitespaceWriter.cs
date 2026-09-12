@@ -65,7 +65,7 @@ internal static class TrailingWhitespaceWriter
     /// Determines whether trailing trivia requires whitespace normalization. A whitespace entry counts
     /// as normalized only when it is exactly one space: measuring its length instead would accept a
     /// lone tab, which the cleanup phase later expands to four spaces and the next run then collapses,
-    /// so the file never reaches a fixed point (issue #434)
+    /// so the file never reaches a fixed point.
     /// </summary>
     /// <param name="trailing">The trailing trivia list to inspect</param>
     /// <returns><see langword="true"/> if normalization is needed; otherwise, <see langword="false"/></returns>

@@ -58,8 +58,8 @@ internal static class IndentationRewriter
         }
 
         // The token opens its own line, but its leading trivia need not: a comment the previous line ends with is
-        // filed here, and indenting it as though it began the line inserts indentation in the middle of that line
-        // (issue #625). The previous token's trailing trivia is what says which of the two cases this is.
+        // filed here, and indenting it as though it began the line inserts indentation in the middle of that line.
+        // The previous token's trailing trivia is what says which of the two cases this is.
         var previousToken = original.GetPreviousToken();
         var startsAtLineStart = previousToken.RawKind == 0
                                 || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));

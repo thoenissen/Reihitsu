@@ -163,7 +163,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before a break statement that directly follows a closing
-    /// brace outside a switch section, matching the analyzer's switch-section-only exemption (issue #440)
+    /// brace outside a switch section, matching the analyzer's switch-section-only exemption
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

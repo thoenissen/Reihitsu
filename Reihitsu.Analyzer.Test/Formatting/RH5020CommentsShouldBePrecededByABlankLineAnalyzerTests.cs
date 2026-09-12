@@ -234,7 +234,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
 
     /// <summary>
     /// Verifies that the inserted blank line matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -263,7 +263,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
 
     /// <summary>
     /// Verifies no diagnostics are reported when the line immediately preceding the comment is a preprocessor
-    /// directive, which acts as a transparent boundary rather than ordinary preceding content (issue #350)
+    /// directive, which acts as a transparent boundary rather than ordinary preceding content
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -294,7 +294,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// <summary>
     /// Verifies a diagnostic is still reported when the preceding source line only looks like a directive because
     /// it is the content of a verbatim string starting with <c>#</c>, confirming the directive detection is
-    /// syntax-based rather than a plain text prefix check (issue #350)
+    /// syntax-based rather than a plain text prefix check
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

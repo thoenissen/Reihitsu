@@ -48,8 +48,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
     /// The gap in front of a token is split across two trivia lists once a comment sits in it: the part before the
     /// comment belongs to the previous token's trailing trivia, the part after it to this token's leading trivia.
     /// The spacing rules only ever rewrite the first, so <c>[Obsolete /** why */ ]</c> keeps a space RH6014 reports
-    /// however the previous token is normalized. Trimming here is what the exemption above owes the analyzers
-    /// (issue #591)
+    /// however the previous token is normalized. Trimming here is what the exemption above owes the analyzers.
     /// </remarks>
     private static SyntaxToken TrimGapBeforeToken(SyntaxToken token)
     {

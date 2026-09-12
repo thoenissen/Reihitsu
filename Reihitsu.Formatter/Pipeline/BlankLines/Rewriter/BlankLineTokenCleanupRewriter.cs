@@ -230,7 +230,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// the token — still enforce the "no blank line directly adjacent" rule RH5024/RH5025/RH5026/RH5027
     /// require, for every anchor kind including the chained keywords <c>else</c>/<c>catch</c>/<c>finally</c>/
     /// <c>while</c> that <see cref="Pipeline.LineBreaks.Utilities.TokenGapNormalizer"/>'s node-scoped calls
-    /// cannot reach (issue #711)
+    /// cannot reach.
     /// </summary>
     /// <param name="token">The token to update</param>
     /// <returns>The updated token</returns>
@@ -479,7 +479,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             // trivia specifically is a non-region directive, the run that genuinely is adjacent to the
             // token sits after it, and RemoveBlankLinesAfterTrailingDirective is what enforces the "no
             // blank line directly adjacent" rule there — including for the chained keywords `else`/
-            // `catch`/`finally`/`while` that TokenGapNormalizer's node-scoped calls cannot reach (issue #711)
+            // `catch`/`finally`/`while` that TokenGapNormalizer's node-scoped calls cannot reach.
             var hasNonRegionDirective = token.LeadingTrivia.Any(static trivia => SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)
                                                                                  && SyntaxTriviaUtilities.IsRegionDirective(trivia) == false);
 

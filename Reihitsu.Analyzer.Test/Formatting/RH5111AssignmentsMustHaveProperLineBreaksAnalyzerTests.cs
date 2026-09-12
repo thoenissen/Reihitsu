@@ -843,7 +843,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
 
     /// <summary>
     /// Verifying no diagnostics for an object-initializer member whose value is a nested initializer expression on
-    /// the next line, because the formatter never collapses that shape onto the operator line (issue #247)
+    /// the next line, because the formatter never collapses that shape onto the operator line.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -905,7 +905,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that an assignment carrying a comment in the join gap is reported without offering a code fix (issue #226)
+    /// Verifying that an assignment carrying a comment in the join gap is reported without offering a code fix.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -952,7 +952,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
 
     /// <summary>
     /// Verifying that a documentation comment in the join gap is gated like other comments, so the registration guard
-    /// and the formatter agree on what counts as a comment (issue #226)
+    /// and the formatter agree on what counts as a comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -986,7 +986,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// <summary>
     /// Verifying that a documentation comment on the member itself does not withhold the fix. It precedes the
     /// property declaration and the join never reaches it, so the documented member is fixed exactly like an
-    /// undocumented one and the comment survives (issue #420)
+    /// undocumented one and the comment survives.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1025,7 +1025,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// <summary>
     /// Verifying that a region directive preceding the member does not withhold the fix either. Like the member's
     /// documentation comment it sits outside the property declaration's own span, so the interior guard lets the
-    /// fix through and the directives survive it (issue #420)
+    /// fix through and the directives survive it.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

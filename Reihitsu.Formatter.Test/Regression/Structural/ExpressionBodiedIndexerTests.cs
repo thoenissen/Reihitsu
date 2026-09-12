@@ -5,8 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Regression tests for issue #581: converting an expression-bodied indexer must produce the final
-/// layout in a single formatting pass, including the accessor-list opening brace
+/// Tests verifying that converting an expression-bodied indexer produces the final layout in a single
+/// formatting pass, including the accessor-list opening brace
 /// </summary>
 [TestClass]
 public class ExpressionBodiedIndexerTests : FormatterTestsBase

@@ -5,9 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Reproduction test for issue #764's follow-up scenario: an <c>if</c>/<c>else</c> whose braces are
-/// already hand-authored (not synthesized by <c>ControlFlowBraceTransform</c>), written with
-/// <c>} else</c> glued together on the same line
+/// Verifies that an <c>if</c>/<c>else</c> whose braces are already hand-authored (not
+/// synthesized by <c>ControlFlowBraceTransform</c>), written with <c>} else</c> glued together
+/// on the same line, still gets <c>else</c> moved onto its own line
 /// </summary>
 [TestClass]
 public class AlreadyBracedElsePlacementTests : FormatterTestsBase

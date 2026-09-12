@@ -55,7 +55,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Moves a token onto the same line as the previous token. The separating space is left to the
     /// horizontal-spacing phase: attaching it here as leading trivia would stack with the trailing
-    /// space that phase adds to the previous token, producing a double space (issue #426)
+    /// space that phase adds to the previous token, producing a double space
     /// </summary>
     /// <param name="token">The token to normalize</param>
     /// <returns>The normalized token</returns>

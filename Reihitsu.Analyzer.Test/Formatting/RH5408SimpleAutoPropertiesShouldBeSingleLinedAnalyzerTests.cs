@@ -164,7 +164,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a multi-line auto-property with accessor attributes is not flagged, because an accessor
     /// carrying its own attribute list is no longer considered simple — its layout belongs to RH5530/RH5531
-    /// instead, and RH5408 must not force it onto one line (issue #729)
+    /// instead, and RH5408 must not force it onto one line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -194,7 +194,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// Verifying that a multi-line auto-property combining a property-level attribute with accessor-level
     /// attributes is not flagged. This is the issue's exact reported shape: the shipped code fix could not
     /// converge on it because the analyzer kept reporting the same location after every fix application
-    /// (issue #729)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -224,7 +223,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a multi-line auto-property is not flagged when only one of its two accessors carries an
     /// attribute list, so the exemption applies per accessor list rather than requiring every accessor to carry
-    /// one (issue #729)
+    /// one
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -252,7 +251,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that no code fix action is registered for an auto-property carrying an accessor-level
     /// attribute, so a diagnostic from an earlier analyzer version or a stale IDE session is never offered a
-    /// fix that would force the accessor-attributed shape onto one line (issue #729)
+    /// fix that would force the accessor-attributed shape onto one line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -409,7 +408,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property carrying a comment inside its accessor list is not flagged, because the
-    /// formatter bails out on accessor-list comments and never collapses the property (issue #247)
+    /// formatter bails out on accessor-list comments and never collapses the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -430,7 +429,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that an auto-property carrying a comment between its accessors is not flagged (issue #247)
+    /// Verifying that an auto-property carrying a comment between its accessors is not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -453,7 +452,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property carrying a comment in the gap between the signature and the accessor list
-    /// is not flagged, because the formatter refuses to join the accessor brace across that comment (issue #444)
+    /// is not flagged, because the formatter refuses to join the accessor brace across that comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -476,7 +475,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that an auto-property carrying a preprocessor directive in the gap between the signature and the
     /// accessor list is not flagged, because the formatter refuses to join the accessor brace across that directive
-    /// (issue #444)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -500,7 +498,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that no code fix action is registered for an auto-property carrying a comment in the gap between
-    /// the signature and the accessor list, so the code fix does not offer a no-op action (issue #444)
+    /// the signature and the accessor list, so the code fix does not offer a no-op action
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -529,7 +527,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifies that an accessor list carrying a documentation comment is not flagged, because collapsing it
-    /// would delete the comment (issue #420)
+    /// would delete the comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -554,7 +552,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifies that no code fix is offered for an accessor list carrying a documentation comment, so the fix
-    /// cannot delete it (issue #420)
+    /// cannot delete it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -586,7 +584,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a multi-line get/set auto-property followed by a trailing comment is detected and fixed,
-    /// because the comment sits outside the accessor list and is never crossed by the collapse (issue #604)
+    /// because the comment sits outside the accessor list and is never crossed by the collapse
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -616,7 +614,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a multi-line get-only auto-property followed by a trailing comment is detected and fixed
-    /// (issue #604)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -645,7 +642,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a multi-line auto-property followed by a trailing block comment is detected and fixed
-    /// (issue #604)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -675,7 +671,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that two multi-line auto-properties with trailing comments in one document are both detected and
-    /// fixed together, so a Fix All pass converges (issue #604)
+    /// fixed together, so a Fix All pass converges
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -712,7 +708,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property carrying a comment between its accessor list and its initializer is not
-    /// flagged, because the formatter refuses to join the initializer across that comment (issue #604)
+    /// flagged, because the formatter refuses to join the initializer across that comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -731,7 +727,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property carrying a multi-line block comment between its accessor list and its
-    /// initializer is not flagged (issue #604)
+    /// initializer is not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -750,7 +746,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property carrying a directive between its accessor list and its initializer is not
-    /// flagged (issue #604)
+    /// flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -771,7 +767,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property whose initializer sits on its own line without intervening trivia is still
-    /// flagged, because the formatter joins the initializer in that case (issue #604)
+    /// flagged, because the formatter joins the initializer in that case
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -798,7 +794,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that no code fix action is registered for an auto-property carrying a comment between its accessor
-    /// list and its initializer, so the code fix does not offer a no-op action (issue #604)
+    /// list and its initializer, so the code fix does not offer a no-op action
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -824,7 +820,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property whose initializer gap sits on one line is still detected and fixed, because
-    /// the formatter never has to join that gap (issue #604)
+    /// the formatter never has to join that gap
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -854,7 +850,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a multi-line auto-property with an accessor modifier and a trailing comment is detected and
-    /// fixed, and that the fix collapses the modifier together with its keyword (issue #604)
+    /// fixed, and that the fix collapses the modifier together with its keyword
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -884,7 +880,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property whose terminating semicolon sits on its own line is detected and fixed,
-    /// because the formatter joins that gap (issue #612)
+    /// because the formatter joins that gap
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -911,7 +907,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a get/init auto-property whose terminating semicolon sits on its own line is detected and
-    /// fixed, so the accessor kind does not change the outcome (issue #612)
+    /// fixed, so the accessor kind does not change the outcome
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -938,7 +934,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property combining a multi-line accessor list with an own-line terminating semicolon
-    /// is detected and fixed in a single pass (issue #612)
+    /// is detected and fixed in a single pass
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -969,7 +965,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an auto-property whose initializer and terminating semicolon both sit on their own lines is
-    /// detected and fixed in a single pass (issue #612)
+    /// detected and fixed in a single pass
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -997,7 +993,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that several auto-properties with own-line terminating semicolons in one document are all detected
-    /// and fixed together (issue #612)
+    /// and fixed together
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1029,7 +1025,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment in the gap between the initializer value and the terminating semicolon exempts the
-    /// auto-property, because the formatter refuses to join across that comment (issue #612)
+    /// auto-property, because the formatter refuses to join across that comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1049,7 +1045,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a preprocessor directive in the gap between the initializer value and the terminating
-    /// semicolon exempts the auto-property, because the formatter refuses to join across that directive (issue #612)
+    /// semicolon exempts the auto-property, because the formatter refuses to join across that directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1070,7 +1066,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a region directive around the terminating semicolon exempts the auto-property, because the
-    /// formatter refuses to join across that directive (issue #612)
+    /// formatter refuses to join across that directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1091,7 +1087,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment trailing the initializer value on its own line keeps exempting the auto-property
-    /// through the initializer guard, so the semicolon-gap guard does not claim a shape it does not own (issue #612)
+    /// through the initializer guard, so the semicolon-gap guard does not claim a shape it does not own
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1110,7 +1106,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that no code fix is offered for an auto-property whose terminating semicolon is separated by a
-    /// comment, because the formatter cannot collapse that shape (issue #612)
+    /// comment, because the formatter cannot collapse that shape
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1137,7 +1133,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment between the initializer value and a semicolon on the same line no longer exempts the
-    /// property. The collapse never joins across that gap, and the formatter already reformats the shape (issue #650)
+    /// property. The collapse never joins across that gap, and the formatter already reformats the shape
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1167,7 +1163,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that the documentation comment of a property carrying a trailing initializer comment survives the
-    /// collapse (issue #650)
+    /// collapse
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1202,7 +1198,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that the documentation comment of a property without a trailing initializer comment is expanded the
     /// same way. This control pins the expansion as pre-existing behavior of the documentation phase rather than a
-    /// side effect of the guard narrowing in issue #650
+    /// side effect of the guard narrowing that scopes the semicolon-gap exemption
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1235,7 +1231,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that an init accessor with a trailing initializer comment is collapsed (issue #650)
+    /// Verifying that an init accessor with a trailing initializer comment is collapsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1265,7 +1261,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that an accessor modifier is preserved when a property with a trailing initializer comment is
-    /// collapsed (issue #650)
+    /// collapsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1294,7 +1290,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that a single-line generic initializer value with a trailing comment is collapsed (issue #650)
+    /// Verifying that a single-line generic initializer value with a trailing comment is collapsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1328,7 +1324,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a comment before the initializer equals token still exempts the property. The gap guard between
-    /// the accessor list and the initializer is, after issue #650, the only owner of that region
+    /// the accessor list and the initializer is the only owner of that region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1351,7 +1347,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a directive before the initializer equals token still exempts the property. The gap guard
-    /// between the accessor list and the initializer is, after issue #650, the only owner of that region
+    /// between the accessor list and the initializer is the only owner of that region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1376,7 +1372,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a line comment between the initializer value and the semicolon still exempts the property. Such
-    /// a comment runs to the end of the line, so the gap spans lines and its own guard owns it (issue #650)
+    /// a comment runs to the end of the line, so the gap spans lines and its own guard owns it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1400,7 +1396,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a block comment between the initializer value and a semicolon on a later line still exempts the
     /// property. This is the negative side of the same boundary and the same trivia kind as the reported shape, so it
-    /// pins the line-span condition rather than the comment kind (issue #650)
+    /// pins the line-span condition rather than the comment kind
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1424,7 +1420,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     /// <summary>
     /// Verifying that a comment between the equals token and the initializer value still exempts the property. The
     /// collapse would be safe there, but the interior guard is the only owner of that gap, so the shape is left to
-    /// manual correction (issue #650)
+    /// manual correction
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1445,7 +1441,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that a multi-line initializer value with a trailing comment still exempts the property (issue #650)
+    /// Verifying that a multi-line initializer value with a trailing comment still exempts the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

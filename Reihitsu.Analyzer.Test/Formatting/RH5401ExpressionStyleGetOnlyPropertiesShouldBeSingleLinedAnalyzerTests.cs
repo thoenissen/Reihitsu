@@ -84,7 +84,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
 
     /// <summary>
     /// Verifying that an expression body which starts on the signature line but wraps onto later lines is not
-    /// flagged, because the formatter never collapses the wrapped continuation (issue #247)
+    /// flagged, because the formatter never collapses the wrapped continuation.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

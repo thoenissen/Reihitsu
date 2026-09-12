@@ -6,7 +6,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
 /// <summary>
-/// Regression tests for issue #489: a preprocessor directive above the first wrapped fluent call keeps
+/// Regression tests verifying that a preprocessor directive above the first wrapped fluent call keeps
 /// that call on its continuation line, exactly as a comment does. The method-chain alignment
 /// contributor must therefore align the chain links under the chain root instead of letting the
 /// generic block indentation flatten them to the statement column
@@ -204,9 +204,8 @@ public class MethodChainDirectiveAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the headline shape from issue #489: an <c>#endif</c> sitting after the chain's
-    /// terminating semicolon is never joined onto the last chain link, which would re-emit the
-    /// directive mid-line and fail to compile
+    /// Verifies that an <c>#endif</c> sitting after the chain's terminating semicolon is never joined
+    /// onto the last chain link, which would re-emit the directive mid-line and fail to compile
     /// </summary>
     [TestMethod]
     public void DirectiveAfterTerminatingSemicolonKeepsItsOwnLine()

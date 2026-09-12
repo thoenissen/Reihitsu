@@ -59,7 +59,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// <summary>
     /// Verifies that splitting the attribute list inside an object initializer lands the member on the attribute
     /// list's own column rather than the enclosing brace-scope nesting level, which understates an anchor-derived
-    /// column by not accounting for the initializer's own alignment (issue #748)
+    /// column by not accounting for the initializer's own alignment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -6,10 +6,10 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #764's follow-up scenario: a statement keyword that chains directly from
-/// a preceding block's closing brace (<c>else</c>, <c>catch</c>, <c>finally</c>, or a <c>do</c>
-/// statement's <c>while</c>) must start its own line, even when the braces around that chain were
-/// already present in the source rather than synthesized by <c>ControlFlowBraceTransform</c>
+/// A statement keyword that chains directly from a preceding block's closing brace
+/// (<c>else</c>, <c>catch</c>, <c>finally</c>, or a <c>do</c> statement's <c>while</c>) must
+/// start its own line, even when the braces around that chain were already present in the
+/// source rather than synthesized by <c>ControlFlowBraceTransform</c>
 /// </summary>
 [TestClass]
 public class ChainedContinuationKeywordTests : FormatterTestsBase

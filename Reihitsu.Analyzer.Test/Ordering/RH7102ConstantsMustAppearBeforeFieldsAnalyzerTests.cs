@@ -46,7 +46,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifying the blank line that already separated the const field from the mutable field survives the
-    /// reorder (issue #727)
+    /// reorder
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

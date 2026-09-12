@@ -291,7 +291,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
 
     /// <summary>
     /// Verifying that a documentation comment in the anonymous method body is preserved: the rewrite keeps
-    /// the block instead of inlining the return expression and discarding the comment (issue #420)
+    /// the block instead of inlining the return expression and discarding the comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -334,7 +334,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     /// <summary>
     /// Verifying that a comment between the parameter list and the block keeps the fix from being offered. The
     /// rewrite reassembles the lambda from the parameter list and the block text, and trivia in that gap belongs
-    /// to neither, so offering the fix would delete it (issue #420)
+    /// to neither, so offering the fix would delete it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -368,7 +368,7 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
 
     /// <summary>
     /// Verifying that a comment between the delegate keyword and the parameter list keeps the fix from being
-    /// offered. It lies outside both spans the rewrite copies, so it would be deleted (issue #420)
+    /// offered. It lies outside both spans the rewrite copies, so it would be deleted
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

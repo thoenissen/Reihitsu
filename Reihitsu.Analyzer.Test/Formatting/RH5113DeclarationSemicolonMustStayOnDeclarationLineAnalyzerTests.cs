@@ -264,7 +264,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
 
     /// <summary>
     /// Verifying no diagnostic is reported when a comment sits in the gap between the declaration and its
-    /// terminating semicolon, because the formatter refuses to collapse the semicolon across that comment (issue #444)
+    /// terminating semicolon, because the formatter refuses to collapse the semicolon across that comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -286,7 +286,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
 
     /// <summary>
     /// Verifying no diagnostic is reported when a preprocessor directive sits in the gap between the declaration and
-    /// its terminating semicolon, because the formatter refuses to collapse the semicolon across that directive (issue #444)
+    /// its terminating semicolon, because the formatter refuses to collapse the semicolon across that directive.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -310,7 +310,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
 
     /// <summary>
     /// Verifying diagnostics for a property declaration with an initializer whose terminating semicolon sits on a
-    /// new line, so the rule covers the same member kinds the formatter joins (issue #612)
+    /// new line, so the rule covers the same member kinds the formatter joins.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -342,7 +342,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
 
     /// <summary>
     /// Verifying no diagnostic is reported for an expression-bodied property whose terminating semicolon sits on a
-    /// new line, because the formatter deliberately leaves an expression body wrapped (issue #612)
+    /// new line, because the formatter deliberately leaves an expression body wrapped.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

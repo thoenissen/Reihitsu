@@ -71,13 +71,13 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Reproduction test for issue #724: verifies that the code fix aligns the continuation parameter under the
-    /// first parameter (right after the opening parenthesis) when the original leading comma was indented one
-    /// column past that column, i.e. the issue's literal minimal reproducible example
+    /// Verifies that the code fix aligns the continuation parameter under the first parameter (right after the
+    /// opening parenthesis) when the original leading comma was indented one column past that column, the
+    /// minimal offset case
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyIssue724OneColumnOffsetIsFixedCorrectly()
+    public async Task VerifyOneColumnOffsetIsFixedCorrectly()
     {
         const string testData = """
                                 internal class TestClass
@@ -102,13 +102,13 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Reproduction test for issue #724: verifies that the code fix aligns the continuation parameter under the
-    /// first parameter when the original leading comma sat only 4 spaces in, closer to the block's base
-    /// indentation, i.e. the issue's third reported example
+    /// Verifies that the code fix aligns the continuation parameter under the first parameter when the original
+    /// leading comma sat only 4 spaces in, closer to the block's base indentation, a larger offset than the
+    /// minimal one-column case
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyIssue724BaseIndentationOffsetIsFixedCorrectly()
+    public async Task VerifyBaseIndentationOffsetIsFixedCorrectly()
     {
         const string testData = """
                                 internal class TestClass
@@ -134,7 +134,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that a leading comma indented past the alignment column is pulled left to it, not merely relieved of
-    /// its one-column shortfall (issue #724)
+    /// its one-column shortfall.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -165,7 +165,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// <summary>
     /// Verifies that when the first parameter already sits on its own line at the same column the leading comma
     /// used, the code fix leaves that (already correct) alignment untouched — the anchor is the first parameter's
-    /// own column, not one column past the opening parenthesis (issue #724)
+    /// own column, not one column past the opening parenthesis.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -197,7 +197,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that when the first parameter sits on its own line, a leading comma closer to the block's base
-    /// indentation aligns under the first parameter's own column rather than the opening parenthesis (issue #724)
+    /// indentation aligns under the first parameter's own column rather than the opening parenthesis.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -228,8 +228,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that a multi-space run after the comma is fully collapsed rather than only the first character
-    /// (issue #724)
+    /// Verifies that a multi-space run after the comma is fully collapsed rather than only the first character.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -262,7 +261,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// the previous implementation special-cased, and that the fix preserves the document's carriage-return/
     /// line-feed end-of-line style rather than introducing a bare line feed. Uses the raw-text code fix helper
     /// instead of the markup verifier, because that verifier normalizes line endings during comparison and could
-    /// not actually fail on a dropped carriage return (issue #724)
+    /// not actually fail on a dropped carriage return.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -280,7 +279,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// <summary>
     /// Verifies that when the comma is the last non-whitespace content on its own line, the fix hoists it and
     /// removes the now-empty line entirely instead of leaving a whitespace-only line behind, and leaves the
-    /// following line's own indentation untouched — aligning it is not this rule's concern (issue #724)
+    /// following line's own indentation untouched — aligning it is not this rule's concern.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -311,7 +310,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that a comment immediately following the comma is preserved verbatim and lands at the alignment
-    /// column, rather than being hoisted with the comma (issue #724)
+    /// column, rather than being hoisted with the comma.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -340,8 +339,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that Fix All aligns every violating continuation line in one document in a single batch application
-    /// (issue #724)
+    /// Verifies that Fix All aligns every violating continuation line in one document in a single batch application.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -383,8 +381,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that the alignment applies to a constructor's parameter list, not only ordinary methods
-    /// (issue #724)
+    /// Verifies that the alignment applies to a constructor's parameter list, not only ordinary methods.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -413,7 +410,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that the alignment applies to a local function's parameter list (issue #724)
+    /// Verifies that the alignment applies to a local function's parameter list.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -448,7 +445,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that the alignment applies to a parenthesized lambda's parameter list (issue #724)
+    /// Verifies that the alignment applies to a parenthesized lambda's parameter list.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -483,9 +480,9 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that no diagnostic is reported and no fix is offered for the conditional-parameter shape from
-    /// issue #409, where the comma sits between an <c>#if</c>/<c>#endif</c> pair guarding the next parameter: the
-    /// formatter refuses to hoist the comma across the directive boundary, so the analyzer must not flag it (issue #444)
+    /// Verifies that no diagnostic is reported and no fix is offered for the conditional-parameter shape where the
+    /// comma sits between an <c>#if</c>/<c>#endif</c> pair guarding the next parameter: the formatter refuses to
+    /// hoist the comma across the directive boundary, so the analyzer must not flag it.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -529,8 +526,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that no diagnostic is reported and no fix is offered when a comment sits on the comma's own line,
-    /// immediately before it — the exact region the code fix now widens its rewrite into when it hoists the comma
-    /// (issue #724)
+    /// immediately before it — the exact region the code fix now widens its rewrite into when it hoists the comma.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -557,7 +553,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that no diagnostic is reported and no fix is offered when the token gap contains a comment, because
-    /// the formatter refuses to hoist the comma across that comment (issue #444)
+    /// the formatter refuses to hoist the comma across that comment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -649,7 +645,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        // Verifies that several leading commas in the same parameter list all converge to the same alignment column (issue #724)
+        // Verifies that several leading commas in the same parameter list all converge to the same alignment column.
         return new FixAllScenario(testData,
                                   fixedData,
                                   Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));

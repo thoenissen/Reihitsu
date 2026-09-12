@@ -187,7 +187,7 @@ public class OrderingDeclarationUtilitiesTests
 
     /// <summary>
     /// Verifies that the blank-line separator stays at the position it already occupied instead of following
-    /// the moved member's own leading trivia to its new position (issue #727)
+    /// the moved member's own leading trivia to its new position
     /// </summary>
     [TestMethod]
     public void MoveMemberBeforeKeepsSeparatorAtItsOriginalPosition()

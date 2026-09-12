@@ -315,7 +315,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// <summary>
     /// Verifies that RH5112 does not report when the first invoked link is introduced by a
     /// null-forgiving operator whose own receiver is an intermediate member access, matching the
-    /// existing exemption for a plain dot in the same position (PR #721)
+    /// existing exemption for a plain dot in the same position.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -360,7 +360,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// <summary>
     /// Verifies the other side of the intermediate-member-access boundary: RH5112 still reports, and
     /// its code fix still converges, when the first invoked link is introduced by a null-forgiving
-    /// operator whose own receiver is <em>not</em> an intermediate member access (PR #721)
+    /// operator whose own receiver is <em>not</em> an intermediate member access.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

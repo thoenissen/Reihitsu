@@ -73,7 +73,7 @@ public class CommaSpacingUtilitiesTests
     /// Verifies that <see cref="CommaSpacingUtilities.IsSpacingExempt"/> stays <see langword="false"/> for
     /// the interpolation-alignment comma. Unlike the rank-only array specifier and unbound generic type
     /// owners, this comma must stay subject to spacing analysis rather than being skipped entirely, so the
-    /// analyzer keeps reporting a stray space around it (issue #696)
+    /// analyzer keeps reporting a stray space around it
     /// </summary>
     [TestMethod]
     public void IsSpacingExemptReturnsFalseForInterpolationAlignmentComma()

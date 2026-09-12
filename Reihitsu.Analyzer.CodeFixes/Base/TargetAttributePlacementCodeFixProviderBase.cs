@@ -101,7 +101,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             // propagating it. That canonical value does not exist when an object initializer or anonymous object
             // sits between the declaration and its nearest brace scope, because neither is a level -
             // SyntaxIndentationUtilities' nesting-depth model has no way to turn "one more initializer" into the
-            // anchor-derived column the formatter's own alignment contributors would place it at (issue #748). In
+            // anchor-derived column the formatter's own alignment contributors would place it at. In
             // that situation there is nothing to compute from, so the declaration's own first token - the
             // earliest attribute list already on it, or this list itself when it is the first one - is read
             // directly from the current source text instead, which also keeps a Fix All pass over several
@@ -138,7 +138,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     /// taken for a given attribute list, so the guard stays unconditional rather than trying to predict it. Its
     /// node-kind set is a private mirror of <see cref="SyntaxIndentationUtilities"/>'s internal
     /// <c>IsIndentingAncestor</c> brace kinds and must be kept in parity with it - this repository has already
-    /// let such a mirror drift once, in the incident issue #255 fixed
+    /// let such a mirror drift out of sync once, so this guard checks parity explicitly rather than assuming it
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
     /// <returns><see langword="true"/> when an enclosing scope has a missing brace</returns>

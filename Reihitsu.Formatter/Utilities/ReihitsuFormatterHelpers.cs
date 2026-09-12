@@ -179,7 +179,7 @@ internal static class ReihitsuFormatterHelpers
     /// <c>public</c> of a property, the identifier of a declarator - the comment documents that node. When it does
     /// not, the comment is stranded before a <c>;</c>, <c>]</c> or <c>}</c>, where the compiler reports CS1587.
     /// The phases that relocate or separate documentation comments share this predicate so they cannot disagree
-    /// about which comments carry documentation (issues #591, #625)
+    /// about which comments carry documentation
     /// </remarks>
     internal static bool DocumentsFollowingCode(SyntaxToken owningToken)
     {

@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
 /// <summary>
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — dictionary indexer key alignment.
-/// Regression coverage for issue #313 (multi-line dictionary indexer key mis-indented inside brackets)
+/// Regression coverage for a multi-line dictionary indexer key that was mis-indented inside brackets
 /// </summary>
 [TestClass]
 public class DictionaryIndexerKeyAlignmentTests : FormatterTestsBase
@@ -14,9 +14,9 @@ public class DictionaryIndexerKeyAlignmentTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the issue #313 reproduction: a multi-line indexer key with a data-class
-    /// object initializer keeps the key body indented one level deeper than the opening
-    /// bracket and the closing bracket aligned with the opening bracket
+    /// Verifies that a multi-line indexer key with a data-class object initializer keeps the
+    /// key body indented one level deeper than the opening bracket and the closing bracket
+    /// aligned with the opening bracket
     /// </summary>
     [TestMethod]
     public void MultiLineDataClassKeyWithObjectInitializerAligns()

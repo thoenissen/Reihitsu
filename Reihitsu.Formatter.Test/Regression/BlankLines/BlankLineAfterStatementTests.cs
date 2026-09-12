@@ -253,7 +253,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that no blank line is inserted above an <c>#endif</c> directive that immediately
     /// follows a <c>break</c> statement, since that would land the blank line inside the conditional
-    /// region rather than outside it (issue #415)
+    /// region rather than outside it
     /// </summary>
     [TestMethod]
     public void BreakFollowedByDirectiveNoBlankLineInsertedInsideRegion()

@@ -5,9 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #322: layout rules for <c>case ... when</c> guard clauses. A guard on a
-/// single-line pattern stays inline with the <c>case</c> label, while a guard on a multi-line pattern
-/// wraps onto its own line indented four spaces past the <c>case</c> keyword
+/// Layout rules for <c>case ... when</c> guard clauses. A guard on a single-line pattern stays
+/// inline with the <c>case</c> label, while a guard on a multi-line pattern wraps onto its own
+/// line indented four spaces past the <c>case</c> keyword
 /// </summary>
 [TestClass]
 public class CaseWhenClauseLayoutTests : FormatterTestsBase

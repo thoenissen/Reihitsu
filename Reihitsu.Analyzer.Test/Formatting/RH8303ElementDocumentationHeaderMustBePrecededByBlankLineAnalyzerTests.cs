@@ -129,7 +129,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
 
     /// <summary>
     /// Verifies that a documentation header immediately following an ordinary comment does not produce diagnostics,
-    /// because the formatter never inserts a blank line between two adjacent comment blocks (issue #449)
+    /// because the formatter never inserts a blank line between two adjacent comment blocks
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -157,7 +157,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
 
     /// <summary>
     /// Verifies that a documentation header immediately following a preprocessor directive does not produce
-    /// diagnostics, matching the directive-adjacent exemption RH5020 applies (issue #449)
+    /// diagnostics, matching the directive-adjacent exemption RH5020 applies
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -186,7 +186,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// <summary>
     /// Verifies that a documentation header immediately following an ordinary block comment does not produce
     /// diagnostics, because the formatter treats the block comment as the first comment of the trivia block and never
-    /// inserts a blank line between it and the following header (issue #449)
+    /// inserts a blank line between it and the following header
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -215,7 +215,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     /// <summary>
     /// Verifies that a documentation header following a string literal whose trailing line only looks like a
     /// preprocessor directive is still flagged and fixed, because the formatter inserts the blank line there — the
-    /// exemption must read the preceding construct from trivia, not from line text (issue #449)
+    /// exemption must read the preceding construct from trivia, not from line text
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -254,7 +254,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
 
     /// <summary>
     /// Verifies that the inserted blank line matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

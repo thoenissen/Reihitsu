@@ -5,24 +5,24 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
 /// <summary>
-/// Reproduction-gate tests for issues #683, #684 and #685 — asserted against each issue's own
-/// reported "Expected Formatted Output" so a failing run shows the issue's own observed-vs-expected
-/// difference
+/// Regression tests for three separate method-chain alignment defects: collapsing a wrapped
+/// non-invoked first dot onto the chain root, aligning a chain rooted in a single-line initializer,
+/// and rejoining a trailing dot immediately followed by a line break. Each test is asserted against
+/// its own literal expected output so a failing run shows the exact observed-vs-expected difference
 /// </summary>
 [TestClass]
-public class Issue683To685ReproductionTests : FormatterTestsBase
+public class MethodChainAlignmentDefectsRegressionTests : FormatterTestsBase
 {
     #region Methods
 
     /// <summary>
-    /// Issue #683 — a chain whose own first wrapped dot is a plain, non-invoked property access
-    /// preceding the first invoked link should collapse onto the chain root, per the issue's own
-    /// reported Input/Expected Formatted Output
+    /// Verifies that a chain whose own first wrapped dot is a plain, non-invoked property access
+    /// preceding the first invoked link collapses onto the chain root
     /// </summary>
     [TestMethod]
-    public void Issue683WrappedNonInvokedFirstDotCollapsesOntoRoot()
+    public void WrappedNonInvokedFirstDotCollapsesOntoRoot()
     {
-        // Arrange — verbatim from issue #683's "Input Code"
+        // Arrange — a chain whose first wrapped dot is a plain, non-invoked property access
         const string input = """
                              internal sealed class Example
                              {
@@ -35,7 +35,7 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
                              }
                              """;
 
-        // verbatim from issue #683's "Expected Formatted Output"
+        // the expected collapse of the chain's first wrapped dot onto its root
         const string expected = """
                                 internal sealed class Example
                                 {
@@ -52,14 +52,13 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Issue #684 — a chain rooted in a single-line object/array/collection initializer should align
-    /// its continuation dot the same way a multi-line initializer already does, per the issue's own
-    /// reported Input/Expected Formatted Output
+    /// Verifies that a chain rooted in a single-line object/array/collection initializer aligns its
+    /// continuation dot the same way a multi-line initializer already does
     /// </summary>
     [TestMethod]
-    public void Issue684ChainRootedInSingleLineInitializerAlignsCorrectly()
+    public void ChainRootedInSingleLineInitializerAlignsCorrectly()
     {
-        // Arrange — verbatim from issue #684's "Input Code"
+        // Arrange — a chain rooted in a single-line object initializer
         const string input = """
                              using System.Collections.Generic;
                              using System.Linq;
@@ -84,7 +83,7 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
                              }
                              """;
 
-        // verbatim from issue #684's "Expected Formatted Output"
+        // the expected alignment of the continuation dot to the initializer's opening brace column
         const string expected = """
                                 using System.Collections.Generic;
                                 using System.Linq;
@@ -114,16 +113,16 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Issue #685 — a plain member-access dot immediately followed by a line break, with the member
-    /// name on the next line (<c>a.</c> ⏎ <c>Prop</c>), should rejoin onto one line. The issue's own
-    /// "Expected Formatted Output" section states this is not yet fully determined, but gives a
-    /// literal minimum target for this exact fixture: <c>a.Prop.Call();</c>, "matching how x ⏎ .Prop
-    /// already rejoins today"
+    /// Verifies that a plain member-access dot immediately followed by a line break, with the member
+    /// name on the next line (<c>a.</c> ⏎ <c>Prop</c>), rejoins onto one line — the minimum target
+    /// for this exact fixture is <c>a.Prop.Call();</c>, matching how <c>x</c> ⏎ <c>.Prop</c> already
+    /// rejoins today. This is the plain, non-conditional case; the sibling test below covers the
+    /// initializer-rooted, conditional-access variant
     /// </summary>
     [TestMethod]
-    public void Issue685TrailingDotBeforeLineBreakRejoinsWithMemberName()
+    public void TrailingDotBeforeLineBreakRejoinsWithMemberName()
     {
-        // Arrange — first fixture from issue #685's "Input Code" (the plain, non-conditional case)
+        // Arrange — the plain, non-conditional case: a trailing dot immediately before a line break
         const string input = """
                              class C
                              {
@@ -135,7 +134,7 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
                              }
                              """;
 
-        // verbatim minimum given in issue #685's "Expected Formatted Output": "a.Prop.Call();"
+        // the minimum target for this fixture: "a.Prop.Call();"
         const string expected = """
                                 class C
                                 {
@@ -151,21 +150,21 @@ public class Issue683To685ReproductionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Issue #685 — the second, initializer-rooted fixture from the issue: a conditional-access dot
-    /// immediately followed by a line break (<c>}.</c> ⏎ <c>Choices</c>) must not leave
-    /// <c>Choices</c> orphaned on its own continuation line separated from its own dot.
+    /// Verifies the initializer-rooted, conditional-access counterpart to the sibling test above: a
+    /// conditional-access dot immediately followed by a line break (<c>}.</c> ⏎ <c>Choices</c>) must
+    /// not leave <c>Choices</c> orphaned on its own continuation line separated from its own dot.
     /// <para>
-    /// The issue states no full target shape for this fixture, only that minimum. The expected output
-    /// below is derived from the chain's reference column — <c>.ToList()</c> aligns to the <c>?</c> of
-    /// the first invoked link, the same column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c>
+    /// No full target shape is dictated for this fixture beyond that minimum. The expected output
+    /// below is derived from the chain's reference column — <c>.ToList()</c> aligns to the <c>?</c>
+    /// of the first invoked link, the same column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c>
     /// computes — and is byte-identical to the expected output the repository already asserts for the
     /// same chain written with its initializer on one line
     /// </para>
     /// </summary>
     [TestMethod]
-    public void Issue685TrailingDotAfterInitializerCloseBraceDoesNotOrphanMemberName()
+    public void TrailingDotAfterInitializerCloseBraceDoesNotOrphanMemberName()
     {
-        // Arrange — second fixture from issue #685's "Input Code"
+        // Arrange — the initializer-rooted, conditional-access fixture
         const string input = """
                              class C
                              {

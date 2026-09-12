@@ -234,7 +234,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
 
     /// <summary>
     /// Verifies that the blank line after a four-slash fenced-out code block is not flagged as following a
-    /// documentation header, so its legitimate separator before a real documentation block survives (issue #449)
+    /// documentation header, so its legitimate separator before a real documentation block survives
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

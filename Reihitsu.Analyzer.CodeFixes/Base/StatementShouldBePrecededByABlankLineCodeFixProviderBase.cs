@@ -182,7 +182,7 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     /// an object initializer or anonymous object sits between the statement and its nearest brace scope, because
     /// neither is a level - <see cref="SyntaxIndentationUtilities.ComputeStatementIndentLevel"/> has no way to
     /// turn "one more initializer" into the anchor-derived column the formatter's own alignment contributors
-    /// would place it at (issue #748). In that situation the target's own preceding sibling in its statement
+    /// would place it at. In that situation the target's own preceding sibling in its statement
     /// list supplies the column instead, since that sibling's start line has not moved and its leading
     /// whitespace is still correct. The anchor has to be the target's actual preceding sibling rather than
     /// merely the innermost statement enclosing <paramref name="previousToken"/>: when the preceding sibling
@@ -192,7 +192,7 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
     /// preceding sibling - the target's own section's label, an earlier sibling section's label sharing the
     /// physical line, or trivia attached ahead of either - that label region is one indentation level shallower
     /// than the section's statements, so one level is added on top of the whitespace read
-    /// (see <see cref="SyntaxIndentationUtilities.ComputeAnchorDerivedIndentation"/>, issue #786). A label that is
+    /// (see <see cref="SyntaxIndentationUtilities.ComputeAnchorDerivedIndentation"/>). A label that is
     /// not itself first on its own line - the whole <c>switch</c> statement written on one physical line, for
     /// example - has no whitespace run that equals its column, so this branch cannot compensate that shape and
     /// leaves it unchanged

@@ -73,7 +73,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that cross-group usings without trivia and with no trailing content receive a blank-line
-    /// separator instead of a single line break, when the using block is the only content in the file (issue #728)
+    /// separator instead of a single line break, when the using block is the only content in the file.
     /// </summary>
     [TestMethod]
     public void CrossGroupUsingsWithoutTriviaAreReordered()
@@ -91,7 +91,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that the block's own terminating line break survives a reorder that moves the originally
-    /// last directive away from the last position (issue #728)
+    /// last directive away from the last position.
     /// </summary>
     [TestMethod]
     public void RegularUsingsWithoutTriviaButWithTerminatingNewlineKeepTheNewline()
@@ -106,7 +106,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that a trailing line comment on the originally last directive is not silently absorbed
-    /// into the next reordered directive when the block has no terminating newline (issue #728)
+    /// into the next reordered directive when the block has no terminating newline.
     /// </summary>
     [TestMethod]
     public void TrailingCommentOnLastDirectiveIsNotAbsorbedIntoNextDirectiveAfterReorder()
@@ -121,7 +121,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that a leading comment attached to a moved directive starts its own line rather than
-    /// joining the line of a predecessor whose own trailing trivia carried no line break (issue #728)
+    /// joining the line of a predecessor whose own trailing trivia carried no line break.
     /// </summary>
     [TestMethod]
     public void LeadingCommentAfterTerminatingNewlineLessPredecessorStartsItsOwnLine()
@@ -137,7 +137,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// <summary>
     /// Verifies that a reorder which leaves the originally last, terminating-newline-less directive in
     /// the last position produces the same output as before the fix, since no directive's terminal
-    /// trailing trivia moves (issue #728)
+    /// trailing trivia moves.
     /// </summary>
     [TestMethod]
     public void TerminatingNewlineLessDirectiveThatStaysLastAfterReorderIsUnaffected()
@@ -152,7 +152,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that a reorder does not force a line break between directives whose block never had one
-    /// to begin with, so the block stays on the one physical line it was authored on (issue #728)
+    /// to begin with, so the block stays on the one physical line it was authored on.
     /// </summary>
     [TestMethod]
     public void DirectivesSharingOneLineWithNoLineBreakAnywhereInTheBlockStayOnThatLine()
@@ -167,8 +167,8 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that reordering a directive into the last position, where the block's own closing brace
-    /// shares its line, preserves the space before that brace instead of gluing the directive to it
-    /// (issue #728). The five-space gap after the first directive is a pre-existing, unrelated quirk of
+    /// shares its line, preserves the space before that brace instead of gluing the directive to it.
+    /// The five-space gap after the first directive is a pre-existing, unrelated quirk of
     /// this phase's leading-trivia indentation extraction on a directive that no longer starts a fresh
     /// line, not a defect this fix introduces or is responsible for correcting
     /// </summary>
@@ -186,8 +186,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// <summary>
     /// Verifies that reordering a directive with a trailing single-line comment into the last position,
     /// where the block's own terminator has no line break of its own, still terminates that comment
-    /// instead of letting it absorb whatever the transplanted block terminator appends after it
-    /// (issue #728)
+    /// instead of letting it absorb whatever the transplanted block terminator appends after it.
     /// </summary>
     [TestMethod]
     public void CommentOnDirectiveMovedToLastPositionIsTerminatedBeforeTheBlockTerminatorIsAppended()
@@ -203,7 +202,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// <summary>
     /// Verifies that reordering a directive with a trailing single-line comment into the last position
     /// does not duplicate the line break when the block's own terminator already starts with one, which
-    /// would otherwise insert a spurious blank line (issue #728)
+    /// would otherwise insert a spurious blank line.
     /// </summary>
     [TestMethod]
     public void CommentOnDirectiveMovedToLastPositionDoesNotDuplicateAnAlreadyPresentBlockTerminatorLineBreak()
@@ -221,7 +220,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     /// does not duplicate the line break when the block's own terminator contains one that is not its
     /// first trivia — trailing whitespace ahead of the terminator's own line break must not be mistaken
     /// for a terminator that needs a manually inserted break of its own, which would otherwise insert a
-    /// spurious blank line and break idempotency (issue #728)
+    /// spurious blank line and break idempotency.
     /// </summary>
     [TestMethod]
     public void CommentOnDirectiveMovedToLastPositionDoesNotDuplicateALineBreakThatIsNotTheBlockTerminatorsFirstTrivia()

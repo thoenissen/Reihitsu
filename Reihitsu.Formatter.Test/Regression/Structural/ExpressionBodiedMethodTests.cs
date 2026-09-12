@@ -309,7 +309,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment trailing the arrow token is preserved during conversion instead of being
-    /// silently dropped (issue #422). The expression is intentionally flush left: an indented multi-line
+    /// silently dropped. The expression is intentionally flush left: an indented multi-line
     /// expression body collapses onto the <c>return</c> keyword with extra whitespace regardless of any
     /// comment, a separate, pre-existing formatter gap this test does not exercise
     /// </summary>
@@ -340,7 +340,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment placed before the semicolon token is preserved during conversion instead of
-    /// being silently dropped (issue #422)
+    /// being silently dropped.
     /// </summary>
     [TestMethod]
     public void PreservesCommentBeforeSemicolon()

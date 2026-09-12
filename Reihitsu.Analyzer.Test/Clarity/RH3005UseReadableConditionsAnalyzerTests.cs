@@ -522,7 +522,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
 
     /// <summary>
     /// Verifying that a documentation comment inside the condition keeps the fix from being offered. The swap
-    /// reparses both operands without their trivia, so offering the fix would delete the comment (issue #420)
+    /// reparses both operands without their trivia, so offering the fix would delete the comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -575,7 +575,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
 
     /// <summary>
     /// Verifying that a comment written before the comparison does not withhold the code fix. The swap transplants
-    /// the comparison's own outer trivia onto the replacement, so that comment is never crossed (issue #650)
+    /// the comparison's own outer trivia onto the replacement, so that comment is never crossed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -605,7 +605,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
 
     /// <summary>
     /// Verifying that a comment written inside the comparison still withholds the code fix, because the swap would
-    /// relocate it relative to the operands (issue #650)
+    /// relocate it relative to the operands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

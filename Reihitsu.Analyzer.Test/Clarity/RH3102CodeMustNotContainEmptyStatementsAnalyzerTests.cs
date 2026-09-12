@@ -326,7 +326,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
 
     /// <summary>
     /// Verifying that no code fix is offered when a documentation comment is attached to the empty statement,
-    /// because removing the statement would discard it (issue #420)
+    /// because removing the statement would discard it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

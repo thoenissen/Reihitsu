@@ -40,7 +40,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
     /// Verifies that the space in front of the closing bracket is still removed when a documentation comment sits
     /// between it and the attribute. Roslyn files that comment as the bracket's leading trivia, which puts the space
     /// on the far side of it from the spacing rules, so the comment-gap exemption has to trim it explicitly or the
-    /// formatter emits output this analyzer reports (issue #591)
+    /// formatter emits output this analyzer reports
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

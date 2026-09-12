@@ -112,7 +112,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -136,7 +136,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// <summary>
     /// Verifies that a comment between the closing bracket and the member keeps the fix from being offered. The
     /// fix rewrites the trailing trivia of the closing bracket and clears the leading trivia of the member token,
-    /// so anything sitting in that gap would be deleted (issue #420)
+    /// so anything sitting in that gap would be deleted
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -162,7 +162,6 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// <summary>
     /// Verifies that a comment between the closing bracket and the member keeps the diagnostic from being reported.
     /// The fix refuses that gap under either placement, so reporting here would leave a diagnostic nobody can clear
-    /// (issue #420)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

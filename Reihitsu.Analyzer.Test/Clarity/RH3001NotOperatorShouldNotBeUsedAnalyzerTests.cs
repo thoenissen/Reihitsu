@@ -243,7 +243,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task Issue469CommentBetweenNotOperatorAndOperandIsPreserved()
+    public async Task CommentBetweenNotOperatorAndOperandIsPreserved()
     {
         const string testCode = """
                                 public class Test

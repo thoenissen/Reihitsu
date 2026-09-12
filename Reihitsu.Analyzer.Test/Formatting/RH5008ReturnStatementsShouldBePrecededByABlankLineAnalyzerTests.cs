@@ -179,8 +179,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when the return statement directly follows an <c>#endif</c> directive,
-    /// matching the representative case from issue #350
+    /// Verifies no diagnostics are reported when the return statement directly follows an <c>#endif</c> directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -423,7 +422,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     }
 
     /// <summary>
-    /// Verifies that the shared code-fix base's switch-label indentation compensation (issue #786) applies to
+    /// Verifies that the shared code-fix base's switch-label indentation compensation applies to
     /// every diagnostic derived from <c>StatementShouldBePrecededByABlankLineCodeFixProviderBase</c>, not only
     /// RH5029, confirming the base's single call site rather than a per-rule copy
     /// </summary>

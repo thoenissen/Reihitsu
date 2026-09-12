@@ -5,9 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #610: a comment that trails the closing bracket of an indexer argument
-/// list sits outside the interior the single-line collapse rewrites, so it must not block that
-/// collapse. Trivia the collapse actually crosses - between the brackets - remains a join barrier
+/// A comment that trails the closing bracket of an indexer argument list sits outside the
+/// interior the single-line collapse rewrites, so it must not block that collapse. Trivia the
+/// collapse actually crosses - between the brackets - remains a join barrier
 /// </summary>
 [TestClass]
 public class BracketedArgumentTrailingCommentTests : FormatterTestsBase

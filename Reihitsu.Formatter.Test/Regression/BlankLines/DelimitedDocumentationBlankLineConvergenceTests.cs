@@ -10,7 +10,7 @@ namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 /// author wrote behind code. Roslyn files such a comment as the leading trivia of the following construct's first
 /// token, so the boundary is short of two line breaks rather than one: the first ends the line the author filled
 /// and the second is the blank line itself. Inserting only one of them spreads the layout over two passes, which
-/// is what made <c>--check</c> report a file the formatter had just written (issue #637)
+/// is what made <c>--check</c> report a file the formatter had just written
 /// </summary>
 [TestClass]
 public class DelimitedDocumentationBlankLineConvergenceTests : FormatterTestsBase

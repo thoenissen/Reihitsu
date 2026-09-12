@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
 /// Regression tests for <see cref="Pipeline.StructuralTransforms.Rewriter.EmptyTypeDeclarationSemicolonTransform"/> —
-/// a comment between the type header and the open brace must not be deleted when the empty body is removed (issue #414)
+/// a comment between the type header and the open brace must not be deleted when the empty body is removed
 /// </summary>
 [TestClass]
 public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase

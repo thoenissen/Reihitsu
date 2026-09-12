@@ -238,7 +238,7 @@ public class SyntaxIndentationUtilitiesTests
     /// Verifies that a switch section's own label gains no indentation level, only its statements do. This is the
     /// boundary a switch-section-as-interval rewrite must preserve: routing the section through the same
     /// <c>&gt;</c> comparison used for brace scopes rather than the inclusive <c>&gt;=</c> the statements interval
-    /// needs would silently misclassify the section's own start (issue #748)
+    /// needs would silently misclassify the section's own start
     /// </summary>
     [TestMethod]
     public void GetChildIndentLevelAddsNoLevelForASwitchSectionLabel()
@@ -271,7 +271,7 @@ public class SyntaxIndentationUtilitiesTests
     /// <summary>
     /// Verifies that a switch section with no statements of its own adds no level for its label and does not throw.
     /// An interval built from <c>Statements[0]</c> must guard this empty case explicitly rather than indexing into
-    /// an empty list (issue #748)
+    /// an empty list
     /// </summary>
     [TestMethod]
     public void GetChildIndentLevelHandlesEmptySwitchSectionLabelWithoutThrowing()
@@ -373,7 +373,7 @@ public class SyntaxIndentationUtilitiesTests
     /// <summary>
     /// Verifies that a non-empty switch section owns an indenting scope, expressed as the interval spanning its
     /// own statements rather than as a brace pair, since it owns no braces of its own. RH5204's own output is
-    /// unaffected: no brace token's direct parent is ever a switch section (issue #748)
+    /// unaffected: no brace token's direct parent is ever a switch section
     /// </summary>
     [TestMethod]
     public void IsIndentingScopeRecognizesNonEmptySwitchSection()
@@ -428,7 +428,6 @@ public class SyntaxIndentationUtilitiesTests
 
     /// <summary>
     /// Verifies that a position at the section's own start, or anywhere inside its label region, is recognized
-    /// (issue #786)
     /// </summary>
     [TestMethod]
     public void IsWithinSwitchSectionLabelRegionRecognizesPositionsInsideTheLabel()
@@ -460,7 +459,7 @@ public class SyntaxIndentationUtilitiesTests
 
     /// <summary>
     /// Verifies that the label's own end position is excluded, since the section's statements start there and sit
-    /// one indentation level deeper than the label (issue #786)
+    /// one indentation level deeper than the label
     /// </summary>
     [TestMethod]
     public void IsWithinSwitchSectionLabelRegionExcludesTheLabelsOwnEndBoundary()
@@ -494,7 +493,7 @@ public class SyntaxIndentationUtilitiesTests
     /// Verifies that a position at an earlier sibling section's label - such as a preceding section's label
     /// sharing the same physical line as this section's own label - is recognized: sibling sections of one
     /// <c>switch</c> statement share the same nesting depth, so their labels share the same one-level
-    /// relationship to this section's statements (issue #786)
+    /// relationship to this section's statements
     /// </summary>
     [TestMethod]
     public void IsWithinSwitchSectionLabelRegionRecognizesAnEarlierSiblingSectionsLabel()
@@ -528,7 +527,7 @@ public class SyntaxIndentationUtilitiesTests
     /// <summary>
     /// Verifies that a position at an earlier sibling section's own statement - as opposed to that section's
     /// label - is excluded: only a label itself, never a statement sharing the same textual stretch between two
-    /// labels, carries the one-level relationship (issue #786)
+    /// labels, carries the one-level relationship
     /// </summary>
     [TestMethod]
     public void IsWithinSwitchSectionLabelRegionExcludesAnEarlierSiblingSectionsStatement()
@@ -562,7 +561,7 @@ public class SyntaxIndentationUtilitiesTests
     /// <summary>
     /// Verifies that a position before the enclosing switch statement's own opening brace - such as the
     /// <c>switch</c> keyword itself - is excluded, since it owns no label relationship to any section's
-    /// statements (issue #786)
+    /// statements
     /// </summary>
     [TestMethod]
     public void IsWithinSwitchSectionLabelRegionExcludesPositionsBeforeTheEnclosingSwitchStatement()
@@ -594,7 +593,7 @@ public class SyntaxIndentationUtilitiesTests
     /// <summary>
     /// Verifies that a position at the last of several labels belonging to the same section is recognized, and
     /// not only a position at the first: a section's statements sit one level below whichever label immediately
-    /// precedes them on a shared line (issue #786)
+    /// precedes them on a shared line
     /// </summary>
     [TestMethod]
     public void IsWithinSwitchSectionLabelRegionRecognizesTheLastOfSeveralLabels()

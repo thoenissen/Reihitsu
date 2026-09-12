@@ -72,7 +72,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that the continuation lines are aligned under the relocated first parameter when the original first
-    /// parameter started on a line below the opening parenthesis rather than next to it (issue #456)
+    /// parameter started on a line below the opening parenthesis rather than next to it.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -104,7 +104,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that a multi-line parameter list whose parameters all start on the same line is detected, because
-    /// the formatter splits exactly that shape onto separate lines (issue #247)
+    /// the formatter splits exactly that shape onto separate lines.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -145,7 +145,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that the fix formats only the rebuilt parameter list and leaves the surrounding member body
-    /// untouched, so the fix diff does not inherit unrelated whole-member reformatting (issue #456)
+    /// untouched, so the fix diff does not inherit unrelated whole-member reformatting.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -208,7 +208,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// <summary>
     /// Verifies that a documentation comment inside the parameter list keeps the fix from being offered. The fix
     /// rebuilds the list from the raw text of each <see cref="ParameterListSyntax.Parameters"/> span, and a comment
-    /// between two parameters lies outside every one of those spans, so offering the fix would delete it (issue #420)
+    /// between two parameters lies outside every one of those spans, so offering the fix would delete it.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -261,7 +261,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifying that a parameter list carrying a comment after its closing parenthesis is reported (issue #650)
+    /// Verifying that a parameter list carrying a comment after its closing parenthesis is reported.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -281,7 +281,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifying that a parameter list carrying a comment after its closing parenthesis is offered a code fix (issue #650)
+    /// Verifying that a parameter list carrying a comment after its closing parenthesis is offered a code fix.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -310,7 +310,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifying the control case: the identical input without the trailing comment is reported (issue #650)
+    /// Verifying the control case: the identical input without the trailing comment is reported.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -330,7 +330,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifying the control case: the identical input without the trailing comment is offered a code fix (issue #650)
+    /// Verifying the control case: the identical input without the trailing comment is offered a code fix.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -359,8 +359,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifying that a comment after the closing parenthesis is fixed and the comment stays where it was written
-    /// (issue #650)
+    /// Verifying that a comment after the closing parenthesis is fixed and the comment stays where it was written.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -393,7 +392,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// <summary>
     /// Verifying that a comment written before the opening parenthesis still withholds the code fix. The replacement
     /// could not reach that region, but the guard covers it so the predicate reads identically across RH5101, RH5102
-    /// and RH5109 (issue #650)
+    /// and RH5109.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -424,7 +423,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
 
     /// <summary>
     /// Verifying that a comment written directly against the closing parenthesis, without a separating space, is
-    /// offered a code fix like the space-separated shape (issue #650)
+    /// offered a code fix like the space-separated shape.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

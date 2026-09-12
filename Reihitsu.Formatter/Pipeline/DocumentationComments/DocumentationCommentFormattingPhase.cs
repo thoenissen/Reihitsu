@@ -184,7 +184,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         // Relocating the comment above its owning token is what makes it document that token. When the owner
         // does not open a node there is nothing to document - the comment is stranded before a ';' or a closing
         // '}' - so moving it changes the author's layout without making the comment mean anything, and the
-        // compiler reports CS1587 either way. Leave it where it was written (issues #591, #625).
+        // compiler reports CS1587 either way. Leave it where it was written.
         if (ReihitsuFormatterHelpers.DocumentsFollowingCode(owningToken) == false)
         {
             return;
@@ -317,7 +317,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// Rebuilds normalization candidates until none is left. Only the outermost candidates can be
     /// rebuilt in one round, so a <c>&lt;code&gt;</c> that needs alignment inside a <c>&lt;remarks&gt;</c>
     /// that needs alignment used to be reached by the next pipeline run instead, which broke the
-    /// two-run convergence invariant (issue #434). A round that changes nothing ends the loop, so the
+    /// two-run convergence invariant. A round that changes nothing ends the loop, so the
     /// cost is one extra parse per nesting level and none at all for the common single-candidate comment
     /// </summary>
     /// <param name="documentationCommentTrivia">Documentation comment trivia</param>

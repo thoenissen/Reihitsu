@@ -277,7 +277,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted before a single-line comment that immediately
-    /// follows an <c>#endif</c> directive, mirroring the exemption RH5020 applies (issue #415)
+    /// follows an <c>#endif</c> directive, mirroring the exemption RH5020 applies
     /// </summary>
     [TestMethod]
     public void CommentPrecededByDirectiveNoBlankLineInserted()
@@ -1124,7 +1124,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     /// <summary>
     /// Verifies that no blank line is inserted above an <c>#endif</c> directive that immediately
     /// precedes a <c>return</c> statement, since that would land the blank line inside the
-    /// conditional region rather than outside it (issue #415)
+    /// conditional region rather than outside it
     /// </summary>
     [TestMethod]
     public void ReturnStatementPrecededByDirectiveNoBlankLineInsertedInsideRegion()

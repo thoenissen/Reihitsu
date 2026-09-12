@@ -231,7 +231,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies that a preprocessor directive sitting on the line-broken side of the colon survives the fix,
-    /// instead of being deleted along with the joined line break (issue #408)
+    /// instead of being deleted along with the joined line break
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

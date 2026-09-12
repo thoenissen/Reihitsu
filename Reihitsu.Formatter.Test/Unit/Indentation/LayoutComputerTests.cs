@@ -691,7 +691,7 @@ public class LayoutComputerTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutComputer.Compute"/> indents the embedded (unbraced) body of a
-    /// <c>while</c> statement one level deeper than the <c>while</c> statement itself (issue #416)
+    /// <c>while</c> statement one level deeper than the <c>while</c> statement itself.
     /// </summary>
     [TestMethod]
     public void ComputeHandlesUnbracedWhileBody()
@@ -725,7 +725,7 @@ public class LayoutComputerTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutComputer.Compute"/> indents the embedded (unbraced) body of a
-    /// <c>fixed</c> statement one level deeper than the <c>fixed</c> statement itself (issue #416)
+    /// <c>fixed</c> statement one level deeper than the <c>fixed</c> statement itself.
     /// </summary>
     [TestMethod]
     public void ComputeHandlesUnbracedFixedBody()
@@ -760,7 +760,7 @@ public class LayoutComputerTests
     /// <summary>
     /// Verifies that <see cref="LayoutComputer.Compute"/> keeps an <c>else if</c> chain flat — each link stays at
     /// the same column as the initial <c>if</c> instead of accumulating one indentation level per link — while
-    /// each link's own embedded (unbraced) body is still indented one level deeper (issue #416)
+    /// each link's own embedded (unbraced) body is still indented one level deeper.
     /// </summary>
     [TestMethod]
     public void ComputeHandlesUnbracedElseIfChainWithoutAccumulatingIndentation()

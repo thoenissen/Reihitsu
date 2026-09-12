@@ -31,7 +31,7 @@ public class BlankLineRegionDirectivePhaseTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>#region</c> directive that directly follows a
     /// switch-label colon. RH5031's Core policy exempts only lines ending with an opening brace, unlike the
-    /// general first-in-block exemption that also treats switch labels as exempt (issue #428)
+    /// general first-in-block exemption that also treats switch labels as exempt.
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeRegionAfterSwitchLabel()
@@ -80,7 +80,7 @@ public class BlankLineRegionDirectivePhaseTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before an <c>#endregion</c> directive that directly follows a
-    /// switch-label colon, the symmetric counterpart of the <c>#region</c> case (issue #428)
+    /// switch-label colon, the symmetric counterpart of the <c>#region</c> case.
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeEndRegionAfterSwitchLabel()
@@ -129,7 +129,7 @@ public class BlankLineRegionDirectivePhaseTests : FormatterTestsBase
     /// <summary>
     /// Applies <see cref="BlankLinePhase"/> under both LF and CRLF line endings and verifies the result matches
     /// the expected text and is idempotent on a second pass, reusing <see cref="FormatterTestsBase"/>'s shared
-    /// line-ending helpers instead of duplicating them (issue #428 review)
+    /// line-ending helpers instead of duplicating them.
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected rewritten source text</param>

@@ -5,10 +5,10 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests for issue #581: the accessor-list opening brace of an indexer or event
-/// declaration must be moved to its own line by the first formatting pass, even when the accessor
-/// bodies are re-flowed during the same pass. No expression body is involved in these scenarios,
-/// so they pin the accessor-list brace placement itself rather than the expression-body transform
+/// The accessor-list opening brace of an indexer or event declaration must be moved to its own
+/// line by the first formatting pass, even when the accessor bodies are re-flowed during the
+/// same pass. No expression body is involved in these scenarios, so they pin the accessor-list
+/// brace placement itself rather than the expression-body transform
 /// </summary>
 [TestClass]
 public class AccessorListDeclarationBraceTests : FormatterTestsBase

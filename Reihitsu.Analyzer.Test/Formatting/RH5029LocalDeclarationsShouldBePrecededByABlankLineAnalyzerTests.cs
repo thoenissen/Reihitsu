@@ -70,7 +70,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// <summary>
     /// Verifies that the inserted blank line's indentation matches the preceding statement's own column when that
     /// column is anchored to an object initializer rather than derived from brace-scope nesting depth, which
-    /// understates an anchor-derived column by not accounting for the initializer's own alignment (issue #748)
+    /// understates an anchor-derived column by not accounting for the initializer's own alignment.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -137,7 +137,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// Verifies that the inserted blank line's indentation is read from the preceding statement's own start line
     /// rather than from whichever line its last token happens to sit on. A multi-line preceding statement's own
     /// column is anchored, inside an object initializer, to the same anchor as the moved statement, but its last
-    /// token sits on an unrelated continuation line whose indentation carries no such meaning (issue #748)
+    /// token sits on an unrelated continuation line whose indentation carries no such meaning.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -198,7 +198,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// Verifies that the anchor is the target's actual preceding sibling statement, not merely the innermost
     /// statement enclosing the previous token. When the preceding sibling has an unbraced embedded body, the
     /// previous token sits inside that embedded statement - one indentation level deeper than the sibling whose
-    /// column the target must actually match (issue #748)
+    /// column the target must actually match.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -267,7 +267,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// Verifies that, when the target statement's anchor is inside an object initializer and the preceding
     /// statement shares its switch-section <c>case</c> label's own line, the inserted blank line's indentation is
     /// the label's column plus one <see cref="Reihitsu.Core.SyntaxIndentationUtilities.IndentSize"/> - matching
-    /// where the section's own <c>break;</c> already sits - rather than the label's own column (issue #786)
+    /// where the section's own <c>break;</c> already sits - rather than the label's own column.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -331,8 +331,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// <summary>
     /// Verifies that no extra indentation level is added when the anchor line's own leading content is an earlier
     /// sibling statement rather than the section's own label. That sibling's column is already correct, so adding
-    /// a level - the same mistake the issue's own suggested predicate would make - would place the target one
-    /// level too deep (issue #786)
+    /// a level would place the target one level too deep.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -397,7 +396,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
 
     /// <summary>
     /// Verifies that no extra indentation level is added when the anchor line's own leading content is a comment
-    /// rather than the section's own label (issue #786)
+    /// rather than the section's own label.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -462,7 +461,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
 
     /// <summary>
     /// Verifies that an explicitly braced switch section is unaffected: the target's direct parent is the block,
-    /// not the section itself, so no label relationship applies (issue #786)
+    /// not the section itself, so no label relationship applies.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -531,7 +530,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
 
     /// <summary>
     /// Verifies that, outside any anchor scope, a switch label's own mis-indented column is never propagated: the
-    /// canonical, level-derived column self-corrects it instead (issue #786)
+    /// canonical, level-derived column self-corrects it instead.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -582,7 +581,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// Verifies that, when the switch-section label itself is not first on its own line - the whole
     /// <c>switch</c> statement written on one physical line - the shared base cannot compensate: no whitespace
     /// run on that line equals the label's column, so the line's own leading whitespace is used unchanged. This
-    /// is a documented limitation rather than a defect (issue #786)
+    /// is a documented limitation rather than a defect.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -639,7 +638,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// Verifies that, when the physical line's own leading content is an earlier sibling switch section's label,
     /// the inserted blank line is compensated exactly like a line led by the target's own section's label:
     /// sibling sections of one <c>switch</c> statement share the same nesting depth, so their labels share the
-    /// same one-level relationship to this section's statements (issue #786)
+    /// same one-level relationship to this section's statements.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -703,7 +702,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// <summary>
     /// Verifies that, when a comment precedes the target's own section's label on that label's shared line, the
     /// inserted blank line is still compensated: the comment is attached to the label, not to a statement, so the
-    /// line is still a label line (issue #786)
+    /// line is still a label line.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -769,7 +768,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// statement rather than that section's label, the inserted blank line is not compensated: a statement
     /// sharing the textual stretch between two labels is not itself a label, so it carries no one-level
     /// relationship, even though it lies between the enclosing switch statement's opening brace and this
-    /// section's own last label (issue #786)
+    /// section's own last label.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -835,8 +834,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// <summary>
     /// Verifies that a tab-indented anchor line is compensated by appending four spaces, matching
     /// <see cref="Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider"/>'s
-    /// own behavior for the identical shape, rather than repeating the line's own indentation character
-    /// (issue #786)
+    /// own behavior for the identical shape, rather than repeating the line's own indentation character.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -851,7 +849,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// <summary>
     /// Verifies that Fix All computes each target's indentation against the unmodified document, so a second
     /// diagnostic sharing the same label line is not compensated twice once the first has conceptually moved to
-    /// its own line (issue #786)
+    /// its own line.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -923,8 +921,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// the label's own continuation line rather than with a preceding sibling statement, so the anchor column
     /// read from that line is the continuation's own column, not the label's first-line column, and the fix adds
     /// one indentation level too many. This is a known, documented limitation (see RH5103.md), not a defect this
-    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate
-    /// (issue #786)
+    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1224,8 +1221,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when the local declaration directly follows an <c>#endif</c> directive,
-    /// matching the representative case from issue #350
+    /// Verifies no diagnostics are reported when the local declaration directly follows an <c>#endif</c> directive.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

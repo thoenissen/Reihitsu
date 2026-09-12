@@ -80,12 +80,12 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
         // statements': a section's statements always sit exactly one level deeper than every label of the
         // enclosing switch. That relationship is only safe to read from the label's current text column when an
         // object initializer or anonymous object sits between the section and its nearest brace scope, because
-        // only there does no level derived by walking ancestors recover the anchor-derived column (issue #748).
+        // only there does no level derived by walking ancestors recover the anchor-derived column.
         // When the shared line's leading content is not a label of the enclosing switch - an earlier sibling
-        // statement or trivia attached to one - that one level must not be added, or it lands one level too deep
-        // (issue #786); the whitespace read is already correct there and is returned unchanged rather than
+        // statement or trivia attached to one - that one level must not be added, or it lands one level too deep;
+        // the whitespace read is already correct there and is returned unchanged rather than
         // falling through to the canonical, level-derived column, which deliberately understates an
-        // anchor-derived column (issue #748) and would undercount either way. Otherwise, outside any anchor
+        // anchor-derived column and would undercount either way. Otherwise, outside any anchor
         // scope, the label's own column may itself be a stray extra space or tab, and the canonical,
         // level-derived column self-corrects it instead of propagating it - the same distinction
         // SyntaxIndentationUtilities.HasAnchorScopeAncestor's other two callers already make

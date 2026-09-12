@@ -237,7 +237,7 @@ public class ObjectInitializerContributorTests
 
     /// <summary>
     /// Verifies that a <c>with</c>-expression initializer's braces are aligned to the <c>with</c>
-    /// keyword column (issue #430)
+    /// keyword column.
     /// </summary>
     [TestMethod]
     public void AlignsWithExpressionInitializerBraces()
@@ -292,7 +292,7 @@ public class ObjectInitializerContributorTests
 
     /// <summary>
     /// Verifies that members of a <c>with</c>-expression initializer are indented one level from
-    /// the <c>with</c> keyword (issue #430)
+    /// the <c>with</c> keyword.
     /// </summary>
     [TestMethod]
     public void IndentsWithExpressionMembersOneLevelFromWithKeyword()
@@ -345,7 +345,7 @@ public class ObjectInitializerContributorTests
 
     /// <summary>
     /// Verifies that a typed <c>stackalloc</c> initializer's braces are aligned to the
-    /// <c>stackalloc</c> keyword column (issue #430)
+    /// <c>stackalloc</c> keyword column.
     /// </summary>
     [TestMethod]
     public void AlignsStackAllocInitializerBraces()
@@ -390,7 +390,7 @@ public class ObjectInitializerContributorTests
 
     /// <summary>
     /// Verifies that a <c>stackalloc</c> expression without an initializer does not produce
-    /// layout entries (issue #430)
+    /// layout entries.
     /// </summary>
     [TestMethod]
     public void DoesNothingForStackAllocWithoutInitializer()
@@ -423,7 +423,7 @@ public class ObjectInitializerContributorTests
 
     /// <summary>
     /// Verifies that an implicitly-typed <c>stackalloc[]</c> initializer's braces are aligned to
-    /// the <c>stackalloc</c> keyword column (issue #430)
+    /// the <c>stackalloc</c> keyword column.
     /// </summary>
     [TestMethod]
     public void AlignsImplicitStackAllocInitializerBraces()
@@ -469,7 +469,7 @@ public class ObjectInitializerContributorTests
     /// <summary>
     /// Verifies that a bare array initializer attached through <c>EqualsValueClauseSyntax</c> (no
     /// <c>new</c> keyword) indents its members one level deeper than the open brace instead of
-    /// being flattened to the same column (issue #430)
+    /// being flattened to the same column.
     /// </summary>
     [TestMethod]
     public void IndentsEqualsValueClauseInitializerMembersOneLevel()

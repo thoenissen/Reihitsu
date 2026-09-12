@@ -242,7 +242,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
 
     /// <summary>
     /// Verifies the code fix inserts the blank line after an <c>#endregion</c> directive that immediately
-    /// follows the closing brace, rather than inside the region above the directive (issue #415)
+    /// follows the closing brace, rather than inside the region above the directive.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -619,7 +619,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// <summary>
     /// Verifies a diagnostic is reported when a comment line separates a closing brace from the next statement,
     /// matching the formatter's blank-line definition, which only counts a line as blank when it contains no
-    /// content (issue #440)
+    /// content.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -674,7 +674,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// tests <see cref="VerifyNoDiagnosticAfterRH5010FixInsertsBlankLineBeforeBreak"/> and
     /// <see cref="RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests.VerifyNoDiagnosticAfterRH5030FixInsertsBlankLineBeforeBreak"/>
     /// verify that fixing either diagnostic first always clears the other, so applying both rules' code fixes
-    /// (in either order) never inserts a second blank line (PR #546 review)
+    /// (in either order) never inserts a second blank line.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -731,7 +731,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// closing brace outside a switch section, RH5030 no longer reports a diagnostic on the same code. Combined
     /// with <see cref="VerifyDiagnosticAndFixForBreakStatementAfterClosingBraceOutsideSwitchSection"/>, this shows
     /// fixing either rule's diagnostic first always satisfies the other, so no double blank line can result from
-    /// applying both rules' code fixes (PR #546 review)
+    /// applying both rules' code fixes.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

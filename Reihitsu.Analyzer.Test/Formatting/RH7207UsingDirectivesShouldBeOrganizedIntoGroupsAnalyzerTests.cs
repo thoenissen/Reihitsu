@@ -940,7 +940,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// <summary>
     /// Verifies that reordering the only using directives in a file into different groups converges on a
     /// single application of the code fix instead of needing a second pass to add the missing blank-line
-    /// separator (issue #728)
+    /// separator
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

@@ -207,7 +207,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
             // mirroring RH5020: the formatter treats adjacent comment blocks as a unit and never inserts a blank line
             // between them, and it leaves directive-adjacent comments untouched, so flagging these would leave a
             // permanent, CLI-unfixable diagnostic. The preceding construct is read from trivia rather than line text so
-            // that string content that only looks like a comment or a directive is not mistaken for one (issue #449)
+            // that string content that only looks like a comment or a directive is not mistaken for one
             if (IsPrecededByCommentOrDirective(root, diagnosticStart))
             {
                 continue;
