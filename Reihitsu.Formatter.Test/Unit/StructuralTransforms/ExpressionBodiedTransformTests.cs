@@ -888,7 +888,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied conversion operator survives conversion (issue #422)
+    /// Verifies that a comment trailing the arrow token of an expression-bodied conversion operator survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentTrailingArrowInConversion()
@@ -918,7 +918,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment leading the semicolon token of an expression-bodied conversion operator survives conversion (issue #422)
+    /// Verifies that a comment leading the semicolon token of an expression-bodied conversion operator survives conversion.
     /// </summary>
     [TestMethod]
     public void PreservesCommentLeadingSemicolonInConversion()

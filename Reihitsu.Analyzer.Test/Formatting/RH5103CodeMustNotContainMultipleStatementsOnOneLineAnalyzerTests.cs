@@ -599,7 +599,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// statement rather than that section's label, the split statement is not compensated: a statement sharing
     /// the textual stretch between two labels is not itself a label, so it carries no one-level relationship,
     /// even though it lies between the enclosing switch statement's opening brace and this section's own last
-    /// label (issue #786)
+    /// label.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -666,8 +666,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// the label's own continuation line rather than with a preceding sibling statement, so the anchor column
     /// read from that line is the continuation's own column, not the label's first-line column, and the fix adds
     /// one indentation level too many. This is a known, documented limitation (see RH5103.md), not a defect this
-    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate
-    /// (issue #786)
+    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

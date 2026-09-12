@@ -527,7 +527,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifies that an accessor list carrying a documentation comment is not flagged, because collapsing it
-    /// would delete the comment (issue #420)
+    /// would delete the comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -552,7 +552,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifies that no code fix is offered for an accessor list carrying a documentation comment, so the fix
-    /// cannot delete it (issue #420)
+    /// cannot delete it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -584,7 +584,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a multi-line get/set auto-property followed by a trailing comment is detected and fixed,
-    /// because the comment sits outside the accessor list and is never crossed by the collapse (issue #604)
+    /// because the comment sits outside the accessor list and is never crossed by the collapse
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -614,7 +614,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a multi-line get-only auto-property followed by a trailing comment is detected and fixed
-    /// (issue #604)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -643,7 +642,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that a multi-line auto-property followed by a trailing block comment is detected and fixed
-    /// (issue #604)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -673,7 +671,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifying that two multi-line auto-properties with trailing comments in one document are both detected and
-    /// fixed together, so a Fix All pass converges (issue #604)
+    /// fixed together, so a Fix All pass converges
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
