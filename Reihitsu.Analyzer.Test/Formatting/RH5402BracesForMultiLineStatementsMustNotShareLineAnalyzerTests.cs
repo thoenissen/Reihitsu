@@ -74,7 +74,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : B
 
     /// <summary>
     /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
-    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

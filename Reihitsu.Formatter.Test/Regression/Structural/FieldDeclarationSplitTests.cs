@@ -1399,7 +1399,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment written before the first declarator of a nested type's field is preserved at the
-    /// nested indentation (issue #636)
+    /// nested indentation.
     /// </summary>
     [TestMethod]
     public void CommentBeforeFirstDeclaratorInNestedTypeIsPreserved()
@@ -1436,7 +1436,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a misindented comment before the first declarator is re-anchored to the member indentation.
     /// The split preserves the author's whitespace and the indentation phase owns the column, so the output does not
-    /// depend on the column the comment was written at (issue #636)
+    /// depend on the column the comment was written at.
     /// </summary>
     [TestMethod]
     public void MisindentedCommentBeforeFirstDeclaratorIsNormalizedToMemberIndentation()
@@ -1468,7 +1468,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// Verifies that the pipeline output for a first declarator whose slot holds no comment is unchanged by the
     /// split. The indentation phase re-anchors the declarator either way, so this asserts that reading the slot
     /// caused no regression here rather than pinning the boundary itself - that side is only observable on the code
-    /// fix surface, where no later phase runs (issue #636)
+    /// fix surface, where no later phase runs.
     /// </summary>
     [TestMethod]
     public void WhitespaceOnlyTriviaBeforeFirstDeclaratorIsUnchanged()
@@ -1498,7 +1498,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a comment written on the type's own line is still duplicated onto every generated field. It is
     /// trailing trivia of the type token rather than leading trivia of the declarator, so it is a different slot and
-    /// this fix must not reach it (issue #636)
+    /// this fix must not reach it.
     /// </summary>
     [TestMethod]
     public void CommentOnTheTypeLineIsStillDuplicatedOntoEveryField()
@@ -1524,7 +1524,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a directive written before the first declarator still leaves the field declaration intact. The
-    /// directive guard inspects the whole declaration, so it covers the newly read slot as well (issue #636)
+    /// directive guard inspects the whole declaration, so it covers the newly read slot as well.
     /// </summary>
     [TestMethod]
     public void DirectiveBeforeFirstDeclaratorLeavesTheFieldIntact()
@@ -1546,8 +1546,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that disabled text written before the first declarator still leaves the field declaration intact
-    /// (issue #636)
+    /// Verifies that disabled text written before the first declarator still leaves the field declaration intact.
     /// </summary>
     [TestMethod]
     public void DisabledTextBeforeFirstDeclaratorLeavesTheFieldIntact()
@@ -1570,7 +1569,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment before the declarator of a single declarator field is untouched. The split does not
-    /// run at all, so the slot is never rebuilt (issue #636)
+    /// run at all, so the slot is never rebuilt.
     /// </summary>
     [TestMethod]
     public void CommentBeforeDeclaratorOfSingleDeclaratorFieldIsUnchanged()

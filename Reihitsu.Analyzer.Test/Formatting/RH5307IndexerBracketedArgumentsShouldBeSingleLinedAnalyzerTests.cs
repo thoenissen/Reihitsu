@@ -85,7 +85,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
 
     /// <summary>
     /// Verifies that a comment written between the brackets still suppresses the diagnostic, because
-    /// the collapse would have to cross it (issue #610)
+    /// the collapse would have to cross it.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -200,7 +200,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
 
     /// <summary>
     /// Verifies that multiline indexer arguments carrying a documentation comment are ignored, because the
-    /// formatter refuses to collapse across it and the fix would otherwise never converge (issue #420)
+    /// formatter refuses to collapse across it and the fix would otherwise never converge.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

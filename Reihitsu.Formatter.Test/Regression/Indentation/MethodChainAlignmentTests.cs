@@ -984,7 +984,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment-exempt chain nested in a lambda argument of a conditional access
-    /// chain aligns its links under the chain root instead of the enclosing block (issue #475)
+    /// chain aligns its links under the chain root instead of the enclosing block
     /// </summary>
     [TestMethod]
     public void CommentExemptChainInsideLambdaArgumentAlignsUnderChainRoot()
@@ -1010,7 +1010,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a misaligned chain continuation inside a lambda argument is aligned to the
-    /// chain anchor when the outer chain is a conditional access expression (issue #475)
+    /// chain anchor when the outer chain is a conditional access expression
     /// </summary>
     [TestMethod]
     public void MisalignedChainInsideLambdaArgumentOfConditionalAccessIsAligned()
@@ -1048,7 +1048,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a wrapped chain continuation inside a plain argument keeps its alignment
-    /// when the outer chain is a conditional access expression (issue #475)
+    /// when the outer chain is a conditional access expression
     /// </summary>
     [TestMethod]
     public void ChainInsideArgumentOfConditionalAccessKeepsAlignment()
@@ -1072,7 +1072,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a wrapped chain continuation inside a lambda argument keeps its alignment
-    /// when the outer chain is a conditional access expression (issue #475)
+    /// when the outer chain is a conditional access expression
     /// </summary>
     [TestMethod]
     public void ChainInsideLambdaArgumentOfConditionalAccessKeepsAlignment()
@@ -1100,7 +1100,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a wrapped chain whose first invoked link is introduced by <c>?.</c> and is
     /// preceded by a plain (non-invoked) property access aligns continuation dots to that
-    /// <c>?.</c>-invoked link (issue #680)
+    /// <c>?.</c>-invoked link
     /// </summary>
     [TestMethod]
     public void ConditionalAccessAfterPlainPropertyAccessAlignsToInvokedLink()
@@ -1181,7 +1181,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a wrapped chain whose first invoked link is introduced by <c>!.</c> and is
     /// preceded by a plain (non-invoked) property access aligns continuation dots to that
-    /// <c>!.</c>-invoked link (issue #680)
+    /// <c>!.</c>-invoked link
     /// </summary>
     [TestMethod]
     public void NullForgivingAfterPlainPropertyAccessAlignsToInvokedLink()
@@ -1221,7 +1221,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a null-forgiving operator on a non-invoked member access is not treated as a
-    /// chain link: the anchor stays the first plain invoked dot, unaffected by issue #680's fix
+    /// chain link: the anchor stays the first plain invoked dot
     /// </summary>
     [TestMethod]
     public void NonInvokedNullForgivingIsNotTheChainAnchor()
@@ -1247,7 +1247,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a wrapped chain whose first invoked link is introduced by <c>?.</c> aligns to
-    /// that link even when two plain (non-invoked) property accesses precede it (issue #680)
+    /// that link even when two plain (non-invoked) property accesses precede it
     /// </summary>
     [TestMethod]
     public void DeepPlainPrefixBeforeConditionalAccessAlignsToInvokedLink()
@@ -1287,7 +1287,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that when a wrapped chain has two <c>?.</c>-invoked links, continuation dots align
-    /// to the first one rather than to a plain (non-invoked) property access before it (issue #680)
+    /// to the first one rather than to a plain (non-invoked) property access before it
     /// </summary>
     [TestMethod]
     public void MultipleConditionalAccessLinksAlignToFirstLink()
@@ -1329,7 +1329,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a non-invoked trailing property access at the end of a wrapped chain aligns to
-    /// the same <c>?.</c>-invoked link as the rest of the chain (issue #680)
+    /// the same <c>?.</c>-invoked link as the rest of the chain
     /// </summary>
     [TestMethod]
     public void TrailingPropertyAfterConditionalAccessChainAlignsToInvokedLink()
@@ -1371,7 +1371,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a <c>?.</c> link directly after a collection initializer's closing brace keeps
-    /// anchoring correctly, unaffected by issue #680's fix for a non-invoked prefix dot between them
+    /// anchoring correctly even with a non-invoked prefix dot between them
     /// </summary>
     [TestMethod]
     public void ConditionalAccessDirectlyAfterInitializerCloseBraceKeepsAnchor()
@@ -1402,7 +1402,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a <c>?.</c> link aligns correctly when it is separated from an initializer's
     /// closing brace by a plain (non-invoked) property access, so the anchor's column is still
-    /// derived from the creation expression's <c>new</c> keyword rather than left unadjusted (issue #680)
+    /// derived from the creation expression's <c>new</c> keyword rather than left unadjusted
     /// </summary>
     [TestMethod]
     public void ConditionalAccessAfterInitializerCloseBraceAndPropertyAlignsToInvokedLink()
@@ -1448,7 +1448,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// onto the chain root, so the remaining continuation dots align to the first invoked link's
     /// column — the column RH5201 computes — instead of to block indentation. The dot is a plain,
     /// non-invoked property access, which the line-break phase's invoked-link-only view never
-    /// considered (issue #683)
+    /// considered
     /// </summary>
     [TestMethod]
     public void WrappedFirstChainDotCollapsesOntoChainRoot()
