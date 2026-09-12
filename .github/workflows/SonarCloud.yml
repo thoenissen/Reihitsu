@@ -44,9 +44,20 @@ jobs:
       - name: Build
         run: dotnet build --no-incremental --configuration Release
 
+      - name: Test (Architecture)
+        # Reihitsu.ArchitectureTests loads several assemblies reflectively (ArchUnitNET) purely for static
+        # inspection. Running it under dotnet-coverage records those reflectively-loaded copies as extra,
+        # never-executed modules that dilute the coverage of the real, tested assemblies, so it runs
+        # uninstrumented and separately from the coverage-collected test projects below.
+        run: dotnet test Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj --no-build --configuration Release -m
+
       - name: Test
-        run: dotnet-coverage collect 'dotnet test --no-build --configuration Release -m' -f xml -o 'coverage.xml'
-          
+        run: |
+          for project in Reihitsu.Analyzer.Test Reihitsu.Formatter.Test Reihitsu.Core.Test Reihitsu.Cli.Test Reihitsu.Tooling.Test Reihitsu.Playground.Test; do
+            dotnet-coverage collect "dotnet test $project/$project.csproj --no-build --configuration Release -m" -f xml -o "coverage-$project.xml"
+          done
+          dotnet-coverage merge coverage-*.xml -f xml -o coverage.xml --remove-input-files
+
       - name: Sonarscanner end
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
