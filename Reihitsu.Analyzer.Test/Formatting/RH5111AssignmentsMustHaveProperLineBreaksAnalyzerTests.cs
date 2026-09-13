@@ -38,9 +38,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     {
         var cancellationToken = TestContext.CancellationToken;
         var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
-        var expected = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken)
-                                        .GetText(cancellationToken)
-                                        .ToString();
+        var expectedText = await ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken)
+                                                  .GetTextAsync(cancellationToken);
+        var expected = expectedText.ToString();
         var actual = await ApplyCodeFixAsync(source);
 
         Assert.AreEqual(expected, actual);

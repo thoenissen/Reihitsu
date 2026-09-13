@@ -91,13 +91,13 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : Diagno
             return;
         }
 
-        var leftLineSpan = binaryExpression.Left.SyntaxTree.GetLineSpan(binaryExpression.Left.Span);
+        var leftLineSpan = binaryExpression.Left.SyntaxTree.GetLineSpan(binaryExpression.Left.Span, context.CancellationToken);
         var leftEndLine = leftLineSpan.EndLinePosition.Line;
 
-        var operatorLineSpan = binaryExpression.OperatorToken.SyntaxTree.GetLineSpan(binaryExpression.OperatorToken.Span);
+        var operatorLineSpan = binaryExpression.OperatorToken.SyntaxTree.GetLineSpan(binaryExpression.OperatorToken.Span, context.CancellationToken);
         var operatorLine = operatorLineSpan.StartLinePosition.Line;
 
-        var rightLineSpan = binaryExpression.Right.SyntaxTree.GetLineSpan(binaryExpression.Right.Span);
+        var rightLineSpan = binaryExpression.Right.SyntaxTree.GetLineSpan(binaryExpression.Right.Span, context.CancellationToken);
         var rightStartLine = rightLineSpan.StartLinePosition.Line;
 
         if (operatorLine != leftEndLine || rightStartLine != operatorLine)

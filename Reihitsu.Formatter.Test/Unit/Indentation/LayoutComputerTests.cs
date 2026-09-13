@@ -619,7 +619,7 @@ public class LayoutComputerTests
 
         // Assert — collection elements should have layout entries
         Assert.IsTrue(model.TryGetLayout(6, out var elem1), "Line 6 should have a layout entry for collection element.");
-        Assert.IsTrue(model.TryGetLayout(7, out var elem2), "Line 7 should have a layout entry for collection element.");
+        Assert.IsTrue(model.TryGetLayout(7, out _), "Line 7 should have a layout entry for collection element.");
         Assert.IsGreaterThan(0, elem1.Column, "Collection elements should have non-zero indentation.");
     }
 
@@ -685,7 +685,7 @@ public class LayoutComputerTests
 
         // Assert — continuation lines should have layout entries
         Assert.IsTrue(model.TryGetLayout(5, out var line5), "Line 5 (&& false) should have a layout entry.");
-        Assert.IsTrue(model.TryGetLayout(6, out var line6), "Line 6 (|| true) should have a layout entry.");
+        Assert.IsTrue(model.TryGetLayout(6, out _), "Line 6 (|| true) should have a layout entry.");
         Assert.IsGreaterThan(0, line5.Column, "Binary expression continuation should have non-zero indentation.");
     }
 

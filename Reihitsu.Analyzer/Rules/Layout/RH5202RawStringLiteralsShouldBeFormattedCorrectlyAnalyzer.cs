@@ -85,8 +85,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
             return;
         }
 
-        var startLineSpan = startToken.SyntaxTree.GetLineSpan(startToken.Span);
-        var endLineSpan = endToken.SyntaxTree.GetLineSpan(endToken.Span);
+        var startLineSpan = startToken.SyntaxTree.GetLineSpan(startToken.Span, context.CancellationToken);
+        var endLineSpan = endToken.SyntaxTree.GetLineSpan(endToken.Span, context.CancellationToken);
 
         if (startLineSpan.StartLinePosition.Line == endLineSpan.StartLinePosition.Line)
         {

@@ -77,39 +77,6 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Tries to compute a valid replacement identifier for the specified node
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <param name="identifier">The computed replacement identifier when the conversion succeeds</param>
-    /// <returns>
-    /// <see langword="true"/> if the conversion produced a valid identifier that differs from the original;
-    /// otherwise, <see langword="false"/>
-    /// </returns>
-    private bool TryGetFixedIdentifier(T node, out string identifier)
-    {
-        identifier = null;
-
-        string original;
-
-        try
-        {
-            original = GetIdentifier(node);
-            identifier = _casingConversion(original);
-        }
-        catch (Exception)
-        {
-            // A defective conversion must never surface as an unhandled exception inside the code action
-            return false;
-        }
-
-        // The conversion has to yield a valid, non-empty identifier that actually changes the original name; otherwise
-        // there is nothing to fix (for example letterless names such as "_" or "__")
-        return string.IsNullOrEmpty(identifier) == false
-               && string.Equals(identifier, original, StringComparison.Ordinal) == false
-               && SyntaxFacts.IsValidIdentifier(identifier);
-    }
-
-    /// <summary>
     /// Gets the declared symbol that the rename should target
     /// </summary>
     /// <param name="model">Semantic model</param>
@@ -119,7 +86,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// The declared symbol when a comprehensive rename of the declaration and all references is supported;
     /// otherwise, <see langword="null"/>
     /// </returns>
-    private ISymbol GetDeclaredSymbol(SemanticModel model, T node, CancellationToken cancellationToken)
+    private static ISymbol GetDeclaredSymbol(SemanticModel model, T node, CancellationToken cancellationToken)
     {
         // Tuple elements are intentionally excluded because the renamer does not support them, which means only the
         // declaration could be changed
@@ -145,7 +112,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="identifier">The replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
-    private async Task<Solution> ApplyCodeFixAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
+    private static async Task<Solution> ApplyCodeFixAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
     {
         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -165,66 +132,11 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies every safe aggregate rename while refusing candidates that share a conflicting normalized target
-    /// </summary>
-    /// <param name="context">Fix All context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The solution containing every safe aggregate rename</returns>
-    private async Task<Solution> ApplyFixAllAsync(FixAllContext context, CancellationToken cancellationToken)
-    {
-        var solution = context.Solution;
-        var diagnostics = await GetFixAllDiagnosticsAsync(context).ConfigureAwait(false);
-        var candidates = await GetFixAllCandidatesAsync(solution, diagnostics, cancellationToken).ConfigureAwait(false);
-
-        if (candidates.IsEmpty)
-        {
-            return solution;
-        }
-
-        solution = await AnnotateFixAllCandidatesAsync(solution, candidates, cancellationToken).ConfigureAwait(false);
-
-        var duplicateTargetCandidates = await GetDuplicateTargetCandidatesAsync(solution, candidates, cancellationToken).ConfigureAwait(false);
-
-        foreach (var candidate in candidates)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (duplicateTargetCandidates.Any(duplicate => duplicate.Annotation == candidate.Annotation))
-            {
-                continue;
-            }
-
-            var resolvedCandidate = await ResolveFixAllCandidateAsync(solution, candidate, cancellationToken).ConfigureAwait(false);
-
-            if (resolvedCandidate == null
-                || CanRegisterCodeFix(resolvedCandidate.Value.Node) == false
-                || TryGetFixedIdentifier(resolvedCandidate.Value.Node, out var identifier) == false
-                || string.Equals(identifier, candidate.Identifier, StringComparison.Ordinal) == false)
-            {
-                continue;
-            }
-
-            var renamedSolution = await RenameWithoutConflictAsync(solution,
-                                                                   candidate.DocumentId,
-                                                                   candidate.Annotation,
-                                                                   identifier,
-                                                                   cancellationToken).ConfigureAwait(false);
-
-            if (renamedSolution != null)
-            {
-                solution = renamedSolution;
-            }
-        }
-
-        return solution;
-    }
-
-    /// <summary>
     /// Gets the diagnostics covered by the requested Document, Project, or Solution Fix All scope
     /// </summary>
     /// <param name="context">Fix All context</param>
     /// <returns>Diagnostics in deterministic project and document order</returns>
-    private async Task<ImmutableArray<Diagnostic>> GetFixAllDiagnosticsAsync(FixAllContext context)
+    private static async Task<ImmutableArray<Diagnostic>> GetFixAllDiagnosticsAsync(FixAllContext context)
     {
         switch (context.Scope)
         {
@@ -258,70 +170,12 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Resolves aggregate diagnostics to supported declarations and their proposed identifiers
-    /// </summary>
-    /// <param name="solution">Solution containing the diagnostics</param>
-    /// <param name="diagnostics">Diagnostics to resolve</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Supported aggregate rename candidates in deterministic order</returns>
-    private async Task<ImmutableArray<FixAllCandidate>> GetFixAllCandidatesAsync(Solution solution,
-                                                                                 ImmutableArray<Diagnostic> diagnostics,
-                                                                                 CancellationToken cancellationToken)
-    {
-        var candidates = ImmutableArray.CreateBuilder<FixAllCandidate>();
-        var orderedLocations = diagnostics.Where(static diagnostic => diagnostic.Location.IsInSource)
-                                          .Select(static diagnostic => diagnostic.Location)
-                                          .OrderBy(location => GetDocumentSortKey(solution, location.SourceTree), StringComparer.Ordinal)
-                                          .ThenBy(static location => location.SourceSpan.Start)
-                                          .ThenBy(static location => location.SourceSpan.Length);
-
-        foreach (var location in orderedLocations)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var sourceTree = location.SourceTree;
-            var document = sourceTree == null
-                               ? null
-                               : solution.GetDocument(sourceTree);
-            var root = document == null
-                           ? null
-                           : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = document == null
-                            ? null
-                            : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            if (document == null
-                || root == null
-                || model == null
-                || root.FindNode(location.SourceSpan) is not T node
-                || CanRegisterCodeFix(node) == false
-                || TryGetFixedIdentifier(node, out var identifier) == false)
-            {
-                continue;
-            }
-
-            var declaredSymbol = GetDeclaredSymbol(model, node, cancellationToken);
-
-            if (declaredSymbol != null)
-            {
-                candidates.Add(new FixAllCandidate(document.Id,
-                                                   location.SourceSpan,
-                                                   new SyntaxAnnotation(nameof(FixAllCandidate), candidates.Count.ToString(CultureInfo.InvariantCulture)),
-                                                   identifier,
-                                                   declaredSymbol.ContainingSymbol));
-            }
-        }
-
-        return candidates.ToImmutable();
-    }
-
-    /// <summary>
     /// Gets a stable project, path, and document key for diagnostic ordering
     /// </summary>
     /// <param name="solution">Solution containing the diagnostic</param>
     /// <param name="sourceTree">Diagnostic source tree</param>
     /// <returns>Stable diagnostic document key</returns>
-    private string GetDocumentSortKey(Solution solution, SyntaxTree sourceTree)
+    private static string GetDocumentSortKey(Solution solution, SyntaxTree sourceTree)
     {
         var document = sourceTree == null
                            ? null
@@ -339,9 +193,9 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="candidates">Candidates to annotate</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The annotated solution</returns>
-    private async Task<Solution> AnnotateFixAllCandidatesAsync(Solution solution,
-                                                               ImmutableArray<FixAllCandidate> candidates,
-                                                               CancellationToken cancellationToken)
+    private static async Task<Solution> AnnotateFixAllCandidatesAsync(Solution solution,
+                                                                      ImmutableArray<FixAllCandidate> candidates,
+                                                                      CancellationToken cancellationToken)
     {
         foreach (var candidate in candidates)
         {
@@ -372,9 +226,9 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="candidates">Aggregate rename candidates</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Candidates belonging to conflicting duplicate-target groups</returns>
-    private async Task<ImmutableArray<FixAllCandidate>> GetDuplicateTargetCandidatesAsync(Solution solution,
-                                                                                          ImmutableArray<FixAllCandidate> candidates,
-                                                                                          CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<FixAllCandidate>> GetDuplicateTargetCandidatesAsync(Solution solution,
+                                                                                                 ImmutableArray<FixAllCandidate> candidates,
+                                                                                                 CancellationToken cancellationToken)
     {
         var duplicateTargetCandidates = ImmutableArray.CreateBuilder<FixAllCandidate>();
 
@@ -399,11 +253,11 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="duplicates">Duplicate target accumulator</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that completes after all later candidates have been compared</returns>
-    private async Task AddDuplicateTargetsForCandidateAsync(Solution solution,
-                                                            ImmutableArray<FixAllCandidate> candidates,
-                                                            int firstIndex,
-                                                            ImmutableArray<FixAllCandidate>.Builder duplicates,
-                                                            CancellationToken cancellationToken)
+    private static async Task AddDuplicateTargetsForCandidateAsync(Solution solution,
+                                                                   ImmutableArray<FixAllCandidate> candidates,
+                                                                   int firstIndex,
+                                                                   ImmutableArray<FixAllCandidate>.Builder duplicates,
+                                                                   CancellationToken cancellationToken)
     {
         var first = candidates[firstIndex];
 
@@ -428,7 +282,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// </summary>
     /// <param name="candidates">Candidate accumulator</param>
     /// <param name="candidate">Candidate to add</param>
-    private void AddIfMissing(ImmutableArray<FixAllCandidate>.Builder candidates, FixAllCandidate candidate)
+    private static void AddIfMissing(ImmutableArray<FixAllCandidate>.Builder candidates, FixAllCandidate candidate)
     {
         if (candidates.Any(existing => existing.Annotation == candidate.Annotation) == false)
         {
@@ -444,10 +298,10 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="second">Second candidate</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when applying both candidates would create a rename conflict; otherwise, <see langword="false"/></returns>
-    private async Task<bool> CandidatesConflictAsync(Solution solution,
-                                                     FixAllCandidate first,
-                                                     FixAllCandidate second,
-                                                     CancellationToken cancellationToken)
+    private static async Task<bool> CandidatesConflictAsync(Solution solution,
+                                                            FixAllCandidate first,
+                                                            FixAllCandidate second,
+                                                            CancellationToken cancellationToken)
     {
         var firstRenamedSolution = await RenameWithoutConflictAsync(solution,
                                                                     first.DocumentId,
@@ -470,9 +324,9 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="candidate">Candidate to resolve</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The current declaration node and symbol, or <see langword="null"/> when either is unavailable</returns>
-    private async Task<(T Node, ISymbol Symbol)?> ResolveFixAllCandidateAsync(Solution solution,
-                                                                              FixAllCandidate candidate,
-                                                                              CancellationToken cancellationToken)
+    private static async Task<(T Node, ISymbol Symbol)?> ResolveFixAllCandidateAsync(Solution solution,
+                                                                                     FixAllCandidate candidate,
+                                                                                     CancellationToken cancellationToken)
     {
         var document = solution.GetDocument(candidate.DocumentId);
         var root = document == null
@@ -499,10 +353,10 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="declaredSymbol">Target declaration symbol</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The annotated solution and binding-domain document/annotation pairs</returns>
-    private async Task<(Solution Solution, ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains)> AnnotateBindingDomainsAsync(Solution solution,
-                                                                                                                                                      DocumentId documentId,
-                                                                                                                                                      ISymbol declaredSymbol,
-                                                                                                                                                      CancellationToken cancellationToken)
+    private static async Task<(Solution Solution, ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains)> AnnotateBindingDomainsAsync(Solution solution,
+                                                                                                                                                             DocumentId documentId,
+                                                                                                                                                             ISymbol declaredSymbol,
+                                                                                                                                                             CancellationToken cancellationToken)
     {
         var domains = ImmutableArray.CreateBuilder<(DocumentId DocumentId, SyntaxAnnotation Annotation)>();
         var containingDeclarations = declaredSymbol.ContainingSymbol == null
@@ -562,9 +416,9 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="domains">Binding-domain document/annotation pairs</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Binding-domain compiler errors, or a default array when a tracked domain cannot be resolved</returns>
-    private async Task<ImmutableArray<Diagnostic>> GetBindingDomainErrorsAsync(Solution solution,
-                                                                               ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
-                                                                               CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<Diagnostic>> GetBindingDomainErrorsAsync(Solution solution,
+                                                                                      ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
+                                                                                      CancellationToken cancellationToken)
     {
         var errors = ImmutableArray.CreateBuilder<Diagnostic>();
 
@@ -601,7 +455,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="identifier">Proposed identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when the proposed name collides; otherwise, <see langword="false"/></returns>
-    private bool HasNamespaceCollision(ISymbol declaredSymbol, string identifier, CancellationToken cancellationToken)
+    private static bool HasNamespaceCollision(ISymbol declaredSymbol, string identifier, CancellationToken cancellationToken)
     {
         if (declaredSymbol.ContainingSymbol is not INamespaceSymbol containingNamespace)
         {
@@ -631,7 +485,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="declaredSymbol">Declaration being renamed</param>
     /// <param name="declaringTrees">Syntax trees containing the declaration</param>
     /// <returns><see langword="true"/> when the existing member conflicts; otherwise, <see langword="false"/></returns>
-    private bool IsNamespaceCollision(ISymbol member, ISymbol declaredSymbol, ImmutableHashSet<SyntaxTree> declaringTrees)
+    private static bool IsNamespaceCollision(ISymbol member, ISymbol declaredSymbol, ImmutableHashSet<SyntaxTree> declaringTrees)
     {
         if (SymbolEqualityComparer.Default.Equals(member, declaredSymbol)
             || member.DeclaringSyntaxReferences.IsEmpty)
@@ -658,7 +512,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="identifier">Proposed replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when the rename would conflict; otherwise, <see langword="false"/></returns>
-    private async Task<bool> HasRenameConflictAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
+    private static async Task<bool> HasRenameConflictAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -686,11 +540,11 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="identifier">Proposed replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The renamed solution when conflict-free; otherwise, <see langword="null"/></returns>
-    private async Task<Solution> RenameWithoutConflictAsync(Solution solution,
-                                                            DocumentId documentId,
-                                                            SyntaxAnnotation annotation,
-                                                            string identifier,
-                                                            CancellationToken cancellationToken)
+    private static async Task<Solution> RenameWithoutConflictAsync(Solution solution,
+                                                                   DocumentId documentId,
+                                                                   SyntaxAnnotation annotation,
+                                                                   string identifier,
+                                                                   CancellationToken cancellationToken)
     {
         var preparation = await PrepareRenameAsync(solution,
                                                    documentId,
@@ -740,7 +594,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="identifier">Proposed identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The prepared rename inputs, or <see langword="null"/> when the rename is unsafe</returns>
-    private async Task<(Solution Solution,
+    private static async Task<(Solution Solution,
     ISymbol Symbol,
     ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains,
     ImmutableArray<Diagnostic> OriginalErrors,
@@ -801,10 +655,10 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="annotation">Declaration tracking annotation</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The declaration and symbol, or <see langword="null"/> when either cannot be resolved</returns>
-    private async Task<(T Node, ISymbol Symbol)?> ResolveRenameDeclarationAsync(Solution solution,
-                                                                                DocumentId documentId,
-                                                                                SyntaxAnnotation annotation,
-                                                                                CancellationToken cancellationToken)
+    private static async Task<(T Node, ISymbol Symbol)?> ResolveRenameDeclarationAsync(Solution solution,
+                                                                                       DocumentId documentId,
+                                                                                       SyntaxAnnotation annotation,
+                                                                                       CancellationToken cancellationToken)
     {
         var document = solution.GetDocument(documentId);
         var root = document == null
@@ -830,9 +684,9 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="renamedSolution">Solution after the rename</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when a changed document contains a conflict annotation; otherwise, <see langword="false"/></returns>
-    private async Task<bool> HasConflictAnnotationsAsync(Solution originalSolution,
-                                                         Solution renamedSolution,
-                                                         CancellationToken cancellationToken)
+    private static async Task<bool> HasConflictAnnotationsAsync(Solution originalSolution,
+                                                                Solution renamedSolution,
+                                                                CancellationToken cancellationToken)
     {
         foreach (var documentId in renamedSolution.GetChanges(originalSolution)
                                                   .GetProjectChanges()
@@ -860,16 +714,162 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="originalErrors">Errors present before the rename</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when the rename added binding errors; otherwise, <see langword="false"/></returns>
-    private async Task<bool> HasAddedBindingErrorsAsync(Solution renamedSolution,
-                                                        ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
-                                                        ImmutableArray<Diagnostic> originalErrors,
-                                                        CancellationToken cancellationToken)
+    private static async Task<bool> HasAddedBindingErrorsAsync(Solution renamedSolution,
+                                                               ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> domains,
+                                                               ImmutableArray<Diagnostic> originalErrors,
+                                                               CancellationToken cancellationToken)
     {
         var renamedErrors = await GetBindingDomainErrorsAsync(renamedSolution, domains, cancellationToken).ConfigureAwait(false);
 
         return renamedErrors.IsDefault
                || renamedErrors.GroupBy(static diagnostic => diagnostic.Id)
                                .Any(errorGroup => errorGroup.Count() > originalErrors.Count(diagnostic => string.Equals(diagnostic.Id, errorGroup.Key, StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Tries to compute a valid replacement identifier for the specified node
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <param name="identifier">The computed replacement identifier when the conversion succeeds</param>
+    /// <returns>
+    /// <see langword="true"/> if the conversion produced a valid identifier that differs from the original;
+    /// otherwise, <see langword="false"/>
+    /// </returns>
+    private bool TryGetFixedIdentifier(T node, out string identifier)
+    {
+        identifier = null;
+
+        string original;
+
+        try
+        {
+            original = GetIdentifier(node);
+            identifier = _casingConversion(original);
+        }
+        catch (Exception)
+        {
+            // A defective conversion must never surface as an unhandled exception inside the code action
+            return false;
+        }
+
+        // The conversion has to yield a valid, non-empty identifier that actually changes the original name; otherwise
+        // there is nothing to fix (for example letterless names such as "_" or "__")
+        return string.IsNullOrEmpty(identifier) == false
+               && string.Equals(identifier, original, StringComparison.Ordinal) == false
+               && SyntaxFacts.IsValidIdentifier(identifier);
+    }
+
+    /// <summary>
+    /// Applies every safe aggregate rename while refusing candidates that share a conflicting normalized target
+    /// </summary>
+    /// <param name="context">Fix All context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The solution containing every safe aggregate rename</returns>
+    private async Task<Solution> ApplyFixAllAsync(FixAllContext context, CancellationToken cancellationToken)
+    {
+        var solution = context.Solution;
+        var diagnostics = await GetFixAllDiagnosticsAsync(context).ConfigureAwait(false);
+        var candidates = await GetFixAllCandidatesAsync(solution, diagnostics, cancellationToken).ConfigureAwait(false);
+
+        if (candidates.IsEmpty)
+        {
+            return solution;
+        }
+
+        solution = await AnnotateFixAllCandidatesAsync(solution, candidates, cancellationToken).ConfigureAwait(false);
+
+        var duplicateTargetCandidates = await GetDuplicateTargetCandidatesAsync(solution, candidates, cancellationToken).ConfigureAwait(false);
+
+        foreach (var candidate in candidates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (duplicateTargetCandidates.Any(duplicate => duplicate.Annotation == candidate.Annotation))
+            {
+                continue;
+            }
+
+            var resolvedCandidate = await ResolveFixAllCandidateAsync(solution, candidate, cancellationToken).ConfigureAwait(false);
+
+            if (resolvedCandidate == null
+                || CanRegisterCodeFix(resolvedCandidate.Value.Node) == false
+                || TryGetFixedIdentifier(resolvedCandidate.Value.Node, out var identifier) == false
+                || string.Equals(identifier, candidate.Identifier, StringComparison.Ordinal) == false)
+            {
+                continue;
+            }
+
+            var renamedSolution = await RenameWithoutConflictAsync(solution,
+                                                                   candidate.DocumentId,
+                                                                   candidate.Annotation,
+                                                                   identifier,
+                                                                   cancellationToken).ConfigureAwait(false);
+
+            if (renamedSolution != null)
+            {
+                solution = renamedSolution;
+            }
+        }
+
+        return solution;
+    }
+
+    /// <summary>
+    /// Resolves aggregate diagnostics to supported declarations and their proposed identifiers
+    /// </summary>
+    /// <param name="solution">Solution containing the diagnostics</param>
+    /// <param name="diagnostics">Diagnostics to resolve</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Supported aggregate rename candidates in deterministic order</returns>
+    private async Task<ImmutableArray<FixAllCandidate>> GetFixAllCandidatesAsync(Solution solution,
+                                                                                 ImmutableArray<Diagnostic> diagnostics,
+                                                                                 CancellationToken cancellationToken)
+    {
+        var candidates = ImmutableArray.CreateBuilder<FixAllCandidate>();
+        var orderedLocations = diagnostics.Where(static diagnostic => diagnostic.Location.IsInSource)
+                                          .Select(static diagnostic => diagnostic.Location)
+                                          .OrderBy(location => GetDocumentSortKey(solution, location.SourceTree), StringComparer.Ordinal)
+                                          .ThenBy(static location => location.SourceSpan.Start)
+                                          .ThenBy(static location => location.SourceSpan.Length);
+
+        foreach (var location in orderedLocations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var sourceTree = location.SourceTree;
+            var document = sourceTree == null
+                               ? null
+                               : solution.GetDocument(sourceTree);
+            var root = document == null
+                           ? null
+                           : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = document == null
+                            ? null
+                            : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            if (document == null
+                || root == null
+                || model == null
+                || root.FindNode(location.SourceSpan) is not T node
+                || CanRegisterCodeFix(node) == false
+                || TryGetFixedIdentifier(node, out var identifier) == false)
+            {
+                continue;
+            }
+
+            var declaredSymbol = GetDeclaredSymbol(model, node, cancellationToken);
+
+            if (declaredSymbol != null)
+            {
+                candidates.Add(new FixAllCandidate(document.Id,
+                                                   location.SourceSpan,
+                                                   new SyntaxAnnotation(nameof(FixAllCandidate), candidates.Count.ToString(CultureInfo.InvariantCulture)),
+                                                   identifier,
+                                                   declaredSymbol.ContainingSymbol));
+            }
+        }
+
+        return candidates.ToImmutable();
     }
 
     #endregion // Methods

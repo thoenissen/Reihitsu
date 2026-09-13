@@ -401,6 +401,9 @@
     <Rule Id="RH8402" Action="None" />
     <Rule Id="RH8501" Action="Error" />
   </Rules>
+  <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+    <Rule Id="S1125" Action="None" />
+  </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1000" Action="Error" />
     <Rule Id="SA1001" Action="Error" />

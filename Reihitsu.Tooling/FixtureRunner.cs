@@ -306,9 +306,14 @@ public static class FixtureRunner
     {
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false)
                               ?? throw new InvalidOperationException("Failed to compile the fixture document.");
+
+        // The overload accepting a CancellationToken here is obsolete (CS0618); GetAnalyzerDiagnosticsAsync below is
+        // where Roslyn now expects cancellation to be observed
+#pragma warning disable S8949 // The CancellationToken parameter on this WithAnalyzers overload is obsolete
         var diagnostics = await compilation.WithAnalyzers(target.Analyzers, document.Project.AnalyzerOptions)
                                            .GetAnalyzerDiagnosticsAsync(cancellationToken)
                                            .ConfigureAwait(false);
+#pragma warning restore S8949
 
         return diagnostics;
     }

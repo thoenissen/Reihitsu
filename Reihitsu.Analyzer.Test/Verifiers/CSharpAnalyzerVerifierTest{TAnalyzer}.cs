@@ -35,7 +35,7 @@ public class CSharpAnalyzerVerifierTest<TAnalyzer> : CSharpAnalyzerTest<TAnalyze
     /// <param name="solution">Solution</param>
     /// <param name="projectId">Project ID</param>
     /// <returns>Transformed solution</returns>
-    private Solution OnTransform(Solution solution, ProjectId projectId)
+    private static Solution OnTransform(Solution solution, ProjectId projectId)
     {
         if (solution != null)
         {

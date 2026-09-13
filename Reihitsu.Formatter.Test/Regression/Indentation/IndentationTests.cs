@@ -85,8 +85,8 @@ public class IndentationTests : FormatterTestsBase
                                 "    }",
                                 "}");
 
-        // The interior comment line is part of the comment token's text and is preserved as-is;
-        // only the leading whitespace before the comment and the following statement is rebuilt
+        // The interior comment line is part of the comment token's text and is preserved as-is.
+        // Only the leading whitespace before the comment and the following statement is rebuilt
         var expected = string.Join(Environment.NewLine,
                                    "class C",
                                    "{",

@@ -218,11 +218,20 @@ public class AnalyzerPackageMetadataTests
                                                   || string.Equals(AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.PackageRule.Description),
                                                                    AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.DocumentedRule.Title),
                                                                    StringComparison.OrdinalIgnoreCase) is false)
-                                  .Select(entry => entry.PackageRule == null
-                                                       ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing from the analyzer package README."
-                                                       : entry.DocumentedRule == null
-                                                           ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation."
-                                                           : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) README description '{entry.PackageRule.Description}' does not match rule title '{entry.DocumentedRule.Title}'.")
+                                  .Select(entry =>
+                                          {
+                                              if (entry.PackageRule == null)
+                                              {
+                                                  return $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing from the analyzer package README.";
+                                              }
+
+                                              if (entry.DocumentedRule == null)
+                                              {
+                                                  return $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation.";
+                                              }
+
+                                              return $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) README description '{entry.PackageRule.Description}' does not match rule title '{entry.DocumentedRule.Title}'.";
+                                          })
                                   .ToArray();
 
         Assert.IsEmpty(mismatches, $"The analyzer package README descriptions must match the rule documentation titles.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
@@ -248,11 +257,20 @@ public class AnalyzerPackageMetadataTests
                                                   || string.Equals(AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.TitleResource),
                                                                    AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.DocumentedRule.Title),
                                                                    StringComparison.OrdinalIgnoreCase) is false)
-                                  .Select(entry => entry.TitleResource == null
-                                                       ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) has no '{entry.Analyzer.DiagnosticId}Title' resource string."
-                                                       : entry.DocumentedRule == null
-                                                           ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation."
-                                                           : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) title resource '{entry.TitleResource}' does not match rule title '{entry.DocumentedRule.Title}'.")
+                                  .Select(entry =>
+                                          {
+                                              if (entry.TitleResource == null)
+                                              {
+                                                  return $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) has no '{entry.Analyzer.DiagnosticId}Title' resource string.";
+                                              }
+
+                                              if (entry.DocumentedRule == null)
+                                              {
+                                                  return $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation.";
+                                              }
+
+                                              return $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) title resource '{entry.TitleResource}' does not match rule title '{entry.DocumentedRule.Title}'.";
+                                          })
                                   .ToArray();
 
         Assert.IsEmpty(mismatches, $"Every analyzer title resource must match its rule documentation title.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");

@@ -100,7 +100,7 @@ public class TokenGapUtilitiesTests
         var root = tree.GetRoot(TestContext.CancellationToken);
         var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
-        return (method.Body!.Statements[0].GetLastToken(), method.Body.Statements[1].GetFirstToken());
+        return (method.Body.Statements[0].GetLastToken(), method.Body.Statements[1].GetFirstToken());
     }
 
     #endregion // Methods

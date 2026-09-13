@@ -115,7 +115,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
             var normalizedInput = input.Replace("{|#0:", string.Empty).Replace("|}", string.Empty).Replace("\r\n", "\n").Replace("\n", endOfLine);
             var normalizedFixedData = fixedData.Replace("\r\n", "\n").Replace("\n", endOfLine);
             var syntaxTree = CSharpSyntaxTree.ParseText(normalizedInput, cancellationToken: TestContext.CancellationToken);
-            var formatted = FormattingPipeline.Execute(syntaxTree.GetRoot(TestContext.CancellationToken), new FormattingContext(endOfLine), TestContext.CancellationToken).ToFullString();
+            var formatted = FormattingPipeline.Execute(await syntaxTree.GetRootAsync(TestContext.CancellationToken), new FormattingContext(endOfLine), TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(normalizedFixedData, formatted, "Formatter output should join the parameter default value.");
         }

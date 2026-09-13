@@ -585,7 +585,7 @@ public class ReihitsuFormatterHelpersTests
         // Act
         var result = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(caseLabel);
 
-        // Assert — class + method body + switch (the label is not a statement body)
+        // Assert: the expected depth of three counts the enclosing class and method body and the switch itself, but not the label, since a label is not a statement body
         Assert.AreEqual(3, result);
     }
 
