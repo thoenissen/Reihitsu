@@ -203,8 +203,7 @@ internal sealed class BlankLineEditor
             {
                 // Whitespace doesn't change line-start status
             }
-            else if (kind is SyntaxKind.RegionDirectiveTrivia
-                          or SyntaxKind.EndRegionDirectiveTrivia)
+            else if (SyntaxTriviaUtilities.IsRegionDirective(trivia[triviaIndex]))
             {
                 // Structured directive trivia includes its own trailing newline,
                 // so the next line effectively starts after it.

@@ -105,8 +105,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase
             }
 
             if (trivia.IsDirective
-                && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false)
+                && SyntaxTriviaUtilities.IsRegionDirective(trivia) == false)
             {
                 return true;
             }

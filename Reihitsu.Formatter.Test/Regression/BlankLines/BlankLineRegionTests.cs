@@ -584,5 +584,29 @@ public class BlankLineRegionTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a comment already separated from a preceding <c>#region</c> directive by exactly one
+    /// blank line is left unchanged, rather than gaining an extra inserted blank line
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterRegionWithExistingBlankLineIsStable()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region Members
+
+                                 // Header
+                                 public int A;
+
+                                 #endregion // Members
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }
