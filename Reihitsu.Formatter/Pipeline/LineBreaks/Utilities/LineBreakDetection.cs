@@ -63,7 +63,11 @@ internal static class LineBreakDetection
     }
 
     /// <summary>
-    /// Determines whether a syntax node spans multiple lines
+    /// Determines whether a syntax node spans multiple lines. This is a deliberate exception to
+    /// <see cref="SyntaxNodeUtilities.IsSingleLine"/>: that helper treats a detached node (no
+    /// <see cref="SyntaxNode.SyntaxTree"/>) as not single-line unconditionally, whereas the fallback
+    /// below measures the node's own rendered text, so a detached node whose text happens to be a
+    /// single line is still recognized as single-line
     /// </summary>
     /// <param name="node">The node to inspect</param>
     /// <returns><see langword="true"/> if the node spans multiple lines; otherwise, <see langword="false"/></returns>
