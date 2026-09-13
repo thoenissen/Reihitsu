@@ -127,14 +127,9 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     }
 
     /// <summary>
-    /// Characterizes a malformed standalone prefix increment: Roslyn's parser always attaches a
-    /// <c>++</c>/<c>--</c> token that materializes as a real syntax token to exactly one of
-    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PreIncrementExpression"/>,
-    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PreDecrementExpression"/>,
-    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PostIncrementExpression"/>, or
-    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PostDecrementExpression"/> — never any other node
-    /// kind — even under error recovery with a missing operand, so no owner-kind gap exists for this rule to
-    /// register against
+    /// Characterizes a malformed standalone prefix increment with a missing operand: Roslyn's error recovery
+    /// still attaches the <c>++</c> token to a <c>PreIncrementExpression</c> node rather than leaving it an
+    /// orphan token, so this rule's exclusion of prefix expressions still applies and no diagnostic is produced
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -151,6 +146,35 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                 """;
 
         await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that increment and decrement operator overload declarations do not produce a diagnostic. The
+    /// pre-conversion tree walk excluded only tokens whose parent was a prefix unary expression, so it also
+    /// inspected an operator declaration's <c>OperatorToken</c> — a real, non-missing token that is neither a
+    /// prefix nor a postfix unary expression's operand — and incorrectly flagged the space RH6005 requires
+    /// between the <c>operator</c> keyword and the symbol as a violation to remove. Node-kind dispatch on
+    /// exactly <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PostIncrementExpression"/> and
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PostDecrementExpression"/> never reaches an operator
+    /// declaration at all, which corrects this rule's owner set rather than narrowing coverage of its own
+    /// concern: an operator declaration was never a postfix or prefix increment/decrement expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOperatorOverloadDeclarationsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public static TestClass operator ++(TestClass value) => value;
+
+                                    public static TestClass operator --(TestClass value) => value;
+
+                                    public static TestClass operator checked ++(TestClass value) => value;
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

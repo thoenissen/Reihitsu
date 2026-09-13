@@ -24,6 +24,10 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     /// </summary>
     public const string DiagnosticId = "RH6023";
 
+    #endregion // Constants
+
+    #region Fields
+
     /// <summary>
     /// Every <see cref="SyntaxKind"/> that produces an <see cref="AssignmentExpressionSyntax"/>. This is the
     /// closed set <see cref="SyntaxFacts.IsAssignmentExpression(SyntaxKind)"/> already owns; keeping the array
@@ -46,7 +50,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : Diagnostic
                                                                                         SyntaxKind.CoalesceAssignmentExpression
                                                                                     ];
 
-    #endregion // Constants
+    #endregion // Fields
 
     #region Constructor
 

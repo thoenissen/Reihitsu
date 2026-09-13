@@ -24,6 +24,10 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnal
     /// </summary>
     public const string DiagnosticId = "RH6024";
 
+    #endregion // Constants
+
+    #region Fields
+
     /// <summary>
     /// Every <see cref="SyntaxKind"/> that produces a <see cref="BinaryExpressionSyntax"/>. This is the closed
     /// set <see cref="SyntaxFacts.IsBinaryExpression(SyntaxKind)"/> already owns; keeping the array here,
@@ -55,7 +59,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnal
                                                                                     SyntaxKind.CoalesceExpression
                                                                                 ];
 
-    #endregion // Constants
+    #endregion // Fields
 
     #region Constructor
 
