@@ -355,7 +355,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
             return;
         }
 
-        if (context.SemanticModel.GetSymbolInfo(genericName).Symbol is not INamedTypeSymbol namedTypeSymbol)
+        if (context.SemanticModel.GetSymbolInfo(genericName, context.CancellationToken).Symbol is not INamedTypeSymbol namedTypeSymbol)
         {
             return;
         }
@@ -398,7 +398,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     {
         if (context.Node is not IdentifierNameSyntax identifierName
             || identifierName.FirstAncestorOrSelf<UsingDirectiveSyntax>() != null
-            || context.SemanticModel.GetAliasInfo(identifierName)?.Target is not ITypeSymbol aliasedType)
+            || context.SemanticModel.GetAliasInfo(identifierName, context.CancellationToken)?.Target is not ITypeSymbol aliasedType)
         {
             return;
         }
@@ -455,7 +455,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     private void OnObjectCreation(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not ObjectCreationExpressionSyntax objectCreation
-            || context.SemanticModel.GetTypeInfo(objectCreation).Type is not INamedTypeSymbol collectionType
+            || context.SemanticModel.GetTypeInfo(objectCreation, context.CancellationToken).Type is not INamedTypeSymbol collectionType
             || IsRelevantCollectionType(context.Compilation, collectionType) == false
             || ShouldReportDiagnostic(context.Compilation, collectionType) == false)
         {
@@ -478,7 +478,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     private void OnImplicitObjectCreation(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not ImplicitObjectCreationExpressionSyntax objectCreation
-            || context.SemanticModel.GetTypeInfo(objectCreation).Type is not INamedTypeSymbol collectionType
+            || context.SemanticModel.GetTypeInfo(objectCreation, context.CancellationToken).Type is not INamedTypeSymbol collectionType
             || IsRelevantCollectionType(context.Compilation, collectionType) == false
             || ShouldReportDiagnostic(context.Compilation, collectionType) == false
             || IsAnalyzedByTargetTypeReference(context.SemanticModel, objectCreation, collectionType)

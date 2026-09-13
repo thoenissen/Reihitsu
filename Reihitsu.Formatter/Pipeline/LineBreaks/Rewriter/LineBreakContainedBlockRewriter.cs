@@ -170,7 +170,7 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        node = (DoStatementSyntax)_bracePlacer.NormalizeContainedBlock(node, block);
+        node = _bracePlacer.NormalizeContainedBlock(node, block);
 
         return _bracePlacer.EnsureTokenStartsOwnLine(node, node.WhileKeyword);
     }

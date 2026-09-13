@@ -50,7 +50,7 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <param name="triviaList">List of trivia elements</param>
     /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
     /// <returns>List with replaced element</returns>
-    private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
+    private static IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
     {
         var replaced = false;
         var isLineBreakPending = false;
@@ -104,7 +104,7 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <param name="memberDeclaration">The <see cref="MemberDeclarationSyntax"/> to fix</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete</param>
     /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
-    private async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

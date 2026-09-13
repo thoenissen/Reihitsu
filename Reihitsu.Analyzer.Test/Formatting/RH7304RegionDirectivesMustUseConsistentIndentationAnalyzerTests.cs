@@ -481,8 +481,8 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
                                  }
                                  """;
 
-        // The #region and #endregion directives of the same region pair are the rule's minimal reporting unit;
-        // each fix only re-indents its own directive line, so the batch fixer converges in one pass
+        // The #region and #endregion directives of the same region pair are the rule's minimal reporting unit.
+        // Each fix only re-indents its own directive line, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
                                   Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));

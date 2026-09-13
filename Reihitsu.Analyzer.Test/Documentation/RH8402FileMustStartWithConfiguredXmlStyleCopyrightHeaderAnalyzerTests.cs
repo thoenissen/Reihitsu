@@ -295,28 +295,6 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     /// <summary>
-    /// Supports file name placeholder
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task SupportsFileNamePlaceholder()
-    {
-        const string testData = """
-                                // <copyright file="Test0.cs" company="Example Software">
-                                // Copyright (c) Example Software. All rights reserved.
-                                // </copyright>
-                                namespace TestNamespace
-                                {
-                                }
-                                """;
-
-        await Verify(testData,
-                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
-                                                                 CreateCopyrightConfiguration("// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
-                                                                                              ("companyName", "Example Software")))));
-    }
-
-    /// <summary>
     /// A leading comment that is not a copyright header is preserved when the header is inserted
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

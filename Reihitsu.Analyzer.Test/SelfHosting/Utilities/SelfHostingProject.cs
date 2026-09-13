@@ -129,7 +129,7 @@ internal sealed class SelfHostingProject
         var projectReferencePaths = projectElement.Descendants(namespaceName + "ProjectReference")
                                                   .Select(projectReference => projectReference.Attribute("Include")?.Value)
                                                   .Where(projectReferencePath => string.IsNullOrWhiteSpace(projectReferencePath) == false)
-                                                  .Select(projectReferencePath => GetNormalizedFullPath(projectDirectoryPath, projectReferencePath!))
+                                                  .Select(projectReferencePath => GetNormalizedFullPath(projectDirectoryPath, projectReferencePath))
                                                   .OrderBy(projectReferencePath => projectReferencePath, StringComparer.OrdinalIgnoreCase)
                                                   .ToImmutableArray();
 

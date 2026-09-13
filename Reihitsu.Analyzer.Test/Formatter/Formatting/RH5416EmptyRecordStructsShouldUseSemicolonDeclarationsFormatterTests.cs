@@ -20,7 +20,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsFormatterTest
     /// <summary>
     /// Test context
     /// </summary>
-    public TestContext TestContext { get; set; } = null!;
+    public TestContext TestContext { get; set; } = null;
 
     #endregion // Properties
 

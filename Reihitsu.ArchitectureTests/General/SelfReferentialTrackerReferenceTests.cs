@@ -607,7 +607,12 @@ public sealed class SelfReferentialTrackerReferenceTests
     /// <returns><see langword="true"/> if the file is excluded from the scan; otherwise, <see langword="false"/></returns>
     private static bool IsExcludedFromScan(string filePath)
     {
-        var segments = filePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        // The array is intentional: passing the two chars as separate params arguments resolves to the unrelated
+        // string.Split(char, int, StringSplitOptions) overload instead, silently treating the second separator as
+        // a result-count limit (see the earlier S3220 finding this shape fixes)
+#pragma warning disable S3878 // Passing params arguments here would resolve to the wrong Split overload
+        var segments = filePath.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]);
+#pragma warning restore S3878
 
         if (segments.Any(segment => string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase)
                                     || string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase)))

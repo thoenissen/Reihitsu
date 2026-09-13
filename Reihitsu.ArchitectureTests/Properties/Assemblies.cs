@@ -8,7 +8,7 @@ namespace Reihitsu.ArchitectureTests.Properties;
 /// <summary>
 /// Assemblies
 /// </summary>
-internal class Assemblies
+internal static class Assemblies
 {
     #region Properties
 

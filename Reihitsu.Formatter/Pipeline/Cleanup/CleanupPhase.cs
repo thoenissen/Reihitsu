@@ -214,7 +214,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var structure = (DirectiveTriviaSyntax)trivia.GetStructure()!;
+        var structure = (DirectiveTriviaSyntax)trivia.GetStructure();
         var rewrittenStructure = structure.ReplaceTokens(structure.DescendantTokens(),
                                                          (original, rewritten) => rewritten.WithLeadingTrivia(NormalizeWhitespaceTabs(rewritten.LeadingTrivia))
                                                                                            .WithTrailingTrivia(NormalizeWhitespaceTabs(rewritten.TrailingTrivia)));

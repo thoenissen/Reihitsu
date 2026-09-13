@@ -54,7 +54,7 @@ internal sealed class TemporaryDirectoryFixture : IDisposable
     public string CreateFile(string relativePath, string content, Encoding encoding)
     {
         var fullPath = System.IO.Path.Combine(Path, relativePath);
-        var directory = System.IO.Path.GetDirectoryName(fullPath)!;
+        var directory = System.IO.Path.GetDirectoryName(fullPath);
 
         Directory.CreateDirectory(directory);
         File.WriteAllText(fullPath, content, encoding);
@@ -71,7 +71,7 @@ internal sealed class TemporaryDirectoryFixture : IDisposable
     public string CreateFile(string relativePath, byte[] content)
     {
         var fullPath = System.IO.Path.Combine(Path, relativePath);
-        var directory = System.IO.Path.GetDirectoryName(fullPath)!;
+        var directory = System.IO.Path.GetDirectoryName(fullPath);
 
         Directory.CreateDirectory(directory);
         File.WriteAllBytes(fullPath, content);

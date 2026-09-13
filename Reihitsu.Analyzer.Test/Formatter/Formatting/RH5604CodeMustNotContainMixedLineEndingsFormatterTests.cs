@@ -111,18 +111,18 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
 
         var syntaxTree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
         var firstTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None);
-        var firstTreeText = firstTree.GetRoot(CancellationToken.None).ToFullString();
+        var firstTreeText = (await firstTree.GetRootAsync(CancellationToken.None)).ToFullString();
 
         Assert.AreEqual(expected, firstTreeText);
         await Verify(firstTreeText);
 
         var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None);
 
-        Assert.AreEqual(firstTreeText, secondTree.GetRoot(CancellationToken.None).ToFullString());
+        Assert.AreEqual(firstTreeText, (await secondTree.GetRootAsync(CancellationToken.None)).ToFullString());
 
-        var root = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None).GetRoot(CancellationToken.None);
+        var root = await CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None).GetRootAsync(CancellationToken.None);
         var firstNodeText = ReihitsuFormatter.FormatNode(root, cancellationToken: CancellationToken.None).ToFullString();
-        var secondNode = CSharpSyntaxTree.ParseText(firstNodeText, cancellationToken: CancellationToken.None).GetRoot(CancellationToken.None);
+        var secondNode = await CSharpSyntaxTree.ParseText(firstNodeText, cancellationToken: CancellationToken.None).GetRootAsync(CancellationToken.None);
 
         Assert.AreEqual(expected, firstNodeText);
         Assert.AreEqual(firstNodeText, ReihitsuFormatter.FormatNode(secondNode, cancellationToken: CancellationToken.None).ToFullString());

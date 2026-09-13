@@ -196,7 +196,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
             return;
         }
 
-        if (context.SemanticModel.GetSymbolInfo(invocationExpression).Symbol is not IMethodSymbol methodSymbol)
+        if (context.SemanticModel.GetSymbolInfo(invocationExpression, context.CancellationToken).Symbol is not IMethodSymbol methodSymbol)
         {
             return;
         }

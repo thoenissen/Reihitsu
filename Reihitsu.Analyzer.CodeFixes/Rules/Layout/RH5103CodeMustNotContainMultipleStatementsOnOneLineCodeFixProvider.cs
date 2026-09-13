@@ -82,8 +82,8 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
         // object initializer or anonymous object sits between the section and its nearest brace scope, because
         // only there does no level derived by walking ancestors recover the anchor-derived column.
         // When the shared line's leading content is not a label of the enclosing switch - an earlier sibling
-        // statement or trivia attached to one - that one level must not be added, or it lands one level too deep;
-        // the whitespace read is already correct there and is returned unchanged rather than
+        // statement or trivia attached to one - that one level must not be added, or it lands one level too deep.
+        // The whitespace read is already correct there and is returned unchanged rather than
         // falling through to the canonical, level-derived column, which deliberately understates an
         // anchor-derived column and would undercount either way. Otherwise, outside any anchor
         // scope, the label's own column may itself be a stray extra space or tab, and the canonical,

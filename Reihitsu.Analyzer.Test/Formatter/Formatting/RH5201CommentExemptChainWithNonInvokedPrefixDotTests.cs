@@ -23,7 +23,7 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
     /// <summary>
     /// Test context
     /// </summary>
-    public TestContext TestContext { get; set; } = null!;
+    public TestContext TestContext { get; set; } = null;
 
     #endregion // Properties
 
@@ -72,9 +72,9 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
                               """;
 
         var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken);
-        var formatted = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
-                                         .GetRoot(TestContext.CancellationToken)
-                                         .ToFullString();
+        var formattedRoot = await ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                                   .GetRootAsync(TestContext.CancellationToken);
+        var formatted = formattedRoot.ToFullString();
 
         await Verify(formatted);
     }

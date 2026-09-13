@@ -40,7 +40,7 @@ internal static class Program
 
         if (result.ShowVersion)
         {
-            Console.Out.WriteLine($"reihitsu-format {GetVersion()}");
+            await Console.Out.WriteLineAsync($"reihitsu-format {GetVersion()}");
 
             return ExitCodes.Success;
         }

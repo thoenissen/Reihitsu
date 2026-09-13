@@ -606,7 +606,7 @@ public class TokenGapAnalysisTests
         var root = tree.GetRoot(cancellationToken);
         var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
-        return (method.Body!.Statements[0].GetLastToken(), method.Body.Statements[1].GetFirstToken());
+        return (method.Body.Statements[0].GetLastToken(), method.Body.Statements[1].GetFirstToken());
     }
 
     /// <summary>
