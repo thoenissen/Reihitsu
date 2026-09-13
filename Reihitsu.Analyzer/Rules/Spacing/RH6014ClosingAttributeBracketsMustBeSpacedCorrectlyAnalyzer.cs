@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -38,22 +39,17 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer : Diagn
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes an attribute list
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
+        var tokenStart = ((AttributeListSyntax)context.Node).CloseBracketToken.SpanStart;
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
 
-        foreach (var tokenStart in root.DescendantNodes()
-                                       .OfType<AttributeListSyntax>()
-                                       .Select(node => node.CloseBracketToken.SpanStart))
+        if (SameLinePrecedingWhitespaceAnalysis.GetSpan(sourceText, tokenStart) is { } whitespaceSpan)
         {
-            if (SameLinePrecedingWhitespaceAnalysis.GetSpan(sourceText, tokenStart) is { } whitespaceSpan)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, whitespaceSpan)));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, whitespaceSpan)));
         }
     }
 
@@ -66,7 +62,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer : Diagn
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.AttributeList);
     }
 
     #endregion // DiagnosticAnalyzer

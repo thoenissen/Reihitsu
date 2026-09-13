@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -123,6 +124,33 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes a malformed standalone prefix increment: Roslyn's parser always attaches a
+    /// <c>++</c>/<c>--</c> token that materializes as a real syntax token to exactly one of
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PreIncrementExpression"/>,
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PreDecrementExpression"/>,
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PostIncrementExpression"/>, or
+    /// <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.PostDecrementExpression"/> — never any other node
+    /// kind — even under error recovery with a missing operand, so no owner-kind gap exists for this rule to
+    /// register against
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMalformedStandalonePrefixIncrementDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        ++
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

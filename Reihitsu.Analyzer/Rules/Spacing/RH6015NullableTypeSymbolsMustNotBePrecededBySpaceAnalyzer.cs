@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -38,22 +39,25 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a nullable type
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
-
-        foreach (var tokenStart in root.DescendantNodes()
-                                       .OfType<NullableTypeSyntax>()
-                                       .Select(node => node.QuestionToken.SpanStart))
+        // Documentation-comment cref syntax (e.g. <see cref="M(int?)"/>) parses a nullable parameter type into
+        // the same NullableTypeSyntax shape as ordinary code, so it must be excluded explicitly: the formatter
+        // never rewrites inside a cref, and this rule must not report a diagnostic there either.
+        if (context.Node.IsPartOfStructuredTrivia())
         {
-            if (SameLinePrecedingWhitespaceAnalysis.GetSpan(sourceText, tokenStart) is { } whitespaceSpan)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, whitespaceSpan)));
-            }
+            return;
+        }
+
+        var tokenStart = ((NullableTypeSyntax)context.Node).QuestionToken.SpanStart;
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+
+        if (SameLinePrecedingWhitespaceAnalysis.GetSpan(sourceText, tokenStart) is { } whitespaceSpan)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, whitespaceSpan)));
         }
     }
 
@@ -66,7 +70,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.NullableType);
     }
 
     #endregion // DiagnosticAnalyzer

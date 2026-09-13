@@ -40,40 +40,31 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer : 
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes an address-of or pointer-indirection expression
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
+        var node = (PrefixUnaryExpressionSyntax)context.Node;
 
-        foreach (var node in root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>())
+        if (UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node))
         {
-            if (node.IsKind(SyntaxKind.AddressOfExpression) == false
-                && node.IsKind(SyntaxKind.PointerIndirectionExpression) == false)
-            {
-                continue;
-            }
+            return;
+        }
 
-            if (UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node))
-            {
-                continue;
-            }
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+        var start = node.OperatorToken.Span.End;
+        var end = start;
 
-            var start = node.OperatorToken.Span.End;
-            var end = start;
+        while (end < sourceText.Length
+               && (sourceText[end] == ' ' || sourceText[end] == '\t'))
+        {
+            end++;
+        }
 
-            while (end < sourceText.Length
-                   && (sourceText[end] == ' ' || sourceText[end] == '\t'))
-            {
-                end++;
-            }
-
-            if (end > start)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, end))));
-            }
+        if (end > start)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(start, end))));
         }
     }
 
@@ -86,7 +77,7 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer : 
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.AddressOfExpression, SyntaxKind.PointerIndirectionExpression);
     }
 
     #endregion // DiagnosticAnalyzer

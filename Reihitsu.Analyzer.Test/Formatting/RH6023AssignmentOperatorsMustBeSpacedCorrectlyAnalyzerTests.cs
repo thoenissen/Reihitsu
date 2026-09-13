@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -250,6 +254,23 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the analyzer registers every <see cref="SyntaxKind"/> Roslyn classifies as an assignment
+    /// expression, so a hand-maintained kind list can never silently drop an operator family from this rule's
+    /// coverage the way the type-hierarchy check it replaced could not
+    /// </summary>
+    [TestMethod]
+    public void VerifyRegisteredKindsCoverEveryAssignmentExpressionKind()
+    {
+        var expectedKinds = Enum.GetValues<SyntaxKind>()
+                                .Where(SyntaxFacts.IsAssignmentExpression)
+                                .OrderBy(static kind => (int)kind)
+                                .ToImmutableArray();
+        var registeredKinds = RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.AssignmentExpressionKinds.OrderBy(static kind => (int)kind).ToImmutableArray();
+
+        Assert.AreSequenceEqual(expectedKinds, registeredKinds);
     }
 
     #endregion // Tests

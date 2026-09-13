@@ -40,41 +40,26 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer : D
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a postfix increment or decrement expression
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
+        var token = ((PostfixUnaryExpressionSyntax)context.Node).OperatorToken;
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+        var previousToken = token.GetPreviousToken();
 
-        foreach (var token in root.DescendantTokens())
+        if (previousToken == default
+            || previousToken.GetLocation().GetLineSpan().EndLinePosition.Line != token.GetLocation().GetLineSpan().StartLinePosition.Line)
         {
-            if (token.IsKind(SyntaxKind.PlusPlusToken) == false
-                && token.IsKind(SyntaxKind.MinusMinusToken) == false)
-            {
-                continue;
-            }
+            return;
+        }
 
-            if (token.Parent is PrefixUnaryExpressionSyntax)
-            {
-                continue;
-            }
+        var start = FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, token.SpanStart, previousToken.Span.End);
 
-            var previousToken = token.GetPreviousToken();
-
-            if (previousToken == default
-                || previousToken.GetLocation().GetLineSpan().EndLinePosition.Line != token.GetLocation().GetLineSpan().StartLinePosition.Line)
-            {
-                continue;
-            }
-
-            var start = FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, token.SpanStart, previousToken.Span.End);
-
-            if (start < token.SpanStart)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, token.SpanStart))));
-            }
+        if (start < token.SpanStart)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(start, token.SpanStart))));
         }
     }
 
@@ -87,7 +72,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer : D
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.PostIncrementExpression, SyntaxKind.PostDecrementExpression);
     }
 
     #endregion // DiagnosticAnalyzer

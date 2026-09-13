@@ -73,6 +73,9 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer : DiagnosticA
     {
         base.Initialize(context);
 
+        // An opening parenthesis token is owned by dozens of distinct parameter-list, argument-list, cast and
+        // parenthesized-construct node kinds, and Roslyn offers no syntax-token action; there is no closed
+        // node-kind set that would narrow this scan rather than merely rename it.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 

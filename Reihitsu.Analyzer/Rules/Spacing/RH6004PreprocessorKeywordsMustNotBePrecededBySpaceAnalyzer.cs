@@ -93,6 +93,9 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : Diagno
     {
         base.Initialize(context);
 
+        // This rule's unit of work is a source line whose trimmed text starts with '#', inspected directly
+        // through source text and trivia rather than through any syntax node; no node kind corresponds to
+        // "a line", so there is nothing to register a node or token action against.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 

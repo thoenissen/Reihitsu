@@ -1,4 +1,7 @@
+using System.Collections.Immutable;
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -20,6 +23,28 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH6023";
+
+    /// <summary>
+    /// Every <see cref="SyntaxKind"/> that produces an <see cref="AssignmentExpressionSyntax"/>. This is the
+    /// closed set <see cref="SyntaxFacts.IsAssignmentExpression(SyntaxKind)"/> already owns; keeping the array
+    /// here, rather than hand-listing the kinds again at the registration call, gives the test suite a single
+    /// place to assert this list is still exhaustive
+    /// </summary>
+    internal static readonly ImmutableArray<SyntaxKind> AssignmentExpressionKinds = [
+                                                                                        SyntaxKind.SimpleAssignmentExpression,
+                                                                                        SyntaxKind.AddAssignmentExpression,
+                                                                                        SyntaxKind.SubtractAssignmentExpression,
+                                                                                        SyntaxKind.MultiplyAssignmentExpression,
+                                                                                        SyntaxKind.DivideAssignmentExpression,
+                                                                                        SyntaxKind.ModuloAssignmentExpression,
+                                                                                        SyntaxKind.AndAssignmentExpression,
+                                                                                        SyntaxKind.ExclusiveOrAssignmentExpression,
+                                                                                        SyntaxKind.OrAssignmentExpression,
+                                                                                        SyntaxKind.LeftShiftAssignmentExpression,
+                                                                                        SyntaxKind.RightShiftAssignmentExpression,
+                                                                                        SyntaxKind.UnsignedRightShiftAssignmentExpression,
+                                                                                        SyntaxKind.CoalesceAssignmentExpression
+                                                                                    ];
 
     #endregion // Constants
 
@@ -78,21 +103,21 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     }
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes an assignment expression, an equals-value clause, or a name-equals clause
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
-
-        foreach (var node in root.DescendantNodes())
+        if (TryGetAssignmentOperator(context.Node, out var operatorToken) == false)
         {
-            if (TryGetAssignmentOperator(node, out var operatorToken)
-                && FormattingTextAnalysisUtilities.HasOperatorSpacingViolation(sourceText, operatorToken))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(operatorToken.GetLocation()));
-            }
+            return;
+        }
+
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+
+        if (FormattingTextAnalysisUtilities.HasOperatorSpacingViolation(sourceText, operatorToken))
+        {
+            context.ReportDiagnostic(CreateDiagnostic(operatorToken.GetLocation()));
         }
     }
 
@@ -105,7 +130,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, [.. AssignmentExpressionKinds, SyntaxKind.EqualsValueClause, SyntaxKind.NameEquals]);
     }
 
     #endregion // DiagnosticAnalyzer
