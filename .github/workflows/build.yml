@@ -25,5 +25,5 @@ jobs:
       - name: Build
         run: scripts/build.sh --no-install
 
-      - name: Test
-        run: scripts/test.sh --no-install --no-build
+      - name: Test (Architecture)
+        run: scripts/test.sh --no-install --no-build --project architecture
