@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -131,9 +132,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer : Di
         }
 
         // A conditional that fits on a single line is never reported; only multi-line layout matters.
-        var conditionalLineSpan = conditional.SyntaxTree.GetLineSpan(conditional.Span, context.CancellationToken);
-
-        if (conditionalLineSpan.StartLinePosition.Line == conditionalLineSpan.EndLinePosition.Line)
+        if (SyntaxNodeUtilities.IsSingleLine(conditional))
         {
             return;
         }

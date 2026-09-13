@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -72,9 +73,7 @@ public class RH5405BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase
         }
 
         // Multi-line brace-less child statements are reported by RH5406 to avoid double-reporting
-        var lineSpan = statement.GetLocation().GetLineSpan();
-
-        if (lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line)
+        if (SyntaxNodeUtilities.IsSingleLine(statement))
         {
             context.ReportDiagnostic(CreateDiagnostic(statement.GetLocation()));
         }

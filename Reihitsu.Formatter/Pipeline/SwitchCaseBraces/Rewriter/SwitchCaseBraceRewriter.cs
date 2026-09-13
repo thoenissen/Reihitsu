@@ -209,9 +209,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the node spans multiple lines; otherwise, <see langword="false"/></returns>
     private static bool SpansMultipleLines(SyntaxNode node)
     {
-        var lineSpan = node.GetLocation().GetLineSpan();
-
-        return lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line;
+        return SyntaxNodeUtilities.IsSingleLine(node) == false;
     }
 
     /// <summary>
