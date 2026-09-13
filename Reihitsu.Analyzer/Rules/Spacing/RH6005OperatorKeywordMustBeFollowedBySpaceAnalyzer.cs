@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -37,22 +38,43 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnal
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Gets the operator keyword token of an operator or conversion operator declaration. Both declaration
+    /// kinds are the only node kinds that own an <c>operator</c> keyword outside trivia; an
+    /// <c>OperatorMemberCref</c>/<c>ConversionOperatorMemberCref</c> inside a documentation-comment
+    /// <c>cref</c> also owns one, but those node kinds are deliberately not registered below, so they never
+    /// reach this method
+    /// </summary>
+    /// <param name="node">Node to inspect</param>
+    /// <returns>The operator keyword token</returns>
+    private static SyntaxToken GetOperatorKeyword(SyntaxNode node)
+    {
+        return node switch
+               {
+                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.OperatorKeyword,
+                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.OperatorKeyword,
+                   _ => default
+               };
+    }
+
+    /// <summary>
+    /// Analyzes an operator or conversion operator declaration
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
+        var token = GetOperatorKeyword(context.Node);
 
-        foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.OperatorKeyword)))
+        if (token.IsKind(SyntaxKind.OperatorKeyword) == false)
         {
-            if (token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
-            {
-                continue;
-            }
-
-            context.ReportDiagnostic(CreateDiagnostic(token.GetLocation()));
+            return;
         }
+
+        if (token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(token.GetLocation()));
     }
 
     #endregion // Methods
@@ -64,7 +86,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnal
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.OperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

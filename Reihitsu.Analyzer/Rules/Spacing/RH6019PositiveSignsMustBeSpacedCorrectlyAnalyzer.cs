@@ -40,34 +40,31 @@ public class RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a unary plus expression
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
+        var node = (PrefixUnaryExpressionSyntax)context.Node;
 
-        foreach (var node in root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Where(currentNode => currentNode.IsKind(SyntaxKind.UnaryPlusExpression)))
+        if (UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node))
         {
-            if (UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node))
-            {
-                continue;
-            }
+            return;
+        }
 
-            var start = node.OperatorToken.Span.End;
-            var end = start;
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+        var start = node.OperatorToken.Span.End;
+        var end = start;
 
-            while (end < sourceText.Length
-                   && (sourceText[end] == ' ' || sourceText[end] == '\t'))
-            {
-                end++;
-            }
+        while (end < sourceText.Length
+               && (sourceText[end] == ' ' || sourceText[end] == '\t'))
+        {
+            end++;
+        }
 
-            if (end > start)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, end))));
-            }
+        if (end > start)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(start, end))));
         }
     }
 
@@ -80,7 +77,7 @@ public class RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.UnaryPlusExpression);
     }
 
     #endregion // DiagnosticAnalyzer

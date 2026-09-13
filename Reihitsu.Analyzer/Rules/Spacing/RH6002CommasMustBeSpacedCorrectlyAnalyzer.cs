@@ -101,6 +101,9 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
+        // A comma token is owned by dozens of distinct list and initializer node kinds across the grammar, and
+        // Roslyn offers no syntax-token action; registering the node-kind set that can contain a comma would
+        // not narrow this scan, only rename it.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 

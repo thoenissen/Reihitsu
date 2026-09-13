@@ -72,6 +72,9 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     {
         base.Initialize(context);
 
+        // A closing brace token is owned by every block, type, initializer, switch and interpolation node kind
+        // in the grammar, and Roslyn offers no syntax-token action; there is no closed node-kind set that would
+        // narrow this scan rather than merely rename it.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 

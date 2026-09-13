@@ -227,6 +227,33 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
+    /// <summary>
+    /// Verifies that a space before a closing generic bracket inside a documentation-comment cref is not
+    /// flagged, because the formatter never rewrites inside a cref and node-kind dispatch reaches structured
+    /// trivia that the previous tree walk never saw
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySpaceBeforeClosingGenericBracketInsideCrefIsIgnored()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                /// <summary>
+                                /// See <see cref="List{T }"/>.
+                                /// </summary>
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        _ = new List<int>();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

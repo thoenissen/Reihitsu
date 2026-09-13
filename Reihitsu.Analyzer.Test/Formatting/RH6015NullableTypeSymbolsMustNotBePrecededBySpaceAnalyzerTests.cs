@@ -205,6 +205,30 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
+    /// <summary>
+    /// Verifies that a space before a nullable type's question mark inside a documentation-comment cref
+    /// parameter is not flagged, because the formatter never rewrites inside a cref and node-kind dispatch
+    /// reaches structured trivia that the previous tree walk never saw
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySpaceBeforeNullableQuestionMarkInsideCrefIsIgnored()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// See <see cref="Method(int ?)"/>.
+                                    /// </summary>
+                                    void Method(int? value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

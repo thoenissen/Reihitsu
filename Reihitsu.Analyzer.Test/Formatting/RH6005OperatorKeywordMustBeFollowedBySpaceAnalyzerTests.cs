@@ -56,6 +56,28 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
         await Verify(testData, fixedData, Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an operator-overload reference inside a documentation-comment cref is not flagged, because
+    /// its cref node kind is different from the declaration kinds this rule registers on and is therefore
+    /// never dispatched to this rule at all
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOperatorReferenceInsideCrefIsIgnored()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// See <see cref="operator+(TestClass, TestClass)"/>.
+                                    /// </summary>
+                                    public static TestClass operator +(TestClass left, TestClass right) => left;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

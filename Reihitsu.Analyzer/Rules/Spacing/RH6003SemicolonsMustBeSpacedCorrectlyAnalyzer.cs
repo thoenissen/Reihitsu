@@ -66,6 +66,9 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerB
     {
         base.Initialize(context);
 
+        // A semicolon token terminates dozens of distinct statement, declaration and directive node kinds, and
+        // Roslyn offers no syntax-token action; there is no closed node-kind set to register against that would
+        // narrow this scan rather than merely rename it.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 

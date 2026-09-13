@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -38,29 +39,25 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes an implicitly typed array creation expression
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
+        var node = (ImplicitArrayCreationExpressionSyntax)context.Node;
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+        var start = node.NewKeyword.Span.End;
+        var end = start;
 
-        foreach (var node in root.DescendantNodes().OfType<ImplicitArrayCreationExpressionSyntax>())
+        while (end < sourceText.Length
+               && (sourceText[end] == ' ' || sourceText[end] == '\t'))
         {
-            var start = node.NewKeyword.Span.End;
-            var end = start;
+            end++;
+        }
 
-            while (end < sourceText.Length
-                   && (sourceText[end] == ' ' || sourceText[end] == '\t'))
-            {
-                end++;
-            }
-
-            if (end > start)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, end))));
-            }
+        if (end > start)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(start, end))));
         }
     }
 
@@ -73,7 +70,7 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer : DiagnosticA
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.ImplicitArrayCreationExpression);
     }
 
     #endregion // DiagnosticAnalyzer

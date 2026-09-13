@@ -54,32 +54,28 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a base list or constructor initializer
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
+        var token = GetColonToken(context.Node);
 
-        foreach (var node in root.DescendantNodes())
+        if (token.IsKind(SyntaxKind.ColonToken) == false)
         {
-            var token = GetColonToken(node);
+            return;
+        }
 
-            if (token.IsKind(SyntaxKind.ColonToken) == false)
-            {
-                continue;
-            }
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
 
-            // The formatter only normalizes the space when the colon and its neighbour share a line. When the
-            // colon starts a continuation line (or its neighbour is on the next line), the indentation handling
-            // owns the layout, so the analyzer must not flag the missing space at the line boundary.
-            var (hasLeadingSpace, hasTrailingSpace) = AdjacentTokenSpacingUtilities.DetermineLineBreakTolerantSpacing(token, sourceText);
+        // The formatter only normalizes the space when the colon and its neighbour share a line. When the
+        // colon starts a continuation line (or its neighbour is on the next line), the indentation handling
+        // owns the layout, so the analyzer must not flag the missing space at the line boundary.
+        var (hasLeadingSpace, hasTrailingSpace) = AdjacentTokenSpacingUtilities.DetermineLineBreakTolerantSpacing(token, sourceText);
 
-            if (hasLeadingSpace == false || hasTrailingSpace == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(token.GetLocation()));
-            }
+        if (hasLeadingSpace == false || hasTrailingSpace == false)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(token.GetLocation()));
         }
     }
 
@@ -92,7 +88,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnSyntaxNode, SyntaxKind.BaseList, SyntaxKind.BaseConstructorInitializer, SyntaxKind.ThisConstructorInitializer);
     }
 
     #endregion // DiagnosticAnalyzer

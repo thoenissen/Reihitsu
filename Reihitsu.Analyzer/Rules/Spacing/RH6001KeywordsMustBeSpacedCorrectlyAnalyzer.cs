@@ -83,6 +83,10 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBas
     {
         base.Initialize(context);
 
+        // No closed set of node kinds owns "a keyword token immediately followed by '('" for all eleven
+        // control-flow keywords this rule inspects; enumerating every statement shape that carries one of
+        // them, with Roslyn offering no syntax-token action, would replace this scan with a hand-maintained
+        // node-kind list at least as wide as the tree it walks today.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 

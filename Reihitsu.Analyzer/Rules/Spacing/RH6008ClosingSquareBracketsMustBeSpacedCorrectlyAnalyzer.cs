@@ -76,6 +76,10 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer : Diagnost
     {
         base.Initialize(context);
 
+        // A closing square bracket token (once attribute lists are excluded) is still owned by array types,
+        // array creation expressions, element-access expressions and indexers alike, and Roslyn offers no
+        // syntax-token action; there is no closed node-kind set that would narrow this scan rather than merely
+        // rename it.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 

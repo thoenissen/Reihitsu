@@ -82,6 +82,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     {
         base.Initialize(context);
 
+        // The dot token alone is owned by member access, qualified name, using-directive and member-binding
+        // node kinds alike, and Roslyn offers no syntax-token action; there is no closed node-kind set that
+        // would narrow this scan rather than merely rename it.
         context.RegisterSyntaxTreeAction(OnSyntaxTree);
     }
 
