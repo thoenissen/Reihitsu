@@ -290,6 +290,71 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a mixed line ending inside a delimited (<c>/** ... */</c>) XML documentation comment is
+    /// detected and fixed the same way a single-line (<c>///</c>) one already is, because Roslyn models both
+    /// forms' newlines as <see cref="Microsoft.CodeAnalysis.CSharp.SyntaxKind.XmlTextLiteralNewLineToken"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedLineEndingsInsideDelimitedXmlDocumentationAreDetectedAndFixed()
+    {
+        const string testData = "/** <summary>\n"
+                                + "{|#0: * Documentation.\r\n|}"
+                                + " * </summary> */\n"
+                                + "internal class TestClass { }";
+        const string fixedData = "/** <summary>\n"
+                                 + " * Documentation.\n"
+                                 + " * </summary> */\n"
+                                 + "internal class TestClass { }";
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(2, 1, 3, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line ending inside a multi-line comment stays exempt even when the very same ending is
+    /// reported elsewhere in the same, genuinely mixed file — the interior is never counted or reported,
+    /// regardless of whether it happens to match the file's minority or majority style
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLineEndingInsideMultiLineCommentStaysExemptWhenTheSameEndingIsReportedElsewhere()
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "{|#0:    internal int Value = 1;\r\n|}"
+                                + "    /* line1\r\n"
+                                + "    line2 */\n"
+                                + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(testData,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line ending inside disabled text stays exempt even when the very same ending is
+    /// reported elsewhere in the same, genuinely mixed file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLineEndingInsideDisabledTextStaysExemptWhenTheSameEndingIsReportedElsewhere()
+    {
+        const string testData = "internal class TestClass\r\n"
+                                + "{\r\n"
+                                + "{|#0:    internal int Value = 1;\n|}"
+                                + "#if false\r\n"
+                                + "    internal int Disabled = 1;\n"
+                                + "#endif\r\n"
+                                + "}";
+
+        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
