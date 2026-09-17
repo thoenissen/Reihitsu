@@ -21,10 +21,11 @@ internal static class IndentationRewriter
     /// </summary>
     /// <param name="root">The syntax tree root</param>
     /// <param name="model">The computed layout model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The syntax tree with corrected indentation</returns>
-    public static SyntaxNode Apply(SyntaxNode root, LayoutModel model)
+    public static SyntaxNode Apply(SyntaxNode root, LayoutModel model, CancellationToken cancellationToken)
     {
-        return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model));
+        return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model, cancellationToken));
     }
 
     #endregion // Methods
@@ -37,9 +38,12 @@ internal static class IndentationRewriter
     /// <param name="original">The original token from the syntax tree</param>
     /// <param name="rewritten">The rewritten token</param>
     /// <param name="model">The computed layout model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The token with corrected indentation</returns>
-    private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LayoutModel model)
+    private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LayoutModel model, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (original.IsMissing)
         {
             return rewritten;

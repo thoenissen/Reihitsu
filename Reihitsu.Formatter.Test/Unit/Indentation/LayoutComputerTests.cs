@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
@@ -42,7 +44,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Model should contain at least one layout entry.");
@@ -67,7 +69,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — line 0: "class" at column 0, line 2: "public" at column 4
         Assert.IsTrue(model.TryGetLayout(0, out var classLayout), "Line 0 should have a layout entry.");
@@ -99,7 +101,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — line 4: "int" at column 8 (nested inside class + method)
         Assert.IsTrue(model.TryGetLayout(4, out var nestedLayout), "Line 4 should have a layout entry.");
@@ -127,7 +129,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — file-scoped namespace does not add indentation
         Assert.IsTrue(model.TryGetLayout(2, out var classLayout), "Line 2 should have a layout entry.");
@@ -159,7 +161,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — block-scoped namespace adds one level of indentation
         Assert.IsTrue(model.TryGetLayout(2, out var classLayout), "Line 2 should have a layout entry.");
@@ -192,7 +194,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert
         Assert.IsTrue(model.TryGetLayout(4, out var stmt1), "Line 4 should have a layout entry.");
@@ -231,7 +233,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — line 6: "var a" at column 12, line 10: "var b" at column 12
         Assert.IsTrue(model.TryGetLayout(6, out var ifBody), "Line 6 (if body) should have a layout entry.");
@@ -274,7 +276,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert
         Assert.IsTrue(model.TryGetLayout(6, out var tryBody), "Line 6 (try body) should have a layout entry.");
@@ -312,7 +314,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — line 6: "var x" at column 12
         Assert.IsTrue(model.TryGetLayout(6, out var loopBody), "Line 6 (for body) should have a layout entry.");
@@ -347,7 +349,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — line 6: "case 1:" at column 12
         Assert.IsTrue(model.TryGetLayout(6, out var caseLabel), "Line 6 (case label) should have a layout entry.");
@@ -383,7 +385,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — the lambda body should be indented
         Assert.IsTrue(model.TryGetLayout(6, out var lambdaBody), "Line 6 (lambda body) should have a layout entry.");
@@ -417,7 +419,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — the initializer properties should have layout entries
         Assert.IsTrue(model.TryGetLayout(6, out var prop1), "Line 6 should have a layout entry for initializer property.");
@@ -449,7 +451,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — chained members should have layout entries
         Assert.IsTrue(model.TryGetLayout(5, out var chain1), "Line 5 should have a layout entry for chained call.");
@@ -475,7 +477,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert
         Assert.IsTrue(model.TryGetLayout(0, out var classLine), "Line 0 should have a layout entry.");
@@ -517,7 +519,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — accessor keywords at column 8, accessor body statements at column 12
         Assert.IsTrue(model.TryGetLayout(4, out var getKeyword), "Line 4 (get) should have a layout entry.");
@@ -549,7 +551,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert
         Assert.IsTrue(model.TryGetLayout(2, out var innerClass), "Line 2 (inner class) should have a layout entry.");
@@ -578,7 +580,7 @@ public class LayoutComputerTests
         var context = new FormattingContext("\n", baseIndentLevel: 1);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — base indent shifts everything by 4
         Assert.IsTrue(model.TryGetLayout(0, out var classLine), "Line 0 should have a layout entry.");
@@ -615,7 +617,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — collection elements should have layout entries
         Assert.IsTrue(model.TryGetLayout(6, out var elem1), "Line 6 should have a layout entry for collection element.");
@@ -648,7 +650,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — chained LINQ calls should have layout entries
         Assert.IsTrue(model.TryGetLayout(6, out var where), "Line 6 (.Where) should have a layout entry.");
@@ -681,7 +683,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — continuation lines should have layout entries
         Assert.IsTrue(model.TryGetLayout(5, out var line5), "Line 5 (&& false) should have a layout entry.");
@@ -713,7 +715,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — line 4: "while (x)" at column 8, line 5: "x = false;" one level deeper at column 12
         Assert.IsTrue(model.TryGetLayout(4, out var whileLine), "Line 4 (while) should have a layout entry.");
@@ -747,7 +749,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — line 4: "fixed (...)" at column 8, line 5: "*pointer = 1;" one level deeper at column 12
         Assert.IsTrue(model.TryGetLayout(4, out var fixedLine), "Line 4 (fixed) should have a layout entry.");
@@ -786,7 +788,7 @@ public class LayoutComputerTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var model = LayoutComputer.Compute(root, context);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
 
         // Assert — every "if"/"else if"/"else" line stays at column 8; every embedded body is one level deeper at column 12
         Assert.IsTrue(model.TryGetLayout(4, out var ifLine), "Line 4 (if) should have a layout entry.");
@@ -806,6 +808,98 @@ public class LayoutComputerTests
 
         Assert.IsTrue(model.TryGetLayout(9, out var thirdBody), "Line 9 (third embedded body) should have a layout entry.");
         Assert.AreEqual(12, thirdBody.Column, "Third embedded body should be one level deeper than else.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.Compute"/> throws <see cref="OperationCanceledException"/>
+    /// when the cancellation token is already cancelled. A pre-cancelled token always trips this method's
+    /// own entry check first, so this proves only that the entry check exists — the pass-specific checks
+    /// are proven independently by <see cref="ComputeBlockIndentationThrowsWhenCancellationIsRequested"/>
+    /// and <see cref="RunAlignmentSweepsThrowsWhenCancellationIsRequested"/>, which call those passes
+    /// directly and so cannot be satisfied by <see cref="LayoutComputer.Compute"/>'s entry check
+    /// </summary>
+    [TestMethod]
+    public void ComputeThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => LayoutComputer.Compute(root, context, cts.Token));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.ComputeBlockIndentation"/> throws
+    /// <see cref="OperationCanceledException"/> for an already-cancelled token, called directly rather
+    /// than through <see cref="LayoutComputer.Compute"/> so this pass's own check is what is falsified
+    /// </summary>
+    [TestMethod]
+    public void ComputeBlockIndentationThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var model = new LayoutModel();
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => LayoutComputer.ComputeBlockIndentation(root, 0, model, 0, cts.Token));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.RunAlignmentSweeps"/> throws
+    /// <see cref="OperationCanceledException"/> for an already-cancelled token, called directly rather
+    /// than through <see cref="LayoutComputer.Compute"/> so this pass's own checks are what is falsified —
+    /// the sweep loop is the most expensive part of the phase, running up to eight full-tree passes
+    /// </summary>
+    [TestMethod]
+    public void RunAlignmentSweepsThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => LayoutComputer.RunAlignmentSweeps(root, model, [], context, cts.Token));
+        }
     }
 
     #endregion // Methods

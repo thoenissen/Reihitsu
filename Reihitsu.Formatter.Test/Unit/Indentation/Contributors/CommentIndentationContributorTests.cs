@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -56,7 +58,7 @@ public class CommentIndentationContributorTests
 
         model.Set(varLine, new TokenLayout(8, "Block"));
 
-        var contributor = new CommentIndentationContributor();
+        var contributor = new CommentIndentationContributor(TestContext.CancellationToken);
 
         // Act
         contributor.Contribute(root, model, context);
@@ -91,7 +93,7 @@ public class CommentIndentationContributorTests
         var root = tree.GetRoot(TestContext.CancellationToken);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
-        var contributor = new CommentIndentationContributor();
+        var contributor = new CommentIndentationContributor(TestContext.CancellationToken);
 
         // Act — no pre-populated layout
         contributor.Contribute(root, model, context);
@@ -130,7 +132,7 @@ public class CommentIndentationContributorTests
 
         model.Set(varLine, new TokenLayout(8, "Block"));
 
-        var contributor = new CommentIndentationContributor();
+        var contributor = new CommentIndentationContributor(TestContext.CancellationToken);
         var countBefore = model.Count;
 
         // Act
@@ -171,7 +173,7 @@ public class CommentIndentationContributorTests
 
         model.Set(varLine, new TokenLayout(8, "Block"));
 
-        var contributor = new CommentIndentationContributor();
+        var contributor = new CommentIndentationContributor(TestContext.CancellationToken);
 
         // Act
         contributor.Contribute(root, model, context);
@@ -220,7 +222,7 @@ public class CommentIndentationContributorTests
 
         model.Set(closeBraceLine, new TokenLayout(8, "Block"));
 
-        var contributor = new CommentIndentationContributor();
+        var contributor = new CommentIndentationContributor(TestContext.CancellationToken);
         var countBefore = model.Count;
 
         // Act
@@ -228,6 +230,42 @@ public class CommentIndentationContributorTests
 
         // Assert — the comment trivia should get a layout entry
         Assert.IsGreaterThan(countBefore, model.Count, "Should produce layout for comment-only scope");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="CommentIndentationContributor.Contribute"/> throws
+    /// <see cref="OperationCanceledException"/> when the cancellation token is already cancelled, instead of
+    /// walking every token of the tree it was constructed with
+    /// </summary>
+    [TestMethod]
+    public void ContributeThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     // comment
+                                     var x = 1;
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            var contributor = new CommentIndentationContributor(cts.Token);
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => contributor.Contribute(root, model, context));
+        }
     }
 
     #endregion // Methods

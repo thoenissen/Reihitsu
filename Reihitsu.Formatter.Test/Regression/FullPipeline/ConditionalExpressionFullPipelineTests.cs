@@ -355,5 +355,263 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a dangling colon separated from the false branch by a blank line is joined onto
+    /// the colon's line in one pass, mirroring how the <c>?</c> join already collapses a blank line
+    /// before the true branch (regression test for a confirmed convergence defect: the pre-fix
+    /// formatter needed three passes to reach this same fixed point)
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonWithBlankLineBeforeFalseBranchIsJoined()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = cond ? a :
+
+                                         b;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = cond
+                                                    ? a
+                                                    : b;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling colon followed by the false branch on the very next line, with no
+    /// intervening blank line, is joined onto the colon's line in one pass instead of leaving the
+    /// false branch's indentation as residual whitespace after the colon (regression test for a
+    /// confirmed convergence defect that needed a second pass to clean up the residual whitespace)
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonWithNoBlankLineBeforeFalseBranchIsJoined()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = cond ? a :
+                                         b;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = cond
+                                                    ? a
+                                                    : b;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling colon whose false branch starts at column 0, with no leading
+    /// whitespace at all, still gets exactly one space inserted before the false branch instead of
+    /// joining them with no separator (regression test for a confirmed missing-space defect; unlike
+    /// the other dangling-colon shapes this one converged immediately, to permanently wrong output)
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonWithUnindentedFalseBranchGetsSingleSpace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = cond ? a :
+                             b;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = cond
+                                                    ? a
+                                                    : b;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling colon is not joined across a comment that sits between the colon and
+    /// the false branch, because the comment would otherwise absorb the joined token (boundary test:
+    /// the join guard already inspects this span and must keep refusing it after the colon join gained
+    /// the ability to rewrite the false branch's leading trivia)
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonBeforeCommentIsNotJoined()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = cond ? a :
+                                         // note
+                                         b;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = cond
+                                                    ? a :
+
+                                        // note
+                                        b;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling colon is not joined across a preprocessor directive spanning the
+    /// false branch, because removing the colon's trailing end-of-line would move the directive off
+    /// the start of a line (boundary test, same guard as the comment case above)
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonBeforeDirectiveIsNotJoined()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = cond ? a :
+                             #if DEBUG
+                                         b;
+                             #else
+                                         c;
+                             #endif
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = cond
+                                                    ? a :
+                                #if DEBUG
+                                            b;
+                                #else
+                                        c;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a hand-written single-line conditional missing the space after the colon is left
+    /// untouched (control: proves the missing-space fix lives in the dangling-colon join and did not
+    /// leak into the horizontal-spacing policy for ternary colons, which deliberately does not cover
+    /// them)
+    /// </summary>
+    [TestMethod]
+    public void SingleLineConditionalWithoutColonSpaceIsNotRewritten()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = cond ? a :b;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling colon before a nested conditional in the false branch is joined at
+    /// every nesting level in one pass, not only at the outermost level
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonInNestedFalseBranchIsJoinedAtEveryLevel()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int inner)
+                                 {
+                                     var title = inner == 0 ? "a" : inner == 1 ? "b" :
+
+                                         "c";
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(int inner)
+                                    {
+                                        var title = inner == 0
+                                                        ? "a"
+                                                        : inner == 1
+                                                            ? "b"
+                                                            : "c";
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

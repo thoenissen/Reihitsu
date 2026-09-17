@@ -36,32 +36,97 @@ internal static class LayoutComputer
     /// </summary>
     /// <param name="root">The root syntax node</param>
     /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A layout model mapping line numbers to desired indentation</returns>
-    public static LayoutModel Compute(SyntaxNode root, FormattingContext context)
+    public static LayoutModel Compute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var model = new LayoutModel();
         var baseColumn = context.BaseIndentLevel * FormattingContext.IndentSize;
 
         // Pass 1: Block indentation — recursive descent over the tree
-        ComputeBlockIndentation(root, 0, model, baseColumn);
+        ComputeBlockIndentation(root, 0, model, baseColumn, cancellationToken);
 
         // Pass 2: Alignment contributors — override block indentation for specific constructs
         var contributors = CreateContributors();
 
-        // The sweep repeats until no column changes, because a single ordered sweep cannot satisfy
-        // the dependencies in both directions. A contributor resolves its anchor through
-        // GetAdjustedColumn, which is only correct once that anchor's line is final, and the
-        // dependencies run both ways across the node order: a chain's anchor sits on a line owned by
-        // a construct nested inside the chain root (a multi-line initializer closed by "2 }"), which
-        // the pre-order walk reaches after the chain, while an argument list or lambda nested under a
-        // continuation line depends on the chain's own column and is reached before it is final.
-        // Sweeping once leaves whichever side runs last measuring against a stale column
+        RunAlignmentSweeps(root, model, contributors, context, cancellationToken);
+
+        // Pass 3: Comment alignment — align comments to the code they precede
+        var commentContributor = new CommentIndentationContributor(cancellationToken);
+
+        commentContributor.Contribute(root, model, context);
+
+        return model;
+    }
+
+    /// <summary>
+    /// Pass 1: Walks the syntax tree top-down and sets block indentation
+    /// for all first-on-line tokens based on nesting depth
+    /// </summary>
+    /// <param name="node">The current syntax node</param>
+    /// <param name="indentLevel">The current block indentation level</param>
+    /// <param name="model">The layout model to write to</param>
+    /// <param name="baseColumn">The base column offset</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <remarks>
+    /// Internal, rather than private, so a test can observe this pass's own cancellation check directly —
+    /// calling it through <see cref="Compute"/> would always short-circuit on that method's entry check first
+    /// </remarks>
+    internal static void ComputeBlockIndentation(SyntaxNode node, int indentLevel, LayoutModel model, int baseColumn, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        foreach (var child in node.ChildNodesAndTokens())
+        {
+            var childIndent = SyntaxIndentationUtilities.GetChildIndentLevel(node, child, indentLevel);
+
+            if (child.IsToken)
+            {
+                var token = child.AsToken();
+
+                SetDirectiveIndentation(token, node, indentLevel, model, baseColumn);
+                SetTokenIndentation(token, childIndent, model, baseColumn);
+            }
+            else
+            {
+                ComputeBlockIndentation(child.AsNode(), childIndent, model, baseColumn, cancellationToken);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Pass 2: Repeats the alignment contributor sweep until the columns settle, because a single
+    /// ordered sweep cannot satisfy the dependencies in both directions. A contributor resolves its
+    /// anchor through <see cref="GetAdjustedColumn"/>, which is only correct once that anchor's line is
+    /// final, and the dependencies run both ways across the node order: a chain's anchor sits on a line
+    /// owned by a construct nested inside the chain root (a multi-line initializer closed by "2 }"),
+    /// which the pre-order walk reaches after the chain, while an argument list or lambda nested under a
+    /// continuation line depends on the chain's own column and is reached before it is final. Sweeping
+    /// once leaves whichever side runs last measuring against a stale column
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="model">The layout model to update</param>
+    /// <param name="contributors">The alignment contributors to run each sweep, in priority order</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <remarks>
+    /// Internal, rather than private, so a test can observe this pass's own cancellation checks directly —
+    /// calling it through <see cref="Compute"/> would always short-circuit on that method's entry check first
+    /// </remarks>
+    internal static void RunAlignmentSweeps(SyntaxNode root, LayoutModel model, ILayoutContributor[] contributors, FormattingContext context, CancellationToken cancellationToken)
+    {
         for (var pass = 0; pass < MaxAlignmentPasses; pass++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var columns = model.CaptureColumns();
 
             foreach (var node in root.DescendantNodesAndSelf())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 foreach (var contributor in contributors)
                 {
                     contributor.Contribute(node, model, context);
@@ -73,13 +138,6 @@ internal static class LayoutComputer
                 break;
             }
         }
-
-        // Pass 3: Comment alignment — align comments to the code they precede
-        var commentContributor = new CommentIndentationContributor();
-
-        commentContributor.Contribute(root, model, context);
-
-        return model;
     }
 
     #endregion // Methods
@@ -184,34 +242,6 @@ internal static class LayoutComputer
                    new AnonymousObjectContributor(),
                    new LambdaAlignmentContributor()
                ];
-    }
-
-    /// <summary>
-    /// Pass 1: Walks the syntax tree top-down and sets block indentation
-    /// for all first-on-line tokens based on nesting depth
-    /// </summary>
-    /// <param name="node">The current syntax node</param>
-    /// <param name="indentLevel">The current block indentation level</param>
-    /// <param name="model">The layout model to write to</param>
-    /// <param name="baseColumn">The base column offset</param>
-    private static void ComputeBlockIndentation(SyntaxNode node, int indentLevel, LayoutModel model, int baseColumn)
-    {
-        foreach (var child in node.ChildNodesAndTokens())
-        {
-            var childIndent = SyntaxIndentationUtilities.GetChildIndentLevel(node, child, indentLevel);
-
-            if (child.IsToken)
-            {
-                var token = child.AsToken();
-
-                SetDirectiveIndentation(token, node, indentLevel, model, baseColumn);
-                SetTokenIndentation(token, childIndent, model, baseColumn);
-            }
-            else
-            {
-                ComputeBlockIndentation(child.AsNode(), childIndent, model, baseColumn);
-            }
-        }
     }
 
     /// <summary>

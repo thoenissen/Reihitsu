@@ -14,6 +14,28 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// </summary>
 internal sealed class CommentIndentationContributor : ILayoutContributor
 {
+    #region Fields
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public CommentIndentationContributor(CancellationToken cancellationToken)
+    {
+        _cancellationToken = cancellationToken;
+    }
+
+    #endregion // Constructor
+
     #region Methods
 
     /// <summary>
@@ -63,6 +85,8 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     {
         foreach (var token in node.DescendantTokens())
         {
+            _cancellationToken.ThrowIfCancellationRequested();
+
             AlignCommentsBeforeToken(token, model);
         }
     }
