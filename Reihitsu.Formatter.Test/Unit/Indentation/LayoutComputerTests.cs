@@ -812,7 +812,11 @@ public class LayoutComputerTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutComputer.Compute"/> throws <see cref="OperationCanceledException"/>
-    /// when the cancellation token is already cancelled, instead of running the layout sweep to completion
+    /// when the cancellation token is already cancelled. A pre-cancelled token always trips this method's
+    /// own entry check first, so this proves only that the entry check exists — the pass-specific checks
+    /// are proven independently by <see cref="ComputeBlockIndentationThrowsWhenCancellationIsRequested"/>
+    /// and <see cref="RunAlignmentSweepsThrowsWhenCancellationIsRequested"/>, which call those passes
+    /// directly and so cannot be satisfied by <see cref="LayoutComputer.Compute"/>'s entry check
     /// </summary>
     [TestMethod]
     public void ComputeThrowsWhenCancellationIsRequested()
@@ -835,6 +839,66 @@ public class LayoutComputerTests
 
             // Act & Assert
             Assert.ThrowsExactly<OperationCanceledException>(() => LayoutComputer.Compute(root, context, cts.Token));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.ComputeBlockIndentation"/> throws
+    /// <see cref="OperationCanceledException"/> for an already-cancelled token, called directly rather
+    /// than through <see cref="LayoutComputer.Compute"/> so this pass's own check is what is falsified
+    /// </summary>
+    [TestMethod]
+    public void ComputeBlockIndentationThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var model = new LayoutModel();
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => LayoutComputer.ComputeBlockIndentation(root, 0, model, 0, cts.Token));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.RunAlignmentSweeps"/> throws
+    /// <see cref="OperationCanceledException"/> for an already-cancelled token, called directly rather
+    /// than through <see cref="LayoutComputer.Compute"/> so this pass's own checks are what is falsified —
+    /// the sweep loop is the most expensive part of the phase, running up to eight full-tree passes
+    /// </summary>
+    [TestMethod]
+    public void RunAlignmentSweepsThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => LayoutComputer.RunAlignmentSweeps(root, model, [], context, cts.Token));
         }
     }
 

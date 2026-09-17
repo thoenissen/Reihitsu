@@ -92,6 +92,88 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
     }
 
     /// <summary>
+    /// Verifies that a comment interior, a verbatim-string interior, and a disabled-text interior all keep
+    /// their own, non-predominant line ending when the formatter normalizes a real violation elsewhere in
+    /// the same, genuinely mixed file, under both an LF-predominant and a CRLF-predominant file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExemptInteriorsSurviveNormalizationInAGenuinelyMixedFile()
+    {
+        const string lfPredominantInput = "internal class Example\n"
+                                          + "{\n"
+                                          + "    /* comment\r\n"
+                                          + "       line2 */\n"
+                                          + "    internal int Value = 1;\r\n"
+                                          + "    internal string Raw = @\"line1\r\nline2\";\n"
+                                          + "#if false\n"
+                                          + "    internal int Disabled = 1;\r\n"
+                                          + "#endif\n"
+                                          + "}";
+        const string lfPredominantExpected = "internal class Example\n"
+                                             + "{\n"
+                                             + "    /* comment\r\n"
+                                             + "       line2 */\n"
+                                             + "    internal int Value = 1;\n"
+                                             + "    internal string Raw = @\"line1\r\nline2\";\n"
+                                             + "#if false\n"
+                                             + "    internal int Disabled = 1;\r\n"
+                                             + "#endif\n"
+                                             + "}";
+        const string crlfPredominantInput = "internal class Example\r\n"
+                                            + "{\r\n"
+                                            + "    /* comment\n"
+                                            + "       line2 */\r\n"
+                                            + "    internal int Value = 1;\n"
+                                            + "    internal string Raw = @\"line1\nline2\";\r\n"
+                                            + "#if false\r\n"
+                                            + "    internal int Disabled = 1;\n"
+                                            + "#endif\r\n"
+                                            + "}";
+        const string crlfPredominantExpected = "internal class Example\r\n"
+                                               + "{\r\n"
+                                               + "    /* comment\n"
+                                               + "       line2 */\r\n"
+                                               + "    internal int Value = 1;\r\n"
+                                               + "    internal string Raw = @\"line1\nline2\";\r\n"
+                                               + "#if false\r\n"
+                                               + "    internal int Disabled = 1;\n"
+                                               + "#endif\r\n"
+                                               + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(lfPredominantInput,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 5, 1, 6, 1, AnalyzerResources.RH5604MessageFormat));
+        await AssertExemptInteriorsSurviveNormalization(lfPredominantInput, lfPredominantExpected);
+
+        await Verify(crlfPredominantInput,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 5, 1, 6, 1, AnalyzerResources.RH5604MessageFormat));
+        await AssertExemptInteriorsSurviveNormalization(crlfPredominantInput, crlfPredominantExpected);
+    }
+
+    /// <summary>
+    /// Formats the given input and asserts that it matches the expected output on both the first and a
+    /// second formatting pass
+    /// </summary>
+    /// <param name="input">Mixed-line-ending input</param>
+    /// <param name="expected">Expected normalized output</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task AssertExemptInteriorsSurviveNormalization(string input, string expected)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
+        var firstTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None);
+        var firstTreeText = (await firstTree.GetRootAsync(CancellationToken.None)).ToFullString();
+
+        Assert.AreEqual(expected, firstTreeText);
+
+        var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None);
+
+        Assert.AreEqual(firstTreeText, (await secondTree.GetRootAsync(CancellationToken.None)).ToFullString());
+    }
+
+    /// <summary>
     /// Verifies syntax-tree and detached-node formatting normalize mixed input, and document-scoped formatting remains stable
     /// </summary>
     /// <param name="input">Mixed-line-ending input</param>
