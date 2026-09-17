@@ -176,8 +176,15 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
             var newWhenTrueTrailing = LineBreakTriviaUtilities.AppendEndOfLine(whenTrueLastToken.TrailingTrivia, _context.EndOfLine);
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
+            var whenFalseFirstToken = node.WhenFalse.GetFirstToken();
+            var newWhenFalseFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(whenFalseFirstToken);
 
-            return node.ReplaceTokens([whenTrueLastToken, colonToken],
+            if (newWhenFalseFirstToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                newWhenFalseFirstToken = newWhenFalseFirstToken.WithLeadingTrivia(newWhenFalseFirstToken.LeadingTrivia.Add(SyntaxFactory.Space));
+            }
+
+            return node.ReplaceTokens([whenTrueLastToken, colonToken, whenFalseFirstToken],
                                       (original, _) =>
                                       {
                                           if (original == whenTrueLastToken)
@@ -185,7 +192,12 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
                                               return newWhenTrueLastToken;
                                           }
 
-                                          return newColonToken;
+                                          if (original == colonToken)
+                                          {
+                                              return newColonToken;
+                                          }
+
+                                          return newWhenFalseFirstToken;
                                       });
         }
 
