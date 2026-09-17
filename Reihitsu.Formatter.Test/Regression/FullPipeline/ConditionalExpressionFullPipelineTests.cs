@@ -1,5 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
@@ -13,6 +16,16 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 [TestClass]
 public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
 {
+    #region Properties
+
+    /// <summary>
+    /// The test context, used to source the cancellation token for pipeline calls made directly
+    /// from a test method
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
     #region Constants
 
     /// <summary>
@@ -353,6 +366,53 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling colon separated from the false branch by a blank line reaches a
+    /// stable fixed point on its very first formatting pass, matching every other converging
+    /// construct in this pipeline (idempotency guard; regression test written against a confirmed
+    /// convergence defect, not a hand-derived expectation of the eventual fixed point)
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonBeforeBlankLineConvergesOnFirstPass()
+    {
+        // Arrange
+        const string input = "class C\n{\n    void M()\n    {\n        var x = cond ? a :\n\n            b;\n    }\n}\n";
+
+        // The literal below is the formatter's own first-pass output for the input above, captured
+        // by running it through the pipeline once. It is used only to pin down that a second pass
+        // over that same first-pass output must be a no-op
+        const string expectedFirstPass = "class C\n{\n    void M()\n    {\n        var x = cond\n                    ? a\n                    :\n        b;\n    }\n}";
+
+        // Act & Assert
+        AssertRuleResult(input, expectedFirstPass);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling colon immediately followed by the false branch, with no leading
+    /// whitespace at all on that line, still keeps a single space between the colon and the false
+    /// branch instead of joining them with no separator (regression test against a confirmed
+    /// missing-space defect)
+    /// </summary>
+    [TestMethod]
+    public void DanglingColonWithNoLeadingWhitespaceKeepsSpaceBeforeFalseBranch()
+    {
+        // Arrange
+        const string input = "class C\n{\n    void M()\n    {\n        var x = cond ? a :\nb;\n    }\n}\n";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var normalizedInput = NormalizeLineEndings(input, endOfLine);
+            var tree = CSharpSyntaxTree.ParseText(normalizedInput, cancellationToken: TestContext.CancellationToken);
+            var context = new FormattingContext(endOfLine);
+            var actual = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).ToFullString();
+
+            // Act & Assert
+            Assert.Contains(": b;",
+                            actual,
+                            $"Expected a space between the colon and the false branch under {DescribeLineEnding(endOfLine)} line endings, but got:{endOfLine}{actual}");
+        }
     }
 
     #endregion // Methods
