@@ -45,6 +45,25 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Strips a branch's first token of its leading end-of-line and whitespace trivia so it joins
+    /// the operator's line, then guarantees exactly one leading space when nothing else supplied one —
+    /// shared by the <c>?</c> and <c>:</c> joins so both branches land on the operator's line the same way
+    /// </summary>
+    /// <param name="branchFirstToken">The first token of the branch being moved onto the operator's line</param>
+    /// <returns>The token with its leading trivia rebuilt for same-line placement</returns>
+    private static SyntaxToken MoveTokenOntoOperatorLine(SyntaxToken branchFirstToken)
+    {
+        var newToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(branchFirstToken);
+
+        if (newToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+        {
+            newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(SyntaxFactory.Space));
+        }
+
+        return newToken;
+    }
+
+    /// <summary>
     /// Normalizes ternary operator placement. A conditional is broken across lines when it already
     /// spans multiple lines or contains a nested conditional, so that the outer and every nested
     /// conditional are formatted consistently regardless of how the input was wrapped
@@ -131,12 +150,7 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
         var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
         var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
-        var newWhenTrueFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(whenTrueFirstToken);
-
-        if (newWhenTrueFirstToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            newWhenTrueFirstToken = newWhenTrueFirstToken.WithLeadingTrivia(newWhenTrueFirstToken.LeadingTrivia.Add(SyntaxFactory.Space));
-        }
+        var newWhenTrueFirstToken = MoveTokenOntoOperatorLine(whenTrueFirstToken);
 
         return node.ReplaceTokens([conditionLastToken, questionToken, whenTrueFirstToken],
                                   (original, _) =>
@@ -177,12 +191,7 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
             var whenFalseFirstToken = node.WhenFalse.GetFirstToken();
-            var newWhenFalseFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(whenFalseFirstToken);
-
-            if (newWhenFalseFirstToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                newWhenFalseFirstToken = newWhenFalseFirstToken.WithLeadingTrivia(newWhenFalseFirstToken.LeadingTrivia.Add(SyntaxFactory.Space));
-            }
+            var newWhenFalseFirstToken = MoveTokenOntoOperatorLine(whenFalseFirstToken);
 
             return node.ReplaceTokens([whenTrueLastToken, colonToken, whenFalseFirstToken],
                                       (original, _) =>
