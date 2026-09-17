@@ -256,6 +256,35 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="IndentationRewriter.Apply"/> throws <see cref="OperationCanceledException"/>
+    /// when the cancellation token is already cancelled, instead of rewriting every token in the tree
+    /// </summary>
+    [TestMethod]
+    public void ApplyThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => IndentationRewriter.Apply(root, model, cts.Token));
+        }
+    }
+
+    /// <summary>
     /// Computes the layout model and applies indentation to the given input
     /// </summary>
     /// <param name="input">The source text to indent</param>
@@ -266,8 +295,8 @@ public class IndentationRewriterTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: token);
         var context = new FormattingContext(Environment.NewLine);
         var root = tree.GetRoot(token);
-        var model = LayoutComputer.Compute(root, context);
-        var result = IndentationRewriter.Apply(root, model);
+        var model = LayoutComputer.Compute(root, context, token);
+        var result = IndentationRewriter.Apply(root, model, token);
 
         return result.ToFullString();
     }

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Indentation;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 namespace Reihitsu.Formatter.Test.Integration;
@@ -193,6 +194,36 @@ public class IndentationPhaseIntegrationTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="IndentationPhase.Execute"/> throws <see cref="OperationCanceledException"/>
+    /// when the cancellation token is already cancelled, instead of running the layout computation and
+    /// rewrite to completion
+    /// </summary>
+    [TestMethod]
+    public void ExecuteThrowsWhenCancellationIsRequested()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             public int Value;
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+        var phase = new IndentationPhase();
+
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => phase.Execute(root, context, cts.Token));
+        }
+    }
+
+    /// <summary>
     /// Executes the indentation phase (LayoutComputer + IndentationRewriter) on the given input
     /// </summary>
     /// <param name="input">The C# source text</param>
@@ -203,8 +234,8 @@ public class IndentationPhaseIntegrationTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
         var context = new FormattingContext(Environment.NewLine);
         var root = tree.GetRoot(cancellationToken);
-        var model = LayoutComputer.Compute(root, context);
-        var result = IndentationRewriter.Apply(root, model);
+        var model = LayoutComputer.Compute(root, context, cancellationToken);
+        var result = IndentationRewriter.Apply(root, model, cancellationToken);
 
         return result.ToFullString();
     }

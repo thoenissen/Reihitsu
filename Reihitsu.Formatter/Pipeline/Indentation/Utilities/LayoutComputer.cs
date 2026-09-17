@@ -36,14 +36,17 @@ internal static class LayoutComputer
     /// </summary>
     /// <param name="root">The root syntax node</param>
     /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A layout model mapping line numbers to desired indentation</returns>
-    public static LayoutModel Compute(SyntaxNode root, FormattingContext context)
+    public static LayoutModel Compute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var model = new LayoutModel();
         var baseColumn = context.BaseIndentLevel * FormattingContext.IndentSize;
 
         // Pass 1: Block indentation — recursive descent over the tree
-        ComputeBlockIndentation(root, 0, model, baseColumn);
+        ComputeBlockIndentation(root, 0, model, baseColumn, cancellationToken);
 
         // Pass 2: Alignment contributors — override block indentation for specific constructs
         var contributors = CreateContributors();
@@ -58,10 +61,14 @@ internal static class LayoutComputer
         // Sweeping once leaves whichever side runs last measuring against a stale column
         for (var pass = 0; pass < MaxAlignmentPasses; pass++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var columns = model.CaptureColumns();
 
             foreach (var node in root.DescendantNodesAndSelf())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 foreach (var contributor in contributors)
                 {
                     contributor.Contribute(node, model, context);
@@ -75,7 +82,7 @@ internal static class LayoutComputer
         }
 
         // Pass 3: Comment alignment — align comments to the code they precede
-        var commentContributor = new CommentIndentationContributor();
+        var commentContributor = new CommentIndentationContributor(cancellationToken);
 
         commentContributor.Contribute(root, model, context);
 
@@ -194,8 +201,11 @@ internal static class LayoutComputer
     /// <param name="indentLevel">The current block indentation level</param>
     /// <param name="model">The layout model to write to</param>
     /// <param name="baseColumn">The base column offset</param>
-    private static void ComputeBlockIndentation(SyntaxNode node, int indentLevel, LayoutModel model, int baseColumn)
+    /// <param name="cancellationToken">Cancellation token</param>
+    private static void ComputeBlockIndentation(SyntaxNode node, int indentLevel, LayoutModel model, int baseColumn, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         foreach (var child in node.ChildNodesAndTokens())
         {
             var childIndent = SyntaxIndentationUtilities.GetChildIndentLevel(node, child, indentLevel);
@@ -209,7 +219,7 @@ internal static class LayoutComputer
             }
             else
             {
-                ComputeBlockIndentation(child.AsNode(), childIndent, model, baseColumn);
+                ComputeBlockIndentation(child.AsNode(), childIndent, model, baseColumn, cancellationToken);
             }
         }
     }

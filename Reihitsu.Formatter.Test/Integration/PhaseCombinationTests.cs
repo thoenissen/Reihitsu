@@ -140,8 +140,8 @@ public class PhaseCombinationTests
         var root = tree.GetRoot(TestContext.CancellationToken);
         root = new LineBreakPhase().Execute(root, context, TestContext.CancellationToken);
 
-        var model = LayoutComputer.Compute(root, context);
-        root = IndentationRewriter.Apply(root, model);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
+        root = IndentationRewriter.Apply(root, model, TestContext.CancellationToken);
 
         var actual = root.ToFullString();
 
@@ -231,8 +231,8 @@ public class PhaseCombinationTests
         root = new LineBreakPhase().Execute(root, context, TestContext.CancellationToken);
         root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationToken);
 
-        var model = LayoutComputer.Compute(root, context);
-        root = IndentationRewriter.Apply(root, model);
+        var model = LayoutComputer.Compute(root, context, TestContext.CancellationToken);
+        root = IndentationRewriter.Apply(root, model, TestContext.CancellationToken);
 
         var actual = root.ToFullString();
 

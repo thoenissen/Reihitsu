@@ -22,9 +22,11 @@ internal sealed class IndentationPhase : IFormattingPhase
     /// <returns>The formatted syntax node</returns>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        var layoutModel = LayoutComputer.Compute(root, context);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        return IndentationRewriter.Apply(root, layoutModel);
+        var layoutModel = LayoutComputer.Compute(root, context, cancellationToken);
+
+        return IndentationRewriter.Apply(root, layoutModel, cancellationToken);
     }
 
     #endregion // IFormattingPhase
