@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -95,6 +96,144 @@ public class RemoveWhitespaceRunCodeFixProviderBaseTests : BatchCodeFixTestsBase
 
         Assert.IsEmpty(actions,
                        "The whitespace run being deleted sits directly after a comment in the same token gap; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that a diagnostic span placed inside a token's trailing trivia (the whitespace run immediately
+    /// after the opening parenthesis, with a comment later in the same gap) still causes the guard to withhold
+    /// the fix. This is the counterpart of
+    /// <see cref="VerifyFixIsNotOfferedWhenDiagnosticSpanIsInLeadingTriviaAndCommentPrecedesIt"/>: it pins the
+    /// trailing-trivia branch to today's byte-identical decision so the newly added leading-trivia branch cannot
+    /// leak into it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenDiagnosticSpanIsInTrailingTriviaAndCommentFollowsIt()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        return ( /* keep */    0);
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var openParenToken = root.DescendantTokens().Last(token => token.IsKind(SyntaxKind.OpenParenToken));
+                                                       var firstTrailingTrivia = openParenToken.TrailingTrivia.First();
+
+                                                       Assert.IsTrue(firstTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The token's trailing trivia must start with the whitespace run immediately following it.");
+
+                                                       return Location.Create(root.SyntaxTree, firstTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The whitespace run being deleted is followed by a comment in the same token gap; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsNotOfferedWhenDiagnosticSpanIsInTrailingTriviaAndCommentFollowsIt"/> with the
+    /// source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenDiagnosticSpanIsInTrailingTriviaAndCommentFollowsItCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        return ( /* keep */    0);
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData),
+                                                   RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var openParenToken = root.DescendantTokens().Last(token => token.IsKind(SyntaxKind.OpenParenToken));
+                                                       var firstTrailingTrivia = openParenToken.TrailingTrivia.First();
+
+                                                       Assert.IsTrue(firstTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The token's trailing trivia must start with the whitespace run immediately following it.");
+
+                                                       return Location.Create(root.SyntaxTree, firstTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The whitespace run being deleted is followed by a comment in the same token gap; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that a diagnostic span whose resolved token has no following non-zero-width token (the reported
+    /// whitespace run sits after the last real token of a truncated document) withholds the fix instead of
+    /// throwing. Today's derivation computes <c>TextSpan.FromBounds(token.Span.End, default.SpanStart)</c>, which
+    /// throws <see cref="ArgumentOutOfRangeException"/> because the default token's span starts at <c>0</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenNoTokenFollowsTheResolvedTokenInATruncatedDocument()
+    {
+        // A regular string literal is used here instead of the repository's usual raw string literal because
+        // the scenario requires the document to end with trailing whitespace after the opening parenthesis, and
+        // a raw string literal cannot represent trailing whitespace on a content line.
+        const string testData = "internal class TestClass\n{\n    int Method()\n    {\n        return ( ";
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var openParenToken = root.DescendantTokens().Last(token => token.IsKind(SyntaxKind.OpenParenToken));
+                                                       var firstTrailingTrivia = openParenToken.TrailingTrivia.First();
+
+                                                       Assert.IsTrue(firstTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The opening parenthesis's trailing trivia must be the whitespace run at the end of the truncated document.");
+
+                                                       return Location.Create(root.SyntaxTree, firstTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "No token follows the opening parenthesis in this truncated document; the fix must be withheld rather than throw.");
+    }
+
+    /// <summary>
+    /// Verifies that a diagnostic span whose resolved token has no preceding token at all (the reported whitespace
+    /// run sits in the leading trivia of the very first token in the document) withholds the fix instead of
+    /// throwing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenNoTokenPrecedesTheResolvedTokenAtTheStartOfTheDocument()
+    {
+        const string testData = """
+                                 /* keep */    internal class TestClass
+                                {
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var firstToken = root.DescendantTokens().First();
+                                                       var lastLeadingTrivia = firstToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The first token's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "No token precedes the first token in the document; the fix must be withheld rather than throw.");
     }
 
     #endregion // Tests

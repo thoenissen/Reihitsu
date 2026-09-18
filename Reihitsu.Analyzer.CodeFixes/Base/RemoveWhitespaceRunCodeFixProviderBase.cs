@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
@@ -51,11 +52,42 @@ public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanRe
     /// <inheritdoc/>
     protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
     {
-        var precedingToken = root.FindToken(diagnosticSpan.Start);
+        var token = root.FindToken(diagnosticSpan.Start);
 
-        guardSpan = TextSpan.FromBounds(precedingToken.Span.End, precedingToken.GetNextToken().SpanStart);
         replacementSpan = diagnosticSpan;
         replacementText = string.Empty;
+
+        // FindToken attributes leading trivia to the token it precedes, so a diagnostic span inside a token's
+        // leading trivia resolves to the token *after* the edited gap, not the one before it. Deciding which
+        // neighbouring token brackets the edited gap from diagnosticSpan.Start versus token.SpanStart, rather
+        // than always treating the resolved token as the preceding one, keeps the guard aligned with the edit
+        // on both sides of that boundary.
+        if (diagnosticSpan.Start < token.SpanStart)
+        {
+            var previousToken = token.GetPreviousToken();
+
+            if (previousToken.IsKind(SyntaxKind.None))
+            {
+                guardSpan = default;
+
+                return false;
+            }
+
+            guardSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
+        }
+        else
+        {
+            var nextToken = token.GetNextToken();
+
+            if (nextToken.IsKind(SyntaxKind.None))
+            {
+                guardSpan = default;
+
+                return false;
+            }
+
+            guardSpan = TextSpan.FromBounds(token.Span.End, nextToken.SpanStart);
+        }
 
         return CanOfferFix(root, diagnosticSpan);
     }
