@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
@@ -70,18 +72,6 @@ public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
         return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
     }
 
-    /// <summary>
-    /// Determines whether the specified span contains only whitespace; deleting anything else would remove
-    /// executable text instead of the reported whitespace run, so the fix is withheld unless this holds
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="span">Span to inspect</param>
-    /// <returns><see langword="true"/> when the span is empty or contains only whitespace characters</returns>
-    private static bool IsWhitespaceOnly(SourceText sourceText, TextSpan span)
-    {
-        return string.IsNullOrWhiteSpace(sourceText.GetSubText(span).ToString());
-    }
-
     #endregion // Methods
 
     #region CodeFixProvider
@@ -104,7 +94,7 @@ public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
         {
             var span = diagnostic.Location.SourceSpan;
 
-            if (IsWhitespaceOnly(sourceText, span) == false)
+            if (FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, span) == false)
             {
                 continue;
             }

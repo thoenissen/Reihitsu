@@ -96,6 +96,40 @@ public class FormattingTextAnalysisUtilitiesTests
         Assert.AreEqual(2, FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, 2, 0));
     }
 
+    /// <summary>
+    /// Verifies that a span containing only spaces and tabs is treated as whitespace-only
+    /// </summary>
+    [TestMethod]
+    public void IsWhitespaceOnlyReturnsTrueForSpacesAndTabs()
+    {
+        var sourceText = SourceText.From("a \t b");
+
+        Assert.IsTrue(FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, TextSpan.FromBounds(1, 4)));
+    }
+
+    /// <summary>
+    /// Verifies that an empty span is treated as whitespace-only, matching the unconditional deletion of an
+    /// empty reported span
+    /// </summary>
+    [TestMethod]
+    public void IsWhitespaceOnlyReturnsTrueForEmptySpan()
+    {
+        var sourceText = SourceText.From("abcd");
+
+        Assert.IsTrue(FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, new TextSpan(2, 0)));
+    }
+
+    /// <summary>
+    /// Verifies that a span containing a non-whitespace character is not whitespace-only
+    /// </summary>
+    [TestMethod]
+    public void IsWhitespaceOnlyReturnsFalseWhenSpanContainsNonWhitespace()
+    {
+        var sourceText = SourceText.From("a b");
+
+        Assert.IsFalse(FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, TextSpan.FromBounds(0, 3)));
+    }
+
     #endregion // Tests
 
     #region Methods

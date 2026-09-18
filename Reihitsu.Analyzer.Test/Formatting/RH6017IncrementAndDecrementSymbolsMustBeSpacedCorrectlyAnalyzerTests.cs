@@ -149,10 +149,11 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a continuation-line increment preceded by a block comment does not produce a diagnostic.
-    /// RH6017's analyzer requires the immediately preceding token, not merely a preceding comment, to share
-    /// the operator's line, so a comment on a continuation line never enters the reported span here, unlike
-    /// the shared <c>SameLinePrecedingWhitespaceAnalysis</c> a sibling rule such as RH6003 uses
+    /// Verifies that a continuation-line increment preceded by a block comment, with a real whitespace run
+    /// between the comment and the operator, still does not produce a diagnostic. RH6017's analyzer requires
+    /// the immediately preceding token, not merely a preceding comment, to share the operator's line, so this
+    /// run never enters the reported span here even though it would be reported by the shared
+    /// <c>SameLinePrecedingWhitespaceAnalysis</c> a sibling rule such as RH6003 uses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -165,7 +166,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                     {
                                         int value = 0;
                                         value
-                                            /* keep me */++;
+                                            /* keep me */ ++;
                                     }
                                 }
                                 """;
@@ -188,7 +189,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                     {
                                         int value = 0;
                                         value
-                                            /* keep me */++;
+                                            /* keep me */ ++;
                                     }
                                 }
                                 """;

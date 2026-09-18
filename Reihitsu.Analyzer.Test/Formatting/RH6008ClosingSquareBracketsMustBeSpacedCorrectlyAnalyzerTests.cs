@@ -148,10 +148,11 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that a continuation-line closing bracket preceded by a block comment does not produce a
-    /// diagnostic. RH6008's analyzer requires the immediately preceding token, not merely a preceding comment,
-    /// to share the bracket's line, so a comment on a continuation line never enters the reported span here,
-    /// unlike the shared <c>SameLinePrecedingWhitespaceAnalysis</c> a sibling rule such as RH6012 uses
+    /// Verifies that a continuation-line closing bracket preceded by a block comment, with a real whitespace
+    /// run between the comment and the bracket, still does not produce a diagnostic. RH6008's analyzer
+    /// requires the immediately preceding token, not merely a preceding comment, to share the bracket's line,
+    /// so this run never enters the reported span here even though it would be reported by the shared
+    /// <c>SameLinePrecedingWhitespaceAnalysis</c> a sibling rule such as RH6012 uses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -164,7 +165,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                     {
                                         int[] values = [0];
                                         _ = values[0
-                                            /* keep */];
+                                            /* keep */ ];
                                     }
                                 }
                                 """;
@@ -187,7 +188,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                     {
                                         int[] values = [0];
                                         _ = values[0
-                                            /* keep */];
+                                            /* keep */ ];
                                     }
                                 }
                                 """;
