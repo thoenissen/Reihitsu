@@ -66,6 +66,9 @@ public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanRe
         {
             var previousToken = token.GetPreviousToken();
 
+            // No token precedes the document's first token, so there is no gap for two tokens to bracket here.
+            // Withholding is a refusal to guess an edited gap that does not exist, not a guard against a throw;
+            // the bounds this branch would otherwise compute do not throw.
             if (previousToken.IsKind(SyntaxKind.None))
             {
                 guardSpan = default;
@@ -79,6 +82,9 @@ public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanRe
         {
             var nextToken = token.GetNextToken();
 
+            // Unlike the branch above, this guards a real throw: a diagnostic span at the end of a truncated
+            // document resolves to the last non-zero-width token, whose next token does not exist, and computing
+            // bounds from that missing token's start would throw because it defaults to position zero.
             if (nextToken.IsKind(SyntaxKind.None))
             {
                 guardSpan = default;

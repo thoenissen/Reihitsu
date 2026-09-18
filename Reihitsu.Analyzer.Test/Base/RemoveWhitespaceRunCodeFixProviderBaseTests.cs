@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -99,6 +101,66 @@ public class RemoveWhitespaceRunCodeFixProviderBaseTests : BatchCodeFixTestsBase
     }
 
     /// <summary>
+    /// Verifies that a diagnostic span placed inside a token's leading trivia is still offered as a fix when the
+    /// enclosing token gap contains no comment or directive, and that applying it deletes only the reported
+    /// whitespace run and nothing else. This is the fix-offered counterpart of
+    /// <see cref="VerifyFixIsNotOfferedWhenDiagnosticSpanIsInLeadingTriviaAndCommentPrecedesIt"/>: it proves the
+    /// leading-trivia branch is not simply withholding unconditionally, and that the corrected guard span still
+    /// covers exactly the edited gap rather than a wider one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsOfferedWhenDiagnosticSpanIsInLeadingTriviaAndGapIsClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        return (
+                                            0);
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Method()
+                                     {
+                                         return (
+                                 0);
+                                     }
+                                 }
+                                 """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var numericToken = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.NumericLiteralToken));
+                                                       var lastLeadingTrivia = numericToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The token's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.HasCount(1,
+                        actions,
+                        "No comment or directive shares the edited gap; the fix must be offered.");
+
+        var operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+        var applyChanges = operations.OfType<ApplyChangesOperation>().Single();
+        var changedDocument = applyChanges.ChangedSolution.Projects.Single().Documents.Single();
+        var changedText = (await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+
+        Assert.AreEqual(fixedData,
+                        changedText,
+                        "Applying the fix must delete only the reported whitespace run, proving the guard span did not widen the edit.");
+    }
+
+    /// <summary>
     /// Verifies that a diagnostic span placed inside a token's trailing trivia (the whitespace run immediately
     /// after the opening parenthesis, with a comment later in the same gap) still causes the guard to withhold
     /// the fix. This is the counterpart of
@@ -175,8 +237,8 @@ public class RemoveWhitespaceRunCodeFixProviderBaseTests : BatchCodeFixTestsBase
     /// <summary>
     /// Verifies that a diagnostic span whose resolved token has no following non-zero-width token (the reported
     /// whitespace run sits after the last real token of a truncated document) withholds the fix instead of
-    /// throwing. Today's derivation computes <c>TextSpan.FromBounds(token.Span.End, default.SpanStart)</c>, which
-    /// throws <see cref="ArgumentOutOfRangeException"/> because the default token's span starts at <c>0</c>
+    /// throwing. Before this fix, the derivation computed <c>TextSpan.FromBounds(token.Span.End, default.SpanStart)</c>,
+    /// which threw <see cref="ArgumentOutOfRangeException"/> because the default token's span starts at <c>0</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -207,17 +269,18 @@ public class RemoveWhitespaceRunCodeFixProviderBaseTests : BatchCodeFixTestsBase
     /// <summary>
     /// Verifies that a diagnostic span whose resolved token has no preceding token at all (the reported whitespace
     /// run sits in the leading trivia of the very first token in the document) withholds the fix instead of
-    /// throwing
+    /// throwing. The gap carries no comment or directive, so this isolates the "no preceding token" guard from the
+    /// comment guard: without it, the derivation would compute <c>TextSpan.FromBounds(0, token.SpanStart)</c>,
+    /// which does not throw but is not a gap any two tokens bracket, and the fix would be wrongly offered because
+    /// the comment guard alone finds nothing to withhold on
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyFixIsNotOfferedWhenNoTokenPrecedesTheResolvedTokenAtTheStartOfTheDocument()
     {
-        const string testData = """
-                                 /* keep */    internal class TestClass
-                                {
-                                }
-                                """;
+        // A regular string literal keeps the leading whitespace explicit and comment-free, isolating the "no
+        // preceding token" guard from the comment/directive guard the other base-level tests already cover.
+        const string testData = "    internal class TestClass\n{\n}";
 
         var actions = await GetCodeFixActionsAsync(testData,
                                                    RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -233,7 +296,7 @@ public class RemoveWhitespaceRunCodeFixProviderBaseTests : BatchCodeFixTestsBase
                                                    });
 
         Assert.IsEmpty(actions,
-                       "No token precedes the first token in the document; the fix must be withheld rather than throw.");
+                       "No token precedes the first token in the document; the fix must be withheld rather than treat position 0 as a bracketing token.");
     }
 
     #endregion // Tests
