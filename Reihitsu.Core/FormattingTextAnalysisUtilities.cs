@@ -287,6 +287,19 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether the specified span contains only whitespace; a code fix that deletes a span must
+    /// withhold when this does not hold, so a future analyzer defect degrades to no fix being offered instead
+    /// of deleting non-whitespace text
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns><see langword="true"/> when the span is empty or contains only whitespace characters</returns>
+    public static bool IsWhitespaceOnly(SourceText sourceText, TextSpan span)
+    {
+        return string.IsNullOrWhiteSpace(sourceText.GetSubText(span).ToString());
+    }
+
+    /// <summary>
     /// Determines whether the specified token is part of an interpolated string
     /// </summary>
     /// <param name="token">Token to inspect</param>

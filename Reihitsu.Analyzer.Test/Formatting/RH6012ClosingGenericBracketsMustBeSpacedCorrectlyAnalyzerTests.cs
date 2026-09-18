@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -121,11 +125,12 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     }
 
     /// <summary>
-    /// Verifies that the code fix preserves a comment before a closing generic bracket
+    /// Verifies that a comment before a same-line closing generic bracket still reports the diagnostic but
+    /// withholds the fix, because deleting the whitespace run would glue the comment to the bracket
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentBeforeClosingGenericBracketIsPreservedByCodeFix()
+    public async Task VerifyFixIsNotOfferedForSameLineClosingGenericBracketWithPrecedingComment()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -134,15 +139,132 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                     List<int /* Keep. */{|#0: |}> Method() => new();
                                 }
                                 """;
-        const string fixedData = """
-                                 using System.Collections.Generic;
-                                 internal class TestClass
-                                 {
-                                     List<int /* Keep. */> Method() => new();
-                                 }
-                                 """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(testData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var typeArgumentList = root.DescendantNodes().OfType<TypeArgumentListSyntax>().First();
+                                                       var lastTrailingTrivia = typeArgumentList.GreaterThanToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the bracket.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsNotOfferedForSameLineClosingGenericBracketWithPrecedingComment"/> with the
+    /// source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForSameLineClosingGenericBracketWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List<int /* Keep. */{|#0: |}> Method() => new();
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var typeArgumentList = root.DescendantNodes().OfType<TypeArgumentListSyntax>().First();
+                                                       var lastTrailingTrivia = typeArgumentList.GreaterThanToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the bracket.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that a continuation-line closing generic bracket preceded by a block comment still reports the
+    /// diagnostic on the same-line whitespace run between the comment and the bracket, and that the fix is
+    /// withheld rather than offered, because the guard must inspect the gap the whitespace run actually sits in
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForContinuationLineClosingGenericBracketWithPrecedingComment()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List<int
+                                        /* keep */{|#0: |}> Method() => new();
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var typeArgumentList = root.DescendantNodes().OfType<TypeArgumentListSyntax>().First();
+                                                       var lastLeadingTrivia = typeArgumentList.GreaterThanToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The bracket's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits between the previous token and the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsNotOfferedForContinuationLineClosingGenericBracketWithPrecedingComment"/>
+    /// with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForContinuationLineClosingGenericBracketWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                internal class TestClass
+                                {
+                                    List<int
+                                        /* keep */{|#0: |}> Method() => new();
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var typeArgumentList = root.DescendantNodes().OfType<TypeArgumentListSyntax>().First();
+                                                       var lastLeadingTrivia = typeArgumentList.GreaterThanToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The bracket's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits between the previous token and the reported whitespace run; the fix must be withheld.");
     }
 
     /// <summary>

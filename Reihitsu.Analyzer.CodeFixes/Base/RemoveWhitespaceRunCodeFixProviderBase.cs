@@ -2,17 +2,21 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
 /// Base class for code fixes that delete a reported whitespace run between two tokens; the fix is
 /// not offered when the surrounding token gap contains a comment, because deleting the whitespace
-/// would otherwise either remove the comment or glue it to a neighbouring token
+/// would otherwise either remove the comment or glue it to a neighbouring token, and not offered when
+/// the reported span itself is not whitespace-only, so a future analyzer defect degrades to no fix
+/// being offered instead of deleting non-whitespace text
 /// <para>
 /// This guard inspects the whole token gap around the deleted span, not only the span itself, so it can
 /// withhold a fix for input the deleted span alone would never touch. Choose
-/// <see cref="WhitespaceSpanRemovalCodeFixProviderBase"/> instead when the reported span is already known to
-/// be whitespace-only and no comment/directive check beyond the deleted span itself is required
+/// <see cref="WhitespaceSpanRemovalCodeFixProviderBase"/> instead when the fix must stay offered for every
+/// input the analyzer can report and no comment/directive check beyond the deleted span itself is required
 /// </para>
 /// </summary>
 public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanReplacementCodeFixProviderBase
@@ -52,10 +56,17 @@ public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanRe
     /// <inheritdoc/>
     protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
     {
-        var token = root.FindToken(diagnosticSpan.Start);
-
         replacementSpan = diagnosticSpan;
         replacementText = string.Empty;
+
+        if (FormattingTextAnalysisUtilities.IsWhitespaceOnly(sourceText, diagnosticSpan) == false)
+        {
+            guardSpan = default;
+
+            return false;
+        }
+
+        var token = root.FindToken(diagnosticSpan.Start);
 
         // FindToken attributes leading trivia to the token it precedes, so a diagnostic span inside a token's
         // leading trivia resolves to the token *after* the edited gap, not the one before it. Deciding which

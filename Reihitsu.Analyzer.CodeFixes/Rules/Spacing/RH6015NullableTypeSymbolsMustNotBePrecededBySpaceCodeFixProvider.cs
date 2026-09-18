@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider))]
-public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider : WhitespaceSpanRemovalCodeFixProviderBase
+public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider : RemoveWhitespaceRunCodeFixProviderBase
 {
     #region Constructor
 

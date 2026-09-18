@@ -947,5 +947,87 @@ public class HorizontalSpacingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Characterizes today's deliberate policy for a block comment sharing the same line as an opening
+    /// generic bracket: the whitespace rule is computed from the token pair alone and does not exempt a
+    /// trailing comment in the left token's own trailing trivia, so the space is collapsed and the comment
+    /// ends up directly against the bracket, exactly as it would for any other zero-space token pair. RH6011's
+    /// own code fix withholds for this shape instead (see <c>documentation/rules/RH6011.md</c>), which is a
+    /// deliberate, documented divergence rather than a defect in either surface
+    /// </summary>
+    [TestMethod]
+    public void BlockCommentBeforeGenericBracketOnSameLineIsGluedToBracket()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     List /* Keep. */ <int> values;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        List /* Keep. */<int> values;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Characterizes today's deliberate policy for a block comment on the line above a continuation-line
+    /// opening generic bracket: <see cref="Reihitsu.Formatter.Pipeline.HorizontalSpacing.HorizontalSpacingPhase"/>
+    /// leaves the space before the bracket untouched, because the two tokens are not on the same line (see
+    /// <c>documentation/rules/RH6011.md</c>), unlike the same-line shape in
+    /// <see cref="BlockCommentBeforeGenericBracketOnSameLineIsGluedToBracket"/>. The blank line and reduced
+    /// indentation this fixture also shows are the pipeline's unrelated, pre-existing blank-line and
+    /// line-break re-flow of that continuation, not a decision this rule owns
+    /// </summary>
+    [TestMethod]
+    public void BlockCommentBeforeGenericBracketOnContinuationLineKeepsGapUntouched()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     List
+                                         /* Keep. */ <int> values;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        List
+
+                                        /* Keep. */ <int> values;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
