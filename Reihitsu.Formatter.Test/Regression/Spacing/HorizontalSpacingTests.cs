@@ -947,5 +947,29 @@ public class HorizontalSpacingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a block comment sharing the same line as an opening generic bracket does not
+    /// have the space before the bracket collapsed, which would glue the comment to the bracket
+    /// </summary>
+    [TestMethod]
+    public void BlockCommentBeforeGenericBracketOnSameLineKeepsSpace()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     List /* Keep. */ <int> values;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }
