@@ -1,8 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Spacing;
@@ -230,6 +233,62 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="WhitespaceSpanRemovalCodeFixProviderBase"/> withholds its fix when the
+    /// reported span is not whitespace-only, so a future analyzer defect degrades to no fix being offered
+    /// instead of deleting non-whitespace text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNonWhitespaceSpanWithholdsFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var value = 0;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens().First(token => token.Text == "value").GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that an empty reported span is treated as whitespace-only and still registers a fix, matching
+    /// today's unconditional deletion of an empty span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEmptySpanStillRegistersFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var value = 0;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var token = root.DescendantTokens().First(item => item.Text == "value");
+
+                                                       return Location.Create(root.SyntaxTree, new TextSpan(token.SpanStart, 0));
+                                                   });
+
+        Assert.HasCount(1, actions);
     }
 
     #endregion // Tests

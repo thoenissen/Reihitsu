@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,11 +10,12 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider base class for blank-line rules whose fix removes the reported diagnostic span; the
-/// fix is withheld unless the span is whitespace-only, so a future analyzer reporting a non-whitespace span
-/// degrades to no fix being offered instead of deleting code
+/// Code fix provider base class for spacing rules whose fix removes the reported diagnostic span; the fix
+/// is withheld unless the span is whitespace-only, so a future analyzer reporting a non-whitespace span
+/// degrades to no fix being offered instead of deleting code. Because the inspected span is exactly the
+/// deleted span, the guard can never withhold a fix the derived rule offers today
 /// </summary>
-public abstract class BlankLineSpanRemovalCodeFixProviderBase : CodeFixProvider
+public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
 {
     #region Fields
 
@@ -37,7 +38,7 @@ public abstract class BlankLineSpanRemovalCodeFixProviderBase : CodeFixProvider
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="title">Title</param>
-    private protected BlankLineSpanRemovalCodeFixProviderBase(string diagnosticId, string title)
+    private protected WhitespaceSpanRemovalCodeFixProviderBase(string diagnosticId, string title)
     {
         _diagnosticId = diagnosticId;
         _title = title;
@@ -63,7 +64,7 @@ public abstract class BlankLineSpanRemovalCodeFixProviderBase : CodeFixProvider
 
     /// <summary>
     /// Determines whether the specified span contains only whitespace; deleting anything else would remove
-    /// executable text instead of a blank region, so the fix is withheld unless this holds
+    /// executable text instead of the reported whitespace run, so the fix is withheld unless this holds
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="span">Span to inspect</param>
