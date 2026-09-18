@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
@@ -51,11 +52,48 @@ public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanRe
     /// <inheritdoc/>
     protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
     {
-        var precedingToken = root.FindToken(diagnosticSpan.Start);
+        var token = root.FindToken(diagnosticSpan.Start);
 
-        guardSpan = TextSpan.FromBounds(precedingToken.Span.End, precedingToken.GetNextToken().SpanStart);
         replacementSpan = diagnosticSpan;
         replacementText = string.Empty;
+
+        // FindToken attributes leading trivia to the token it precedes, so a diagnostic span inside a token's
+        // leading trivia resolves to the token *after* the edited gap, not the one before it. Deciding which
+        // neighbouring token brackets the edited gap from diagnosticSpan.Start versus token.SpanStart, rather
+        // than always treating the resolved token as the preceding one, keeps the guard aligned with the edit
+        // on both sides of that boundary.
+        if (diagnosticSpan.Start < token.SpanStart)
+        {
+            var previousToken = token.GetPreviousToken();
+
+            // No token precedes the document's first token, so there is no gap for two tokens to bracket here.
+            // Withholding is a refusal to guess an edited gap that does not exist, not a guard against a throw;
+            // the bounds this branch would otherwise compute do not throw.
+            if (previousToken.IsKind(SyntaxKind.None))
+            {
+                guardSpan = default;
+
+                return false;
+            }
+
+            guardSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
+        }
+        else
+        {
+            var nextToken = token.GetNextToken();
+
+            // Unlike the branch above, this guards a real throw: a diagnostic span at the end of a truncated
+            // document resolves to the last non-zero-width token, whose next token does not exist, and computing
+            // bounds from that missing token's start would throw because it defaults to position zero.
+            if (nextToken.IsKind(SyntaxKind.None))
+            {
+                guardSpan = default;
+
+                return false;
+            }
+
+            guardSpan = TextSpan.FromBounds(token.Span.End, nextToken.SpanStart);
+        }
 
         return CanOfferFix(root, diagnosticSpan);
     }
