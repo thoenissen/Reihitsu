@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -69,11 +72,12 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that a comment before the closing bracket is preserved by the fix
+    /// Verifies that a comment before a same-line closing bracket still reports the diagnostic but withholds
+    /// the fix, because deleting the whitespace run would glue the comment to the bracket
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentBeforeClosingBracketIsPreserved()
+    public async Task VerifyFixIsNotOfferedForSameLineClosingBracketWithPrecedingComment()
     {
         const string testData = """
                                 internal class TestClass
@@ -85,18 +89,110 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                     }
                                 }
                                 """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method()
-                                     {
-                                         int[] values = [0];
-                                         _ = values[0 /* keep me */];
-                                     }
-                                 }
-                                 """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+        await Verify(testData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var closeBracketToken = root.DescendantTokens().Last(token => token.IsKind(SyntaxKind.CloseBracketToken));
+                                                       var lastTrailingTrivia = closeBracketToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the bracket.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsNotOfferedForSameLineClosingBracketWithPrecedingComment"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForSameLineClosingBracketWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int[] values = [0];
+                                        _ = values[0 /* keep me */{|#0: |}];
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var closeBracketToken = root.DescendantTokens().Last(token => token.IsKind(SyntaxKind.CloseBracketToken));
+                                                       var lastTrailingTrivia = closeBracketToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the bracket.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that a continuation-line closing bracket preceded by a block comment does not produce a
+    /// diagnostic. RH6008's analyzer requires the immediately preceding token, not merely a preceding comment,
+    /// to share the bracket's line, so a comment on a continuation line never enters the reported span here,
+    /// unlike the shared <c>SameLinePrecedingWhitespaceAnalysis</c> a sibling rule such as RH6012 uses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineClosingBracketWithPrecedingCommentDoesNotProduceDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int[] values = [0];
+                                        _ = values[0
+                                            /* keep */];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyContinuationLineClosingBracketWithPrecedingCommentDoesNotProduceDiagnostic"/>
+    /// with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineClosingBracketWithPrecedingCommentDoesNotProduceDiagnosticCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int[] values = [0];
+                                        _ = values[0
+                                            /* keep */];
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>

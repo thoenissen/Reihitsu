@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -70,11 +73,12 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a comment before the increment is preserved by the fix
+    /// Verifies that a comment before a same-line increment still reports the diagnostic but withholds the
+    /// fix, because deleting the whitespace run would glue the comment to the operator
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentBeforeIncrementIsPreserved()
+    public async Task VerifyFixIsNotOfferedForSameLineIncrementWithPrecedingComment()
     {
         const string testData = """
                                 internal class TestClass
@@ -86,18 +90,110 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                     }
                                 }
                                 """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method()
-                                     {
-                                         int value = 0;
-                                         value /* keep me */++;
-                                     }
-                                 }
-                                 """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+        await Verify(testData, Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var operatorToken = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.PlusPlusToken));
+                                                       var lastTrailingTrivia = operatorToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the operator.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsNotOfferedForSameLineIncrementWithPrecedingComment"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForSameLineIncrementWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 0;
+                                        value /* keep me */{|#0: |}++;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var operatorToken = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.PlusPlusToken));
+                                                       var lastTrailingTrivia = operatorToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the operator.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that a continuation-line increment preceded by a block comment does not produce a diagnostic.
+    /// RH6017's analyzer requires the immediately preceding token, not merely a preceding comment, to share
+    /// the operator's line, so a comment on a continuation line never enters the reported span here, unlike
+    /// the shared <c>SameLinePrecedingWhitespaceAnalysis</c> a sibling rule such as RH6003 uses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineIncrementWithPrecedingCommentDoesNotProduceDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 0;
+                                        value
+                                            /* keep me */++;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyContinuationLineIncrementWithPrecedingCommentDoesNotProduceDiagnostic"/> with
+    /// the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineIncrementWithPrecedingCommentDoesNotProduceDiagnosticCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 0;
+                                        value
+                                            /* keep me */++;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>

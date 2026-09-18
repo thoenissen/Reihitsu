@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -80,11 +84,12 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix preserves a comment before a closing attribute bracket
+    /// Verifies that a comment before a same-line closing attribute bracket still reports the diagnostic but
+    /// withholds the fix, because deleting the whitespace run would glue the comment to the bracket
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentBeforeClosingAttributeBracketIsPreservedByCodeFix()
+    public async Task VerifyFixIsNotOfferedForSameLineClosingAttributeBracketWithPrecedingComment()
     {
         const string testData = """
                                 [System.Obsolete /* Keep. */{|#0: |}]
@@ -92,14 +97,130 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
                                 {
                                 }
                                 """;
-        const string fixedData = """
-                                 [System.Obsolete /* Keep. */]
-                                 internal class TestClass
-                                 {
-                                 }
-                                 """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+        await Verify(testData, Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var attributeList = root.DescendantNodes().OfType<AttributeListSyntax>().First();
+                                                       var lastTrailingTrivia = attributeList.CloseBracketToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the bracket.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsNotOfferedForSameLineClosingAttributeBracketWithPrecedingComment"/> with
+    /// the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForSameLineClosingAttributeBracketWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                [System.Obsolete /* Keep. */{|#0: |}]
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var attributeList = root.DescendantNodes().OfType<AttributeListSyntax>().First();
+                                                       var lastTrailingTrivia = attributeList.CloseBracketToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the bracket.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that a continuation-line closing attribute bracket preceded by a block comment still reports
+    /// the diagnostic on the same-line whitespace run between the comment and the bracket, and that the fix is
+    /// withheld rather than offered, because the guard must inspect the gap the whitespace run actually sits in
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForContinuationLineClosingAttributeBracketWithPrecedingComment()
+    {
+        const string testData = """
+                                [System.Obsolete
+                                    /* keep */{|#0: |}]
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var attributeList = root.DescendantNodes().OfType<AttributeListSyntax>().First();
+                                                       var lastLeadingTrivia = attributeList.CloseBracketToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The bracket's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits between the previous token and the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats
+    /// <see cref="VerifyFixIsNotOfferedForContinuationLineClosingAttributeBracketWithPrecedingComment"/> with
+    /// the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForContinuationLineClosingAttributeBracketWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                [System.Obsolete
+                                    /* keep */{|#0: |}]
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var attributeList = root.DescendantNodes().OfType<AttributeListSyntax>().First();
+                                                       var lastLeadingTrivia = attributeList.CloseBracketToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The bracket's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits between the previous token and the reported whitespace run; the fix must be withheld.");
     }
 
     /// <summary>

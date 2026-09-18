@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyCodeFixProvider))]
-public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyCodeFixProvider : WhitespaceSpanRemovalCodeFixProviderBase
+public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyCodeFixProvider : RemoveWhitespaceRunCodeFixProviderBase
 {
     #region Constructor
 

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6003SemicolonsMustBeSpacedCorrectlyCodeFixProvider))]
-public class RH6003SemicolonsMustBeSpacedCorrectlyCodeFixProvider : WhitespaceSpanRemovalCodeFixProviderBase
+public class RH6003SemicolonsMustBeSpacedCorrectlyCodeFixProvider : RemoveWhitespaceRunCodeFixProviderBase
 {
     #region Constructor
 

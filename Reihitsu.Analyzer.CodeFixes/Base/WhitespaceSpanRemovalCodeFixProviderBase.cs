@@ -13,8 +13,8 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// Code fix provider base class for rules whose fix removes the reported diagnostic span; the fix is
 /// withheld unless the span is whitespace-only, so a future analyzer reporting a non-whitespace span
 /// degrades to no fix being offered instead of deleting code. Because the inspected span is exactly the
-/// deleted span, the guard can never withhold a fix the derived rule offers today. Spacing rules derive
-/// from this class directly; blank-line rules derive from it through the named specialization
+/// deleted span, the guard can never withhold a fix the derived rule offers today. RH6004 derives from
+/// this class directly; blank-line rules derive from it through the named specialization
 /// <see cref="BlankLineSpanRemovalCodeFixProviderBase"/>
 /// <para>
 /// Choose this base when the reported span is already whitespace-only by construction and the fix must stay

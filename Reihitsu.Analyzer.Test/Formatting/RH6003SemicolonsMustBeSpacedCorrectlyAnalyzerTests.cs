@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -207,11 +208,12 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifies that a comment before a semicolon is preserved while only the adjacent whitespace run is removed
+    /// Verifies that a comment before a same-line semicolon still reports the diagnostic but withholds the fix,
+    /// because deleting the whitespace run would glue the comment to the semicolon
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentBeforeSemicolonIsPreservedByCodeFix()
+    public async Task VerifyFixIsNotOfferedForSameLineSemicolonWithPrecedingComment()
     {
         const string testData = """
                                 internal class TestClass
@@ -222,21 +224,142 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
                                     }
                                 }
                                 """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method()
-                                     {
-                                         int value = 1 /* Keep. */;
-                                     }
-                                 }
-                                 """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+        await Verify(testData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var semicolonToken = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.SemicolonToken));
+                                                       var lastTrailingTrivia = semicolonToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the semicolon.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
     }
 
     /// <summary>
-    /// Verifies that <see cref="WhitespaceSpanRemovalCodeFixProviderBase"/> withholds its fix when the
+    /// Repeats <see cref="VerifyFixIsNotOfferedForSameLineSemicolonWithPrecedingComment"/> with the source
+    /// normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForSameLineSemicolonWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 1 /* Keep. */{|#0: |};
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var semicolonToken = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.SemicolonToken));
+                                                       var lastTrailingTrivia = semicolonToken.GetPreviousToken().TrailingTrivia.Last();
+
+                                                       Assert.IsTrue(lastTrailingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The preceding token's trailing trivia must end with the whitespace run immediately before the semicolon.");
+
+                                                       return Location.Create(root.SyntaxTree, lastTrailingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits in the same token gap as the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that a continuation-line semicolon preceded by a block comment still reports the diagnostic on
+    /// the same-line whitespace run between the comment and the semicolon, and that the fix is withheld rather
+    /// than offered, because the guard must inspect the gap the whitespace run actually sits in
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForContinuationLineSemicolonWithPrecedingComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 1
+                                            /* keep */{|#0: |};
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
+                                                   RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var semicolonToken = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.SemicolonToken));
+                                                       var lastLeadingTrivia = semicolonToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The semicolon's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits between the previous token and the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixIsNotOfferedForContinuationLineSemicolonWithPrecedingComment"/> with the
+    /// source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForContinuationLineSemicolonWithPrecedingCommentCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 1
+                                            /* keep */{|#0: |};
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
+                                                   RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var semicolonToken = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.SemicolonToken));
+                                                       var lastLeadingTrivia = semicolonToken.LeadingTrivia.Last();
+
+                                                       Assert.IsTrue(lastLeadingTrivia.IsKind(SyntaxKind.WhitespaceTrivia),
+                                                                     "The semicolon's leading trivia must end with the whitespace run immediately preceding it.");
+
+                                                       return Location.Create(root.SyntaxTree, lastLeadingTrivia.Span);
+                                                   });
+
+        Assert.IsEmpty(actions,
+                       "The comment sits between the previous token and the reported whitespace run; the fix must be withheld.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="RemoveWhitespaceRunCodeFixProviderBase"/> withholds its fix when the
     /// reported span is not whitespace-only, so a future analyzer defect degrades to no fix being offered
     /// instead of deleting non-whitespace text
     /// </summary>
