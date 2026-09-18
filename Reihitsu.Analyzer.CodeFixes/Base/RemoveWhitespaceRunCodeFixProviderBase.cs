@@ -7,6 +7,12 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// Base class for code fixes that delete a reported whitespace run between two tokens; the fix is
 /// not offered when the surrounding token gap contains a comment, because deleting the whitespace
 /// would otherwise either remove the comment or glue it to a neighbouring token
+/// <para>
+/// This guard inspects the whole token gap around the deleted span, not only the span itself, so it can
+/// withhold a fix for input the deleted span alone would never touch. Choose
+/// <see cref="WhitespaceSpanRemovalCodeFixProviderBase"/> instead when the reported span is already known to
+/// be whitespace-only and no comment/directive check beyond the deleted span itself is required
+/// </para>
 /// </summary>
 public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanReplacementCodeFixProviderBase
 {

@@ -1,7 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
@@ -163,6 +167,62 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="BlankLineSpanRemovalCodeFixProviderBase"/> withholds its fix when the
+    /// reported span is not whitespace-only, so a future analyzer defect degrades to no fix being offered
+    /// instead of deleting non-whitespace text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNonWhitespaceSpanWithholdsFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int first = 0;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens().First(token => token.Text == "first").GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that an empty reported span is treated as whitespace-only and still registers a fix, matching
+    /// today's unconditional deletion of an empty span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEmptySpanStillRegistersFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int first = 0;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var token = root.DescendantTokens().First(item => item.Text == "first");
+
+                                                       return Location.Create(root.SyntaxTree, new TextSpan(token.SpanStart, 0));
+                                                   });
+
+        Assert.HasCount(1, actions);
     }
 
     #endregion // Tests
