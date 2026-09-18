@@ -10,10 +10,18 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider base class for spacing rules whose fix removes the reported diagnostic span; the fix
-/// is withheld unless the span is whitespace-only, so a future analyzer reporting a non-whitespace span
+/// Code fix provider base class for rules whose fix removes the reported diagnostic span; the fix is
+/// withheld unless the span is whitespace-only, so a future analyzer reporting a non-whitespace span
 /// degrades to no fix being offered instead of deleting code. Because the inspected span is exactly the
-/// deleted span, the guard can never withhold a fix the derived rule offers today
+/// deleted span, the guard can never withhold a fix the derived rule offers today. Spacing rules derive
+/// from this class directly; blank-line rules derive from it through the named specialization
+/// <see cref="BlankLineSpanRemovalCodeFixProviderBase"/>
+/// <para>
+/// Choose this base when the reported span is already whitespace-only by construction and the fix must stay
+/// offered for every input the analyzer can report. Choose <see cref="RemoveWhitespaceRunCodeFixProviderBase"/>
+/// instead when the deletion also needs to refuse a comment or directive in the *surrounding* token gap, not
+/// only inside the reported span itself
+/// </para>
 /// </summary>
 public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
 {
