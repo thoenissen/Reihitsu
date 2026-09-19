@@ -195,35 +195,45 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether the token has a comment directly above its line
+    /// Determines whether a comment sits on its own line directly above the token's line — that is, exactly
+    /// one line break separates the comment from the token, with only whitespace between them. A comment
+    /// beside the token on its own line does not count, and a blank line between the comment and the token
+    /// breaks the adjacency. The check walks <see cref="SyntaxToken.LeadingTrivia"/> only; it never inspects
+    /// source text, so a directive, disabled text, or an unrelated line elsewhere in the file can never be
+    /// mistaken for a comment
     /// </summary>
     /// <param name="token">The token to inspect</param>
     /// <returns><see langword="true"/> if a comment is directly above the token; otherwise, <see langword="false"/></returns>
     public static bool HasCommentDirectlyAbove(SyntaxToken token)
     {
-        if (token.LeadingTrivia.Any(IsCommentTrivia) == false)
+        var leadingTrivia = token.LeadingTrivia;
+        var lineBreaksSeen = 0;
+
+        for (var triviaIndex = leadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
         {
-            return false;
+            var trivia = leadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                lineBreaksSeen++;
+
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            if (IsCommentTrivia(trivia) == false)
+            {
+                return false;
+            }
+
+            return CommentEndsOwnLine(trivia) ? lineBreaksSeen == 0 : lineBreaksSeen == 1;
         }
 
-        if (token.SyntaxTree == null)
-        {
-            return true;
-        }
-
-        var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        if (line <= 0)
-        {
-            return false;
-        }
-
-        var previousLine = token.SyntaxTree.GetText().Lines[line - 1].ToString().Trim();
-
-        return previousLine.StartsWith("//", StringComparison.Ordinal)
-               || previousLine.StartsWith("/*", StringComparison.Ordinal)
-               || previousLine.StartsWith("*", StringComparison.Ordinal)
-               || previousLine.EndsWith("*/", StringComparison.Ordinal);
+        return false;
     }
 
     /// <summary>
@@ -612,6 +622,22 @@ public static class SyntaxTriviaUtilities
         }
 
         return nestingLevel != 0;
+    }
+
+    /// <summary>
+    /// Determines whether a comment trivia's own text ends its line. Only a single-line documentation comment
+    /// (<c>///</c>) can do this — its structured trivia swallows the line terminator that follows it, so no
+    /// separate <see cref="SyntaxKind.EndOfLineTrivia"/> appears after it in the trivia list. An ordinary
+    /// comment or a multi-line (documentation) comment always leaves its trailing line break as a sibling
+    /// trivia instead, and an unterminated documentation comment at the end of a file leaves no line break at
+    /// all
+    /// </summary>
+    /// <param name="trivia">The comment trivia to inspect</param>
+    /// <returns><see langword="true"/> if the trivia's own text ends with a line break; otherwise, <see langword="false"/></returns>
+    private static bool CommentEndsOwnLine(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+               && trivia.ToFullString().EndsWith("\n", StringComparison.Ordinal);
     }
 
     /// <summary>

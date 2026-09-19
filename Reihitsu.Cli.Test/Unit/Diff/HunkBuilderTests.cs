@@ -28,7 +28,7 @@ public class HunkBuilderTests
                              new(EditKind.Equal, 2, 2)
                          };
 
-        var hunks = HunkBuilder.Build(operations, 3, 3);
+        var hunks = HunkBuilder.Build(operations);
 
         Assert.IsEmpty(hunks);
     }
@@ -47,7 +47,7 @@ public class HunkBuilderTests
                              new(EditKind.Equal, 2, 2)
                          };
 
-        var hunks = HunkBuilder.Build(operations, 3, 3);
+        var hunks = HunkBuilder.Build(operations);
 
         Assert.HasCount(1, hunks);
     }
@@ -75,7 +75,7 @@ public class HunkBuilderTests
         operations.Add(new EditOperation(EditKind.Delete, 9, -1));
         operations.Add(new EditOperation(EditKind.Insert, -1, 9));
 
-        var hunks = HunkBuilder.Build(operations, 10, 10);
+        var hunks = HunkBuilder.Build(operations);
 
         Assert.HasCount(2, hunks);
     }
@@ -96,7 +96,7 @@ public class HunkBuilderTests
                              new(EditKind.Insert, -1, 3)
                          };
 
-        var hunks = HunkBuilder.Build(operations, 4, 4);
+        var hunks = HunkBuilder.Build(operations);
 
         Assert.HasCount(1, hunks);
     }
@@ -125,7 +125,7 @@ public class HunkBuilderTests
             operations.Add(new EditOperation(EditKind.Equal, operationIndex, operationIndex));
         }
 
-        var hunks = HunkBuilder.Build(operations, 11, 11);
+        var hunks = HunkBuilder.Build(operations);
 
         Assert.HasCount(1, hunks);
 
@@ -169,7 +169,7 @@ public class HunkBuilderTests
                              new(EditKind.Equal, 2, 3)
                          };
 
-        var hunks = HunkBuilder.Build(operations, 3, 4);
+        var hunks = HunkBuilder.Build(operations);
 
         Assert.HasCount(1, hunks);
 
