@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -636,8 +635,14 @@ public static class SyntaxTriviaUtilities
     /// <returns><see langword="true"/> if the trivia's own text ends with a line break; otherwise, <see langword="false"/></returns>
     private static bool CommentEndsOwnLine(SyntaxTrivia trivia)
     {
-        return trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               && trivia.ToFullString().EndsWith("\n", StringComparison.Ordinal);
+        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
+        {
+            return false;
+        }
+
+        var text = trivia.ToFullString();
+
+        return DocumentationCommentUtilities.IsLineTerminator(text[text.Length - 1]);
     }
 
     /// <summary>

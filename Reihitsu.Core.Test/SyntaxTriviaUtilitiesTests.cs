@@ -995,12 +995,41 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a preprocessor directive between the comment and the token breaks the adjacency
+    /// Verifies that a single-line documentation comment terminated by a lone carriage return still swallows
+    /// its own line break, the same as the line-feed-terminated case — a lone "\r" is a C# line terminator
+    /// even though it is not the "\n" a naive check might look for
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueForDocumentationCommentWithCarriageReturnTerminator()
+    {
+        const string source = "/// summary\rint target;\r";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line after a single-line documentation comment still breaks the adjacency when
+    /// the comment is terminated by a lone carriage return rather than "\n"
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseWhenABlankLineWithCarriageReturnTerminatorSeparatesTheDocumentationCommentFromTheToken()
+    {
+        const string source = "/// summary\r\rint target;\r";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive between the comment and the token breaks the adjacency — a
+    /// comment genuinely precedes the directive here, so this falsifies an implementation that skips over
+    /// directives as if they were whitespace instead of stopping the scan
     /// </summary>
     [TestMethod]
     public void HasCommentDirectlyAboveReturnsFalseForDirectiveDirectlyAbove()
     {
-        const string source = "#if true\nint a = 1;\n#endif\nint target;\n";
+        const string source = "// note\n#pragma warning disable CS0168\nint target;\n";
         var token = GetTokenAt(source, "int target");
 
         Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
