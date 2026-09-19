@@ -12,13 +12,20 @@ internal static class SpeculativeRebindingHelper
     #region Methods
 
     /// <summary>
-    /// Determines whether the symbol infos represent the same target
+    /// Determines whether the symbol infos represent the same target. A symbol info that bound neither a symbol
+    /// nor a candidate is never equivalent to anything, since there is nothing to compare
     /// </summary>
     /// <param name="leftSymbolInfo">Left symbol info</param>
     /// <param name="rightSymbolInfo">Right symbol info</param>
     /// <returns><see langword="true"/> if the symbol infos match</returns>
     internal static bool AreEquivalent(SymbolInfo leftSymbolInfo, SymbolInfo rightSymbolInfo)
     {
+        if ((leftSymbolInfo.Symbol == null && leftSymbolInfo.CandidateSymbols.Length == 0)
+            || (rightSymbolInfo.Symbol == null && rightSymbolInfo.CandidateSymbols.Length == 0))
+        {
+            return false;
+        }
+
         if (leftSymbolInfo.Symbol != null
             && rightSymbolInfo.Symbol != null)
         {

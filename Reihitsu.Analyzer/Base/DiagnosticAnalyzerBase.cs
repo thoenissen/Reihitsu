@@ -19,6 +19,11 @@ public class DiagnosticAnalyzerBase : DiagnosticAnalyzer
     /// </summary>
     private readonly DiagnosticDescriptor _rule;
 
+    /// <summary>
+    /// Supported diagnostics, cached so the driver's repeated access does not allocate a fresh array
+    /// </summary>
+    private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
+
     #endregion // Fields
 
     #region Constructor
@@ -49,6 +54,7 @@ public class DiagnosticAnalyzerBase : DiagnosticAnalyzer
         var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
         _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, isEnabledByDefault, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
+        _supportedDiagnostics = [_rule];
     }
 
     #endregion // Constructor
@@ -93,7 +99,7 @@ public class DiagnosticAnalyzerBase : DiagnosticAnalyzer
     #region DiagnosticAnalyzer
 
     /// <inheritdoc/>
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_rule];
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
 
     /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)

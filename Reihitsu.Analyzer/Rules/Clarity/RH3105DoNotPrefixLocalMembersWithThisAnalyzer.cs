@@ -54,9 +54,7 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerB
         var originalSymbolInfo = context.SemanticModel.GetSymbolInfo(originalExpression, context.CancellationToken);
         var speculativeSymbolInfo = context.SemanticModel.GetSpeculativeSymbolInfo(originalExpression.SpanStart, replacementExpression, SpeculativeBindingOption.BindAsExpression);
 
-        if ((originalSymbolInfo.Symbol != null || originalSymbolInfo.CandidateSymbols.Length > 0)
-            && (speculativeSymbolInfo.Symbol != null || speculativeSymbolInfo.CandidateSymbols.Length > 0)
-            && SpeculativeRebindingHelper.AreEquivalent(originalSymbolInfo, speculativeSymbolInfo))
+        if (SpeculativeRebindingHelper.AreEquivalent(originalSymbolInfo, speculativeSymbolInfo))
         {
             context.ReportDiagnostic(CreateDiagnostic(memberAccessExpression.Expression.GetLocation()));
         }
