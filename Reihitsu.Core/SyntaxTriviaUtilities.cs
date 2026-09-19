@@ -642,7 +642,7 @@ public static class SyntaxTriviaUtilities
 
         var text = trivia.ToFullString();
 
-        return DocumentationCommentUtilities.IsLineTerminator(text[text.Length - 1]);
+        return text.Length > 0 && DocumentationCommentUtilities.IsLineTerminator(text[text.Length - 1]);
     }
 
     /// <summary>

@@ -1022,6 +1022,20 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that an empty single-line documentation comment trivia — one with no content and therefore
+    /// no text at all — is treated as not ending its own line rather than throwing when its full text is
+    /// inspected for a trailing terminator
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForEmptyDocumentationCommentTrivia()
+    {
+        var emptyDocumentationComment = SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia));
+        var token = SyntaxFactory.Identifier("target").WithLeadingTrivia(emptyDocumentationComment);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
     /// Verifies that a preprocessor directive between the comment and the token breaks the adjacency — a
     /// comment genuinely precedes the directive here, so this falsifies an implementation that skips over
     /// directives as if they were whitespace instead of stopping the scan
