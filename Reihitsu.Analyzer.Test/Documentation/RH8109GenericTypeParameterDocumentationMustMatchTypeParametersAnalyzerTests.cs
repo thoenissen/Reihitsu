@@ -37,6 +37,48 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported for every tag when correctly named type parameters are documented out of order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForTypeParameterDocumentationInPermutedOrder()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a pair.</summary>
+                              /// {|#0:<typeparam name="TSecond">Second value.</typeparam>|}
+                              /// {|#1:<typeparam name="TFirst">First value.</typeparam>|}
+                              internal class Pair<TFirst, TSecond>
+                              {
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8109MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when type parameter documentation matches the declared order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForTypeParameterDocumentationInDeclaredOrder()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a pair.</summary>
+                              /// <typeparam name="TFirst">First value.</typeparam>
+                              /// <typeparam name="TSecond">Second value.</typeparam>
+                              internal class Pair<TFirst, TSecond>
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies that type parameter tags nested in remarks are ignored
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

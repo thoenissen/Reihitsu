@@ -373,6 +373,7 @@
     <Rule Id="RH8031" Action="Error" />
     <Rule Id="RH8032" Action="Error" />
     <Rule Id="RH8033" Action="Error" />
+    <Rule Id="RH8034" Action="Error" />
     <Rule Id="RH8101" Action="Error" />
     <Rule Id="RH8102" Action="Error" />
     <Rule Id="RH8103" Action="Error" />

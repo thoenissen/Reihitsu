@@ -65,6 +65,26 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for inheritdoc on an operator that inherits nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOperatorInheritdocNotInheriting()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  /// {|#0:<inheritdoc/>|}
+                                  public static Money operator +(Money left, Money right) => left;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that inheritdoc nested in remarks is ignored
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

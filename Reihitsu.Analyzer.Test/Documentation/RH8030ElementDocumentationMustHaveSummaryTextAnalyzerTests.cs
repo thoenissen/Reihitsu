@@ -55,6 +55,26 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for an operator with an empty summary tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOperatorWithEmptySummary()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  /// {|#0:<summary></summary>|}
+                                  public static Money operator +(Money left, Money right) => left;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostic is reported for a class with a non-empty summary tag
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

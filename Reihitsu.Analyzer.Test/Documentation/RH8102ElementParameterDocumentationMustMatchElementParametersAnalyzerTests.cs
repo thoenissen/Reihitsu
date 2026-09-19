@@ -40,6 +40,73 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported for every tag when correctly named parameters are documented out of order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForParameterDocumentationInPermutedOrder()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Saves the customer.</summary>
+                                  /// {|#0:<param name="overwrite">Whether an existing customer may be replaced.</param>|}
+                                  /// {|#1:<param name="customer">The customer to save.</param>|}
+                                  internal void Save(int customer, bool overwrite)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when parameter documentation matches the declared order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForParameterDocumentationInDeclaredOrder()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Saves the customer.</summary>
+                                  /// <param name="customer">The customer to save.</param>
+                                  /// <param name="overwrite">Whether an existing customer may be replaced.</param>
+                                  internal void Save(int customer, bool overwrite)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies diagnostics are reported for primary-constructor parameter documentation in permuted order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForPrimaryConstructorParameterDocumentationInPermutedOrder()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a pair of coordinates.</summary>
+                              /// {|#0:<param name="Y">The y coordinate.</param>|}
+                              /// {|#1:<param name="X">The x coordinate.</param>|}
+                              internal readonly record struct Point(int X, int Y);
+                              """;
+
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies that parameter tags nested in remarks are ignored
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

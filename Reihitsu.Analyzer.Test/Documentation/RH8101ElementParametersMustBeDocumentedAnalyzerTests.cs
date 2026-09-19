@@ -85,5 +85,105 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an operator parameter missing documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOperatorParameterWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  /// <summary>Adds two amounts.</summary>
+                                  /// <param name="left">Left operand.</param>
+                                  /// <returns>The sum.</returns>
+                                  public static Money operator +(Money left, Money {|#0:right|}) => left;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an operator whose parameters are all documented
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForOperatorWithAllParametersDocumented()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  /// <summary>Adds two amounts.</summary>
+                                  /// <param name="left">Left operand.</param>
+                                  /// <param name="right">Right operand.</param>
+                                  /// <returns>The sum.</returns>
+                                  public static Money operator +(Money left, Money right) => left;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies diagnostics are reported for primary-constructor parameters missing documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForPrimaryConstructorParametersWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a pair of coordinates.</summary>
+                              internal readonly record struct Point(int {|#0:X|}, int {|#1:Y|});
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for primary-constructor parameters that are all documented
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPrimaryConstructorWithAllParametersDocumented()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a pair of coordinates.</summary>
+                              /// <param name="X">The x coordinate.</param>
+                              /// <param name="Y">The y coordinate.</param>
+                              internal readonly record struct Point(int X, int Y);
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a documented type without a primary constructor
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForTypeWithoutPrimaryConstructor()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>A helper.</summary>
+                              internal sealed class Helper
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Tests
 }
