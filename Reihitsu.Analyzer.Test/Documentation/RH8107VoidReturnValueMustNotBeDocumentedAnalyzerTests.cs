@@ -343,6 +343,51 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
+    /// Verifies a diagnostic and code fix for a void compound-assignment operator with a returns tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForVoidCompoundAssignmentOperatorReturnsDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class Money
+                              {
+                                  public int Amount;
+
+                                  /// <summary>Adds an amount in place.</summary>
+                                  /// <param name="other">The amount to add.</param>
+                                  /// {|#0:<returns>Nothing.</returns>|}
+                                  public void operator +=(Money other)
+                                  {
+                                      Amount += other.Amount;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class Money
+                                   {
+                                       public int Amount;
+
+                                       /// <summary>Adds an amount in place.</summary>
+                                       /// <param name="other">The amount to add.</param>
+                                       public void operator +=(Money other)
+                                       {
+                                           Amount += other.Amount;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

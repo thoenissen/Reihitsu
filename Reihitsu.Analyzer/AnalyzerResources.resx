@@ -1449,6 +1449,12 @@
   <data name="RH8033MessageFormat" xml:space="preserve">
     <value>Extension declaration type parameters must have matching &lt;typeparam&gt; documentation.</value>
   </data>
+  <data name="RH8034Title" xml:space="preserve">
+    <value>Operators must be documented</value>
+  </data>
+  <data name="RH8034MessageFormat" xml:space="preserve">
+    <value>Operators must be documented</value>
+  </data>
   <data name="RH7207Title" xml:space="preserve">
     <value>Using directives should be organized into groups</value>
   </data>

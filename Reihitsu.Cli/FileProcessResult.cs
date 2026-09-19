@@ -3,6 +3,11 @@
 /// <summary>
 /// Represents per-file processing counters that can be aggregated by the caller
 /// </summary>
+/// <param name="ChangedFileCount">Number of files that changed</param>
+/// <param name="SkippedSyntaxErrorCount">Number of files skipped due to syntax errors</param>
+/// <param name="SkippedEncodingCount">Number of files skipped because they could not be decoded</param>
+/// <param name="SkippedGeneratedCount">Number of files skipped because they are marked as generated source</param>
+/// <param name="ErrorFileCount">Number of files that encountered an error</param>
 internal readonly record struct FileProcessResult(int ChangedFileCount, int SkippedSyntaxErrorCount, int SkippedEncodingCount, int SkippedGeneratedCount, int ErrorFileCount)
 {
     #region Constants

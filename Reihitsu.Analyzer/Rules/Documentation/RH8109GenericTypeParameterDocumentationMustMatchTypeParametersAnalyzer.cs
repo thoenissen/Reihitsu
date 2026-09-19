@@ -77,11 +77,8 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
                 continue;
             }
 
-            if ((typeParameterIndex >= declaredTypeParameterNames.Length
-                 || string.Equals(declaredTypeParameterNames[typeParameterIndex], documentedTypeParameterName, StringComparison.Ordinal) == false)
-                && (declaredTypeParameterNames.Contains(documentedTypeParameterName, StringComparer.Ordinal) == false
-                    || typeParameterIndex >= declaredTypeParameterNames.Length
-                    || string.Equals(declaredTypeParameterNames[typeParameterIndex], documentedTypeParameterName, StringComparison.Ordinal) == false))
+            if (typeParameterIndex >= declaredTypeParameterNames.Length
+                || string.Equals(declaredTypeParameterNames[typeParameterIndex], documentedTypeParameterName, StringComparison.Ordinal) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(typeParameterNodes[typeParameterIndex].GetLocation()));
             }

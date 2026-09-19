@@ -315,6 +315,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH8031](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8031.md)| Extension declarations must have summary text.| ✔| ❌| ❌|
 | [RH8032](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8032.md)| Extension declaration parameters must be documented.| ✔| ❌| ❌|
 | [RH8033](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8033.md)| Extension declaration type parameters must be documented.| ✔| ❌| ❌|
+| [RH8034](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8034.md)| Operators must be documented.| ✔| ❌| ❌|
 | [RH8101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8101.md)| Element parameters must be documented.| ✔| ❌| ❌|
 | [RH8102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8102.md)| Element parameter documentation must match element parameters.| ✔| ❌| ❌|
 | [RH8103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8103.md)| Element parameter documentation must declare parameter name.| ✔| ❌| ❌|

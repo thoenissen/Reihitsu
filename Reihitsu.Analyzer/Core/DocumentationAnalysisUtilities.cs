@@ -36,7 +36,9 @@ internal static class DocumentationAnalysisUtilities
                                                                              SyntaxKind.IndexerDeclaration,
                                                                              SyntaxKind.FieldDeclaration,
                                                                              SyntaxKind.EventDeclaration,
-                                                                             SyntaxKind.EventFieldDeclaration
+                                                                             SyntaxKind.EventFieldDeclaration,
+                                                                             SyntaxKind.OperatorDeclaration,
+                                                                             SyntaxKind.ConversionOperatorDeclaration
                                                                          ];
 
     /// <summary>
@@ -46,7 +48,13 @@ internal static class DocumentationAnalysisUtilities
                                                                     SyntaxKind.MethodDeclaration,
                                                                     SyntaxKind.ConstructorDeclaration,
                                                                     SyntaxKind.DelegateDeclaration,
-                                                                    SyntaxKind.IndexerDeclaration
+                                                                    SyntaxKind.IndexerDeclaration,
+                                                                    SyntaxKind.OperatorDeclaration,
+                                                                    SyntaxKind.ConversionOperatorDeclaration,
+                                                                    SyntaxKind.ClassDeclaration,
+                                                                    SyntaxKind.StructDeclaration,
+                                                                    SyntaxKind.RecordDeclaration,
+                                                                    SyntaxKind.RecordStructDeclaration
                                                                 ];
 
     /// <summary>
@@ -67,7 +75,9 @@ internal static class DocumentationAnalysisUtilities
     /// </summary>
     internal static readonly SyntaxKind[] ReturnValueOwnerKinds = [
                                                                       SyntaxKind.MethodDeclaration,
-                                                                      SyntaxKind.DelegateDeclaration
+                                                                      SyntaxKind.DelegateDeclaration,
+                                                                      SyntaxKind.OperatorDeclaration,
+                                                                      SyntaxKind.ConversionOperatorDeclaration
                                                                   ];
 
     /// <summary>
@@ -130,6 +140,8 @@ internal static class DocumentationAnalysisUtilities
                    FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
                    EventDeclarationSyntax eventDeclaration => eventDeclaration.Identifier.GetLocation(),
                    EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
+                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.OperatorToken.GetLocation(),
+                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.OperatorKeyword.GetLocation(),
                    _ => declaration.GetLocation()
                };
     }
@@ -172,6 +184,9 @@ internal static class DocumentationAnalysisUtilities
                    ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.ParameterList.Parameters.ToImmutableArray(),
                    DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.ParameterList.Parameters.ToImmutableArray(),
                    IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ParameterList.Parameters.ToImmutableArray(),
+                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.ParameterList.Parameters.ToImmutableArray(),
+                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.ParameterList.Parameters.ToImmutableArray(),
+                   TypeDeclarationSyntax { ParameterList: not null } typeDeclaration => typeDeclaration.ParameterList.Parameters.ToImmutableArray(),
                    _ => []
                };
     }
@@ -203,6 +218,8 @@ internal static class DocumentationAnalysisUtilities
                          {
                              MethodDeclarationSyntax methodDeclaration => methodDeclaration.ReturnType,
                              DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.ReturnType,
+                             OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.ReturnType,
+                             ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.Type,
                              _ => null
                          };
 
@@ -222,6 +239,8 @@ internal static class DocumentationAnalysisUtilities
                      {
                          MethodDeclarationSyntax methodDeclaration => methodDeclaration.ReturnType,
                          DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.ReturnType,
+                         OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.ReturnType,
+                         ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.Type,
                          _ => null
                      };
 
@@ -450,6 +469,8 @@ internal static class DocumentationAnalysisUtilities
                    PropertyDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    IndexerDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    EventDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   OperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   ConversionOperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    _ => false
                };
     }
