@@ -85,6 +85,28 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for inheritdoc on a conversion operator that inherits nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForConversionOperatorInheritdocNotInheriting()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  public int Amount => 0;
+
+                                  /// {|#0:<inheritdoc/>|}
+                                  public static implicit operator int(Money value) => value.Amount;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that an operator implicitly implementing a static abstract interface operator may use inheritdoc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

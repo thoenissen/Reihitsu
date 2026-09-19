@@ -131,6 +131,64 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for a conversion operator parameter missing documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForConversionOperatorParameterWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  public int Amount => 0;
+
+                                  /// <summary>Converts to a plain amount.</summary>
+                                  /// <returns>The plain amount.</returns>
+                                  public static implicit operator int(Money {|#0:value|}) => value.Amount;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a class primary-constructor parameter missing documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForClassPrimaryConstructorParameterWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a named counter.</summary>
+                              internal sealed class Counter(string {|#0:name|});
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a plain record primary-constructor parameter missing documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForRecordPrimaryConstructorParameterWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Represents a pair of coordinates.</summary>
+                              /// <param name="Y">The y coordinate.</param>
+                              internal sealed record Point(int {|#0:X|}, int Y);
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported for primary-constructor parameters missing documentation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

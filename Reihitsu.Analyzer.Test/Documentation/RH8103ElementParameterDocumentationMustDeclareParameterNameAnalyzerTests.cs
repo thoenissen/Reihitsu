@@ -85,6 +85,30 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for a conversion operator parameter tag missing a name attribute
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForConversionOperatorParameterMissingName()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  public int Amount => 0;
+
+                                  /// <summary>Converts to a plain amount.</summary>
+                                  /// {|#0:<param>The amount.</param>|}
+                                  /// <returns>The plain amount.</returns>
+                                  public static implicit operator int(Money value) => value.Amount;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

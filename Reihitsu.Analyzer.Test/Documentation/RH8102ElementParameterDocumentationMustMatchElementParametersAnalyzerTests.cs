@@ -88,6 +88,32 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for conversion operator parameter documentation in the wrong order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForConversionOperatorParameterDocumentationInWrongOrder()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  public int Amount => 0;
+                                  public int Fraction => 0;
+
+                                  /// <summary>Converts to a plain amount with a fraction.</summary>
+                                  /// <param name="firstValue">First value.</param>
+                                  /// {|#0:<param name="thirdValue">Third value.</param>|}
+                                  /// <returns>The plain amount.</returns>
+                                  public static implicit operator int(Money firstValue) => firstValue.Amount;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies diagnostics are reported for primary-constructor parameter documentation in permuted order
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
