@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
 /// Shared base class for the split declaration documentation analyzers

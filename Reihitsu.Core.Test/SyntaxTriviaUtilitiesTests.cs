@@ -414,6 +414,61 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that two end-of-line trivia separated only by whitespace are recognized as a blank line
+    /// </summary>
+    [TestMethod]
+    public void ContainsBlankLineReturnsTrueForTwoEndOfLinesSeparatedByWhitespace()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine("\n"), SyntaxFactory.Whitespace("    "), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsBlankLine(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that a comment between two end-of-line trivia resets the run, since the line it starts is not blank
+    /// </summary>
+    [TestMethod]
+    public void ContainsBlankLineReturnsFalseWhenACommentSeparatesTheEndOfLines()
+    {
+        var comment = GetFirstTrivia("// note\nvar x = 1;\n", SyntaxKind.SingleLineCommentTrivia);
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine("\n"), comment, SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsFalse(SyntaxTriviaUtilities.ContainsBlankLine(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that a directive between two end-of-line trivia resets the run
+    /// </summary>
+    [TestMethod]
+    public void ContainsBlankLineReturnsFalseWhenADirectiveSeparatesTheEndOfLines()
+    {
+        var directive = GetFirstTrivia("#if true\nvar x = 1;\n#endif\n", SyntaxKind.IfDirectiveTrivia);
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine("\n"), directive, SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsFalse(SyntaxTriviaUtilities.ContainsBlankLine(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that three consecutive end-of-line trivia are recognized as a blank line on the second one
+    /// </summary>
+    [TestMethod]
+    public void ContainsBlankLineReturnsTrueForThreeConsecutiveEndOfLines()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine("\n"), SyntaxFactory.EndOfLine("\n"), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsBlankLine(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that an empty trivia sequence does not contain a blank line
+    /// </summary>
+    [TestMethod]
+    public void ContainsBlankLineReturnsFalseForEmptySequence()
+    {
+        Assert.IsFalse(SyntaxTriviaUtilities.ContainsBlankLine(Enumerable.Empty<SyntaxTrivia>()));
+    }
+
+    /// <summary>
     /// Verifies that a conditional directive inside the span is reported
     /// </summary>
     [TestMethod]

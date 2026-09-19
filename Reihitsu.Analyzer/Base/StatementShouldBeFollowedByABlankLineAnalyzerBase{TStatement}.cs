@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -54,43 +52,14 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     protected abstract Location GetLocation(TStatement statement);
 
     /// <summary>
-    /// Get previous token
+    /// Get next token
     /// </summary>
     /// <param name="statement">Statement</param>
     /// <returns>Token</returns>
     protected abstract SyntaxToken GetNextToken(TStatement statement);
 
     /// <summary>
-    /// Check if, the statement preceded by a blank line
-    /// </summary>
-    /// <param name="leadingTrivia">Leading trivia of the statement</param>
-    /// <returns>Is the statement preceded by a blank line?</returns>
-    private static bool IsFollowedByBlankLine(IEnumerable<SyntaxTrivia> leadingTrivia)
-    {
-        var sawEndOfLine = false;
-
-        foreach (var trivia in leadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                if (sawEndOfLine)
-                {
-                    return true;
-                }
-
-                sawEndOfLine = true;
-            }
-            else if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                sawEndOfLine = false;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Analyze try statement
+    /// Analyze statement
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
@@ -104,7 +73,7 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
             {
                 var trivia = statement.GetTrailingTrivia().Concat(nextToken.LeadingTrivia);
 
-                if (IsFollowedByBlankLine(trivia) == false
+                if (SyntaxTriviaUtilities.ContainsBlankLine(trivia) == false
                     && SyntaxTriviaUtilities.IsFollowedByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
