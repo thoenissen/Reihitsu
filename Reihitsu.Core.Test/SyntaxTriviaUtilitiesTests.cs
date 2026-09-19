@@ -890,6 +890,226 @@ public class SyntaxTriviaUtilitiesTests
         Assert.IsFalse(SyntaxTriviaUtilities.IsInactiveDirective(trivia));
     }
 
+    /// <summary>
+    /// Verifies that a comment sitting alone on the line directly above the token counts as directly above
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueForCommentOnPrecedingLine()
+    {
+        const string source = "// note\nint target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a comment beside the token stays "not directly above" even when the unrelated source
+    /// line above it happens to start with "*", the coincidence the former text-based heuristic mistook for
+    /// a block-comment continuation
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForCommentBesideTokenWithAsteriskPrefixedLineAbove()
+    {
+        const string source = "int a = x\n         * y;\n/* hmm */ int target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a comment beside the token stays "not directly above" even when the unrelated source
+    /// line above it happens to end with "*/", the coincidence the former text-based heuristic mistook for
+    /// a block-comment continuation
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForCommentBesideTokenWithCommentClosingLineAbove()
+    {
+        const string source = "int a = 1; /* tail */\n/* c */ int target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that blank lines before the comment do not affect the result — only the gap between the
+    /// comment and the token is counted
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueWhenBlankLinesPrecedeTheComment()
+    {
+        const string source = "\n\n// note\nint target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the comment and the token breaks the adjacency
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseWhenABlankLineSeparatesTheCommentFromTheToken()
+    {
+        const string source = "// note\n\nint target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment ("///") directly above the token counts as directly
+    /// above, even though its structured trivia swallows its own trailing line break and leaves no separate
+    /// end-of-line trivia behind
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueForDocumentationCommentDirectlyAbove()
+    {
+        const string source = "/// summary\nint target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line after a single-line documentation comment still breaks the adjacency
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseWhenABlankLineSeparatesTheDocumentationCommentFromTheToken()
+    {
+        const string source = "/// summary\n\nint target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment with no trailing line break at all — because it is
+    /// the last thing in the file — is not counted as directly above, even though it is the same trivia kind
+    /// as the terminated case that returns <see langword="true"/>
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForUnterminatedDocumentationCommentAtEndOfFile()
+    {
+        var endOfFileToken = ((Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)GetRoot("/// summary")).EndOfFileToken;
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(endOfFileToken));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment terminated by a lone carriage return still swallows
+    /// its own line break, the same as the line-feed-terminated case — a lone "\r" is a C# line terminator
+    /// even though it is not the "\n" a naive check might look for
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueForDocumentationCommentWithCarriageReturnTerminator()
+    {
+        const string source = "/// summary\rint target;\r";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line after a single-line documentation comment still breaks the adjacency when
+    /// the comment is terminated by a lone carriage return rather than "\n"
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseWhenABlankLineWithCarriageReturnTerminatorSeparatesTheDocumentationCommentFromTheToken()
+    {
+        const string source = "/// summary\r\rint target;\r";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that an empty single-line documentation comment trivia — one with no content and therefore
+    /// no text at all — is treated as not ending its own line rather than throwing when its full text is
+    /// inspected for a trailing terminator
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForEmptyDocumentationCommentTrivia()
+    {
+        var emptyDocumentationComment = SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia));
+        var token = SyntaxFactory.Identifier("target").WithLeadingTrivia(emptyDocumentationComment);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive between the comment and the token breaks the adjacency — a
+    /// comment genuinely precedes the directive here, so this falsifies an implementation that skips over
+    /// directives as if they were whitespace instead of stopping the scan
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForDirectiveDirectlyAbove()
+    {
+        const string source = "// note\n#pragma warning disable CS0168\nint target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a token with no owning syntax tree is still answered from its leading trivia alone
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueForCommentAboveAParentlessToken()
+    {
+        var token = SyntaxFactory.Identifier("target")
+                                 .WithLeadingTrivia(SyntaxFactory.Comment("// note"), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a parentless token with the comment beside it, rather than above it, is not counted
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForCommentBesideAParentlessToken()
+    {
+        var token = SyntaxFactory.Identifier("target").WithLeadingTrivia(SyntaxFactory.Comment("/* note */"));
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that the result is unaffected by the line-ending style
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueForCommentOnPrecedingLineWithCarriageReturnLineFeed()
+    {
+        const string source = "// note\r\nint target;\r\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line documentation comment ("/** */") directly above the token counts as
+    /// directly above; unlike the single-line form it does not swallow its own trailing line break
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsTrueForMultiLineDocumentationCommentDirectlyAbove()
+    {
+        const string source = "/** summary */\nint target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsTrue(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment starting on the line above but ending on the token's own line is not
+    /// counted as directly above — it sits beside the token, not above it
+    /// </summary>
+    [TestMethod]
+    public void HasCommentDirectlyAboveReturnsFalseForBlockCommentEndingOnTheTokenLine()
+    {
+        const string source = "int a = 1;\n/* note\n   more */ int target;\n";
+        var token = GetTokenAt(source, "int target");
+
+        Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -975,6 +1195,20 @@ public class SyntaxTriviaUtilitiesTests
     private static SyntaxNode GetRoot(string source)
     {
         return CSharpSyntaxTree.ParseText(source).GetRoot();
+    }
+
+    /// <summary>
+    /// Parses the source and returns the first token starting at or after the position of the given marker text
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="marker">Text whose start position locates the token</param>
+    /// <returns>The token beginning at or immediately after the marker</returns>
+    private static SyntaxToken GetTokenAt(string source, string marker)
+    {
+        var root = GetRoot(source);
+        var index = source.IndexOf(marker, StringComparison.Ordinal);
+
+        return root.DescendantTokens().First(token => token.Span.Start >= index);
     }
 
     #endregion // Methods

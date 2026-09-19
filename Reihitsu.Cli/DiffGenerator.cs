@@ -33,7 +33,7 @@ internal static class DiffGenerator
         var originalLines = ToDiffLines(originalContent);
         var formattedLines = ToDiffLines(formattedContent);
         var editScript = EditScriptBuilder.Build(originalLines, formattedLines);
-        var hunks = HunkBuilder.Build(editScript, originalLines.Length, formattedLines.Length);
+        var hunks = HunkBuilder.Build(editScript);
 
         if (hunks.Count == 0)
         {

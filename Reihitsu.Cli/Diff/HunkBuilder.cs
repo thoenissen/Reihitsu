@@ -24,10 +24,8 @@ internal static class HunkBuilder
     /// Groups edit operations into hunks
     /// </summary>
     /// <param name="operations">The edit operations</param>
-    /// <param name="originalLineCount">The total number of original lines</param>
-    /// <param name="formattedLineCount">The total number of formatted lines</param>
     /// <returns>A list of diff hunks</returns>
-    public static List<DiffHunk> Build(List<EditOperation> operations, int originalLineCount, int formattedLineCount)
+    public static List<DiffHunk> Build(List<EditOperation> operations)
     {
         var changeIndices = new List<int>();
 

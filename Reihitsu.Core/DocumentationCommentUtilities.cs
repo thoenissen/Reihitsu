@@ -233,7 +233,7 @@ public static class DocumentationCommentUtilities
     /// </summary>
     /// <param name="character">Character</param>
     /// <returns><see langword="true"/> when the character terminates a line</returns>
-    private static bool IsLineTerminator(char character)
+    internal static bool IsLineTerminator(char character)
     {
         return character is '\r' or '\n' or '\u0085' or '\u2028' or '\u2029';
     }
