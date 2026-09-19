@@ -64,6 +64,29 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for an empty returns tag on an operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForEmptyOperatorReturnsDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  /// <summary>Adds two amounts.</summary>
+                                  /// <param name="left">Left operand.</param>
+                                  /// <param name="right">Right operand.</param>
+                                  /// {|#0:<returns></returns>|}
+                                  public static Money operator +(Money left, Money right) => left;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8106MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

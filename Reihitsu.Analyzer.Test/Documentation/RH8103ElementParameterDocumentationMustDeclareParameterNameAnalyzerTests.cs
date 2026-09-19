@@ -62,6 +62,29 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for an operator parameter tag missing a name attribute
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOperatorParameterMissingName()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct Money
+                              {
+                                  /// <summary>Adds two amounts.</summary>
+                                  /// {|#0:<param>Left operand.</param>|}
+                                  /// <param name="right">Right operand.</param>
+                                  /// <returns>The sum.</returns>
+                                  public static Money operator +(Money left, Money right) => left;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

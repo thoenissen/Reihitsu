@@ -85,6 +85,32 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies that an operator implicitly implementing a static abstract interface operator may use inheritdoc
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForImplicitInterfaceOperatorImplementation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal interface IAddable<T> where T : IAddable<T>
+                              {
+                                  /// <summary>Adds two values.</summary>
+                                  static abstract T operator +(T left, T right);
+                              }
+
+                              internal readonly struct Money : IAddable<Money>
+                              {
+                                  /// <inheritdoc/>
+                                  public static Money operator +(Money left, Money right) => left;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies that inheritdoc nested in remarks is ignored
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
