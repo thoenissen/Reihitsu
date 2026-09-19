@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -319,6 +320,27 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3105DoNotPrefixLocalMembersWithThisAnalyzer.DiagnosticId, "Do not prefix local members with this."));
+    }
+
+    /// <summary>
+    /// Verifying a this-qualified access to a member that does not exist is not reported, since neither the
+    /// original nor the speculative rebinding resolves to a symbol or a candidate
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ThisQualifierOnUnresolvableMemberIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        this.Missing = 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

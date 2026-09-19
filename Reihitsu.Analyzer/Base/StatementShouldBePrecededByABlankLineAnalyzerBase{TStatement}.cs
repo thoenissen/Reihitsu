@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -86,36 +84,7 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     }
 
     /// <summary>
-    /// Check if, the statement preceded by a blank line
-    /// </summary>
-    /// <param name="leadingTrivia">Leading trivia of the statement</param>
-    /// <returns>Is the statement preceded by a blank line?</returns>
-    private static bool IsPrecededByBlankLine(IEnumerable<SyntaxTrivia> leadingTrivia)
-    {
-        var sawEndOfLine = false;
-
-        foreach (var trivia in leadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                if (sawEndOfLine)
-                {
-                    return true;
-                }
-
-                sawEndOfLine = true;
-            }
-            else if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                sawEndOfLine = false;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Analyze try statement
+    /// Analyze statement
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
@@ -130,7 +99,7 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
             {
                 var trivia = previousToken.TrailingTrivia.Concat(statement.GetLeadingTrivia());
 
-                if (IsPrecededByBlankLine(trivia) == false
+                if (SyntaxTriviaUtilities.ContainsBlankLine(trivia) == false
                     && SyntaxTriviaUtilities.IsPrecededByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));

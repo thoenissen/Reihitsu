@@ -261,6 +261,37 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the trivia between two tokens contains a blank line — two end-of-line trivia with
+    /// only whitespace between them. Any other trivia (a comment, a documentation comment, or a directive)
+    /// between two end-of-line trivia resets the run, since it means the line is not actually blank
+    /// </summary>
+    /// <param name="trivia">The trivia sequence to inspect, typically the trivia between two tokens</param>
+    /// <returns><see langword="true"/> if the sequence contains a blank line; otherwise, <see langword="false"/></returns>
+    public static bool ContainsBlankLine(IEnumerable<SyntaxTrivia> trivia)
+    {
+        var sawEndOfLine = false;
+
+        foreach (var candidate in trivia)
+        {
+            if (candidate.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                if (sawEndOfLine)
+                {
+                    return true;
+                }
+
+                sawEndOfLine = true;
+            }
+            else if (candidate.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                sawEndOfLine = false;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether the specified span contains a conditional-compilation directive whose partner
     /// directive lies outside the span. Rewrites that relocate a span as one block — for example a region
     /// reorder that exchanges whole <c>#region</c>…<c>#endregion</c> texts — would carry such a directive

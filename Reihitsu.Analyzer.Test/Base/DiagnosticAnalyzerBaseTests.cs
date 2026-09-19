@@ -55,6 +55,21 @@ public class DiagnosticAnalyzerBaseTests
         Assert.IsEmpty(diagnostic.AdditionalLocations);
     }
 
+    /// <summary>
+    /// Verifies that repeated reads of <see cref="Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase.SupportedDiagnostics"/>
+    /// return the same cached array instance instead of allocating a fresh one on every access
+    /// </summary>
+    [TestMethod]
+    public void SupportedDiagnosticsReturnsTheSameInstanceOnRepeatedAccess()
+    {
+        var analyzer = new DiagnosticAnalyzerBaseProbe();
+
+        var first = analyzer.SupportedDiagnostics;
+        var second = analyzer.SupportedDiagnostics;
+
+        Assert.AreEqual(first, second);
+    }
+
     #endregion // Tests
 
     #region Methods

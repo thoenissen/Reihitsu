@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace Reihitsu.Analyzer.Base;
+namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
 /// Shared helpers for interface-implementation analysis
