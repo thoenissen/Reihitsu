@@ -21,7 +21,10 @@ internal static class TokenLocator
     #region Methods
 
     /// <summary>
-    /// Attempts to resolve the token that immediately precedes the specified token within the given syntax node
+    /// Attempts to resolve the token that immediately precedes the specified token within the given syntax node,
+    /// including a token embedded in structured trivia (a directive or documentation comment) carried by the
+    /// token's own leading trivia — the same predecessor a full <c>DescendantTokens(descendIntoTrivia: true)</c>
+    /// walk of <paramref name="node"/> would yield, without scanning the whole node to find it
     /// </summary>
     /// <typeparam name="TNode">The syntax node type</typeparam>
     /// <param name="node">The syntax node that contains the tokens</param>
@@ -33,37 +36,27 @@ internal static class TokenLocator
                                                   out SyntaxToken previousToken)
         where TNode : SyntaxNode
     {
-        previousToken = default;
+        var structuredTriviaToken = GetLastTokenInLeadingStructuredTrivia(token);
 
-        var lastToken = default(SyntaxToken);
-
-        foreach (var currentToken in node.DescendantTokens(descendIntoTrivia: true))
+        if (structuredTriviaToken != default
+            && structuredTriviaToken.IsKind(SyntaxKind.None) == false
+            && ContainsToken(node, structuredTriviaToken))
         {
-            if (currentToken == token)
-            {
-                if (lastToken != default && lastToken.IsKind(SyntaxKind.None) == false)
-                {
-                    previousToken = lastToken;
+            previousToken = structuredTriviaToken;
 
-                    return true;
-                }
-
-                break;
-            }
-
-            if (currentToken.IsMissing == false)
-            {
-                lastToken = currentToken;
-            }
+            return true;
         }
 
-        previousToken = token.GetPreviousToken();
+        // includeZeroWidth: true, because a legitimate zero-width token (an omitted type argument in an
+        // unbound generic such as "Dictionary<,>") is a real, non-missing token the original
+        // DescendantTokens(descendIntoTrivia: true) walk always yielded, and Roslyn's own default skips it
+        previousToken = token.GetPreviousToken(includeZeroWidth: true);
 
         while (previousToken != default
                && previousToken.IsKind(SyntaxKind.None) == false
                && previousToken.IsMissing)
         {
-            previousToken = previousToken.GetPreviousToken();
+            previousToken = previousToken.GetPreviousToken(includeZeroWidth: true);
         }
 
         return previousToken != default
@@ -140,6 +133,56 @@ internal static class TokenLocator
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Finds the last non-missing token carried by the closest piece of structured trivia (a directive or
+    /// documentation comment) in a token's own leading trivia, scanning backward from the token
+    /// </summary>
+    /// <param name="token">The token whose leading trivia is inspected</param>
+    /// <returns>The last non-missing token of the closest structured trivia; <see langword="default"/> when the leading trivia carries none</returns>
+    private static SyntaxToken GetLastTokenInLeadingStructuredTrivia(SyntaxToken token)
+    {
+        var leadingTrivia = token.LeadingTrivia;
+
+        for (var triviaIndex = leadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            if (leadingTrivia[triviaIndex].HasStructure == false)
+            {
+                continue;
+            }
+
+            var lastToken = GetLastNonMissingToken(leadingTrivia[triviaIndex].GetStructure());
+
+            if (lastToken != default && lastToken.IsKind(SyntaxKind.None) == false)
+            {
+                return lastToken;
+            }
+        }
+
+        return default;
+    }
+
+    /// <summary>
+    /// Finds the last non-missing token in a structured trivia node's own token sequence. The scan is bounded by
+    /// the size of this one piece of trivia (a single directive line, one documentation comment) rather than by
+    /// the size of the enclosing declaration
+    /// </summary>
+    /// <param name="structure">The structured trivia's syntax node</param>
+    /// <returns>The last non-missing token; <see langword="default"/> when the structure carries none</returns>
+    private static SyntaxToken GetLastNonMissingToken(SyntaxNode structure)
+    {
+        var lastToken = default(SyntaxToken);
+
+        foreach (var candidate in structure.DescendantTokens(descendIntoTrivia: true))
+        {
+            if (candidate.IsMissing == false)
+            {
+                lastToken = candidate;
+            }
+        }
+
+        return lastToken;
     }
 
     #endregion // Methods

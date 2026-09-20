@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -56,40 +55,8 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Collapses a parameter list opener onto the same line as its declaration token
-    /// </summary>
-    /// <typeparam name="TNode">The syntax node type that owns the declaration</typeparam>
-    /// <param name="node">The syntax node that contains the declaration token and parameter list</param>
-    /// <param name="declarationToken">The declaration token that should share a line with the opening parenthesis</param>
-    /// <param name="parameterList">The parameter list to normalize</param>
-    /// <returns>The updated syntax node</returns>
-    private static TNode CollapseParameterListToDeclarationLine<TNode>(TNode node,
-                                                                       SyntaxToken declarationToken,
-                                                                       ParameterListSyntax parameterList)
-        where TNode : SyntaxNode
-    {
-        if (TokenGapUtilities.HasLineBreakBetween(declarationToken, parameterList.OpenParenToken) == false)
-        {
-            return node;
-        }
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(declarationToken, parameterList.OpenParenToken))
-        {
-            return node;
-        }
-
-        var newDeclarationToken = declarationToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(declarationToken.TrailingTrivia)));
-        var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(parameterList.OpenParenToken);
-
-        return node.ReplaceTokens([declarationToken, parameterList.OpenParenToken],
-                                  (original, _) => original == declarationToken
-                                                       ? newDeclarationToken
-                                                       : newOpenParen);
-    }
-
-    /// <summary>
     /// Places an opening and closing brace on their own lines and keeps the first content token
-    /// and the close-brace continuation correct
+    /// correct
     /// </summary>
     /// <typeparam name="TNode">The owning syntax node type</typeparam>
     /// <param name="node">The node owning the braces</param>
@@ -107,7 +74,6 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     {
         node = _bracePlacer.EnsureBraceOnOwnLine(node, getOpenBrace, withOpenBrace, getCloseBrace, withCloseBrace);
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, getOpenBrace(node));
-        node = _bracePlacer.EnsureCloseBraceContinuation(node, getCloseBrace(node));
 
         return node;
     }
@@ -157,7 +123,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>The updated constructor declaration</returns>
     private ConstructorDeclarationSyntax NormalizeConstructor(ConstructorDeclarationSyntax node)
     {
-        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
+        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
 
         if (node.Initializer != null)
         {
@@ -179,7 +145,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>The updated method declaration</returns>
     private MethodDeclarationSyntax NormalizeMethod(MethodDeclarationSyntax node)
     {
-        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
+        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
 
         if (node.Body != null)
         {
@@ -196,7 +162,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>The updated conversion operator declaration</returns>
     private ConversionOperatorDeclarationSyntax NormalizeConversionOperator(ConversionOperatorDeclarationSyntax node)
     {
-        node = CollapseParameterListToDeclarationLine(node, node.Type.GetLastToken(), node.ParameterList);
+        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
 
         if (node.Body != null)
         {
@@ -213,7 +179,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>The updated destructor declaration</returns>
     private DestructorDeclarationSyntax NormalizeDestructor(DestructorDeclarationSyntax node)
     {
-        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
+        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
 
         if (node.Body != null)
         {
@@ -230,7 +196,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>The updated local function statement</returns>
     private LocalFunctionStatementSyntax NormalizeLocalFunction(LocalFunctionStatementSyntax node)
     {
-        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
+        node = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
 
         if (node.Body != null)
         {
@@ -337,7 +303,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
             case DelegateDeclarationSyntax delegateDeclaration:
                 {
-                    return CollapseParameterListToDeclarationLine(delegateDeclaration, delegateDeclaration.Identifier, delegateDeclaration.ParameterList);
+                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(delegateDeclaration, delegateDeclaration.ParameterList);
                 }
 
             default:

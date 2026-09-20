@@ -140,14 +140,14 @@ public static class ReihitsuFormatter
         }
 
         var originalFirstToken = targetNode.GetFirstToken();
-        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken, root);
+        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: targetNode != root);
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
-        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken(), formattedTarget);
+        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
         var columnOffset = originalColumn - formattedColumn;
 
         if (columnOffset != 0)
@@ -212,7 +212,7 @@ public static class ReihitsuFormatter
         }
 
         var originalContextFirstToken = contextNode.GetFirstToken();
-        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalContextFirstToken, root);
+        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalContextFirstToken);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
         var context = new FormattingContext(endOfLine,
@@ -224,7 +224,7 @@ public static class ReihitsuFormatter
                                                       originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
         var annotatedContext = contextNode.ReplaceNode(targetNode, annotatedTarget);
         var formattedContext = FormattingPipeline.Execute(annotatedContext, context, cancellationToken);
-        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedContext.GetFirstToken(), formattedContext);
+        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedContext.GetFirstToken());
         var columnOffset = originalColumn - formattedColumn;
 
         if (columnOffset != 0)

@@ -50,6 +50,41 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Collapses a parameter-list opener when the owning declaration contains the previous token whose trailing trivia
+    /// owns the line break. This is the single collapse policy for every parameter-list owner covered by
+    /// <c>RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer</c>'s <c>ParameterListParentPolicy</c>: unlike a
+    /// policy scoped to the parameter list alone, resolving the previous token from the owning declaration reaches
+    /// it even when a type-parameter list separates the declaration token from the opening parenthesis
+    /// </summary>
+    /// <typeparam name="TNode">The parameter-list owner type</typeparam>
+    /// <param name="node">The parameter-list owner</param>
+    /// <param name="parameterList">The parameter list to normalize</param>
+    /// <returns>The updated owner</returns>
+    internal static TNode CollapseOwnedOpenParenToDeclarationLine<TNode>(TNode node,
+                                                                         ParameterListSyntax parameterList)
+        where TNode : SyntaxNode
+    {
+        var openParenToken = parameterList.OpenParenToken;
+        var previousToken = openParenToken.GetPreviousToken();
+
+        if (previousToken == default
+            || previousToken.IsKind(SyntaxKind.None)
+            || TokenGapUtilities.HasLineBreakBetween(previousToken, openParenToken) == false
+            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, openParenToken))
+        {
+            return node;
+        }
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openParenToken);
+
+        return node.ReplaceTokens([previousToken, openParenToken],
+                                  (original, _) => original == previousToken
+                                                       ? newPreviousToken
+                                                       : newOpenParen);
+    }
+
+    /// <summary>
     /// Collapses the first element of a list to the same line as the opening delimiter
     /// when it currently starts on a new line
     /// </summary>
@@ -98,38 +133,6 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         }
 
         return node.ReplaceTokens([previousToken, node.OpenParenToken],
-                                  (original, _) => original == previousToken
-                                                       ? newPreviousToken
-                                                       : newOpenParen);
-    }
-
-    /// <summary>
-    /// Collapses a parameter-list opener when the owning declaration contains the previous token whose trailing trivia
-    /// owns the line break
-    /// </summary>
-    /// <typeparam name="TNode">The parameter-list owner type</typeparam>
-    /// <param name="node">The parameter-list owner</param>
-    /// <param name="parameterList">The parameter list to normalize</param>
-    /// <returns>The updated owner</returns>
-    private static TNode CollapseOwnedOpenParenToDeclarationLine<TNode>(TNode node,
-                                                                        ParameterListSyntax parameterList)
-        where TNode : SyntaxNode
-    {
-        var openParenToken = parameterList.OpenParenToken;
-        var previousToken = openParenToken.GetPreviousToken();
-
-        if (previousToken == default
-            || previousToken.IsKind(SyntaxKind.None)
-            || TokenGapUtilities.HasLineBreakBetween(previousToken, openParenToken) == false
-            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, openParenToken))
-        {
-            return node;
-        }
-
-        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
-        var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openParenToken);
-
-        return node.ReplaceTokens([previousToken, openParenToken],
                                   (original, _) => original == previousToken
                                                        ? newPreviousToken
                                                        : newOpenParen);
@@ -534,6 +537,26 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 
         return node?.ParameterList == null
                    ? node
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+    {
+        node = (RecordDeclarationSyntax)base.VisitRecordDeclaration(node);
+
+        return node?.ParameterList == null
+                   ? node
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitOperatorDeclaration(OperatorDeclarationSyntax node)
+    {
+        node = (OperatorDeclarationSyntax)base.VisitOperatorDeclaration(node);
+
+        return node == null
+                   ? null
                    : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
     }
 

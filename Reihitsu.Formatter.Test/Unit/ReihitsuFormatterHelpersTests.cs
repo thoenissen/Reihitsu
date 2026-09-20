@@ -603,7 +603,7 @@ public class ReihitsuFormatterHelpersTests
         var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
 
         // Act
-        var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword, root);
+        var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword);
 
         // Assert
         Assert.AreEqual(0, result);
@@ -626,7 +626,7 @@ public class ReihitsuFormatterHelpersTests
         var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
 
         // Act
-        var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword, root);
+        var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword);
 
         // Assert
         Assert.AreEqual(4, result);

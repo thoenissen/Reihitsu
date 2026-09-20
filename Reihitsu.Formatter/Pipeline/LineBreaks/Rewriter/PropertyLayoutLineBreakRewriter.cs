@@ -52,12 +52,12 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// Collapses a multi-line expression-bodied property to a single line
     /// </summary>
     /// <param name="node">The property declaration with an expression body</param>
-    /// <returns>The property declaration collapsed to a single line</returns>
+    /// <returns>The property declaration collapsed to a single line, or unchanged when it has no expression body</returns>
     private static PropertyDeclarationSyntax CollapseExpressionBodiedProperty(PropertyDeclarationSyntax node)
     {
         if (node?.ExpressionBody == null)
         {
-            return null;
+            return node;
         }
 
         if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.ExpressionBody.ArrowToken.GetPreviousToken(), node.ExpressionBody.ArrowToken)
