@@ -79,33 +79,14 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
-    /// Computes the zero-based column position of a token within a syntax root
-    /// by scanning backwards from the token's start position to the beginning of the line
+    /// Computes the zero-based column position of a token within a syntax root,
+    /// using the token's syntax tree's line table
     /// </summary>
-    /// <param name="token">The token whose column to compute</param>
-    /// <param name="root">The syntax root containing the token</param>
+    /// <param name="token">The token whose column to compute. Must belong to a syntax tree — every caller passes a node-derived token (for example <c>GetFirstToken()</c>), which always has one</param>
     /// <returns>The zero-based column position of the token</returns>
-    internal static int ComputeTokenColumn(SyntaxToken token, SyntaxNode root)
+    internal static int ComputeTokenColumn(SyntaxToken token)
     {
-        // When the token belongs to a syntax tree, reuse the tree's cached line table instead of
-        // materializing the whole document text on every call.
-        var syntaxTree = token.SyntaxTree;
-
-        if (syntaxTree != null)
-        {
-            return syntaxTree.GetLineSpan(token.Span).StartLinePosition.Character;
-        }
-
-        var fullText = root.ToFullString();
-        var position = token.SpanStart;
-        var lineStart = position;
-
-        while (lineStart > 0 && fullText[lineStart - 1] != '\n')
-        {
-            lineStart--;
-        }
-
-        return position - lineStart;
+        return token.SyntaxTree.GetLineSpan(token.Span).StartLinePosition.Character;
     }
 
     /// <summary>

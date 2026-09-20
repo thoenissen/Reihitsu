@@ -108,7 +108,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             // attribute lists sharing one line correct, since every split member still aligns to the same first
             // token regardless of which list is being split
             var indentColumn = SyntaxIndentationUtilities.HasAnchorScopeAncestor(attributeList)
-                                   ? ReihitsuFormatterHelpers.ComputeTokenColumn(attributeList.Parent.GetFirstToken(), root)
+                                   ? ReihitsuFormatterHelpers.ComputeTokenColumn(attributeList.Parent.GetFirstToken())
                                    : SyntaxIndentationUtilities.ComputeBaseIndentLevel(attributeList) * SyntaxIndentationUtilities.IndentSize;
 
             if (indentColumn > 0)

@@ -120,52 +120,11 @@ internal sealed class BracePlacer
     }
 
     /// <summary>
-    /// Ensures a line break after a closing brace unless the next token is <c>;</c>, <c>,</c>, or <c>)</c>
-    /// </summary>
-    /// <typeparam name="TNode">The syntax node type</typeparam>
-    /// <param name="node">The node containing the closing brace</param>
-    /// <param name="closeBrace">The closing brace token</param>
-    /// <returns>The node with correct close-brace continuation</returns>
-    public TNode EnsureCloseBraceContinuation<TNode>(TNode node,
-                                                     SyntaxToken closeBrace)
-        where TNode : SyntaxNode
-    {
-        if (closeBrace.IsMissing)
-        {
-            return node;
-        }
-
-        var nextToken = closeBrace.GetNextToken();
-
-        if (nextToken == default || nextToken.IsMissing)
-        {
-            return node;
-        }
-
-        if (nextToken.IsKind(SyntaxKind.SemicolonToken)
-            || nextToken.IsKind(SyntaxKind.CommaToken)
-            || nextToken.IsKind(SyntaxKind.CloseParenToken))
-        {
-            return node;
-        }
-
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(nextToken) || LineBreakTriviaUtilities.HasTrailingEndOfLine(closeBrace))
-        {
-            return _gapNormalizer.NormalizeGapBeforeToken(node, nextToken, blankLineCount: 0);
-        }
-
-        var newNextToken = LineBreakTriviaUtilities.PrependEndOfLine(nextToken, _endOfLine);
-
-        return node.ReplaceToken(nextToken, newNextToken);
-    }
-
-    /// <summary>
     /// Ensures a token starts its own line, without disturbing how many blank lines precede it.
     /// Used for a statement keyword that chains directly from a preceding block's closing brace
     /// (<c>else</c>, <c>catch</c>, <c>finally</c>, or a <c>do</c> statement's <c>while</c>), where the
-    /// token is owned by a different node than the block whose brace precedes it, so neither
-    /// <see cref="EnsureCloseBraceContinuation{TNode}"/> nor the gap normalizer — both scoped to the
-    /// block itself — can reach it
+    /// token is owned by a different node than the block whose brace precedes it, so the gap
+    /// normalizer — scoped to the block itself — cannot reach it
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The node containing the token</param>

@@ -75,19 +75,25 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures sibling statements in a block start on separate lines
+    /// Ensures sibling statements in a statement list start on separate lines
     /// </summary>
-    /// <param name="node">The block node</param>
-    /// <returns>The updated block</returns>
-    private BlockSyntax EnsureStatementsStartOnSeparateLines(BlockSyntax node)
+    /// <typeparam name="TNode">The syntax node type owning the statement list</typeparam>
+    /// <param name="node">The node owning the statement list</param>
+    /// <param name="getStatements">Selects the statement list from the current node</param>
+    /// <param name="withStatements">Replaces the statement list on the node</param>
+    /// <returns>The updated node</returns>
+    private TNode EnsureStatementsStartOnSeparateLines<TNode>(TNode node,
+                                                              Func<TNode, SyntaxList<StatementSyntax>> getStatements,
+                                                              Func<TNode, SyntaxList<StatementSyntax>, TNode> withStatements)
+        where TNode : SyntaxNode
     {
-        if (node.Statements.Count <= 1)
+        if (getStatements(node).Count <= 1)
         {
             return node;
         }
 
         var modified = false;
-        var statements = node.Statements.ToArray();
+        var statements = getStatements(node).ToArray();
 
         for (var statementIndex = 1; statementIndex < statements.Length; statementIndex++)
         {
@@ -117,54 +123,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
         }
 
         return modified
-                   ? node.WithStatements(SyntaxFactory.List(statements))
-                   : node;
-    }
-
-    /// <summary>
-    /// Ensures sibling statements in a switch section start on separate lines
-    /// </summary>
-    /// <param name="node">The switch section node</param>
-    /// <returns>The updated switch section</returns>
-    private SwitchSectionSyntax EnsureStatementsStartOnSeparateLines(SwitchSectionSyntax node)
-    {
-        if (node.Statements.Count <= 1)
-        {
-            return node;
-        }
-
-        var modified = false;
-        var statements = node.Statements.ToArray();
-
-        for (var statementIndex = 1; statementIndex < statements.Length; statementIndex++)
-        {
-            if (statements[statementIndex - 1] is EmptyStatementSyntax
-                || statements[statementIndex] is EmptyStatementSyntax)
-            {
-                continue;
-            }
-
-            var previousToken = statements[statementIndex - 1].GetLastToken();
-            var currentToken = statements[statementIndex].GetFirstToken();
-
-            if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
-            {
-                statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
-                modified = true;
-
-                continue;
-            }
-
-            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1
-                && GapCarriesDirectiveOrDisabledText(previousToken, currentToken) == false)
-            {
-                statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
-                modified = true;
-            }
-        }
-
-        return modified
-                   ? node.WithStatements(SyntaxFactory.List(statements))
+                   ? withStatements(node, SyntaxFactory.List(statements))
                    : node;
     }
 
@@ -186,8 +145,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
         node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
-        node = EnsureStatementsStartOnSeparateLines(node);
+        node = EnsureStatementsStartOnSeparateLines(node, static block => block.Statements, static (block, statements) => block.WithStatements(statements));
 
         return node;
     }
@@ -211,7 +169,6 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
         node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
     }
@@ -230,7 +187,6 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
         node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
     }
@@ -249,7 +205,6 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 
         node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
     }
@@ -266,7 +221,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = EnsureStatementsStartOnSeparateLines(node);
+        node = EnsureStatementsStartOnSeparateLines(node, static section => section.Statements, static (section, statements) => section.WithStatements(statements));
 
         if (node.Statements.Count > 0 && node.Statements[0] is BlockSyntax block)
         {

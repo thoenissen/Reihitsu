@@ -29,11 +29,6 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     private readonly CancellationToken _cancellationToken;
 
     /// <summary>
-    /// The token gap normalizer
-    /// </summary>
-    private readonly TokenGapNormalizer _gapNormalizer;
-
-    /// <summary>
     /// The brace placer
     /// </summary>
     private readonly BracePlacer _bracePlacer;
@@ -46,17 +41,14 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     /// Constructor
     /// </summary>
     /// <param name="context">The formatting context</param>
-    /// <param name="gapNormalizer">The token gap normalizer</param>
     /// <param name="bracePlacer">The brace placer</param>
     /// <param name="cancellationToken">Cancellation token</param>
     public LineBreakContainedBlockRewriter(FormattingContext context,
-                                           TokenGapNormalizer gapNormalizer,
                                            BracePlacer bracePlacer,
                                            CancellationToken cancellationToken)
     {
         _context = context;
         _cancellationToken = cancellationToken;
-        _gapNormalizer = gapNormalizer;
         _bracePlacer = bracePlacer;
     }
 
@@ -115,12 +107,12 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     {
         if (node.Statement is BlockSyntax statementBlock)
         {
-            node = NormalizeBlockBraces(node, statementBlock);
+            node = _bracePlacer.NormalizeContainedBlock(node, statementBlock);
         }
 
         if (node.Else?.Statement is BlockSyntax elseBlock)
         {
-            node = NormalizeBlockBraces(node, elseBlock);
+            node = _bracePlacer.NormalizeContainedBlock(node, elseBlock);
         }
 
         node = MoveTrailingConditionCommentToOwnLine(node, isElseIfBranch);
@@ -173,35 +165,6 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
         node = _bracePlacer.NormalizeContainedBlock(node, block);
 
         return _bracePlacer.EnsureTokenStartsOwnLine(node, node.WhileKeyword);
-    }
-
-    /// <summary>
-    /// Normalizes the open brace, first contained statement, and close brace of a block owned by an
-    /// <c>if</c> statement. Each edit shifts the positions of later tokens, so the block (and its brace
-    /// tokens) are re-resolved through an annotation before every step to keep operating on the current tree
-    /// </summary>
-    /// <param name="node">The if statement that owns the block</param>
-    /// <param name="block">The block whose braces should be normalized</param>
-    /// <returns>The updated if statement</returns>
-    private IfStatementSyntax NormalizeBlockBraces(IfStatementSyntax node,
-                                                   BlockSyntax block)
-    {
-        var blockAnnotation = new SyntaxAnnotation();
-
-        node = node.ReplaceNode(block, block.WithAdditionalAnnotations(blockAnnotation));
-
-        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.OpenBraceToken, blankLineCount: 0);
-
-        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _bracePlacer.EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
-
-        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
-
-        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-
-        return node.ReplaceNode(block, block.WithoutAnnotations(blockAnnotation));
     }
 
     /// <summary>

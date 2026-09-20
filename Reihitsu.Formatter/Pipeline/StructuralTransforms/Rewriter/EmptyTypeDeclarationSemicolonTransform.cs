@@ -36,38 +36,6 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     #region Methods
 
     /// <summary>
-    /// Determines whether the syntax tree uses at least the requested language version
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="minimumLanguageVersion">Minimum required language version</param>
-    /// <returns><see langword="true"/> if the declaration is in a supported language version; otherwise, <see langword="false"/></returns>
-    private static bool SupportsLanguageVersion(TypeDeclarationSyntax typeDeclaration, LanguageVersion minimumLanguageVersion)
-    {
-        return typeDeclaration.SyntaxTree?.Options is not CSharpParseOptions parseOptions
-               || parseOptions.LanguageVersion >= minimumLanguageVersion;
-    }
-
-    /// <summary>
-    /// Determines whether the declaration can be rewritten safely
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="minimumLanguageVersion">Minimum required language version</param>
-    /// <returns><see langword="true"/> if the declaration can be rewritten; otherwise, <see langword="false"/></returns>
-    private static bool CanRewrite(TypeDeclarationSyntax typeDeclaration, LanguageVersion minimumLanguageVersion)
-    {
-        if (typeDeclaration.OpenBraceToken.IsMissing
-            || typeDeclaration.CloseBraceToken.IsMissing
-            || typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken)
-            || typeDeclaration.Members.Count != 0)
-        {
-            return false;
-        }
-
-        return SupportsLanguageVersion(typeDeclaration, minimumLanguageVersion)
-               && EmptyTypeDeclarationSemicolonAnalysisUtilities.HasMeaningfulBodyTrivia(typeDeclaration) == false;
-    }
-
-    /// <summary>
     /// Creates a semicolon token that preserves the trailing trivia from the removed close brace
     /// </summary>
     /// <param name="closeBraceToken">Close brace token</param>
@@ -124,7 +92,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         node = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
 
-        if (node == null || CanRewrite(node, LanguageVersion.CSharp12) == false)
+        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12) == false)
         {
             return node;
         }
@@ -139,7 +107,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         node = (StructDeclarationSyntax)base.VisitStructDeclaration(node);
 
-        if (node == null || CanRewrite(node, LanguageVersion.CSharp12) == false)
+        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12) == false)
         {
             return node;
         }
@@ -154,7 +122,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         node = (InterfaceDeclarationSyntax)base.VisitInterfaceDeclaration(node);
 
-        if (node == null || CanRewrite(node, LanguageVersion.CSharp12) == false)
+        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12) == false)
         {
             return node;
         }
@@ -176,7 +144,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         var minimumLanguageVersion = node.IsKind(SyntaxKind.RecordStructDeclaration) ? LanguageVersion.CSharp10 : LanguageVersion.CSharp9;
 
-        if (CanRewrite(node, minimumLanguageVersion) == false)
+        if (EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), minimumLanguageVersion) == false)
         {
             return node;
         }
