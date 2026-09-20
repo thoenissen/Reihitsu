@@ -5,11 +5,16 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// Regression tests proving the LineBreaks/StructuralTransforms consolidation cleanup carries no formatter
-/// behavior change for its dead-code-removal and duplication-removal findings: removing
-/// <c>BracePlacer.EnsureCloseBraceContinuation</c> (dead at every call site), hoisting one shared
-/// <c>EnsureStatementsStartOnSeparateLines</c> implementation, and replacing
-/// <c>LineBreakContainedBlockRewriter.NormalizeBlockBraces</c> with the shared <c>BracePlacer.NormalizeContainedBlock</c>
+/// Regression tests for the LineBreaks/StructuralTransforms consolidation cleanup: removing
+/// <c>BracePlacer.EnsureCloseBraceContinuation</c>, hoisting one shared <c>EnsureStatementsStartOnSeparateLines</c>
+/// implementation, and replacing <c>LineBreakContainedBlockRewriter.NormalizeBlockBraces</c> with the shared
+/// <c>BracePlacer.NormalizeContainedBlock</c>. The removed method was dead at ten of its eleven call sites — proven
+/// by each site's close token being the rewriter's own detached node's last token, so <c>GetNextToken()</c> could
+/// only return <see langword="default"/> — and those ten are covered below as pure stability assertions. The
+/// eleventh site, <c>LineBreakInitializerRewriter.VisitListPattern</c>, was not dead: a list pattern's
+/// <c>Designation</c> lies inside the visited node, unlike every other site, so removing the call is a genuine
+/// (and, on inspection, desirable — it now matches <c>VisitRecursivePattern</c>'s sibling behavior) output change,
+/// asserted explicitly rather than folded into the stability claim above
 /// </summary>
 [TestClass]
 public class LineBreaksConsolidationStabilityTests : FormatterTestsBase
@@ -84,6 +89,43 @@ public class LineBreaksConsolidationStabilityTests : FormatterTestsBase
                                  }
 
                                  public void N(object shape)
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line list pattern with a designation keeps its close bracket and the designation on
+    /// one line — the one call site (<c>LineBreakInitializerRewriter.VisitListPattern</c>) where removing
+    /// <c>BracePlacer.EnsureCloseBraceContinuation</c> is a genuine output change rather than dead-code removal.
+    /// A list pattern's <c>Designation</c> lies inside the visited node, unlike every other removed call site, so
+    /// the close bracket's <c>GetNextToken()</c> resolved to the designation itself and the removed method used to
+    /// push it onto its own line. The new behavior — designation stays with the close bracket — matches
+    /// <see cref="RecursivePatternDesignationStaysOnCloseBraceLine"/>'s sibling assertion for recursive patterns,
+    /// which is the behavior this test locks in
+    /// </summary>
+    [TestMethod]
+    public void ListPatternDesignationStaysOnCloseBracketLine()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public void M(int[] value)
+                                 {
+                                     if (value is
+                                     [
+                                         1,
+                                         2
+                                     ] items)
+                                     {
+                                         N(items);
+                                     }
+                                 }
+
+                                 public void N(int[] items)
                                  {
                                  }
                              }

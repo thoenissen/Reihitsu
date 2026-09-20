@@ -43,8 +43,9 @@ public class LineBreakBlockRewriterTests
 
     /// <summary>
     /// Verifies that two statements on one line inside a switch section are split onto separate lines by the same
-    /// shared implementation used for blocks — the one <see cref="LineBreakBlockRewriter"/> method the F3 finding
-    /// hoisted from two near-identical overloads
+    /// shared implementation used for blocks — the one generic <see cref="LineBreakBlockRewriter"/> method that
+    /// replaced two near-identical <c>EnsureStatementsStartOnSeparateLines</c> overloads (one per statement-list
+    /// owner)
     /// </summary>
     [TestMethod]
     public void VisitSwitchSectionSplitsTwoStatementsOnOneLine()
