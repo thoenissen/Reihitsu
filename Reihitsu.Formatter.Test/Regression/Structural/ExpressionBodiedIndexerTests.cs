@@ -14,8 +14,8 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer is converted to a get accessor and that the
-    /// generated accessor-list opening brace is placed on its own line by the first pass
+    /// Verifies that an expression-bodied indexer is converted to an expression-bodied get accessor and
+    /// that the generated accessor-list opening brace is placed on its own line by the first pass
     /// </summary>
     [TestMethod]
     public void IndexerConvertsToGetAccessorWithBraceOnOwnLine()
@@ -36,10 +36,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
 
                                     public int this[int index]
                                     {
-                                        get
-                                        {
-                                            return _items[index];
-                                        }
+                                        get => _items[index];
                                     }
                                 }
                                 """;
@@ -81,10 +78,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
 
                                     int IValues.this[int index]
                                     {
-                                        get
-                                        {
-                                            return _items[index];
-                                        }
+                                        get => _items[index];
                                     }
                                 }
                                 """;
@@ -94,11 +88,11 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer throwing an exception is converted to a throw
-    /// statement with the accessor-list opening brace on its own line
+    /// Verifies that an expression-bodied indexer throwing an exception is converted to a get accessor
+    /// that keeps the throw expression, with the accessor-list opening brace on its own line
     /// </summary>
     [TestMethod]
-    public void ThrowExpressionIndexerConvertsToThrowStatement()
+    public void ThrowExpressionIndexerConvertsToThrowingGetAccessor()
     {
         // Arrange
         const string input = """
@@ -112,10 +106,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                 {
                                     public int this[int index]
                                     {
-                                        get
-                                        {
-                                            throw new NotSupportedException();
-                                        }
+                                        get => throw new NotSupportedException();
                                     }
                                 }
                                 """;
@@ -147,10 +138,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
 
                                     public int this[int index]
                                     {/* inline */
-                                        get
-                                        {
-                                            return _items[index];
-                                        }
+                                        get => _items[index];
                                     }
                                 }
                                 """;
@@ -183,10 +171,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
 
                                     public int this[int index] // trailing
                                     {
-                                        get
-                                        {
-                                            return _items[index];
-                                        }
+                                        get => _items[index];
                                     } // after
                                 }
                                 """;
@@ -265,10 +250,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                 #if true
                                     public int this[int index]
                                     {
-                                        get
-                                        {
-                                            return _items[index];
-                                        }
+                                        get => _items[index];
                                     }
                                 #endif
                                 }
