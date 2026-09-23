@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -43,11 +43,44 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
     }
 
     /// <summary>
-    /// Verifies that the formatter expands a single-line property accessor body
+    /// Verifies that the formatter expands a single-line property accessor body whose iterator statement has no
+    /// expression-bodied form
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyFormatterFixesPropertyAccessorBody()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public System.Collections.Generic.IEnumerable<int> Values { get {|#0:{|} yield return 1; } }
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public System.Collections.Generic.IEnumerable<int> Values
+                                     {
+                                         get
+                                         {
+                                             yield return 1;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter converts a single-line property accessor body holding one return statement to an
+    /// expression-bodied accessor, which the analyzer no longer reports
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterConvertsSingleStatementPropertyAccessorBody()
     {
         const string input = """
                              public class C
@@ -60,10 +93,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
                                  {
                                      public int Value
                                      {
-                                         get
-                                         {
-                                             return 1;
-                                         }
+                                         get => 1;
                                      }
                                  }
                                  """;

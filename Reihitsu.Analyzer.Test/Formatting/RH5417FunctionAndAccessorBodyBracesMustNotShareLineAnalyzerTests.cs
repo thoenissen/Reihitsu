@@ -173,12 +173,43 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that a single-line property get accessor body is detected and fixed, exercising the code fix path that
-    /// formats the whole containing property when the diagnostic anchors on an accessor body
+    /// Verifies that a single-line property get accessor body is detected and expanded, exercising the code fix path that
+    /// formats the whole containing property when the diagnostic anchors on an accessor body. The iterator body has no
+    /// expression-bodied form, so the formatter keeps the block and places its braces on their own lines
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyPropertyGetAccessorBodyIsDetectedAndFixed()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public System.Collections.Generic.IEnumerable<int> Values { get {|#0:{|} yield return 1; } }
+                                }
+                                """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public System.Collections.Generic.IEnumerable<int> Values
+                                     {
+                                         get
+                                         {
+                                             yield return 1;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line property get accessor body holding one return statement is detected and fixed to an
+    /// expression-bodied accessor, because the code fix lays the property out through the formatter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleStatementPropertyGetAccessorBodyIsFixedToExpressionBody()
     {
         const string testData = """
                                 public class C
@@ -191,10 +222,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  {
                                      public int Value
                                      {
-                                         get
-                                         {
-                                             return 1;
-                                         }
+                                         get => 1;
                                      }
                                  }
                                  """;

@@ -596,7 +596,8 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that property accessor bodies get correct indentation
+    /// Verifies that property accessor bodies get correct indentation. The getter is an iterator, so its block has
+    /// no expression-bodied form and keeps its braces
     /// </summary>
     [TestMethod]
     public void PropertyAccessorCorrectIndentation()
@@ -605,11 +606,11 @@ public class IndentationTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                             int X
+                             System.Collections.Generic.IEnumerable<int> X
                              {
                              get
                              {
-                             return 1;
+                             yield return 1;
                              }
                              }
                              }
@@ -618,11 +619,11 @@ public class IndentationTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int X
+                                    System.Collections.Generic.IEnumerable<int> X
                                     {
                                         get
                                         {
-                                            return 1;
+                                            yield return 1;
                                         }
                                     }
                                 }

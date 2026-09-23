@@ -48,10 +48,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  {
                                      public string Name
                                      {
-                                         get
-                                         {
-                                             return string.Empty;
-                                         }
+                                         get => string.Empty;
 
                                          set
                                          {
@@ -182,10 +179,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  {
                                      public string Name
                                      {
-                                         get
-                                         {
-                                             return string.Empty;
-                                         }
+                                         get => string.Empty;
 
                                          set
                                          {
@@ -194,10 +188,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
 
                                      public string Description
                                      {
-                                         get
-                                         {
-                                             return string.Empty;
-                                         }
+                                         get => string.Empty;
 
                                          set
                                          {

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -1422,10 +1422,37 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line before a trailing directive ahead of a property accessor list's
-    /// closing brace is preserved
+    /// closing brace is preserved when the preceding accessor keeps its block body
     /// </summary>
     [TestMethod]
     public void TrailingDirectiveBeforePropertyAccessorListClosingBraceKeepsItsBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Implementation
+                             {
+                                 public System.Collections.Generic.IEnumerable<int> Value
+                                 {
+                                     get
+                                     {
+                                         yield return _value;
+                                     }
+
+                             #pragma warning restore CA1822
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line before a trailing directive ahead of a property accessor list's
+    /// closing brace is preserved when the preceding accessor is converted to an expression body
+    /// </summary>
+    [TestMethod]
+    public void TrailingDirectiveAfterConvertedAccessorKeepsItsBlankLine()
     {
         // Arrange
         const string input = """
@@ -1442,9 +1469,20 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                public class Implementation
+                                {
+                                    public int Value
+                                    {
+                                        get => _value;
+
+                                #pragma warning restore CA1822
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

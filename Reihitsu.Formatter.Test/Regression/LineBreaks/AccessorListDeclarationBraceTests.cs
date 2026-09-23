@@ -17,7 +17,8 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a hand-written indexer whose accessor body is re-flowed in the same pass still
-    /// gets its accessor-list opening brace moved to its own line
+    /// gets its accessor-list opening brace moved to its own line. The getter is an iterator, so its
+    /// block has no expression-bodied form and is re-flowed rather than converted
     /// </summary>
     [TestMethod]
     public void IndexerBraceMovesWhenAccessorBodyIsReflowed()
@@ -28,8 +29,8 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
                              {
                                  private readonly int[] _items = [1, 2, 3];
 
-                                 public int this[int index] {
-                                     get { return _items[index]; }
+                                 public System.Collections.Generic.IEnumerable<int> this[int index] {
+                                     get { yield return _items[index]; }
                                  }
                              }
                              """;
@@ -38,11 +39,11 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
                                 {
                                     private readonly int[] _items = [1, 2, 3];
 
-                                    public int this[int index]
+                                    public System.Collections.Generic.IEnumerable<int> this[int index]
                                     {
                                         get
                                         {
-                                            return _items[index];
+                                            yield return _items[index];
                                         }
                                     }
                                 }
@@ -54,7 +55,8 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an indexer whose accessor body already needs no change still gets exactly one
-    /// line break before the accessor-list opening brace
+    /// line break before the accessor-list opening brace. The getter is an iterator, so its block has no
+    /// expression-bodied form and stays as written
     /// </summary>
     [TestMethod]
     public void IndexerBraceMovesWhenAccessorBodyNeedsNoChange()
@@ -65,10 +67,10 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
                              {
                                  private readonly int[] _items = [1, 2, 3];
 
-                                 public int this[int index] {
+                                 public System.Collections.Generic.IEnumerable<int> this[int index] {
                                      get
                                      {
-                                         return _items[index];
+                                         yield return _items[index];
                                      }
                                  }
                              }
@@ -78,11 +80,11 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
                                 {
                                     private readonly int[] _items = [1, 2, 3];
 
-                                    public int this[int index]
+                                    public System.Collections.Generic.IEnumerable<int> this[int index]
                                     {
                                         get
                                         {
-                                            return _items[index];
+                                            yield return _items[index];
                                         }
                                     }
                                 }
@@ -381,10 +383,7 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
                                 {
                                     public int this[int index] /* c */
                                     {
-                                        get
-                                        {
-                                            return 0;
-                                        }
+                                        get => 0;
                                     }
                                 }
                                 """;
