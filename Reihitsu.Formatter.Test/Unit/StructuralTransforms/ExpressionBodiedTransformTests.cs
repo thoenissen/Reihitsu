@@ -284,10 +284,10 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer is converted to block body with a get accessor
+    /// Verifies that an expression-bodied indexer is converted to an accessor list with an expression-bodied get accessor
     /// </summary>
     [TestMethod]
-    public void ConvertsExpressionBodiedIndexerToBlockBody()
+    public void ConvertsExpressionBodiedIndexerToExpressionBodiedGetAccessor()
     {
         // Arrange
         const string input = """
@@ -302,7 +302,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     int[] _data;
-                                    int this[int i] {get{return_data[i];}}
+                                    int this[int i] {get => _data[i];}
                                 }
                                 """;
 
@@ -505,7 +505,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer throwing an exception is converted to a throw statement (not <c>return throw</c>)
+    /// Verifies that an expression-bodied indexer throwing an exception is converted to a get accessor that keeps the throw expression (not <c>return throw</c>)
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedIndexerThrowingException()
@@ -521,7 +521,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int this[int i] {get{throw new System.Exception();}}
+                                    int this[int i] {get => throw new System.Exception();}
                                 }
                                 """;
 
@@ -842,7 +842,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 {
                                     int[] _data;
                                     int this[int i] {// why
-                                get{return        _data[i];}}
+                                get => _data[i];}
                                 }
                                 """;
 

@@ -9,7 +9,8 @@ using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
-/// Structural transforms that convert expression-bodied members to block body.
+/// Structural transforms that convert expression-bodied members to block body and single-statement
+/// property and indexer accessors to expression body.
 /// Runs all structural transform rewriters sequentially
 /// </summary>
 internal sealed class StructuralTransformPhase : IFormattingPhase
@@ -22,6 +23,10 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The ordered list of rewriters to execute</returns>
+    /// <remarks>
+    /// <see cref="AccessorExpressionBodyTransform"/> runs after <see cref="ExpressionBodiedIndexerTransform"/>, so the
+    /// block-bodied getter that the indexer transform synthesizes is converted in the same pass instead of the next one
+    /// </remarks>
     private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
                                                                        CancellationToken cancellationToken)
     {
@@ -31,6 +36,7 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
                    new ExpressionBodiedConstructorTransform(cancellationToken),
                    new ExpressionBodiedOperatorTransform(cancellationToken),
                    new ExpressionBodiedIndexerTransform(cancellationToken),
+                   new AccessorExpressionBodyTransform(cancellationToken),
                    new ExpressionBodiedConversionTransform(cancellationToken),
                    new ExpressionBodiedFinalizerTransform(cancellationToken),
                    new ExpressionBodiedLocalFunctionTransform(cancellationToken),

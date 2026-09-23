@@ -612,7 +612,9 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a balanced conditional group wholly inside the expression travels with it
+    /// Verifies that a balanced conditional group wholly inside the expression travels with it. The disabled branch keeps
+    /// its column while the active one is realigned, exactly as the pipeline treats the equivalent hand-written
+    /// expression-bodied accessor
     /// </summary>
     [TestMethod]
     public void BalancedConditionalInsideExpressionConverts()
@@ -648,7 +650,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                     {
                                         get => Compute(
                                 #if DEBUG
-                                                       1
+                                                           1
                                 #else
                                                        2
                                 #endif
@@ -667,7 +669,8 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a balanced conditional group wholly inside the expression travels with it when the active branch is the first one
+    /// Verifies that a balanced conditional group wholly inside the expression travels with it when the active branch is
+    /// the first one, which is then the branch that is realigned
     /// </summary>
     [TestMethod]
     public void BalancedConditionalInsideExpressionConvertsWhenSymbolIsDefined()
@@ -705,7 +708,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 #if DEBUG
                                                        1
                                 #else
-                                                       2
+                                                           2
                                 #endif
                                                        );
                                     }
