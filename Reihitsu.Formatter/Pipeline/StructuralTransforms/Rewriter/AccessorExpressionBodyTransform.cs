@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
@@ -15,11 +16,18 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 /// setter's or initializer's expression statement <c>e;</c> becomes <c>=> e;</c>, and a <c>throw e;</c> in any of
 /// them becomes the throw expression <c>=> throw e;</c>. The accessor keeps its attributes, modifiers, and position
 /// in the accessor list. The block is kept whenever a comment, directive, or disabled text sits in trivia the
-/// rewrite would delete or join onto another line, because moving it would change its position relative to the code
+/// rewrite would delete or join onto another line, because moving it would change its position relative to the code.
+/// The one exception is a comment trailing the statement's semicolon or the closing brace: it already ends the
+/// accessor's last line and follows the new semicolon instead
 /// </summary>
 internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 {
     #region Fields
+
+    /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
 
     /// <summary>
     /// The cancellation token
@@ -33,9 +41,11 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public AccessorExpressionBodyTransform(CancellationToken cancellationToken)
+    public AccessorExpressionBodyTransform(FormattingContext context, CancellationToken cancellationToken)
     {
+        _context = context;
         _cancellationToken = cancellationToken;
     }
 
@@ -85,11 +95,6 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 
             case ReturnStatementSyntax { Expression: not null and not ThrowExpressionSyntax } returnStatement when isGetter:
                 {
-                    if (IsLayoutOnly(returnStatement.ReturnKeyword.TrailingTrivia) == false)
-                    {
-                        return false;
-                    }
-
                     expression = returnStatement.Expression;
                     semicolonToken = returnStatement.SemicolonToken;
                 }
@@ -119,8 +124,7 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the list holds nothing but layout trivia; otherwise, <see langword="false"/></returns>
     private static bool IsLayoutOnly(SyntaxTriviaList triviaList)
     {
-        return triviaList.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-                                               || trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        return SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(triviaList) < 0;
     }
 
     /// <summary>
@@ -149,9 +153,10 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether the trivia the rewrite deletes or joins onto the accessor keyword's line is plain layout.
     /// These seams are the accessor keyword's trailing trivia, both sides of the opening brace, the statement's
-    /// leading trivia, the gap after <c>return</c>, the statement semicolon's leading trivia, and the closing
-    /// brace's leading trivia. A comment, directive, or disabled text in any of them would either be deleted with
-    /// its token or end up in a different position relative to the code
+    /// leading trivia, the gap after <c>return</c> (the keyword's trailing trivia and the returned expression's
+    /// leading trivia), the statement semicolon's leading trivia, and the closing brace's leading trivia. A comment,
+    /// directive, or disabled text in any of them would either be deleted with its token or end up in a different
+    /// position relative to the code
     /// </summary>
     /// <param name="accessor">The accessor to inspect</param>
     /// <param name="statement">The accessor body's only statement</param>
@@ -164,6 +169,12 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
                                            SyntaxToken semicolonToken)
     {
         var body = accessor.Body;
+
+        if (statement is ReturnStatementSyntax returnStatement
+            && IsLayoutOnly(returnStatement.ReturnKeyword.TrailingTrivia) == false)
+        {
+            return false;
+        }
 
         return IsLayoutOnly(accessor.Keyword.TrailingTrivia)
                && IsLayoutOnly(body.OpenBraceToken.LeadingTrivia)
@@ -196,15 +207,19 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="semicolonToken">The statement's semicolon</param>
     /// <param name="closeBraceToken">The body's closing brace</param>
+    /// <param name="endOfLine">The end-of-line sequence of the formatting run</param>
     /// <param name="trailingTrivia">The trailing trivia for the converted accessor's semicolon</param>
     /// <returns><see langword="true"/> if the trivia can be transferred without losing or misplacing a comment; otherwise, <see langword="false"/></returns>
     /// <remarks>
     /// When both carry a comment, the two cannot share one semicolon without reordering them relative to the
-    /// line structure the author wrote, so the block is kept. A single-line comment behind the statement's
-    /// semicolon would swallow whatever follows it, so it only transfers when the closing brace ended its line
+    /// line structure the author wrote, so the block is kept. A single-line comment behind the statement's semicolon
+    /// always ends its line, so the new semicolon's trivia ends with a line break even when the closing brace shared
+    /// its line with the next token; that keeps the comment from swallowing that token, and it makes the decision
+    /// independent of how the accessor list is laid out
     /// </remarks>
     private static bool TryBuildSemicolonTrailingTrivia(SyntaxToken semicolonToken,
                                                         SyntaxToken closeBraceToken,
+                                                        string endOfLine,
                                                         out SyntaxTriviaList trailingTrivia)
     {
         trailingTrivia = closeBraceToken.TrailingTrivia;
@@ -219,13 +234,13 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
             return false;
         }
 
-        if (semicolonToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-            && closeBraceToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false)
-        {
-            return false;
-        }
+        var requiresLineEnd = semicolonToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                              && closeBraceToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false;
+        var lineEnd = requiresLineEnd
+                          ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
+                          : closeBraceToken.TrailingTrivia;
 
-        trailingTrivia = RemoveLineBreaks(semicolonToken.TrailingTrivia).AddRange(closeBraceToken.TrailingTrivia);
+        trailingTrivia = RemoveLineBreaks(semicolonToken.TrailingTrivia).AddRange(lineEnd);
 
         return true;
     }
@@ -234,8 +249,9 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// Converts the accessor's body to an expression body when its statement shape and trivia allow it
     /// </summary>
     /// <param name="accessor">The accessor to convert</param>
+    /// <param name="endOfLine">The end-of-line sequence of the formatting run</param>
     /// <returns>The expression-bodied accessor, or the unchanged accessor when the conversion is refused</returns>
-    private static AccessorDeclarationSyntax ConvertToExpressionBody(AccessorDeclarationSyntax accessor)
+    private static AccessorDeclarationSyntax ConvertToExpressionBody(AccessorDeclarationSyntax accessor, string endOfLine)
     {
         if (accessor.Kind() is not (SyntaxKind.GetAccessorDeclaration or SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration))
         {
@@ -264,7 +280,7 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
         var expressionTail = expression.GetLastToken().TrailingTrivia;
 
         if (expressionTail.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-            || TryBuildSemicolonTrailingTrivia(semicolonToken, body.CloseBraceToken, out var semicolonTrailingTrivia) == false)
+            || TryBuildSemicolonTrailingTrivia(semicolonToken, body.CloseBraceToken, endOfLine, out var semicolonTrailingTrivia) == false)
         {
             return accessor;
         }
@@ -291,7 +307,7 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 
         node = (AccessorDeclarationSyntax)base.VisitAccessorDeclaration(node);
 
-        return ConvertToExpressionBody(node);
+        return ConvertToExpressionBody(node, _context.EndOfLine);
     }
 
     #endregion // CSharpSyntaxVisitor

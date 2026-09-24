@@ -538,11 +538,11 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line comment trailing the statement's semicolon keeps the accessor block when the closing
-    /// brace does not end its line, because the comment would otherwise swallow the code that follows the brace
+    /// Verifies that a single-line comment trailing the statement's semicolon moves behind the new semicolon and ends its
+    /// line when the closing brace shares its line with the next accessor, so the comment cannot swallow that accessor
     /// </summary>
     [TestMethod]
-    public void TrailingLineCommentKeepsBlockWhenClosingBraceSharesLineWithNextAccessor()
+    public void TrailingLineCommentMovesToNewSemicolonWhenClosingBraceSharesLineWithNextAccessor()
     {
         // Arrange
         const string input = """
@@ -569,10 +569,8 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
 
                                     public int X
                                     {
-                                        get
-                                        {
-                                            return _x; // cached
-                                        } set => _x = value;
+                                        get => _x; // cached
+                                        set => _x = value;
                                     }
                                 }
                                 """;
@@ -1372,6 +1370,478 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the accessor keyword and the opening brace keeps the accessor block
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeOpeningBraceKeepsBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+
+                                     // before brace
+                                     {
+                                         return _x;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a pragma directive before the opening brace keeps the accessor block
+    /// </summary>
+    [TestMethod]
+    public void PragmaBeforeOpeningBraceKeepsBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                             #pragma warning disable CS0618
+                                     {
+                                         return _x;
+                                     }
+                             #pragma warning restore CS0618
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an own-line comment before the returned expression keeps the accessor block, because the return keyword
+    /// it follows is removed by the conversion
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeReturnedExpressionKeepsBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return
+
+                                         // value
+                                         _x;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an own-line comment before the statement's semicolon keeps the accessor block
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeStatementSemicolonKeepsBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     set
+                                     {
+                                         _x = value
+
+                                         // assigned
+                                         ;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group before the statement's semicolon keeps the accessor block
+    /// </summary>
+    [TestMethod]
+    public void ConditionalBeforeStatementSemicolonKeepsBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x
+                             #if DEBUG
+                                                + 1
+                             #endif
+                                         ;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a region wholly inside the returned expression keeps the accessor block, because the rewrite cannot
+    /// keep both region endpoints in place
+    /// </summary>
+    [TestMethod]
+    public void RegionInsideExpressionKeepsBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return Compute(
+
+                                         #region Value
+
+                                                        1
+
+                                         #endregion // Value
+
+                                                        );
+                                     }
+                                 }
+
+                                 private static int Compute(int value)
+                                 {
+                                     return value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line comment trailing the statement's semicolon moves behind the new semicolon and ends its line
+    /// when the accessor's closing brace shares its line with the accessor list's closing brace
+    /// </summary>
+    [TestMethod]
+    public void TrailingLineCommentMovesToNewSemicolonWhenClosingBraceClosesAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x; // cached
+                                     } }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    public int X
+                                    {
+                                        get => _x; // cached
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line comment trailing the statement's semicolon of a single-line accessor list moves behind the
+    /// new semicolon and ends its line
+    /// </summary>
+    [TestMethod]
+    public void TrailingLineCommentMovesToNewSemicolonInSingleLineAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X { get { return _x; // cached
+                                 } }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    public int X
+                                    {
+                                        get => _x; // cached
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line comment trailing the last setter's statement moves behind the new semicolon and ends its
+    /// line when the setter's closing brace shares its line with the accessor list's closing brace
+    /// </summary>
+    [TestMethod]
+    public void TrailingLineCommentMovesToNewSemicolonForLastSetter()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get => _x;
+                                     set
+                                     {
+                                         _x = value; // stored
+                                     } }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    public int X
+                                    {
+                                        get => _x;
+                                        set => _x = value; // stored
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that accessor blocks stay unchanged when the source is parsed as C# 6, which has no expression-bodied
+    /// accessors or throw expressions
+    /// </summary>
+    [TestMethod]
+    public void AccessorBlocksStayBelowCSharp7()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x;
+                                     }
+                                     set
+                                     {
+                                         _x = value;
+                                     }
+                                 }
+
+                                 public int Y
+                                 {
+                                     get
+                                     {
+                                         throw new System.NotSupportedException();
+                                     }
+                                 }
+                             }
+                             """;
+        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6);
+
+        // Act & Assert
+        AssertRuleResult(input, null, parseOptions);
+    }
+
+    /// <summary>
+    /// Verifies that accessor blocks are converted when the source is parsed as C# 7, the first version with expression-bodied
+    /// accessors and throw expressions
+    /// </summary>
+    [TestMethod]
+    public void AccessorBlocksConvertFromCSharp7()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x;
+                                     }
+                                     set
+                                     {
+                                         _x = value;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    public int X
+                                    {
+                                        get => _x;
+                                        set => _x = value;
+                                    }
+                                }
+                                """;
+        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7);
+
+        // Act & Assert
+        AssertRuleResult(input, expected, parseOptions);
+    }
+
+    /// <summary>
+    /// Verifies that the C# 6 gate still holds when an earlier structural transform has already rewritten the tree in the
+    /// same pass
+    /// </summary>
+    [TestMethod]
+    public void AccessorBlocksStayBelowCSharp7AfterEarlierTransformChangedTree()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x;
+                                     }
+                                     set
+                                     {
+                                         _x = value;
+                                     }
+                                 }
+
+                                 public void Reset()
+                                 {
+                                     if (_x > 0)
+                                         _x = 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    public int X
+                                    {
+                                        get
+                                        {
+                                            return _x;
+                                        }
+                                        set
+                                        {
+                                            _x = value;
+                                        }
+                                    }
+
+                                    public void Reset()
+                                    {
+                                        if (_x > 0)
+                                        {
+                                            _x = 0;
+                                        }
+                                    }
+                                }
+                                """;
+        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6);
+
+        // Act & Assert
+        AssertRuleResult(input, expected, parseOptions);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment trailing the statement's semicolon in a single-line accessor list stays on the line of
+    /// the converted accessor, because only a single-line comment needs to end its line
+    /// </summary>
+    [TestMethod]
+    public void TrailingBlockCommentStaysOnLineInSingleLineAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X { get { return _x; /* c */ } set { _x = value; } }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    public int X
+                                    {
+                                        get => _x; /* c */ set => _x = value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
