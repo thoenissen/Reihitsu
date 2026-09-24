@@ -203,7 +203,8 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Builds the trailing trivia of the converted accessor's semicolon from the trivia that trailed the
     /// statement's semicolon and the body's closing brace. A comment that trailed either of them follows the new
-    /// semicolon, and the closing brace's own trailing trivia still ends the line
+    /// semicolon. The line is ended by the closing brace's own trailing trivia, or by a new line break when a
+    /// single-line comment needs one and the closing brace did not end its line
     /// </summary>
     /// <param name="semicolonToken">The statement's semicolon</param>
     /// <param name="closeBraceToken">The body's closing brace</param>
