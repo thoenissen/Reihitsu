@@ -538,6 +538,50 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a single-line comment trailing the statement's semicolon keeps the accessor block when the closing
+    /// brace does not end its line, because the comment would otherwise swallow the code that follows the brace
+    /// </summary>
+    [TestMethod]
+    public void TrailingLineCommentKeepsBlockWhenClosingBraceSharesLineWithNextAccessor()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x; // cached
+                                     } set
+                                     {
+                                         _x = value;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _x;
+
+                                    public int X
+                                    {
+                                        get
+                                        {
+                                            return _x; // cached
+                                        } set => _x = value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a comment trailing the accessor's closing brace follows the semicolon of the converted accessor
     /// </summary>
     [TestMethod]
@@ -823,6 +867,33 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                      get // cached
                                      {
                                          return _x;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the <c>return</c> keyword and the returned expression keeps the accessor block,
+    /// because the keyword it follows is removed by the conversion
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterReturnKeywordKeepsBlock()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return /* cached */ _x;
                                      }
                                  }
                              }
