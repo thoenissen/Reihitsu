@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
@@ -25,26 +26,38 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
     /// <returns>The ordered list of rewriters to execute</returns>
     /// <remarks>
     /// <see cref="AccessorExpressionBodyTransform"/> runs after <see cref="ExpressionBodiedIndexerTransform"/>, so the
-    /// block-bodied getter that the indexer transform synthesizes is converted in the same pass instead of the next one
+    /// block-bodied getter that the indexer transform synthesizes is converted in the same pass instead of the next one.
+    /// It is the one configurable transform: it is left out when the context disables
+    /// <see cref="ConfigurableStructuralTransforms.AccessorExpressionBody"/>
     /// </remarks>
     private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
                                                                        CancellationToken cancellationToken)
     {
-        return [
-                   new ControlFlowBraceTransform(context, cancellationToken),
-                   new ExpressionBodiedMethodTransform(cancellationToken),
-                   new ExpressionBodiedConstructorTransform(cancellationToken),
-                   new ExpressionBodiedOperatorTransform(cancellationToken),
-                   new ExpressionBodiedIndexerTransform(cancellationToken),
-                   new AccessorExpressionBodyTransform(cancellationToken),
-                   new ExpressionBodiedConversionTransform(cancellationToken),
-                   new ExpressionBodiedFinalizerTransform(cancellationToken),
-                   new ExpressionBodiedLocalFunctionTransform(cancellationToken),
-                   new EmptyTypeDeclarationSemicolonTransform(cancellationToken),
-                   new EnumTrailingCommaRemovalTransform(cancellationToken),
-                   new InitializerTrailingCommaRemovalTransform(cancellationToken),
-                   new FieldDeclarationSplitTransform(context, cancellationToken),
-               ];
+        var rewriters = new List<CSharpSyntaxRewriter>
+                        {
+                            new ControlFlowBraceTransform(context, cancellationToken),
+                            new ExpressionBodiedMethodTransform(cancellationToken),
+                            new ExpressionBodiedConstructorTransform(cancellationToken),
+                            new ExpressionBodiedOperatorTransform(cancellationToken),
+                            new ExpressionBodiedIndexerTransform(cancellationToken)
+                        };
+
+        if (context.IsStructuralTransformEnabled(ConfigurableStructuralTransforms.AccessorExpressionBody))
+        {
+            rewriters.Add(new AccessorExpressionBodyTransform(cancellationToken));
+        }
+
+        rewriters.AddRange([
+                               new ExpressionBodiedConversionTransform(cancellationToken),
+                               new ExpressionBodiedFinalizerTransform(cancellationToken),
+                               new ExpressionBodiedLocalFunctionTransform(cancellationToken),
+                               new EmptyTypeDeclarationSemicolonTransform(cancellationToken),
+                               new EnumTrailingCommaRemovalTransform(cancellationToken),
+                               new InitializerTrailingCommaRemovalTransform(cancellationToken),
+                               new FieldDeclarationSplitTransform(context, cancellationToken),
+                           ]);
+
+        return rewriters;
     }
 
     #endregion // Methods

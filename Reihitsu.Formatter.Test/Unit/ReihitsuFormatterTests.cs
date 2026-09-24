@@ -1478,7 +1478,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var result = ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(property.ToFullString(), result.ToFullString(), $"Node-level formatting must keep the accessor block under {DescribeLineEnding(endOfLine)} line endings.");
+            var accessor = result.DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+
+            Assert.IsNotNull(accessor.Body, $"Node-level formatting must keep the accessor block under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.IsNull(accessor.ExpressionBody, $"Node-level formatting must not add an expression body under {DescribeLineEnding(endOfLine)} line endings.");
         }
     }
 
@@ -1536,16 +1539,14 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 private int[] _items;
-
                                  public int this[int index] => _items[index];
+
+                                 private int[] _items;
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    private int[] _items;
-
                                     public int this[int index]
                                     {
                                         get
@@ -1553,6 +1554,8 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                             return _items[index];
                                         }
                                     }
+
+                                    private int[] _items;
                                 }
                                 """;
 

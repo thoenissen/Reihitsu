@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter;
@@ -14,6 +15,17 @@ namespace Reihitsu.Formatter;
 /// </summary>
 public static class ReihitsuFormatter
 {
+    #region Constants
+
+    /// <summary>
+    /// The configurable structural transforms the node-level entry points skip. Code fixes format the node they changed
+    /// through those entry points, so a transform listed here would rewrite code the fix was not asked to change; document-level
+    /// formatting runs every transform
+    /// </summary>
+    private const ConfigurableStructuralTransforms CodeFixDisabledStructuralTransforms = ConfigurableStructuralTransforms.AccessorExpressionBody;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -96,7 +108,8 @@ public static class ReihitsuFormatter
     /// syntax-error and auto-generated guards. It operates on a caller-supplied node — typically a
     /// freshly generated or detached subtree produced by a code fix — that has no file header to
     /// inspect and is not expected to carry whole-file error diagnostics. Callers are responsible for
-    /// passing a node that is safe to format
+    /// passing a node that is safe to format. Like every node-level entry point, it keeps single-statement
+    /// accessor blocks instead of converting them to expression bodies
     /// </remarks>
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
     {
@@ -104,7 +117,8 @@ public static class ReihitsuFormatter
         var baseIndentLevel = indentLevel >= 0 ? indentLevel : ReihitsuFormatterHelpers.ComputeBaseIndentLevel(node);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
-                                            preserveRootDocumentationBoundary: node is not CompilationUnitSyntax);
+                                            preserveRootDocumentationBoundary: node is not CompilationUnitSyntax,
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms);
 
         return FormattingPipeline.Execute(node, context, cancellationToken);
     }
@@ -118,6 +132,10 @@ public static class ReihitsuFormatter
     /// <param name="targetNode">The syntax node to format. Must belong to the document's syntax tree</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new Document with only the targeted node formatted</returns>
+    /// <remarks>
+    /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies,
+    /// including when the target is the document root, because this entry point serves code fixes
+    /// </remarks>
     public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default)
     {
         var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -145,7 +163,8 @@ public static class ReihitsuFormatter
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
-                                            preserveRootDocumentationBoundary: targetNode != root);
+                                            preserveRootDocumentationBoundary: targetNode != root,
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms);
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
         var columnOffset = originalColumn - formattedColumn;
@@ -183,6 +202,10 @@ public static class ReihitsuFormatter
     /// <param name="contextNode">A containing syntax node used while formatting the target</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new Document with only the targeted node formatted</returns>
+    /// <remarks>
+    /// Single-statement accessor blocks are kept rather than converted to expression bodies, because this entry point
+    /// serves code fixes
+    /// </remarks>
     public static async Task<Document> FormatNodeInDocumentWithContextAsync(Document document,
                                                                             SyntaxNode targetNode,
                                                                             SyntaxNode contextNode,
@@ -217,7 +240,8 @@ public static class ReihitsuFormatter
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
-                                            preserveRootDocumentationBoundary: contextNode != root);
+                                            preserveRootDocumentationBoundary: contextNode != root,
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms);
         var targetTokenAnnotation = new SyntaxAnnotation();
         var originalFirstToken = targetNode.GetFirstToken();
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
