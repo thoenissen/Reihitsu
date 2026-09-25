@@ -7,7 +7,7 @@ using Reihitsu.Formatter.Pipeline.Core.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 /// <summary>
-/// Places braces and contained blocks on their own lines during line-break formatting
+/// Places braces, contained blocks, and accessors on their own lines during line-break formatting
 /// </summary>
 internal sealed class BracePlacer
 {
