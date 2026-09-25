@@ -9,8 +9,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
 /// Applies Allman brace placement for declarations, member bodies and the accessor lists of
-/// indexer and event declarations, collapses parameter-list openers onto the declaration line, and
-/// places constructor initializers on their own line
+/// indexer and event declarations — including the accessor-list layout that indexers share with
+/// properties — collapses parameter-list openers onto the declaration line, and places constructor
+/// initializers on their own line
 /// </summary>
 internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 {

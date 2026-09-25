@@ -532,5 +532,70 @@ public class AutoAccessorListLayoutTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that an attributed auto indexer spanning several lines is laid out with each accessor on its own
+    /// line instead of being collapsed
+    /// </summary>
+    [TestMethod]
+    public void MultiLineAttributedAutoIndexerIsLaidOut()
+    {
+        // Arrange
+        const string input = """
+                             interface I
+                             {
+                                 int this[int index]
+                                 {
+                                     [System.Obsolete] get; set;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                interface I
+                                {
+                                    int this[int index]
+                                    {
+                                        [System.Obsolete]
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an attributed auto-property whose initializer spans several lines is laid out with each accessor
+    /// on its own line, because the declaration no longer occupies a single line
+    /// </summary>
+    [TestMethod]
+    public void AttributedAutoPropertyWithMultiLineInitializerIsLaidOut()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 public int Value { [System.Obsolete] get; set; } = 1
+                                     + 2;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    public int Value
+                                    {
+                                        [System.Obsolete]
+                                        get;
+                                        set;
+                                    } = 1
+                                        + 2;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
