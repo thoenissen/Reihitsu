@@ -62,6 +62,11 @@ internal sealed class FormatCommandHandler
     private readonly bool _utf8Bom;
 
     /// <summary>
+    /// Parse options carrying the resolved C# language version, so parsing and formatting target the same version
+    /// </summary>
+    private readonly CSharpParseOptions _parseOptions;
+
+    /// <summary>
     /// File-system abstraction used by the command
     /// </summary>
     private readonly IFileSystem _fileSystem;
@@ -99,8 +104,9 @@ internal sealed class FormatCommandHandler
     /// <param name="verbose">If <see langword="true"/>, show detailed output for every file</param>
     /// <param name="force">If <see langword="true"/>, skip the confirmation prompt for large formatting runs</param>
     /// <param name="utf8Bom">If <see langword="true"/>, normalize processed files to UTF-8 with a byte order mark</param>
+    /// <param name="languageVersion">The resolved C# language version every file is parsed and formatted for</param>
     /// <param name="dependencies">The command dependencies</param>
-    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, FormatCommandDependencies dependencies)
+    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, LanguageVersion languageVersion, FormatCommandDependencies dependencies)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(dependencies);
@@ -116,6 +122,7 @@ internal sealed class FormatCommandHandler
         _verbose = verbose;
         _force = force;
         _utf8Bom = utf8Bom;
+        _parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         _fileSystem = dependencies.FileSystem;
         _console = dependencies.Console;
         _consoleInput = dependencies.ConsoleInput;
@@ -282,7 +289,7 @@ internal sealed class FormatCommandHandler
         {
             var fileRead = await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
             var originalContent = fileRead.Content;
-            var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, path: filePath, cancellationToken: cancellationToken);
+            var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, _parseOptions, filePath, cancellationToken: cancellationToken);
 
             if (ReihitsuFormatterHelpers.HasSyntaxErrors(syntaxTree))
             {

@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp;
@@ -8,6 +8,7 @@ using NSubstitute;
 
 using Reihitsu.Cli.Abstractions;
 using Reihitsu.Cli.Test.Helpers;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli.Test.Integration;
 
@@ -125,6 +126,7 @@ public sealed class DefaultFileSystemTests
                                                    verbose: false,
                                                    force: false,
                                                    utf8Bom: true,
+                                                   LanguageVersionResolver.MaxSupportedLanguageVersion,
                                                    dependencies);
 
             var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);

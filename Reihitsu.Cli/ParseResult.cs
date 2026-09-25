@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis.CSharp;
+
 namespace Reihitsu.Cli;
 
 /// <summary>
@@ -14,4 +16,18 @@ namespace Reihitsu.Cli;
 /// <param name="ShowVersion">Whether --version was specified</param>
 /// <param name="Paths">The list of file/directory paths</param>
 /// <param name="UnknownOption">The first unrecognized option, or null</param>
-internal readonly record struct ParseResult(bool CheckOnly, bool DryRun, bool Verbose, bool Force, bool Utf8Bom, bool ShowHelp, bool ShowVersion, IReadOnlyList<string> Paths, string UnknownOption);
+/// <param name="LanguageVersion">The resolved C# language version selected by --lang-version, clamped to the newest supported version</param>
+/// <param name="ExceedingLanguageVersion">The --lang-version value that named a version newer than the newest supported one, or null</param>
+/// <param name="ArgumentError">The first error in an option value, or null</param>
+internal readonly record struct ParseResult(bool CheckOnly,
+                                            bool DryRun,
+                                            bool Verbose,
+                                            bool Force,
+                                            bool Utf8Bom,
+                                            bool ShowHelp,
+                                            bool ShowVersion,
+                                            IReadOnlyList<string> Paths,
+                                            string UnknownOption,
+                                            LanguageVersion LanguageVersion,
+                                            string ExceedingLanguageVersion,
+                                            string ArgumentError);

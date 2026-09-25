@@ -2,7 +2,10 @@
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
+
 using Reihitsu.Cli.Abstractions;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli;
 
@@ -11,6 +14,15 @@ namespace Reihitsu.Cli;
 /// </summary>
 internal static class Program
 {
+    #region Constants
+
+    /// <summary>
+    /// The option that selects the C# language version
+    /// </summary>
+    private const string LanguageVersionOption = "--lang-version";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -25,6 +37,15 @@ internal static class Program
         if (result.UnknownOption != null)
         {
             await Console.Error.WriteLineAsync($"Unknown option: {result.UnknownOption}");
+
+            PrintUsage(Console.Error);
+
+            return ExitCodes.Error;
+        }
+
+        if (result.ArgumentError != null)
+        {
+            await Console.Error.WriteLineAsync(result.ArgumentError);
 
             PrintUsage(Console.Error);
 
@@ -54,6 +75,11 @@ internal static class Program
             return ExitCodes.Error;
         }
 
+        if (result.ExceedingLanguageVersion != null)
+        {
+            await Console.Error.WriteLineAsync($"Warning: C# language version '{result.ExceedingLanguageVersion}' is newer than the newest supported version {result.LanguageVersion.ToDisplayString()}; formatting for {result.LanguageVersion.ToDisplayString()}.");
+        }
+
         var paths = new List<string>(result.Paths);
 
         if (paths.Count == 0)
@@ -81,7 +107,7 @@ internal static class Program
                 var diffGenerator = new DefaultDiffGenerator();
 
                 var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
-                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, dependencies);
+                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, result.LanguageVersion, dependencies);
 
                 return await handler.ExecuteAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
@@ -120,10 +146,31 @@ internal static class Program
         var showVersion = false;
         var paths = new List<string>();
         string unknownOption = null;
+        var languageVersion = LanguageVersionResolver.MaxSupportedLanguageVersion;
+        string exceedingLanguageVersion = null;
+        string argumentError = null;
         var pathsOnly = false;
+        var expectsLanguageVersion = false;
 
         foreach (var arg in args)
         {
+            if (expectsLanguageVersion)
+            {
+                expectsLanguageVersion = false;
+
+                if (LanguageVersionFacts.TryParse(arg, out var requestedVersion))
+                {
+                    languageVersion = LanguageVersionResolver.Resolve(requestedVersion);
+                    exceedingLanguageVersion = LanguageVersionResolver.ExceedsMaximum(requestedVersion) ? arg : null;
+                }
+                else
+                {
+                    argumentError ??= $"Invalid value for {LanguageVersionOption}: '{arg}'. Expected a C# language version such as 12, 12.0, latest, or preview.";
+                }
+
+                continue;
+            }
+
             if (pathsOnly)
             {
                 paths.Add(arg);
@@ -183,6 +230,12 @@ internal static class Program
                     }
                     break;
 
+                case LanguageVersionOption:
+                    {
+                        expectsLanguageVersion = true;
+                    }
+                    break;
+
                 default:
                     {
                         if (arg.StartsWith('-'))
@@ -198,7 +251,14 @@ internal static class Program
             }
         }
 
-        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, showHelp, showVersion, paths, unknownOption);
+        // The option is the last argument, so its value is missing. LanguageVersionFacts.TryParse would accept a
+        // missing value as the default version, which is why it never sees one.
+        if (expectsLanguageVersion)
+        {
+            argumentError ??= $"Missing value for {LanguageVersionOption}.";
+        }
+
+        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, showHelp, showVersion, paths, unknownOption, languageVersion, exceedingLanguageVersion, argumentError);
     }
 
     /// <summary>
@@ -218,6 +278,10 @@ internal static class Program
         writer.WriteLine("  --verbose    Show detailed output for each file");
         writer.WriteLine($"  --force      Skip the confirmation prompt shown when more than {FormatCommandHandler.LargeRunConfirmationThreshold} files would be formatted");
         writer.WriteLine("  --utf8-bom   Write processed files as UTF-8 with a byte order mark");
+        writer.WriteLine("  --lang-version <version>");
+        writer.WriteLine("               C# language version to parse and format for, such as 12, 12.0, latest, or preview (default: latest)");
+        writer.WriteLine($"               latest selects {LanguageVersionResolver.MaxSupportedLanguageVersion.ToDisplayString()}, the newest supported version; newer values such as preview are lowered to it");
+        writer.WriteLine("               LangVersion from project files is not read");
         writer.WriteLine("  --help, -h   Show this help message");
         writer.WriteLine("  --version    Show version information");
         writer.WriteLine("  --           Treat all following arguments as paths");

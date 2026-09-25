@@ -12,6 +12,7 @@ using NSubstitute.ExceptionExtensions;
 
 using Reihitsu.Cli.Abstractions;
 using Reihitsu.Cli.Test.Helpers;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli.Test.Unit;
 
@@ -76,14 +77,15 @@ public sealed class FormatCommandHandlerTests
     /// <param name="force">Whether to skip the confirmation prompt for large formatting runs</param>
     /// <param name="consoleInput">The console input mock, or <see langword="null"/> to use a default mock</param>
     /// <param name="utf8Bom">Whether to normalize processed files to UTF-8 with a byte order mark</param>
+    /// <param name="languageVersion">The C# language version to parse for, or <see langword="null"/> for the newest supported version</param>
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
-    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null, bool utf8Bom = false)
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null, bool utf8Bom = false, LanguageVersion? languageVersion = null)
     {
         consoleInput ??= Substitute.For<IConsoleInput>();
 
         var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, utf8Bom, dependencies);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, utf8Bom, languageVersion ?? LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies);
     }
 
     /// <summary>
@@ -187,6 +189,33 @@ public sealed class FormatCommandHandlerTests
     {
         return encoding.CodePage == _utf8Bom.CodePage
                && encoding.GetPreamble().SequenceEqual(_utf8Bom.GetPreamble());
+    }
+
+    /// <summary>
+    /// Runs the handler over one file and captures the language version of the syntax tree handed to the formatter
+    /// </summary>
+    /// <param name="languageVersion">The language version to run the handler with, or <see langword="null"/> for the default</param>
+    /// <returns>The captured language version</returns>
+    private static async Task<LanguageVersion> CaptureParsedLanguageVersion(LanguageVersion? languageVersion)
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var filePath = "/test/file.cs";
+        SyntaxTree parsedTree = null;
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+        formatter.FormatSyntaxTree(Arg.Do<SyntaxTree>(tree => parsedTree = tree), Arg.Any<CancellationToken>())
+                 .Returns(CSharpSyntaxTree.ParseText(ValidCsContent));
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, languageVersion: languageVersion);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.IsNotNull(parsedTree, "The formatter must receive the parsed syntax tree.");
+
+        return ((CSharpParseOptions)parsedTree.Options).LanguageVersion;
     }
 
     #endregion // Helper Methods
@@ -2046,4 +2075,32 @@ public sealed class FormatCommandHandlerTests
     }
 
     #endregion // CancellationToken Propagation
+
+    #region Language Version
+
+    /// <summary>
+    /// Verifies that files are parsed at the newest supported language version when no version is selected
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncParsesAtMaxSupportedLanguageVersionByDefault()
+    {
+        var parsedVersion = await CaptureParsedLanguageVersion(null);
+
+        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, parsedVersion);
+    }
+
+    /// <summary>
+    /// Verifies that files are parsed at the selected language version, so parsing and formatting target the same version
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncParsesAtSelectedLanguageVersion()
+    {
+        var parsedVersion = await CaptureParsedLanguageVersion(LanguageVersion.CSharp11);
+
+        Assert.AreEqual(LanguageVersion.CSharp11, parsedVersion);
+    }
+
+    #endregion // Language Version
 }
