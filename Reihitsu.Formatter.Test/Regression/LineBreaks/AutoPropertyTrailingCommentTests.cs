@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -212,7 +212,8 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
                                 {
                                     public int Value
                                     {
-                                        get; /* inner */ set;
+                                        get; /* inner */
+                                        set;
                                     }
                                 }
                                 """;
@@ -267,7 +268,8 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
                                 {
                                     public int Value // note
                                     {
-                                        get; set;
+                                        get;
+                                        set;
                                     }
                                 }
                                 """;
@@ -299,7 +301,8 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
 
                                     // note
                                     {
-                                        get; set;
+                                        get;
+                                        set;
                                     }
                                 }
                                 """;
@@ -330,7 +333,8 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
                                     public System.Collections.Generic.Dictionary<string, // key
                                                                                  int> Value
                                     {
-                                        get; set;
+                                        get;
+                                        set;
                                     } // explanation
                                 }
                                 """;
@@ -519,11 +523,11 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an indexer with a multi-line auto-accessor list and a trailing comment keeps its
-    /// existing layout, so the property fix does not leak into the indexer path
+    /// Verifies that an indexer with a multi-line auto-accessor list and a trailing comment collapses
+    /// like the matching auto-property, and that the comment trailing the accessor list is not crossed
     /// </summary>
     [TestMethod]
-    public void MultiLineAutoAccessorIndexerWithTrailingCommentRemainsUnchanged()
+    public void MultiLineAutoAccessorIndexerWithTrailingCommentCollapses()
     {
         // Arrange
         const string input = """
@@ -535,9 +539,15 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
                                  } // trailing
                              }
                              """;
+        const string expected = """
+                                interface I
+                                {
+                                    int this[int index] { get; set; } // trailing
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
