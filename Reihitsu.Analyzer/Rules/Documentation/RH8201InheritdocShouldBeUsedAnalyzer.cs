@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
@@ -43,38 +42,30 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Determines whether the header of any declaration of the type — from its identifier to its opening brace, including
-    /// the base list and constraint clauses — carries preprocessor directives or disabled text
+    /// Determines whether the interfaces of the type may differ between build configurations
     /// </summary>
     /// <param name="typeSymbol">Type symbol</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> if the implemented interfaces of the type may differ between build configurations</returns>
-    private static bool HasConditionalTypeHeader(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
+    /// <returns><see langword="true"/> if a file declaring the type or one of its source-declared interfaces contains an <c>#if</c> directive</returns>
+    /// <remarks>
+    /// The check covers whole files rather than type headers, because a conditional region can enclose a complete
+    /// declaration, supply alternative headers, or change the members and base lists of the interfaces themselves
+    /// </remarks>
+    private static bool HasConditionalInterfaces(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
     {
-        static bool IsConditional(SyntaxTrivia trivia)
-        {
-            return trivia.IsDirective
-                   || trivia.IsKind(SyntaxKind.DisabledTextTrivia);
-        }
+        var syntaxTrees = typeSymbol.DeclaringSyntaxReferences
+                                    .Concat(typeSymbol.AllInterfaces.SelectMany(interfaceType => interfaceType.DeclaringSyntaxReferences))
+                                    .Select(reference => reference.SyntaxTree)
+                                    .Distinct();
 
-        foreach (var reference in typeSymbol.DeclaringSyntaxReferences)
+        foreach (var syntaxTree in syntaxTrees)
         {
-            if (reference.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDeclaration)
+            var root = syntaxTree.GetRoot(cancellationToken);
+
+            if (root.ContainsDirectives
+                && root.GetFirstDirective(directive => directive.IsKind(SyntaxKind.IfDirectiveTrivia)) != null)
             {
-                var lastToken = typeDeclaration.OpenBraceToken.IsKind(SyntaxKind.None)
-                                    ? typeDeclaration.GetLastToken()
-                                    : typeDeclaration.OpenBraceToken;
-                var headerSpan = TextSpan.FromBounds(typeDeclaration.Identifier.SpanStart, lastToken.Span.End);
-
-                foreach (var token in typeDeclaration.DescendantTokens(headerSpan))
-                {
-                    // Directives and disabled text are always leading trivia, so the tokens after the identifier cover the header
-                    if (token != typeDeclaration.Identifier
-                        && token.LeadingTrivia.Any(IsConditional))
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
         }
 
@@ -91,7 +82,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// <remarks>
     /// The <see langword="override"/> modifier is checked syntactically before any semantic lookup. A field-like event
     /// only qualifies when every declarator inherits, because the code fix replaces the documentation shared by all of
-    /// them. An implicit interface implementation does not qualify when the header of its containing type is
+    /// them. An implicit interface implementation does not qualify when the interfaces of its containing type may be
     /// conditionally compiled, because the member may implement nothing in another build configuration, where the
     /// replaced documentation would be lost
     /// </remarks>
@@ -114,7 +105,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
 
         return node.Parent is not TypeDeclarationSyntax typeDeclaration
                || semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol
-               || HasConditionalTypeHeader(typeSymbol, cancellationToken) == false;
+               || HasConditionalInterfaces(typeSymbol, cancellationToken) == false;
     }
 
     /// <summary>

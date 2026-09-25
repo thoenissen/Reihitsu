@@ -2718,6 +2718,185 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                      Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
     }
 
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when a conditional region encloses the partial declaration that lists the interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenConditionalRegionEnclosesPartialDeclaration()
+    {
+        const string testData = """
+                                using System;
+
+                                internal partial class TestImplementation
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+
+                                #if !FEATURE
+                                internal partial class TestImplementation : IDisposable
+                                {
+                                }
+                                #endif
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when conditional regions supply alternative headers for its type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenConditionalRegionSuppliesAlternativeHeaders()
+    {
+        const string testData = """
+                                using System;
+
+                                #if !FEATURE
+                                internal class TestImplementation : IDisposable
+                                {
+                                #else
+                                internal class TestImplementation
+                                {
+                                #endif
+                                    /// <summary>Implementation documentation</summary>
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when the implemented interface member is conditionally compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenInterfaceMemberIsConditional()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                #if !FEATURE
+                                    void TestMethod();
+                                #endif
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when the base list of an implemented interface is conditionally compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenInterfaceBaseListIsConditional()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal interface IDerived
+                                #if !FEATURE
+                                    : IBase
+                                #endif
+                                {
+                                }
+
+                                internal class TestImplementation : IDerived
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when the file declaring its type contains any conditional region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenFileOfTypeContainsUnrelatedConditionalRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation : IDisposable
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void Dispose()
+                                    {
+                                #if DEBUG
+                                        Console.WriteLine();
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is detected and fixed when the file contains directives other than conditional regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitImplementationWhenFileContainsOnlyPragmaDirective()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation : IDisposable
+                                {
+                                #pragma warning disable CS0168
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
+                                    {
+                                    }
+                                #pragma warning restore CS0168
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal class TestImplementation : IDisposable
+                                  {
+                                  #pragma warning disable CS0168
+                                      /// <inheritdoc/>
+                                      public void Dispose()
+                                      {
+                                      }
+                                  #pragma warning restore CS0168
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
     #endregion // Methods
 
     #region BatchCodeFixTestsBase
