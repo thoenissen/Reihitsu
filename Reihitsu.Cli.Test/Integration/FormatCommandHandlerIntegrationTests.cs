@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Cli.Abstractions;
 using Reihitsu.Cli.Test.Helpers;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli.Test.Integration;
 
@@ -885,7 +886,7 @@ public class FormatCommandHandlerIntegrationTests
                                                          new DefaultSourceFormatter(),
                                                          new DefaultDiffGenerator());
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, utf8Bom, dependencies);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, utf8Bom, LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies);
     }
 
     /// <summary>

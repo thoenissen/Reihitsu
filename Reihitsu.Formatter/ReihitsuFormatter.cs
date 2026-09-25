@@ -29,7 +29,8 @@ public static class ReihitsuFormatter
     #region Methods
 
     /// <summary>
-    /// Formats an entire document by applying all formatting rules
+    /// Formats an entire document by applying all formatting rules.
+    /// Version-dependent rules follow the language version of the document's parse options, clamped to the newest supported version
     /// </summary>
     /// <param name="document">The Roslyn Document to format</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -56,7 +57,7 @@ public static class ReihitsuFormatter
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var context = new FormattingContext(endOfLine);
+        var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(syntaxTree.Options));
         var formattedRoot = FormattingPipeline.Execute(root, context, cancellationToken);
 
         return document.WithSyntaxRoot(formattedRoot);
@@ -64,7 +65,8 @@ public static class ReihitsuFormatter
 
     /// <summary>
     /// Formats a syntax tree by applying all formatting rules.
-    /// Use this overload when no Workspace/Document context is available
+    /// Use this overload when no Workspace/Document context is available.
+    /// Version-dependent rules follow the language version of the tree's parse options, clamped to the newest supported version
     /// </summary>
     /// <param name="syntaxTree">The syntax tree to format</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -84,7 +86,7 @@ public static class ReihitsuFormatter
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var context = new FormattingContext(endOfLine);
+        var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(syntaxTree.Options));
         var formattedRoot = FormattingPipeline.Execute(root, context, cancellationToken);
 
         return syntaxTree.WithRootAndOptions(formattedRoot, syntaxTree.Options);
@@ -109,7 +111,9 @@ public static class ReihitsuFormatter
     /// freshly generated or detached subtree produced by a code fix — that has no file header to
     /// inspect and is not expected to carry whole-file error diagnostics. Callers are responsible for
     /// passing a node that is safe to format. Like every node-level entry point, it keeps single-statement
-    /// accessor blocks instead of converting them to expression bodies
+    /// accessor blocks instead of converting them to expression bodies. Version-dependent rules follow the language version
+    /// of the node's syntax tree; a detached node carries the default parse options and is formatted for the newest
+    /// supported version
     /// </remarks>
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
     {
@@ -118,7 +122,8 @@ public static class ReihitsuFormatter
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: node is not CompilationUnitSyntax,
-                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms);
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
+                                            languageVersion: LanguageVersionResolver.Resolve(node.SyntaxTree.Options));
 
         return FormattingPipeline.Execute(node, context, cancellationToken);
     }
@@ -134,7 +139,9 @@ public static class ReihitsuFormatter
     /// <returns>A new Document with only the targeted node formatted</returns>
     /// <remarks>
     /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies,
-    /// including when the target is the document root, because this entry point serves code fixes
+    /// including when the target is the document root, because this entry point serves code fixes.
+    /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
+    /// supported version
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default)
     {
@@ -164,7 +171,8 @@ public static class ReihitsuFormatter
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: targetNode != root,
-                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms);
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
         var columnOffset = originalColumn - formattedColumn;
@@ -204,7 +212,8 @@ public static class ReihitsuFormatter
     /// <returns>A new Document with only the targeted node formatted</returns>
     /// <remarks>
     /// Single-statement accessor blocks are kept rather than converted to expression bodies, because this entry point
-    /// serves code fixes
+    /// serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
+    /// to the newest supported version
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentWithContextAsync(Document document,
                                                                             SyntaxNode targetNode,
@@ -241,7 +250,8 @@ public static class ReihitsuFormatter
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: contextNode != root,
-                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms);
+                                            disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
         var targetTokenAnnotation = new SyntaxAnnotation();
         var originalFirstToken = targetNode.GetFirstToken();
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,

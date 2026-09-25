@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -51,6 +52,21 @@ public class CliEndToEndTests
                                                      #endregion // Methods
                                                  }
                                                  """;
+
+    /// <summary>
+    /// An empty class next to an unbraced <c>if</c>; the empty class converts to a semicolon declaration only from C# 12 on
+    /// </summary>
+    private const string EmptyClassWithControlFlowSource = "public class A { }\n\npublic class B\n{\n    public void M(int x)\n    {\n        if (x > 0)\n            x = 0;\n    }\n}";
+
+    /// <summary>
+    /// The formatted form of <see cref="EmptyClassWithControlFlowSource"/> below C# 12
+    /// </summary>
+    private const string EmptyClassBracedFormatted = "public class A\n{\n}\n\npublic class B\n{\n    public void M(int x)\n    {\n        if (x > 0)\n        {\n            x = 0;\n        }\n    }\n}";
+
+    /// <summary>
+    /// The formatted form of <see cref="EmptyClassWithControlFlowSource"/> from C# 12 on
+    /// </summary>
+    private const string EmptyClassSemicolonFormatted = "public class A;\n\npublic class B\n{\n    public void M(int x)\n    {\n        if (x > 0)\n        {\n            x = 0;\n        }\n    }\n}";
 
     #endregion // Constants
 
@@ -818,6 +834,152 @@ public class CliEndToEndTests
             Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
             Assert.Contains("2", output);
         }
+    }
+
+    /// <summary>
+    /// Verifies that the help text documents the --lang-version option
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainHelpFlagDocumentsLangVersionOption()
+    {
+        string output;
+
+        using (var capture = new ConsoleCapture())
+        {
+            await Program.Main(["--help"]);
+
+            output = capture.StandardOutput;
+        }
+
+        Assert.Contains("--lang-version <version>", output);
+    }
+
+    /// <summary>
+    /// Verifies that formatting without --lang-version targets the newest supported version
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainWithoutLangVersionFormatsForNewestSupportedVersion()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Types.cs", EmptyClassWithControlFlowSource);
+            int exitCode;
+
+            using (new ConsoleCapture())
+            {
+                exitCode = await Program.Main([filePath]);
+            }
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(EmptyClassSemicolonFormatted, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an explicit --lang-version below C# 12 keeps empty types braced, and that a check at the same version
+    /// accepts the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainLangVersionBelowCSharp12KeepsEmptyClassBraced()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Types.cs", EmptyClassWithControlFlowSource);
+            int exitCode;
+            int checkExitCode;
+
+            using (new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--lang-version", "11", filePath]);
+                checkExitCode = await Program.Main(["--check", "--lang-version", "11", filePath]);
+            }
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(EmptyClassBracedFormatted, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+            Assert.AreEqual(ExitCodes.Success, checkExitCode);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a --lang-version newer than the newest supported version prints one warning and formats for the
+    /// newest supported version with an unchanged exit code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainLangVersionPreviewWarnsOnceAndFormatsForNewestSupportedVersion()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Types.cs", EmptyClassWithControlFlowSource);
+            int exitCode;
+            string errorOutput;
+
+            using (var capture = new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--lang-version", "preview", filePath]);
+
+                errorOutput = capture.StandardError;
+            }
+
+            var warningLines = errorOutput.Split('\n').Count(line => line.StartsWith("Warning:", System.StringComparison.Ordinal));
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(1, warningLines);
+            Assert.Contains("'preview'", errorOutput);
+            Assert.AreEqual(EmptyClassSemicolonFormatted, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an invalid --lang-version value is rejected before any file is processed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainLangVersionInvalidValueReturnsErrorAndLeavesFileUntouched()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Types.cs", EmptyClassWithControlFlowSource);
+            int exitCode;
+            string errorOutput;
+
+            using (var capture = new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--lang-version", "foo", filePath]);
+
+                errorOutput = capture.StandardError;
+            }
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.Contains("--lang-version", errorOutput);
+            Assert.Contains("'foo'", errorOutput);
+            Assert.Contains("reihitsu-format", errorOutput);
+            Assert.AreEqual(EmptyClassWithControlFlowSource, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that --lang-version without a value is rejected
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainLangVersionWithoutValueReturnsError()
+    {
+        int exitCode;
+        string errorOutput;
+
+        using (var capture = new ConsoleCapture())
+        {
+            exitCode = await Program.Main(["--lang-version"]);
+
+            errorOutput = capture.StandardError;
+        }
+
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.Contains("Missing value for --lang-version", errorOutput);
     }
 
     /// <summary>

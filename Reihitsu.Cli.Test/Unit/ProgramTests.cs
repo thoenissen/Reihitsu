@@ -1,4 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli.Test.Unit;
 
@@ -267,6 +270,146 @@ public class ProgramTests
         Assert.AreEqual("--dry-run", result.Paths[0]);
         Assert.AreEqual("-weird.cs", result.Paths[1]);
         Assert.IsNull(result.UnknownOption);
+    }
+
+    /// <summary>
+    /// Verifies that omitting <c>--lang-version</c> selects the newest supported language version without a warning or error
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsWithoutLangVersionSelectsMaxSupportedVersion()
+    {
+        var result = Program.ParseArguments([]);
+
+        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit major version is selected as given
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionSelectsExplicitVersion()
+    {
+        var result = Program.ParseArguments(["--lang-version", "11", "src"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp11, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+        Assert.HasCount(1, result.Paths);
+        Assert.AreEqual("src", result.Paths[0]);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit version with a minor component is accepted
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionAcceptsMajorMinorForm()
+    {
+        var result = Program.ParseArguments(["--lang-version", "12.0"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp12, result.LanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>latest</c> selects the newest supported version rather than Roslyn's newest, without a warning
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionLatestSelectsMaxSupportedVersion()
+    {
+        var result = Program.ParseArguments(["--lang-version", "latest"]);
+
+        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>default</c> selects the newest supported version without a warning
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionDefaultSelectsMaxSupportedVersion()
+    {
+        var result = Program.ParseArguments(["--lang-version", "default"]);
+
+        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+    }
+
+    /// <summary>
+    /// Verifies that a version newer than the newest supported one is clamped and reported for a warning
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionPreviewIsClampedToMaxSupportedVersion()
+    {
+        var result = Program.ParseArguments(["--lang-version", "preview"]);
+
+        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, result.LanguageVersion);
+        Assert.AreEqual("preview", result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that an unrecognized version produces an argument error naming the option and the value
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionInvalidValueReturnsArgumentError()
+    {
+        var result = Program.ParseArguments(["--lang-version", "foo"]);
+
+        Assert.IsNotNull(result.ArgumentError);
+        Assert.Contains("--lang-version", result.ArgumentError);
+        Assert.Contains("'foo'", result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that a version Roslyn does not know produces an argument error
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionUnknownNumberReturnsArgumentError()
+    {
+        var result = Program.ParseArguments(["--lang-version", "99"]);
+
+        Assert.IsNotNull(result.ArgumentError);
+        Assert.Contains("'99'", result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--lang-version</c> without a value produces an argument error
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionWithoutValueReturnsArgumentError()
+    {
+        var result = Program.ParseArguments(["--lang-version"]);
+
+        Assert.IsNotNull(result.ArgumentError);
+        Assert.Contains("--lang-version", result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that the last <c>--lang-version</c> wins when the option is repeated
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsRepeatedLangVersionUsesLastValue()
+    {
+        var result = Program.ParseArguments(["--lang-version", "preview", "--lang-version", "10"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp10, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--lang-version</c> after the <c>--</c> separator is treated as a path
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsLangVersionAfterSeparatorIsPath()
+    {
+        var result = Program.ParseArguments(["--", "--lang-version", "11"]);
+
+        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, result.LanguageVersion);
+        Assert.HasCount(2, result.Paths);
+        Assert.AreEqual("--lang-version", result.Paths[0]);
     }
 
     #endregion // Methods

@@ -1,5 +1,8 @@
-﻿using Reihitsu.Core;
+﻿using Microsoft.CodeAnalysis.CSharp;
+
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Data;
 
@@ -27,15 +30,21 @@ internal record FormattingContext
     /// <param name="baseIndentLevel">The base indentation level for isolated node formatting</param>
     /// <param name="preserveRootDocumentationBoundary">Whether node-scoped formatting should preserve one line break before root documentation</param>
     /// <param name="disabledStructuralTransforms">The configurable structural transforms this run must skip</param>
+    /// <param name="languageVersion">
+    /// The C# language version the source targets. It is resolved through <see cref="LanguageVersionResolver.Resolve(Microsoft.CodeAnalysis.CSharp.LanguageVersion)"/>,
+    /// so <see cref="LanguageVersion.Default"/> stands for <see cref="LanguageVersionResolver.MaxSupportedLanguageVersion"/>
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
-                             ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None)
+                             ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None,
+                             LanguageVersion languageVersion = LanguageVersion.Default)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
         PreserveRootDocumentationBoundary = preserveRootDocumentationBoundary;
         DisabledStructuralTransforms = disabledStructuralTransforms;
+        LanguageVersion = LanguageVersionResolver.Resolve(languageVersion);
     }
 
     #endregion // Constructor
@@ -64,6 +73,13 @@ internal record FormattingContext
     /// The configurable structural transforms this run must skip. Every transform runs unless it is listed here
     /// </summary>
     public ConfigurableStructuralTransforms DisabledStructuralTransforms { get; }
+
+    /// <summary>
+    /// The concrete C# language version the source targets, never newer than <see cref="LanguageVersionResolver.MaxSupportedLanguageVersion"/>
+    /// and never a symbolic value such as <see cref="LanguageVersion.Latest"/> or <see cref="LanguageVersion.Preview"/>.
+    /// Version-dependent rules read it instead of a node's parse options, which an earlier rewrite can reset to the defaults
+    /// </summary>
+    public LanguageVersion LanguageVersion { get; }
 
     #endregion // Properties
 

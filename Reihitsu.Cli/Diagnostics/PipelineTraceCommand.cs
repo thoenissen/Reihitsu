@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -153,7 +153,8 @@ internal static class PipelineTraceCommand
             output.WriteLine($"Pass {pass}");
 
             var passInput = currentContent;
-            var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root));
+            var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
+                                                languageVersion: LanguageVersionResolver.Resolve(syntaxTree.Options));
 
             var passResult = ExecuteFormattingPass(root, context, displayPath, pass, output, error, cancellationToken);
 
