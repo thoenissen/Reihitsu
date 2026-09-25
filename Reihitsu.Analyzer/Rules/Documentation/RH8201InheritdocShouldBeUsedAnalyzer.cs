@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
@@ -42,6 +43,45 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
+    /// Determines whether the header of any declaration of the type — from its identifier to its opening brace, including
+    /// the base list and constraint clauses — carries preprocessor directives or disabled text
+    /// </summary>
+    /// <param name="typeSymbol">Type symbol</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the implemented interfaces of the type may differ between build configurations</returns>
+    private static bool HasConditionalTypeHeader(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
+    {
+        static bool IsConditional(SyntaxTrivia trivia)
+        {
+            return trivia.IsDirective
+                   || trivia.IsKind(SyntaxKind.DisabledTextTrivia);
+        }
+
+        foreach (var reference in typeSymbol.DeclaringSyntaxReferences)
+        {
+            if (reference.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDeclaration)
+            {
+                var lastToken = typeDeclaration.OpenBraceToken.IsKind(SyntaxKind.None)
+                                    ? typeDeclaration.GetLastToken()
+                                    : typeDeclaration.OpenBraceToken;
+                var headerSpan = TextSpan.FromBounds(typeDeclaration.Identifier.SpanStart, lastToken.Span.End);
+
+                foreach (var token in typeDeclaration.DescendantTokens(headerSpan))
+                {
+                    // Directives and disabled text are always leading trivia, so the tokens after the identifier cover the header
+                    if (token != typeDeclaration.Identifier
+                        && token.LeadingTrivia.Any(IsConditional))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether the member inherits documentation from an overridden or implemented member
     /// </summary>
     /// <param name="node">Member declaration</param>
@@ -51,7 +91,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// <remarks>
     /// The <see langword="override"/> modifier is checked syntactically before any semantic lookup. A field-like event
     /// only qualifies when every declarator inherits, because the code fix replaces the documentation shared by all of
-    /// them
+    /// them. An implicit interface implementation does not qualify when the header of its containing type is
+    /// conditionally compiled, because the member may implement nothing in another build configuration, where the
+    /// replaced documentation would be lost
     /// </remarks>
     private static bool InheritsDocumentation(MemberDeclarationSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
@@ -60,14 +102,19 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
             return true;
         }
 
-        if (node is EventFieldDeclarationSyntax eventFieldDeclaration)
+        var inherits = node is EventFieldDeclarationSyntax eventFieldDeclaration
+                           ? eventFieldDeclaration.Declaration.Variables.All(variable => DocumentationAnalysisUtilities.OverridesOrImplementsMember(semanticModel.GetDeclaredSymbol(variable, cancellationToken)))
+                           : DocumentationAnalysisUtilities.CanInheritDocumentation(node, semanticModel, cancellationToken);
+
+        if (inherits == false
+            || DocumentationAnalysisUtilities.IsExplicitInterfaceImplementation(node))
         {
-            return eventFieldDeclaration.Declaration.Variables.All(variable => semanticModel.GetDeclaredSymbol(variable, cancellationToken) is IEventSymbol eventSymbol
-                                                                               && (eventSymbol.OverriddenEvent != null
-                                                                                   || InterfaceImplementationUtilities.GetImplementedInterfaceName(eventSymbol).Length != 0));
+            return inherits;
         }
 
-        return DocumentationAnalysisUtilities.CanInheritDocumentation(node, semanticModel, cancellationToken);
+        return node.Parent is not TypeDeclarationSyntax typeDeclaration
+               || semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol
+               || HasConditionalTypeHeader(typeSymbol, cancellationToken) == false;
     }
 
     /// <summary>

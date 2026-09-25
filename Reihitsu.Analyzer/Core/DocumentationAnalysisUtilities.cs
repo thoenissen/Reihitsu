@@ -311,9 +311,41 @@ internal static class DocumentationAnalysisUtilities
         return declaredSymbol switch
                {
                    IMethodSymbol { MethodKind: MethodKind.Constructor } constructorSymbol => HasMatchingBaseConstructor(constructorSymbol),
+                   _ => OverridesOrImplementsMember(declaredSymbol)
+               };
+    }
+
+    /// <summary>
+    /// Determines whether the member symbol overrides a base member or implements an interface member
+    /// </summary>
+    /// <param name="memberSymbol">Member symbol</param>
+    /// <returns><see langword="true"/> if the method, property, or event overrides a base member or implements an interface member</returns>
+    internal static bool OverridesOrImplementsMember(ISymbol memberSymbol)
+    {
+        return memberSymbol switch
+               {
                    IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(methodSymbol).Length != 0,
                    IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(propertySymbol).Length != 0,
                    IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(eventSymbol).Length != 0,
+                   _ => false
+               };
+    }
+
+    /// <summary>
+    /// Determines whether the declaration is an explicit interface implementation
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration explicitly implements an interface member</returns>
+    internal static bool IsExplicitInterfaceImplementation(MemberDeclarationSyntax declaration)
+    {
+        return declaration switch
+               {
+                   MethodDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   PropertyDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   IndexerDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   EventDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   OperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
+                   ConversionOperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    _ => false
                };
     }
@@ -451,25 +483,6 @@ internal static class DocumentationAnalysisUtilities
                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || propertyDeclaration.ExplicitInterfaceSpecifier != null,
                    IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || indexerDeclaration.ExplicitInterfaceSpecifier != null,
                    EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || eventDeclaration.ExplicitInterfaceSpecifier != null,
-                   _ => false
-               };
-    }
-
-    /// <summary>
-    /// Determines whether the declaration is an explicit interface implementation
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <returns><see langword="true"/> if the declaration explicitly implements an interface member</returns>
-    private static bool IsExplicitInterfaceImplementation(MemberDeclarationSyntax declaration)
-    {
-        return declaration switch
-               {
-                   MethodDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
-                   PropertyDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
-                   IndexerDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
-                   EventDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
-                   OperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
-                   ConversionOperatorDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    _ => false
                };
     }

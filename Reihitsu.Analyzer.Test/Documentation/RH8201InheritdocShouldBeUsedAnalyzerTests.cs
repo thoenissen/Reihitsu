@@ -2477,6 +2477,247 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                      Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when the interface list of its type is conditionally compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForImplicitImplementationWhenInterfaceListIsConditional()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation
+                                #if !FEATURE
+                                    : IDisposable
+                                #endif
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when the interface list of its type contains disabled text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForImplicitImplementationWhenAnotherInterfaceIsDisabled()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation : IDisposable
+                                #if FEATURE
+                                    , ICloneable
+                                #endif
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when another partial declaration of its type has a conditionally compiled interface list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForImplicitImplementationWhenOtherPartialDeclarationIsConditional()
+    {
+        const string testData = """
+                                using System;
+
+                                internal partial class TestImplementation
+                                #if !FEATURE
+                                    : IDisposable
+                                #endif
+                                {
+                                }
+
+                                internal partial class TestImplementation
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented field-like event implementing an interface event is not reported when the interface list of its type is conditionally compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFieldLikeEventWhenInterfaceListIsConditional()
+    {
+        const string testData = """
+                                using System;
+
+                                internal interface ITest
+                                {
+                                    event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation
+                                #if !FEATURE
+                                    : ITest
+                                #endif
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public event EventHandler TestEvent;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented explicit interface implementation is detected and fixed even when the interface list of its type is conditionally compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForExplicitImplementationWhenInterfaceListIsConditional()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation
+                                #if !FEATURE
+                                    : IDisposable
+                                #endif
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    void IDisposable.Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal class TestImplementation
+                                  #if !FEATURE
+                                      : IDisposable
+                                  #endif
+                                  {
+                                      /// <inheritdoc/>
+                                      void IDisposable.Dispose()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented override is detected and fixed even when the base list of its type is conditionally compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOverrideWhenBaseListIsConditional()
+    {
+        const string testData = """
+                                internal abstract class TestBase
+                                {
+                                    public abstract void TestMethod();
+                                }
+
+                                internal class TestImplementation
+                                #if !FEATURE
+                                    : TestBase
+                                #endif
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public override void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal abstract class TestBase
+                                  {
+                                      public abstract void TestMethod();
+                                  }
+
+                                  internal class TestImplementation
+                                  #if !FEATURE
+                                      : TestBase
+                                  #endif
+                                  {
+                                      /// <inheritdoc/>
+                                      public override void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is detected and fixed when directives appear only inside the type body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitImplementationWhenDirectiveIsInsideTypeBody()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation : IDisposable
+                                {
+                                    #region Methods
+
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal class TestImplementation : IDisposable
+                                  {
+                                      #region Methods
+
+                                      /// <inheritdoc/>
+                                      public void Dispose()
+                                      {
+                                      }
+
+                                      #endregion // Methods
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
     #endregion // Methods
 
     #region BatchCodeFixTestsBase
