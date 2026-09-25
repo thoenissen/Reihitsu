@@ -427,6 +427,47 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the code fix for block accessors written on one line places the second accessor on its own
+    /// line instead of leaving it behind the first accessor's closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleLineBlockAccessorsAreFixedOntoSeparateLines()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    private int _x;
+
+                                    public int Value { get {|#0:{|} var a = _x; return a; } set {|#1:{|} _x = value; _x++; } }
+                                }
+                                """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     private int _x;
+
+                                     public int Value
+                                     {
+                                         get
+                                         {
+                                             var a = _x;
+
+                                             return a;
+                                         }
+                                         set
+                                         {
+                                             _x = value;
+                                             _x++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

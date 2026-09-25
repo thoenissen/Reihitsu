@@ -3,16 +3,14 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for property layout: expression-bodied property collapse and
-/// auto-property single-line collapse and accessor brace placement
+/// Applies line-break rules for property layout: expression-bodied property collapse and the
+/// accessor-list layout shared with indexers (<see cref="AccessorListLayout"/>)
 /// </summary>
 internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -24,9 +22,9 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     private readonly CancellationToken _cancellationToken;
 
     /// <summary>
-    /// The brace placer
+    /// The accessor-list layout
     /// </summary>
-    private readonly BracePlacer _bracePlacer;
+    private readonly AccessorListLayout _accessorListLayout;
 
     #endregion // Fields
 
@@ -35,13 +33,13 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="bracePlacer">The brace placer</param>
+    /// <param name="accessorListLayout">The accessor-list layout</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public PropertyLayoutLineBreakRewriter(BracePlacer bracePlacer,
+    public PropertyLayoutLineBreakRewriter(AccessorListLayout accessorListLayout,
                                            CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
-        _bracePlacer = bracePlacer;
+        _accessorListLayout = accessorListLayout;
     }
 
     #endregion // Constructor
@@ -106,195 +104,6 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
         return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
     }
 
-    /// <summary>
-    /// Gets the first token of the property signature while skipping property-level attributes
-    /// </summary>
-    /// <param name="node">The property declaration to inspect</param>
-    /// <returns>The first signature token</returns>
-    private static SyntaxToken GetSingleLineSignatureStartToken(PropertyDeclarationSyntax node)
-    {
-        if (node.Modifiers.Count > 0)
-        {
-            return node.Modifiers[0];
-        }
-
-        return node.Type.GetFirstToken();
-    }
-
-    /// <summary>
-    /// Determines whether the given auto-property can be collapsed to a single line
-    /// </summary>
-    /// <param name="node">The property declaration to inspect</param>
-    /// <returns><see langword="true"/> if the auto-property can be collapsed; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// The initializer is a sibling that follows the accessor list and is laid out by other subphases.
-    /// Collapsing the accessor list does not touch it, so a multi-line initializer must not prevent the
-    /// simple auto-property accessor list from staying single-line.
-    /// The comment and directive guard is interior-scoped for the same reason: the collapse rewrites only
-    /// the closing brace's leading trivia, so a comment trailing that brace sits outside the accessor list
-    /// and is never crossed. Guarding the accessor list's full span instead would count that trailing
-    /// comment and force an already-correct single-line property apart.
-    /// Trivia the collapse would cross is still guarded: inside the accessor list by the check below, and
-    /// in the gap between the signature and the opening brace by <see cref="LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia"/>
-    /// </remarks>
-    private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
-    {
-        if (node?.AccessorList == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node.AccessorList))
-        {
-            return false;
-        }
-
-        var tokenBeforeOpenBrace = node.AccessorList.OpenBraceToken.GetPreviousToken();
-        var signatureStartToken = GetSingleLineSignatureStartToken(node);
-
-        if (signatureStartToken == default
-            || signatureStartToken.IsKind(SyntaxKind.None)
-            || tokenBeforeOpenBrace == default
-            || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
-        {
-            return false;
-        }
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, node.AccessorList.OpenBraceToken))
-        {
-            return false;
-        }
-
-        if (SyntaxNodeUtilities.IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Determines whether any accessor in the accessor list carries its own attribute list. Mirrors
-    /// <c>RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.HasAttributedAccessor</c>: such a property is no
-    /// longer simple, and its accessor attribute layout belongs to RH5530/RH5531 instead
-    /// </summary>
-    /// <param name="accessorList">The accessor list to inspect</param>
-    /// <returns><see langword="true"/> if at least one accessor carries an attribute list; otherwise, <see langword="false"/></returns>
-    private static bool HasAttributedAccessor(AccessorListSyntax accessorList)
-    {
-        foreach (var accessor in accessorList.Accessors)
-        {
-            if (accessor.AttributeLists.Count > 0)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Collapses a multi-line auto-property accessor list to a single line
-    /// </summary>
-    /// <param name="node">The property declaration with an auto-property accessor list</param>
-    /// <returns>The property declaration with a single-line accessor list</returns>
-    private static PropertyDeclarationSyntax CollapseAutoPropertyAccessorList(PropertyDeclarationSyntax node)
-    {
-        if (node?.AccessorList == null || LineBreakDetection.IsAutoPropertyAccessorList(node.AccessorList) == false)
-        {
-            return node;
-        }
-
-        var updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, node.AccessorList.OpenBraceToken);
-
-        updatedNode = CollapseAccessorTokensToSingleLine(updatedNode);
-        updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, updatedNode.AccessorList.CloseBraceToken);
-
-        var replacementMap = BuildAccessorTriviaReplacementMap(updatedNode.AccessorList);
-
-        return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
-    }
-
-    /// <summary>
-    /// Collapses each accessor's attribute-list brackets, modifiers, keyword, and semicolon onto the accessor line
-    /// </summary>
-    /// <param name="updatedNode">The property declaration whose accessors are collapsed</param>
-    /// <returns>The property declaration with each accessor collapsed onto a single line</returns>
-    private static PropertyDeclarationSyntax CollapseAccessorTokensToSingleLine(PropertyDeclarationSyntax updatedNode)
-    {
-        for (var accessorIndex = 0; accessorIndex < updatedNode.AccessorList.Accessors.Count; accessorIndex++)
-        {
-            var accessor = updatedNode.AccessorList.Accessors[accessorIndex];
-
-            for (var attributeListIndex = 0; attributeListIndex < accessor.AttributeLists.Count; attributeListIndex++)
-            {
-                updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.AttributeLists[attributeListIndex].OpenBracketToken);
-                accessor = updatedNode.AccessorList.Accessors[accessorIndex];
-            }
-
-            // Modifiers precede the keyword, so an accessor such as "private set;" carries the line break and the
-            // indentation on its modifier rather than on its keyword. Collapsing only the keyword would leave that
-            // indentation behind as stray spacing that a second pass has to clean up.
-            for (var modifierIndex = 0; modifierIndex < accessor.Modifiers.Count; modifierIndex++)
-            {
-                updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.Modifiers[modifierIndex]);
-                accessor = updatedNode.AccessorList.Accessors[accessorIndex];
-            }
-
-            updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.Keyword);
-            accessor = updatedNode.AccessorList.Accessors[accessorIndex];
-
-            if (accessor.SemicolonToken.IsMissing == false)
-            {
-                updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, accessor.SemicolonToken);
-            }
-        }
-
-        return updatedNode;
-    }
-
-    /// <summary>
-    /// Builds the trivia replacement map that normalizes the spacing of a collapsed accessor list
-    /// </summary>
-    /// <param name="accessorList">The collapsed accessor list</param>
-    /// <returns>The token replacement map</returns>
-    private static Dictionary<SyntaxToken, SyntaxToken> BuildAccessorTriviaReplacementMap(AccessorListSyntax accessorList)
-    {
-        var previousToken = accessorList.OpenBraceToken.GetPreviousToken();
-        var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
-                             {
-                                 [accessorList.OpenBraceToken] = accessorList.OpenBraceToken.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                                                            .WithTrailingTrivia(SyntaxFactory.Space),
-                                 [accessorList.CloseBraceToken] = accessorList.CloseBraceToken.WithLeadingTrivia(SyntaxFactory.TriviaList()),
-                             };
-
-        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
-        {
-            replacementMap[previousToken] = previousToken.WithTrailingTrivia(SyntaxFactory.Space);
-        }
-
-        foreach (var accessor in accessorList.Accessors)
-        {
-            foreach (var openBracketToken in accessor.AttributeLists.Select(attributeList => attributeList.OpenBracketToken))
-            {
-                replacementMap[openBracketToken] = openBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
-            }
-
-            var tokenBeforeKeyword = accessor.Keyword.GetPreviousToken();
-
-            if (tokenBeforeKeyword != default && tokenBeforeKeyword.IsKind(SyntaxKind.None) == false)
-            {
-                replacementMap[tokenBeforeKeyword] = tokenBeforeKeyword.WithTrailingTrivia(SyntaxFactory.Space);
-            }
-
-            replacementMap[accessor.Keyword] = accessor.Keyword.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                               .WithTrailingTrivia(SyntaxFactory.TriviaList());
-
-            if (accessor.SemicolonToken.IsMissing == false)
-            {
-                replacementMap[accessor.SemicolonToken] = accessor.SemicolonToken.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                                                 .WithTrailingTrivia(SyntaxFactory.Space);
-            }
-        }
-
-        return replacementMap;
-    }
-
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -318,24 +127,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.AccessorList != null)
         {
-            // An attribute on an accessor makes the auto-property no longer simple: RH5530/RH5531 own that
-            // accessor's attribute layout instead, so the property is returned unchanged rather than routed
-            // into either arm below. Returning false from CanCollapseAutoPropertyToSingleLine alone would not
-            // be enough here — it would hand the shape to NormalizeOwnedBraces, whose decision (force the
-            // brace, first accessor, and closing brace onto separate lines) is strictly wider than the
-            // collapse it replaces and would force a single-line declaration apart.
-            if (LineBreakDetection.IsAutoPropertyAccessorList(node.AccessorList) && HasAttributedAccessor(node.AccessorList))
-            {
-                return node;
-            }
-
-            // Collapsing is the only branch specific to an auto-property accessor list; every other
-            // accessor list, auto or not, gets the shared brace normalization.
-            node = LineBreakDetection.ShouldNormalizeAccessorListBraces(node.AccessorList) == false && CanCollapseAutoPropertyToSingleLine(node)
-                       ? CollapseAutoPropertyAccessorList(node)
-                       : _bracePlacer.NormalizeOwnedBraces(node,
-                                                           static property => property.AccessorList.OpenBraceToken,
-                                                           static property => property.AccessorList.CloseBraceToken);
+            node = _accessorListLayout.Apply(node);
         }
 
         return node;

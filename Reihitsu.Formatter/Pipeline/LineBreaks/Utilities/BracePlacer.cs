@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 /// <summary>
@@ -166,6 +168,38 @@ internal sealed class BracePlacer
         node = _gapNormalizer.NormalizeGapBeforeToken(node, getOpenBrace(node), blankLineCount: 0);
         node = EnsureFirstContentOnNewLine(node, getOpenBrace(node));
         node = _gapNormalizer.NormalizeGapBeforeToken(node, getCloseBrace(node), blankLineCount: 0);
+
+        return node;
+    }
+
+    /// <summary>
+    /// Ensures every accessor after the first starts its own line
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the accessor list</typeparam>
+    /// <param name="node">The node containing the accessor list</param>
+    /// <param name="getAccessorList">Selects the accessor list from the current node</param>
+    /// <returns>The node with every accessor starting its own line</returns>
+    /// <remarks>
+    /// The line break is placed before the accessor's first token, so attribute lists and modifiers move
+    /// together with their accessor. Only a gap without any line break is changed: a comment on the same line
+    /// stays trailing the previous accessor, and a gap that already contains a line break — including its
+    /// blank lines — is left alone. The first accessor is placed by <see cref="EnsureFirstContentOnNewLine"/>
+    /// </remarks>
+    public TNode EnsureAccessorsStartOnSeparateLines<TNode>(TNode node,
+                                                            Func<TNode, AccessorListSyntax> getAccessorList)
+        where TNode : SyntaxNode
+    {
+        for (var accessorIndex = 1; accessorIndex < getAccessorList(node).Accessors.Count; accessorIndex++)
+        {
+            var accessors = getAccessorList(node).Accessors;
+            var previousToken = accessors[accessorIndex - 1].GetLastToken();
+            var currentToken = accessors[accessorIndex].GetFirstToken();
+
+            if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
+            {
+                node = _gapNormalizer.NormalizeGapBeforeToken(node, currentToken, blankLineCount: 0);
+            }
+        }
 
         return node;
     }

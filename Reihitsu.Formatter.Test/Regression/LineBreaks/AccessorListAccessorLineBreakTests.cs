@@ -692,9 +692,9 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
 
                                  public int X
                                  {
-                                 #if true
+                             #if true
                                      get => _x; set => _x = value;
-                                 #endif
+                             #endif
                                  }
                              }
                              """;
@@ -705,10 +705,10 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
 
                                     public int X
                                     {
-                                    #if true
+                                #if true
                                         get => _x;
                                         set => _x = value;
-                                    #endif
+                                #endif
                                     }
                                 }
                                 """;
