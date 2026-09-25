@@ -1099,6 +1099,1384 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
         Assert.Contains($"/// <inheritdoc/>{System.Environment.NewLine}", fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that a documented implicit interface method implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitInterfaceMethod()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface property implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitInterfaceProperty()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    int TestProperty { get; }
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public int TestProperty => 0;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      int TestProperty { get; }
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public int TestProperty => 0;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface indexer implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitInterfaceIndexer()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public int this[int index] => index;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      int this[int index] { get; }
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public int this[int index] => index;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface event implementation with accessors is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitInterfaceEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal interface ITest
+                                {
+                                    event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public event EventHandler TestEvent
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal interface ITest
+                                  {
+                                      event EventHandler TestEvent;
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public event EventHandler TestEvent
+                                      {
+                                          add
+                                          {
+                                          }
+                                          remove
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface field-like event implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitInterfaceFieldLikeEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal interface ITest
+                                {
+                                    event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public event EventHandler TestEvent;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal interface ITest
+                                  {
+                                      event EventHandler TestEvent;
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public event EventHandler TestEvent;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented field-like event is detected and fixed when every declarator implements an interface event
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForFieldLikeEventWhoseDeclaratorsAllImplementInterfaceEvents()
+    {
+        const string testData = """
+                                using System;
+
+                                internal interface ITest
+                                {
+                                    event EventHandler First;
+
+                                    event EventHandler Second;
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public event EventHandler First, Second;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal interface ITest
+                                  {
+                                      event EventHandler First;
+
+                                      event EventHandler Second;
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public event EventHandler First, Second;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented field-like event is not reported when only its first declarator implements an interface event
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFieldLikeEventWhoseSecondDeclaratorImplementsNothing()
+    {
+        const string testData = """
+                                using System;
+
+                                internal interface ITest
+                                {
+                                    event EventHandler First;
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public event EventHandler First, Second;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented field-like event is not reported when only its second declarator implements an interface event
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFieldLikeEventWhoseFirstDeclaratorImplementsNothing()
+    {
+        const string testData = """
+                                using System;
+
+                                internal interface ITest
+                                {
+                                    event EventHandler Second;
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public event EventHandler First, Second;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented explicit interface method implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForExplicitInterfaceMethod()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    void ITest.TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      void ITest.TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented explicit interface property implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForExplicitInterfaceProperty()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    int TestProperty { get; }
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    int ITest.TestProperty => 0;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      int TestProperty { get; }
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      int ITest.TestProperty => 0;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented explicit interface indexer implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForExplicitInterfaceIndexer()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    int ITest.this[int index] => index;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      int this[int index] { get; }
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      int ITest.this[int index] => index;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented explicit interface event implementation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForExplicitInterfaceEvent()
+    {
+        const string testData = """
+                                using System;
+
+                                internal interface ITest
+                                {
+                                    event EventHandler TestEvent;
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    event EventHandler ITest.TestEvent
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal interface ITest
+                                  {
+                                      event EventHandler TestEvent;
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      event EventHandler ITest.TestEvent
+                                      {
+                                          add
+                                          {
+                                          }
+                                          remove
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implementation of an interface declared in metadata is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMetadataInterfaceImplementation()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation : IDisposable
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal class TestImplementation : IDisposable
+                                  {
+                                      /// <inheritdoc/>
+                                      public void Dispose()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implementation of a generic interface member is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForGenericInterfaceImplementation()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestImplementation : IEquatable<TestImplementation>
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public bool Equals(TestImplementation other)
+                                    {
+                                        return ReferenceEquals(this, other);
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  internal class TestImplementation : IEquatable<TestImplementation>
+                                  {
+                                      /// <inheritdoc/>
+                                      public bool Equals(TestImplementation other)
+                                      {
+                                          return ReferenceEquals(this, other);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implementation of a member declared on a base interface is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplementationOfInheritedInterfaceMember()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                }
+
+                                internal class TestImplementation : IDerived
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface IBase
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal interface IDerived : IBase
+                                  {
+                                  }
+
+                                  internal class TestImplementation : IDerived
+                                  {
+                                      /// <inheritdoc/>
+                                      public void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented virtual member implementing an interface member is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForVirtualInterfaceImplementation()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public virtual void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public virtual void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented member implementing members of several interfaces is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMemberImplementingSeveralInterfaces()
+    {
+        const string testData = """
+                                internal interface IFirst
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal interface ISecond
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : IFirst, ISecond
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface IFirst
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal interface ISecond
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal class TestImplementation : IFirst, ISecond
+                                  {
+                                      /// <inheritdoc/>
+                                      public void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a member implementing several interfaces is not reported when it selects the inherited documentation with &lt;inheritdoc cref="..."/&gt;
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMemberImplementingSeveralInterfacesWithInheritdocCref()
+    {
+        const string testData = """
+                                internal interface IFirst
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal interface ISecond
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : IFirst, ISecond
+                                {
+                                    /// <inheritdoc cref="IFirst.TestMethod"/>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented implementation of a static abstract interface method is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForStaticAbstractInterfaceMethod()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    static abstract void TestMethod();
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public static void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      static abstract void TestMethod();
+                                  }
+
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public static void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit implementation of a static abstract interface operator is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitStaticAbstractOperator()
+    {
+        const string testData = """
+                                internal interface IAddable<T>
+                                    where T : IAddable<T>
+                                {
+                                    static abstract T operator +(T left, T right);
+                                }
+
+                                internal readonly struct Amount : IAddable<Amount>
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public static Amount operator +(Amount left, Amount right) => left;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface IAddable<T>
+                                      where T : IAddable<T>
+                                  {
+                                      static abstract T operator +(T left, T right);
+                                  }
+
+                                  internal readonly struct Amount : IAddable<Amount>
+                                  {
+                                      /// <inheritdoc/>
+                                      public static Amount operator +(Amount left, Amount right) => left;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented explicit implementation of a static abstract interface operator is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForExplicitStaticAbstractOperator()
+    {
+        const string testData = """
+                                internal interface IAddable<T>
+                                    where T : IAddable<T>
+                                {
+                                    static abstract T operator +(T left, T right);
+                                }
+
+                                internal readonly struct Amount : IAddable<Amount>
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    static Amount IAddable<Amount>.operator +(Amount left, Amount right) => left;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface IAddable<T>
+                                      where T : IAddable<T>
+                                  {
+                                      static abstract T operator +(T left, T right);
+                                  }
+
+                                  internal readonly struct Amount : IAddable<Amount>
+                                  {
+                                      /// <inheritdoc/>
+                                      static Amount IAddable<Amount>.operator +(Amount left, Amount right) => left;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implementation of a static abstract interface conversion operator is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForStaticAbstractConversionOperator()
+    {
+        const string testData = """
+                                internal interface IConvertible<T>
+                                    where T : IConvertible<T>
+                                {
+                                    static abstract implicit operator int(T value);
+                                }
+
+                                internal readonly struct Amount : IConvertible<Amount>
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public static implicit operator int(Amount value) => 0;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface IConvertible<T>
+                                      where T : IConvertible<T>
+                                  {
+                                      static abstract implicit operator int(T value);
+                                  }
+
+                                  internal readonly struct Amount : IConvertible<Amount>
+                                  {
+                                      /// <inheritdoc/>
+                                      public static implicit operator int(Amount value) => 0;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented operator that implements no interface member is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForOperatorWithoutInterface()
+    {
+        const string testData = """
+                                internal readonly struct Amount
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public static Amount operator +(Amount left, Amount right) => left;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented conversion operator that implements no interface member is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForConversionOperatorWithoutInterface()
+    {
+        const string testData = """
+                                internal readonly struct Amount
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public static implicit operator int(Amount value) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented explicit implementation of a base interface member inside an interface is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForInterfaceMemberOverridingBaseInterfaceMember()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    void IBase.TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface IBase
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal interface IDerived : IBase
+                                  {
+                                      /// <inheritdoc/>
+                                      void IBase.TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented interface member hiding a base interface member with new is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForInterfaceMemberHidingBaseInterfaceMember()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    new void TestMethod();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented member declared by an interface itself is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForInterfaceOwnMember()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    void TestMethod();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented member re-implementing an interface member with new is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForReimplementationWithNew()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestBase : ITest
+                                {
+                                    /// <inheritdoc/>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+
+                                internal class TestImplementation : TestBase, ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public new void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal class TestBase : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public void TestMethod()
+                                      {
+                                      }
+                                  }
+
+                                  internal class TestImplementation : TestBase, ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public new void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a documented member hiding an inherited implementation is not reported when its type does not list the interface itself
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForHidingMemberWithoutReimplementation()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestBase : ITest
+                                {
+                                    /// <inheritdoc/>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+
+                                internal class TestImplementation : TestBase
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public new void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented base member is not reported when only a derived type lists the interface it satisfies
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForBaseMemberWhenOnlyDerivedTypeListsInterface()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestBase
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+
+                                internal class TestImplementation : TestBase, ITest
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented overload of an implemented member is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForOverloadOfImplementedMember()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    /// <inheritdoc/>
+                                    public void TestMethod()
+                                    {
+                                    }
+
+                                    /// <summary>Implementation documentation</summary>
+                                    public void TestMethod(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented public member is not reported when an explicit implementation of the same interface member exists
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPublicMemberBesideExplicitImplementation()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    /// <inheritdoc/>
+                                    void ITest.TestMethod()
+                                    {
+                                    }
+
+                                    /// <summary>Implementation documentation</summary>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documented member of a type implementing an interface is not reported when it implements no interface member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMemberImplementingNoInterface()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal class TestImplementation : ITest
+                                {
+                                    /// <inheritdoc/>
+                                    public void TestMethod()
+                                    {
+                                    }
+
+                                    /// <summary>Implementation documentation</summary>
+                                    public void OtherMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the documented defining declaration of a partial method implementing an interface member is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForDocumentedDefiningPartialInterfaceImplementation()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal partial class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public partial void TestMethod();
+
+                                    public partial void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal partial class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public partial void TestMethod();
+
+                                      public partial void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that the documented implementing declaration of a partial method implementing an interface member is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDocumentedImplementingPartialInterfaceImplementation()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void TestMethod();
+                                }
+
+                                internal partial class TestImplementation : ITest
+                                {
+                                    public partial void TestMethod();
+
+                                    /// <summary>Implementation documentation</summary>
+                                    public partial void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that override, implicit, and explicit interface implementation diagnostics in one document are fixed together
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForOverrideAndInterfaceImplementationsAreFixedTogether()
+    {
+        const string testData = """
+                                internal interface ITest
+                                {
+                                    void First();
+
+                                    void Second();
+                                }
+
+                                internal abstract class TestBase
+                                {
+                                    public abstract void Third();
+                                }
+
+                                internal class TestImplementation : TestBase, ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void First()
+                                    {
+                                    }
+
+                                    ///{|#1: <summary>Implementation documentation</summary>
+                                |}    void ITest.Second()
+                                    {
+                                    }
+
+                                    ///{|#2: <summary>Implementation documentation</summary>
+                                |}    public override void Third()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      void First();
+
+                                      void Second();
+                                  }
+
+                                  internal abstract class TestBase
+                                  {
+                                      public abstract void Third();
+                                  }
+
+                                  internal class TestImplementation : TestBase, ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public void First()
+                                      {
+                                      }
+
+                                      /// <inheritdoc/>
+                                      void ITest.Second()
+                                      {
+                                      }
+
+                                      /// <inheritdoc/>
+                                      public override void Third()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 3));
+    }
+
     #endregion // Methods
 
     #region BatchCodeFixTestsBase

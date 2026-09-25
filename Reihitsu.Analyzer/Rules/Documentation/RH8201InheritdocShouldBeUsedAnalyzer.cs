@@ -1,9 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -39,13 +42,42 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes documentation comments on overriding members and reports when no &lt;inheritdoc&gt; tag is present
+    /// Determines whether the member inherits documentation from an overridden or implemented member
+    /// </summary>
+    /// <param name="node">Member declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the member overrides a base member or implements an interface member</returns>
+    /// <remarks>
+    /// The <see langword="override"/> modifier is checked syntactically before any semantic lookup. A field-like event
+    /// only qualifies when every declarator inherits, because the code fix replaces the documentation shared by all of
+    /// them
+    /// </remarks>
+    private static bool InheritsDocumentation(MemberDeclarationSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        if (node.Modifiers.Any(SyntaxKind.OverrideKeyword))
+        {
+            return true;
+        }
+
+        if (node is EventFieldDeclarationSyntax eventFieldDeclaration)
+        {
+            return eventFieldDeclaration.Declaration.Variables.All(variable => semanticModel.GetDeclaredSymbol(variable, cancellationToken) is IEventSymbol eventSymbol
+                                                                               && (eventSymbol.OverriddenEvent != null
+                                                                                   || InterfaceImplementationUtilities.GetImplementedInterfaceName(eventSymbol).Length != 0));
+        }
+
+        return DocumentationAnalysisUtilities.CanInheritDocumentation(node, semanticModel, cancellationToken);
+    }
+
+    /// <summary>
+    /// Analyzes documentation comments on members that override a base member or implement an interface member and
+    /// reports when no &lt;inheritdoc&gt; tag is present
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is MemberDeclarationSyntax node
-            && node.Modifiers.Any(SyntaxKind.OverrideKeyword))
+        if (context.Node is MemberDeclarationSyntax node)
         {
             var documentation = node.GetLeadingTrivia()
                                     .FirstOrDefault(SyntaxTriviaUtilities.IsDocumentationCommentTrivia);
@@ -63,7 +95,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
                            };
                 }
 
-                if (ContainsInheritDoc(documentation.GetStructure()) == false)
+                if (ContainsInheritDoc(documentation.GetStructure()) == false
+                    && InheritsDocumentation(node, context.SemanticModel, context.CancellationToken))
                 {
                     context.ReportDiagnostic(CreateDiagnostic(documentation.GetLocation()));
                 }
@@ -85,6 +118,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.EventDeclaration);
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.EventFieldDeclaration);
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.IndexerDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.OperatorDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.ConversionOperatorDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer
