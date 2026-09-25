@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
@@ -290,6 +290,32 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.StartsWith(NormalizeLineEndings("public class A\n{\n}\n", endOfLine), resultText, $"The empty class must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> still converts an empty class in a
+    /// C# 12 project when its context node holds an earlier rewrite
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentWithContextAsyncConvertsEmptyClassInCSharp12Project()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var document = CreateDocument(workspace, NormalizeLineEndings(TopLevelInput, endOfLine), LanguageVersion.CSharp12);
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+                var target = root?.DescendantNodes().OfType<ClassDeclarationSyntax>().First(declaration => declaration.Identifier.Text == "A");
+
+                Assert.IsNotNull(target);
+
+                var result = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken);
+                var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                Assert.StartsWith(NormalizeLineEndings("public class A;\n", endOfLine), resultText, $"The empty class must convert under {DescribeLineEnding(endOfLine)} line endings.");
             }
         }
     }

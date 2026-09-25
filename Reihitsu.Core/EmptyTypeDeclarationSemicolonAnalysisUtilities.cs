@@ -38,8 +38,9 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// <param name="declarationKind">Expected declaration kind</param>
     /// <param name="minimumLanguageVersion">Minimum supported language version</param>
     /// <param name="languageVersion">
-    /// The language version the source targets. Callers that rewrite the tree before this check pass the source's version
-    /// explicitly, because a rewritten node's syntax tree no longer carries the source's parse options
+    /// The concrete language version the source targets, never a symbolic value such as <see cref="LanguageVersion.Default"/>.
+    /// Callers that rewrite the tree before this check pass the source's version explicitly, because a rewritten node's
+    /// syntax tree no longer carries the source's parse options
     /// </param>
     /// <returns><see langword="true"/> if the declaration should report a diagnostic; otherwise, <see langword="false"/></returns>
     public static bool ShouldReport(TypeDeclarationSyntax typeDeclaration, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion, LanguageVersion languageVersion)
@@ -77,8 +78,8 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// <returns><see langword="true"/> if the declaration can be converted safely; otherwise, <see langword="false"/></returns>
     public static bool CanConvertSafely(TypeDeclarationSyntax typeDeclaration, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
     {
-        return ShouldReport(typeDeclaration, declarationKind, minimumLanguageVersion)
-               && HasMeaningfulBodyTrivia(typeDeclaration) == false;
+        return typeDeclaration.SyntaxTree.Options is CSharpParseOptions parseOptions
+               && CanConvertSafely(typeDeclaration, declarationKind, minimumLanguageVersion, parseOptions.LanguageVersion);
     }
 
     /// <summary>
@@ -87,7 +88,7 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="declarationKind">Expected declaration kind</param>
     /// <param name="minimumLanguageVersion">Minimum supported language version</param>
-    /// <param name="languageVersion">The language version the source targets</param>
+    /// <param name="languageVersion">The concrete language version the source targets, never a symbolic value such as <see cref="LanguageVersion.Default"/></param>
     /// <returns><see langword="true"/> if the declaration can be converted safely; otherwise, <see langword="false"/></returns>
     public static bool CanConvertSafely(TypeDeclarationSyntax typeDeclaration, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion, LanguageVersion languageVersion)
     {
