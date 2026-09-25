@@ -53,13 +53,7 @@ internal sealed class LineBreakPhase : IFormattingPhase
 
     #region IFormattingPhase
 
-    /// <summary>
-    /// Applies line break formatting rules to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to format</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The formatted syntax node with corrected line breaks</returns>
+    /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root,
                               FormattingContext context,
                               CancellationToken cancellationToken)

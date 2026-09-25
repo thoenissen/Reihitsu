@@ -12,14 +12,10 @@ internal sealed class UsingDirectiveOrderingPhase : IFormattingPhase
 {
     #region IFormattingPhase
 
-    /// <summary>
-    /// Reorganizes using directives as part of the formatting pipeline.
+    /// <inheritdoc/>
+    /// <remarks>
     /// Reused internally by the RH7207 code fix through <c>InternalsVisibleTo</c>
-    /// </summary>
-    /// <param name="root">Root syntax node</param>
-    /// <param name="context">Formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated root node</returns>
+    /// </remarks>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var rewriter = new UsingDirectiveOrderingRewriter(context.EndOfLine, cancellationToken);
