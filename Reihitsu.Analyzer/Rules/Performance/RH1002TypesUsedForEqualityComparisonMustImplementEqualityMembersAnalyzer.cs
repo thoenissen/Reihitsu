@@ -59,6 +59,17 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                      }.ToFrozenSet();
 
     /// <summary>
+    /// Simple method names that are only relevant when declared on <see cref="Enumerable"/>. Another relevant
+    /// static class can declare a method of the same name with a different meaning, such as
+    /// <c>ImmutableDictionary.Contains(map, key, value)</c>, which is a key lookup through the map's own comparer
+    /// </summary>
+    private static readonly FrozenSet<string> _enumerableOnlyMethodNames = new[]
+                                                                           {
+                                                                               nameof(Enumerable.Contains),
+                                                                               nameof(Enumerable.SequenceEqual)
+                                                                           }.ToFrozenSet();
+
+    /// <summary>
     /// Fully qualified metadata names of the static classes whose methods this rule inspects
     /// </summary>
     private static readonly string[] _relevantContainingTypes = [
@@ -119,6 +130,12 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
             return false;
         }
 
+        if (_enumerableOnlyMethodNames.Contains(methodSymbol.Name)
+            && SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Enumerable")) == false)
+        {
+            return false;
+        }
+
         if (HasExplicitEqualityComparerArgument(semanticModel, invocationExpression, methodSymbol))
         {
             return false;
@@ -132,10 +149,14 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// <summary>
     /// Determines whether the invocation is the comparer-less <c>Enumerable.Contains(source, value)</c> overload
     /// on a source whose static type is a dictionary of the compared <see cref="KeyValuePair{TKey, TValue}"/>.
-    /// That overload delegates to the dictionary's own <c>ICollection&lt;T&gt;.Contains</c>, which is a key lookup,
-    /// so the <see cref="KeyValuePair{TKey, TValue}"/> equality members are never used. The overload that takes a
-    /// comparer does not delegate, and a source whose static type is only a key/value pair sequence carries no
-    /// dictionary semantics, so both stay checked
+    /// That overload delegates to the source's own <c>ICollection&lt;T&gt;.Contains</c>, which a dictionary answers
+    /// with a key lookup, so the <see cref="KeyValuePair{TKey, TValue}"/> equality members are never used.
+    /// A source that converts to <see cref="IDictionary{TKey, TValue}"/> is always such a collection. A source that
+    /// only converts to <see cref="IReadOnlyDictionary{TKey, TValue}"/> is exempt only when its static type is an
+    /// interface or a type parameter, whose runtime implementations are dictionaries that delegate; a concrete type
+    /// implementing only the read-only interface is not a collection and is scanned with the default comparer.
+    /// The overload that takes a comparer does not delegate, and a source whose static type is only a key/value
+    /// pair sequence carries no dictionary semantics, so both stay checked
     /// </summary>
     /// <param name="semanticModel">Semantic model</param>
     /// <param name="invocationExpression">Invocation expression</param>
@@ -169,8 +190,13 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
             return false;
         }
 
-        return IsDictionaryOf(compilation, sourceType, "System.Collections.Generic.IDictionary`2", keyValuePairType.TypeArguments)
-               || IsDictionaryOf(compilation, sourceType, "System.Collections.Generic.IReadOnlyDictionary`2", keyValuePairType.TypeArguments);
+        if (IsImplicitlyConvertibleToDictionary(compilation, sourceType, "System.Collections.Generic.IDictionary`2", keyValuePairType.TypeArguments))
+        {
+            return true;
+        }
+
+        return sourceType.TypeKind is TypeKind.Interface or TypeKind.TypeParameter
+               && IsImplicitlyConvertibleToDictionary(compilation, sourceType, "System.Collections.Generic.IReadOnlyDictionary`2", keyValuePairType.TypeArguments);
     }
 
     /// <summary>
@@ -190,25 +216,27 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     }
 
     /// <summary>
-    /// Determines whether the type is, or implements, the given dictionary interface constructed with the key
-    /// and value types
+    /// Determines whether the type converts implicitly, without a user-defined conversion, to the given dictionary
+    /// interface constructed with the key and value types. A conversion rather than symbol identity is checked, so
+    /// that type parameters constrained to the interface and tuple types differing only in element names match
     /// </summary>
     /// <param name="compilation">Compilation</param>
     /// <param name="type">Type to check</param>
     /// <param name="dictionaryInterfaceName">Fully qualified metadata name of the generic dictionary interface</param>
     /// <param name="keyAndValueTypes">Key and value type arguments</param>
-    /// <returns><see langword="true"/> if the type is, or implements, the constructed dictionary interface</returns>
-    private static bool IsDictionaryOf(Compilation compilation, ITypeSymbol type, string dictionaryInterfaceName, ImmutableArray<ITypeSymbol> keyAndValueTypes)
+    /// <returns><see langword="true"/> if the type converts to the constructed dictionary interface</returns>
+    private static bool IsImplicitlyConvertibleToDictionary(Compilation compilation, ITypeSymbol type, string dictionaryInterfaceName, ImmutableArray<ITypeSymbol> keyAndValueTypes)
     {
         if (compilation.GetTypeByMetadataName(dictionaryInterfaceName) is not { } dictionaryInterface)
         {
             return false;
         }
 
-        var constructedInterface = dictionaryInterface.Construct(keyAndValueTypes[0], keyAndValueTypes[1]);
+        var conversion = compilation.ClassifyCommonConversion(type, dictionaryInterface.Construct(keyAndValueTypes[0], keyAndValueTypes[1]));
 
-        return SymbolEqualityComparer.Default.Equals(type, constructedInterface)
-               || type.AllInterfaces.Any(implementedInterface => SymbolEqualityComparer.Default.Equals(implementedInterface, constructedInterface));
+        return conversion.Exists
+               && conversion.IsImplicit
+               && conversion.IsUserDefined == false;
     }
 
     /// <summary>

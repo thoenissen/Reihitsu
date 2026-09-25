@@ -829,6 +829,9 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                                  private ICollection<NotImplementedStruct> _collection;
                                                                                  private IQueryable<NotImplementedStruct> _queryable;
                                                                                  private ImmutableArray<NotImplementedStruct> _immutableArray;
+                                                                                 private IImmutableDictionary<NotImplementedStruct, int> _immutableDictionary;
+                                                                                 private IDictionary<string, int> _dictionaryInterface;
+                                                                                 private KeyValuePair<string, int> _pair;
                                                                                  private NotImplementedStruct _value;
 
                                                                                  public void Test()
@@ -839,6 +842,9 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                                      _queryable.Contains(_value);
                                                                                      _immutableArray.SequenceEqual(_immutableArray);
                                                                                      "text".Contains("t");
+                                                                                     _immutableDictionary.Contains(_value, 1);
+                                                                                     ImmutableDictionary.Contains(_immutableDictionary, _value, 1);
+                                                                                     _dictionaryInterface.Contains(_pair);
                                                                                  }
                                                                              }
                                                                          }
@@ -905,7 +911,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                       public void Test()
                                                                       {
                                                                           _dictionary.Contains(_value);
-                                                                          _dictionaryInterface.Contains(_value);
+                                                                          Enumerable.Contains(_dictionaryInterface, _value);
                                                                           _sortedDictionary.Contains(_value);
                                                                           _concurrentDictionary.Contains(_value);
                                                                           _readOnlyDictionary.Contains(_value);
@@ -1030,6 +1036,95 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                        }
                                                                    }
                                                                    """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a receiver typed as a type parameter constrained to a dictionary
+    /// </summary>
+    private const string TypeParameterDictionaryReceiverContainsTestData = """
+                                                                           using System.Collections.Generic;
+                                                                           using System.Linq;
+
+                                                                           namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                           internal class RH1002
+                                                                           {
+                                                                               internal class TypeParameterDictionaryReceiverTest
+                                                                               {
+                                                                                   private KeyValuePair<string, int> _value;
+
+                                                                                   public void Test<TDictionary, TReadOnlyDictionary, TConcreteDictionary>(TDictionary dictionary, TReadOnlyDictionary readOnlyDictionary, TConcreteDictionary concreteDictionary)
+                                                                                       where TDictionary : IDictionary<string, int>
+                                                                                       where TReadOnlyDictionary : IReadOnlyDictionary<string, int>
+                                                                                       where TConcreteDictionary : Dictionary<string, int>
+                                                                                   {
+                                                                                       Enumerable.Contains(dictionary, _value);
+                                                                                       readOnlyDictionary.Contains(_value);
+                                                                                       concreteDictionary.Contains(_value);
+                                                                                   }
+                                                                               }
+                                                                           }
+                                                                           """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a dictionary whose tuple key type differs from the searched value's only in element names
+    /// </summary>
+    private const string TupleKeyDictionaryReceiverContainsTestData = """
+                                                                      using System.Collections.Generic;
+                                                                      using System.Linq;
+
+                                                                      namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                      internal class RH1002
+                                                                      {
+                                                                          internal class TupleKeyDictionaryReceiverTest
+                                                                          {
+                                                                              private Dictionary<(int First, int Second), int> _dictionary;
+
+                                                                              public void Test()
+                                                                              {
+                                                                                  _dictionary.Contains(new KeyValuePair<(int, int), int>((1, 2), 3));
+                                                                                  _dictionary.Contains(KeyValuePair.Create((1, 2), 3));
+                                                                              }
+                                                                          }
+                                                                      }
+                                                                      """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface, because it is not a collection that the call delegates to
+    /// </summary>
+    private const string ReadOnlyOnlyDictionaryReceiverContainsTestData = """
+                                                                          using System.Collections;
+                                                                          using System.Collections.Generic;
+                                                                          using System.Linq;
+
+                                                                          namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                          internal abstract class ReadOnlyOnlyDictionary : IReadOnlyDictionary<string, int>
+                                                                          {
+                                                                              public abstract int this[string key] { get; }
+                                                                              public abstract IEnumerable<string> Keys { get; }
+                                                                              public abstract IEnumerable<int> Values { get; }
+                                                                              public abstract int Count { get; }
+                                                                              public abstract bool ContainsKey(string key);
+                                                                              public abstract bool TryGetValue(string key, out int value);
+                                                                              public abstract IEnumerator<KeyValuePair<string, int>> GetEnumerator();
+                                                                              IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                                                                          }
+
+                                                                          internal class RH1002
+                                                                          {
+                                                                              internal class ReadOnlyOnlyDictionaryReceiverTest
+                                                                              {
+                                                                                  private ReadOnlyOnlyDictionary _dictionary;
+                                                                                  private KeyValuePair<string, int> _value;
+
+                                                                                  public void Test()
+                                                                                  {
+                                                                                      _dictionary.{|#0:Contains|}(_value);
+                                                                                  }
+                                                                              }
+                                                                          }
+                                                                          """;
 
     #endregion // Constants
 
@@ -1318,6 +1413,36 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     public async Task VerifySequenceEqualOnDictionaryReceiverIsChecked()
     {
         await Verify(DictionaryReceiverSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a receiver typed as a type parameter constrained to a dictionary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsWithoutComparerOnTypeParameterDictionaryReceiverIsNotFlagged()
+    {
+        await Verify(TypeParameterDictionaryReceiverContainsTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a dictionary whose tuple key type differs from the searched value's only in element names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsWithoutComparerOnDictionaryWithNamedTupleKeyIsNotFlagged()
+    {
+        await Verify(TupleKeyDictionaryReceiverContainsTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsOnConcreteReadOnlyOnlyDictionaryIsChecked()
+    {
+        await Verify(ReadOnlyOnlyDictionaryReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
     }
 
     #endregion // Methods
