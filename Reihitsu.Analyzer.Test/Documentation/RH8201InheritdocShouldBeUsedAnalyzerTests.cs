@@ -2897,6 +2897,95 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                      Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
     }
 
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is not reported when the file declaring the
+    /// implemented interface contains a conditional region, even though the file declaring the type contains none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenInterfaceFileContainsConditionalRegion()
+    {
+        const string testData = """
+                                internal class TestImplementation : ITest
+                                {
+                                    /// <summary>Implementation documentation</summary>
+                                    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string interfaceData = """
+                                     internal interface ITest
+                                     {
+                                         void TestMethod();
+                                     #if FEATURE
+                                         void OtherMethod();
+                                     #endif
+                                     }
+                                     """;
+
+        await Verify(testData, test => test.TestState.Sources.Add(("/0/Test1.cs", interfaceData)));
+    }
+
+    /// <summary>
+    /// Verifies that a documented implicit interface implementation is detected and fixed when only a file that
+    /// declares neither its type nor its interfaces contains a conditional region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenOnlyUnrelatedFileContainsConditionalRegion()
+    {
+        const string testData = """
+                                internal class TestImplementation : ITest
+                                {
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public void TestMethod()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class TestImplementation : ITest
+                                  {
+                                      /// <inheritdoc/>
+                                      public void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        const string interfaceData = """
+                                     internal interface ITest
+                                     {
+                                         void TestMethod();
+                                     }
+                                     """;
+
+        const string unrelatedData = """
+                                     internal class Unrelated
+                                     {
+                                     #if FEATURE
+                                         public void OtherMethod()
+                                         {
+                                         }
+                                     #endif
+                                     }
+                                     """;
+
+        await Verify(testData,
+                     resultData,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", interfaceData));
+                         test.TestState.Sources.Add(("/0/Test2.cs", unrelatedData));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", interfaceData));
+                         test.FixedState.Sources.Add(("/0/Test2.cs", unrelatedData));
+                     },
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
     #endregion // Methods
 
     #region BatchCodeFixTestsBase
