@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,6 +17,43 @@ namespace Reihitsu.Formatter.Test.Unit;
 [TestClass]
 public class ReihitsuFormatterTests : FormatterTestsBase
 {
+    #region Constants
+
+    /// <summary>
+    /// Formatted source whose property getter consists of a single return statement in a block body
+    /// </summary>
+    private const string BlockBodiedAccessorSource = """
+                                                     class C
+                                                     {
+                                                         private int _x;
+
+                                                         public int X
+                                                         {
+                                                             get
+                                                             {
+                                                                 return _x;
+                                                             }
+                                                         }
+                                                     }
+                                                     """;
+
+    /// <summary>
+    /// Document-level formatting result for <see cref="BlockBodiedAccessorSource"/>
+    /// </summary>
+    private const string ExpressionBodiedAccessorSource = """
+                                                          class C
+                                                          {
+                                                              private int _x;
+
+                                                              public int X
+                                                              {
+                                                                  get => _x;
+                                                              }
+                                                          }
+                                                          """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -1372,6 +1410,180 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> converts a single-statement accessor block to an
+    /// expression body, because document-level formatting runs every structural transform
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeConvertsSingleStatementAccessorToExpressionBody()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Arrange
+            var input = NormalizeLineEndings(BlockBodiedAccessorSource, endOfLine);
+            var expected = NormalizeLineEndings(ExpressionBodiedAccessorSource, endOfLine);
+            var syntaxTree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+            // Act
+            var result = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+
+            // Assert
+            Assert.AreEqual(expected, result.GetText(TestContext.CancellationToken).ToString(), $"Document-level formatting must convert the accessor under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatDocumentAsync"/> converts a single-statement accessor block to an
+    /// expression body, because document-level formatting runs every structural transform
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatDocumentAsyncConvertsSingleStatementAccessorToExpressionBody()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Arrange
+            var input = NormalizeLineEndings(BlockBodiedAccessorSource, endOfLine);
+            var expected = NormalizeLineEndings(ExpressionBodiedAccessorSource, endOfLine);
+
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(input));
+
+                // Act
+                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                // Assert
+                Assert.AreEqual(expected, resultText, $"Document-level formatting must convert the accessor under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> keeps a single-statement accessor block, because node-level
+    /// formatting serves code fixes, which must not rewrite accessors they were not asked to change
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeKeepsSingleStatementAccessorBlock()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Arrange
+            var input = NormalizeLineEndings(BlockBodiedAccessorSource, endOfLine);
+            var root = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+            var property = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single();
+
+            // Act
+            var result = ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken);
+
+            // Assert
+            var accessor = result.DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+
+            Assert.IsNotNull(accessor.Body, $"Node-level formatting must keep the accessor block under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.IsNull(accessor.ExpressionBody, $"Node-level formatting must not add an expression body under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps a single-statement accessor block when the
+    /// target is the containing property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncKeepsSingleStatementAccessorBlock()
+    {
+        await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
+                                                   static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
+                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps a single-statement accessor block when the
+    /// target is the document root, because the decision follows the entry point rather than the kind of the target node
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncOnRootKeepsSingleStatementAccessorBlock()
+    {
+        await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
+                                                   static root => root,
+                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> keeps a single-statement accessor
+    /// block when the property is formatted within the context of its containing class
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentWithContextAsyncKeepsSingleStatementAccessorBlock()
+    {
+        await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
+                                                   static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
+                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
+                                                                                                                                                          target,
+                                                                                                                                                          target.Ancestors().OfType<ClassDeclarationSyntax>().First(),
+                                                                                                                                                          cancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> converts an expression-bodied indexer to an
+    /// accessor list whose getter keeps its block, while document-level formatting converts that getter to an expression body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncConvertsExpressionBodiedIndexerToBlockBodiedGetter()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int this[int index] => _items[index];
+
+                                 private int[] _items;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    public int this[int index]
+                                    {
+                                        get
+                                        {
+                                            return _items[index];
+                                        }
+                                    }
+
+                                    private int[] _items;
+                                }
+                                """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+                var indexer = root?.DescendantNodes().OfType<IndexerDeclarationSyntax>().Single();
+
+                if (indexer == null)
+                {
+                    Assert.Fail("Expected an indexer declaration in the test document.");
+                }
+
+                // Act
+                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, indexer, TestContext.CancellationToken);
+                var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                // Assert
+                Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), resultText, $"Node-level formatting must keep the synthesized getter block under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
     /// Normalizes line endings in the provided text to LF
     /// </summary>
     /// <param name="text">The text to normalize</param>
@@ -1402,6 +1614,44 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var line = Lf(text).Split('\n').First(candidate => candidate.Contains(marker));
 
         return line.TakeWhile(static character => character == ' ').Count();
+    }
+
+    /// <summary>
+    /// Formats the node selected from the source through a node-level entry point under every line ending and asserts that
+    /// the document text stays unchanged
+    /// </summary>
+    /// <param name="source">The already formatted source</param>
+    /// <param name="selectTarget">Selects the node to format from the document root</param>
+    /// <param name="format">Invokes the node-level entry point</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertNodeLevelFormattingKeepsSource(string source,
+                                                            System.Func<SyntaxNode, SyntaxNode> selectTarget,
+                                                            System.Func<Document, SyntaxNode, System.Threading.CancellationToken, Task<Document>> format)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Arrange
+            var input = NormalizeLineEndings(source, endOfLine);
+
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(input));
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+
+                if (root == null)
+                {
+                    Assert.Fail("Expected a syntax root in the test document.");
+                }
+
+                // Act
+                var result = await format(document, selectTarget(root), TestContext.CancellationToken);
+                var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                // Assert
+                Assert.AreEqual(input, resultText, $"Node-level formatting must keep the accessor block under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
     }
 
     #endregion // Methods

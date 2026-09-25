@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -46,10 +46,7 @@ public class StraddlingRegionPairTests : FormatterTestsBase
                                     #region Inner
 
                                     {
-                                        get
-                                        {
-                                            return 0;
-                                        }
+                                        get => 0;
                                     }
 
                                     #endregion // Inner

@@ -34,10 +34,7 @@ public class ExpressionBodiedIndexerFullPipelineTests : FormatterTestsBase
 
                                           public int this[int index]
                                           {
-                                              get
-                                              {
-                                                  return _items[index];
-                                              }
+                                              get => _items[index];
                                           }
                                       }
                                       """;
@@ -47,11 +44,11 @@ public class ExpressionBodiedIndexerFullPipelineTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer is converted to a block body and fully laid out
-    /// by a single formatting pass
+    /// Verifies that an expression-bodied indexer is converted to an accessor list with an
+    /// expression-bodied get accessor and fully laid out by a single formatting pass
     /// </summary>
     [TestMethod]
-    public void ConvertsExpressionBodiedIndexerToBlockBody()
+    public void ConvertsExpressionBodiedIndexerToGetAccessor()
     {
         AssertRuleResult(TestData, ResultData);
     }
@@ -86,18 +83,12 @@ public class ExpressionBodiedIndexerFullPipelineTests : FormatterTestsBase
 
                                         public int this[int index]
                                         {
-                                            get
-                                            {
-                                                return _items[index];
-                                            }
+                                            get => _items[index];
                                         }
 
                                         public int this[string key]
                                         {
-                                            get
-                                            {
-                                                return _items[key.Length];
-                                            }
+                                            get => _items[key.Length];
                                         }
                                     }
                                 }
