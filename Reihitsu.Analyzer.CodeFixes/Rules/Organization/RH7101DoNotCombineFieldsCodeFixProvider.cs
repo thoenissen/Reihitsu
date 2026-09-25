@@ -50,7 +50,8 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
         // over the type reformats members unrelated to the diagnostic. Reuse the formatter's field-split structural
         // transform on its own instead: it splits the combined fields and preserves the comments attached to
         // declarators and their separators, without touching the rest of the type.
-        var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root));
+        var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
         var splitTypeDeclaration = new FieldDeclarationSplitTransform(context, cancellationToken).Visit(typeDeclaration);
 
         return splitTypeDeclaration == null

@@ -1,5 +1,3 @@
-using System.Threading;
-
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,115 +6,101 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Regression tests for <see cref="ReihitsuFormatter.FormatSyntaxTree"/>: the C# 12 gate that
-/// <see cref="Pipeline.StructuralTransforms.Rewriter.EmptyTypeDeclarationSemicolonTransform"/> reads through
-/// <see cref="Reihitsu.Core.EmptyTypeDeclarationSemicolonAnalysisUtilities"/> must hold even after an earlier
-/// rewriter in the same <see cref="Pipeline.StructuralTransforms.StructuralTransformPhase"/> pass has already
-/// replaced the tree (thoenissen/Reihitsu#821)
+/// Regression tests for the language-version gate of
+/// <see cref="Pipeline.StructuralTransforms.Rewriter.EmptyTypeDeclarationSemicolonTransform"/>: the gate must hold even
+/// after an earlier rewriter in the same <see cref="Pipeline.StructuralTransforms.StructuralTransformPhase"/> pass has
+/// already replaced the tree, whose replacement no longer carries the source's parse options
 /// </summary>
 [TestClass]
 public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTests : FormatterTestsBase
 {
+    #region Constants
+
+    /// <summary>
+    /// A class whose unbraced <c>if</c> makes <see cref="Pipeline.StructuralTransforms.Rewriter.ControlFlowBraceTransform"/> replace the tree
+    /// </summary>
+    private const string ControlFlowTriggerInput = """
+
+                                                   public class B
+                                                   {
+                                                       public void M(int x)
+                                                       {
+                                                           if (x > 0)
+                                                               x = 0;
+                                                       }
+                                                   }
+                                                   """;
+
+    /// <summary>
+    /// The formatted form of <see cref="ControlFlowTriggerInput"/>
+    /// </summary>
+    private const string ControlFlowTriggerExpected = """
+
+                                                      public class B
+                                                      {
+                                                          public void M(int x)
+                                                          {
+                                                              if (x > 0)
+                                                              {
+                                                                  x = 0;
+                                                              }
+                                                          }
+                                                      }
+                                                      """;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
-    /// Verifies the issue's literal scenario: an empty class parsed at C# 11 must keep its braced body when a
-    /// later structural transform (here, <see cref="Pipeline.StructuralTransforms.Rewriter.ControlFlowBraceTransform"/>
-    /// adding braces to an <c>if</c> statement elsewhere in the file) has already replaced the tree
+    /// Verifies that an empty class keeps its braced body below C# 12 after the control-flow brace transform rewrote the tree
     /// </summary>
     [TestMethod]
-    public void EmptyClassStaysBracedBelowCSharp12AfterControlFlowBraceTransformRewroteTree()
+    public void EmptyClassStaysBracedBelowCSharp12AfterControlFlowBraceTransform()
     {
-        const string input = """
-                             public class A { }
-
-                             public class B
-                             {
-                                 public void M(int x)
-                                 {
-                                     if (x > 0)
-                                         x = 0;
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                public class A
-                                {
-                                }
-
-                                public class B
-                                {
-                                    public void M(int x)
-                                    {
-                                        if (x > 0)
-                                        {
-                                            x = 0;
-                                        }
-                                    }
-                                }
-                                """;
-        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11);
-
-        foreach (var endOfLine in _lineEndings)
-        {
-            var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
-            var actual = FormatThroughSyntaxTree(input, endOfLine, parseOptions);
-
-            Assert.AreEqual(normalizedExpected, actual, $"FormatSyntaxTree output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
-        }
+        AssertRuleResult("public class A { }\n" + ControlFlowTriggerInput,
+                         "public class A\n{\n}\n" + ControlFlowTriggerExpected,
+                         At(LanguageVersion.CSharp11));
     }
 
     /// <summary>
-    /// Verifies the same defect for the struct declaration kind, the nearest sibling shape to the issue's class example
+    /// Verifies that an empty struct keeps its braced body below C# 12 after the control-flow brace transform rewrote the tree
     /// </summary>
     [TestMethod]
-    public void EmptyStructStaysBracedBelowCSharp12AfterControlFlowBraceTransformRewroteTree()
+    public void EmptyStructStaysBracedBelowCSharp12AfterControlFlowBraceTransform()
     {
-        const string input = """
-                             public struct S { }
-
-                             public class B
-                             {
-                                 public void M(int x)
-                                 {
-                                     if (x > 0)
-                                         x = 0;
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                public struct S
-                                {
-                                }
-
-                                public class B
-                                {
-                                    public void M(int x)
-                                    {
-                                        if (x > 0)
-                                        {
-                                            x = 0;
-                                        }
-                                    }
-                                }
-                                """;
-        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11);
-
-        foreach (var endOfLine in _lineEndings)
-        {
-            var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
-            var actual = FormatThroughSyntaxTree(input, endOfLine, parseOptions);
-
-            Assert.AreEqual(normalizedExpected, actual, $"FormatSyntaxTree output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
-        }
+        AssertRuleResult("public struct S { }\n" + ControlFlowTriggerInput,
+                         "public struct S\n{\n}\n" + ControlFlowTriggerExpected,
+                         At(LanguageVersion.CSharp11));
     }
 
     /// <summary>
-    /// Verifies the same defect when a convertible accessor block, rather than an unbraced <c>if</c>, is the
-    /// earlier rewriter that replaces the tree — the second trigger the issue itself calls out
+    /// Verifies that an empty interface keeps its braced body below C# 12 after the control-flow brace transform rewrote the tree
     /// </summary>
     [TestMethod]
-    public void EmptyClassStaysBracedBelowCSharp12AfterAccessorExpressionBodyTransformRewroteTree()
+    public void EmptyInterfaceStaysBracedBelowCSharp12AfterControlFlowBraceTransform()
+    {
+        AssertRuleResult("public interface I { }\n" + ControlFlowTriggerInput,
+                         "public interface I\n{\n}\n" + ControlFlowTriggerExpected,
+                         At(LanguageVersion.CSharp11));
+    }
+
+    /// <summary>
+    /// Verifies that an empty record struct keeps its braced body below C# 10 after the control-flow brace transform rewrote the tree
+    /// </summary>
+    [TestMethod]
+    public void EmptyRecordStructStaysBracedBelowCSharp10AfterControlFlowBraceTransform()
+    {
+        AssertRuleResult("public record struct R { }\n" + ControlFlowTriggerInput,
+                         "public record struct R\n{\n}\n" + ControlFlowTriggerExpected,
+                         At(LanguageVersion.CSharp9));
+    }
+
+    /// <summary>
+    /// Verifies that an empty class keeps its braced body below C# 12 when a convertible accessor block is the earlier rewrite
+    /// </summary>
+    [TestMethod]
+    public void EmptyClassStaysBracedBelowCSharp12AfterAccessorExpressionBodyTransform()
     {
         const string input = """
                              public class A { }
@@ -146,57 +130,135 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
                                     }
                                 }
                                 """;
-        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11);
 
-        foreach (var endOfLine in _lineEndings)
-        {
-            var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
-            var actual = FormatThroughSyntaxTree(input, endOfLine, parseOptions);
-
-            Assert.AreEqual(normalizedExpected, actual, $"FormatSyntaxTree output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
-        }
+        AssertRuleResult(input, expected, At(LanguageVersion.CSharp11));
     }
 
     /// <summary>
-    /// Baseline: the same empty class, alone in the file so no earlier rewriter replaces the tree, must already
-    /// keep its braced body below C# 12 — establishes that the defect is specific to the multi-rewriter chain,
-    /// not to the empty-type gate in general
+    /// Verifies that an empty class keeps its braced body below C# 12 when an expression-bodied method is the earlier rewrite
     /// </summary>
     [TestMethod]
-    public void EmptyClassStaysBracedBelowCSharp12WhenNoEarlierTransformRan()
+    public void EmptyClassStaysBracedBelowCSharp12AfterExpressionBodiedMethodTransform()
     {
         const string input = """
                              public class A { }
+
+                             public class B
+                             {
+                                 public int M() => 1;
+                             }
                              """;
         const string expected = """
                                 public class A
                                 {
                                 }
+
+                                public class B
+                                {
+                                    public int M()
+                                    {
+                                        return 1;
+                                    }
+                                }
                                 """;
-        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11);
 
-        // Single-line input carries no end-of-line sequence for ReihitsuFormatterHelpers.DetectEndOfLine to key
-        // off, so this baseline (unlike the reproducing scenarios above, which contain multiple lines) is
-        // exercised under LF only.
-        var actual = FormatThroughSyntaxTree(input, "\n", parseOptions);
-
-        Assert.AreEqual(expected, actual);
+        AssertRuleResult(input, expected, At(LanguageVersion.CSharp11));
     }
 
     /// <summary>
-    /// Formats the given source through <see cref="ReihitsuFormatter.FormatSyntaxTree"/> with explicit parse options
+    /// Verifies that an empty nested class keeps its braced body below C# 12 when the trigger sits in the same containing type
     /// </summary>
-    /// <param name="input">The input source text</param>
-    /// <param name="endOfLine">The end-of-line sequence to normalize the input to</param>
-    /// <param name="parseOptions">The parse options to parse the input with</param>
-    /// <returns>The formatted source text</returns>
-    private static string FormatThroughSyntaxTree(string input, string endOfLine, CSharpParseOptions parseOptions)
+    [TestMethod]
+    public void EmptyNestedClassStaysBracedBelowCSharp12AfterControlFlowBraceTransform()
     {
-        var normalizedInput = NormalizeLineEndings(input, endOfLine);
-        var tree = CSharpSyntaxTree.ParseText(normalizedInput, parseOptions);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, CancellationToken.None);
+        const string input = """
+                             namespace N;
 
-        return formattedTree.GetRoot().ToFullString();
+                             public class B
+                             {
+                                 public class A { }
+
+                                 public void M(int x)
+                                 {
+                                     if (x > 0)
+                                         x = 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace N;
+
+                                public class B
+                                {
+                                    public class A
+                                    {
+                                    }
+
+                                    public void M(int x)
+                                    {
+                                        if (x > 0)
+                                        {
+                                            x = 0;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected, At(LanguageVersion.CSharp11));
+    }
+
+    /// <summary>
+    /// Verifies that an empty class keeps its braced body below C# 12 when no earlier rewriter changes the tree
+    /// </summary>
+    [TestMethod]
+    public void EmptyClassStaysBracedBelowCSharp12WithoutEarlierTransform()
+    {
+        AssertRuleResult("public class A { }\n\npublic class B\n{\n}",
+                         "public class A\n{\n}\n\npublic class B\n{\n}",
+                         At(LanguageVersion.CSharp11));
+    }
+
+    /// <summary>
+    /// Verifies that an empty class still converts from C# 12 on when an earlier rewriter changed the tree
+    /// </summary>
+    [TestMethod]
+    public void EmptyClassConvertsFromCSharp12AfterControlFlowBraceTransform()
+    {
+        AssertRuleResult("public class A { }\n" + ControlFlowTriggerInput,
+                         "public class A;\n" + ControlFlowTriggerExpected,
+                         At(LanguageVersion.CSharp12));
+    }
+
+    /// <summary>
+    /// Verifies that an empty record struct still converts from C# 10 on when an earlier rewriter changed the tree
+    /// </summary>
+    [TestMethod]
+    public void EmptyRecordStructConvertsFromCSharp10AfterControlFlowBraceTransform()
+    {
+        AssertRuleResult("public record struct R { }\n" + ControlFlowTriggerInput,
+                         "public record struct R;\n" + ControlFlowTriggerExpected,
+                         At(LanguageVersion.CSharp10));
+    }
+
+    /// <summary>
+    /// Verifies that an empty record class still converts from C# 9 on when an earlier rewriter changed the tree
+    /// </summary>
+    [TestMethod]
+    public void EmptyRecordConvertsFromCSharp9AfterControlFlowBraceTransform()
+    {
+        AssertRuleResult("public record R { }\n" + ControlFlowTriggerInput,
+                         "public record R;\n" + ControlFlowTriggerExpected,
+                         At(LanguageVersion.CSharp9));
+    }
+
+    /// <summary>
+    /// Creates parse options for the given language version
+    /// </summary>
+    /// <param name="languageVersion">The language version</param>
+    /// <returns>The parse options</returns>
+    private static CSharpParseOptions At(LanguageVersion languageVersion)
+    {
+        return CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
     }
 
     #endregion // Methods

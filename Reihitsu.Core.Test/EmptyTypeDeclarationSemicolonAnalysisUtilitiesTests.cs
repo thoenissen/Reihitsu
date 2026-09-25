@@ -170,5 +170,111 @@ public class EmptyTypeDeclarationSemicolonAnalysisUtilitiesTests
         Assert.IsTrue(result);
     }
 
+    /// <summary>
+    /// Verifies that an explicit language version below the minimum wins over a syntax tree that supports the conversion
+    /// </summary>
+    [TestMethod]
+    public void ShouldReportWithExplicitVersionReturnsFalseBelowMinimumEvenWhenTreeSupportsIt()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          class Sample
+                                                                                          {
+                                                                                          }
+                                                                                          """,
+                                                                                          LanguageVersion.CSharp12);
+
+        var result = EmptyTypeDeclarationSemicolonAnalysisUtilities.ShouldReport(classDeclaration,
+                                                                                 SyntaxKind.ClassDeclaration,
+                                                                                 LanguageVersion.CSharp12,
+                                                                                 LanguageVersion.CSharp11);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit language version at the minimum wins over a syntax tree that predates the conversion
+    /// </summary>
+    [TestMethod]
+    public void ShouldReportWithExplicitVersionReturnsTrueAtMinimumEvenWhenTreePredatesIt()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          class Sample
+                                                                                          {
+                                                                                          }
+                                                                                          """,
+                                                                                          LanguageVersion.CSharp11);
+
+        var result = EmptyTypeDeclarationSemicolonAnalysisUtilities.ShouldReport(classDeclaration,
+                                                                                 SyntaxKind.ClassDeclaration,
+                                                                                 LanguageVersion.CSharp12,
+                                                                                 LanguageVersion.CSharp12);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit language version below the record minimum prevents the conversion
+    /// </summary>
+    [TestMethod]
+    public void CanConvertSafelyWithExplicitVersionReturnsFalseBelowRecordMinimum()
+    {
+        var recordDeclaration = CoreSyntaxTestHelper.GetSingleNode<RecordDeclarationSyntax>("""
+                                                                                            record Sample
+                                                                                            {
+                                                                                            }
+                                                                                            """,
+                                                                                            LanguageVersion.CSharp9);
+
+        var result = EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(recordDeclaration,
+                                                                                     SyntaxKind.RecordDeclaration,
+                                                                                     LanguageVersion.CSharp9,
+                                                                                     LanguageVersion.CSharp8);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit language version at the minimum still honors the meaningful-trivia guard
+    /// </summary>
+    [TestMethod]
+    public void CanConvertSafelyWithExplicitVersionReturnsFalseWhenBodyContainsCommentTrivia()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          class Sample
+                                                                                          {
+                                                                                              // keep
+                                                                                          }
+                                                                                          """,
+                                                                                          LanguageVersion.CSharp12);
+
+        var result = EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(classDeclaration,
+                                                                                     SyntaxKind.ClassDeclaration,
+                                                                                     LanguageVersion.CSharp12,
+                                                                                     LanguageVersion.CSharp12);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit language version at the minimum converts an empty declaration without trivia
+    /// </summary>
+    [TestMethod]
+    public void CanConvertSafelyWithExplicitVersionReturnsTrueAtMinimum()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          class Sample
+                                                                                          {
+                                                                                          }
+                                                                                          """,
+                                                                                          LanguageVersion.CSharp12);
+
+        var result = EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(classDeclaration,
+                                                                                     SyntaxKind.ClassDeclaration,
+                                                                                     LanguageVersion.CSharp12,
+                                                                                     LanguageVersion.CSharp12);
+
+        Assert.IsTrue(result);
+    }
+
     #endregion // Tests
 }

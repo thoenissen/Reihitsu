@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -18,6 +19,12 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// The language version the source targets, taken from the formatting context because a node that an earlier
+    /// rewriter replaced belongs to a new tree whose parse options fall back to the defaults
+    /// </summary>
+    private readonly LanguageVersion _languageVersion;
+
     #endregion // Fields
 
     #region Constructor
@@ -25,10 +32,12 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public EmptyTypeDeclarationSemicolonTransform(CancellationToken cancellationToken)
+    public EmptyTypeDeclarationSemicolonTransform(FormattingContext context, CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
+        _languageVersion = context.LanguageVersion;
     }
 
     #endregion // Constructor
@@ -92,7 +101,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         node = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
 
-        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12) == false)
+        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12, _languageVersion) == false)
         {
             return node;
         }
@@ -107,7 +116,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         node = (StructDeclarationSyntax)base.VisitStructDeclaration(node);
 
-        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12) == false)
+        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12, _languageVersion) == false)
         {
             return node;
         }
@@ -122,7 +131,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         node = (InterfaceDeclarationSyntax)base.VisitInterfaceDeclaration(node);
 
-        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12) == false)
+        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp12, _languageVersion) == false)
         {
             return node;
         }
@@ -144,7 +153,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         var minimumLanguageVersion = node.IsKind(SyntaxKind.RecordStructDeclaration) ? LanguageVersion.CSharp10 : LanguageVersion.CSharp9;
 
-        if (EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), minimumLanguageVersion) == false)
+        if (EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), minimumLanguageVersion, _languageVersion) == false)
         {
             return node;
         }

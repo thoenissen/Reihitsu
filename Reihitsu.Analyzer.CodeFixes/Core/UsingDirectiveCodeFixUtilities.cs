@@ -41,7 +41,9 @@ internal static class UsingDirectiveCodeFixUtilities
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var organizedScope = new UsingDirectiveOrderingPhase().Execute(scope, new FormattingContext(endOfLine), cancellationToken);
+        var organizedScope = new UsingDirectiveOrderingPhase().Execute(scope,
+                                                                       new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions)),
+                                                                       cancellationToken);
         var organizedUsings = UsingDirectiveOrderingUtilities.GetUsings(organizedScope);
 
         if (organizedUsings.SequenceEqual(usingDirectives))

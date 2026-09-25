@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
@@ -130,7 +131,7 @@ public abstract class FormatterTestsBase
     private static string ApplyRule(string input, string endOfLine, CSharpParseOptions parseOptions = null)
     {
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(endOfLine);
+        var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(tree.Options));
         var result = FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None);
 
         return result.ToFullString();
