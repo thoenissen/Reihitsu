@@ -1052,14 +1052,16 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                                {
                                                                                    private KeyValuePair<string, int> _value;
 
-                                                                                   public void Test<TDictionary, TReadOnlyDictionary, TConcreteDictionary>(TDictionary dictionary, TReadOnlyDictionary readOnlyDictionary, TConcreteDictionary concreteDictionary)
+                                                                                   public void Test<TDictionary, TReadOnlyDictionary, TConcreteDictionary, TNestedReadOnlyDictionary>(TDictionary dictionary, TReadOnlyDictionary readOnlyDictionary, TConcreteDictionary concreteDictionary, TNestedReadOnlyDictionary nestedReadOnlyDictionary)
                                                                                        where TDictionary : IDictionary<string, int>
                                                                                        where TReadOnlyDictionary : IReadOnlyDictionary<string, int>
                                                                                        where TConcreteDictionary : Dictionary<string, int>
+                                                                                       where TNestedReadOnlyDictionary : TReadOnlyDictionary
                                                                                    {
                                                                                        Enumerable.Contains(dictionary, _value);
                                                                                        readOnlyDictionary.Contains(_value);
                                                                                        concreteDictionary.Contains(_value);
+                                                                                       nestedReadOnlyDictionary.Contains(_value);
                                                                                    }
                                                                                }
                                                                            }
@@ -1090,7 +1092,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                       """;
 
     /// <summary>
-    /// Test data for verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface, because it is not a collection that the call delegates to
+    /// Test data for verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface, directly or through a type parameter constrained to it, because it is not a collection that the call delegates to
     /// </summary>
     private const string ReadOnlyOnlyDictionaryReceiverContainsTestData = """
                                                                           using System.Collections;
@@ -1121,6 +1123,12 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                                   public void Test()
                                                                                   {
                                                                                       _dictionary.{|#0:Contains|}(_value);
+                                                                                  }
+
+                                                                                  public void Test<TReadOnlyOnlyDictionary>(TReadOnlyOnlyDictionary dictionary)
+                                                                                      where TReadOnlyOnlyDictionary : ReadOnlyOnlyDictionary
+                                                                                  {
+                                                                                      dictionary.{|#1:Contains|}(_value);
                                                                                   }
                                                                               }
                                                                           }
@@ -1436,13 +1444,13 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     }
 
     /// <summary>
-    /// Verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface
+    /// Verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface, directly or through a type parameter constrained to it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyContainsOnConcreteReadOnlyOnlyDictionaryIsChecked()
     {
-        await Verify(ReadOnlyOnlyDictionaryReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+        await Verify(ReadOnlyOnlyDictionaryReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
     }
 
     #endregion // Methods

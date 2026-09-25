@@ -152,9 +152,10 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// That overload delegates to the source's own <c>ICollection&lt;T&gt;.Contains</c>, which a dictionary answers
     /// with a key lookup, so the <see cref="KeyValuePair{TKey, TValue}"/> equality members are never used.
     /// A source that converts to <see cref="IDictionary{TKey, TValue}"/> is always such a collection. A source that
-    /// only converts to <see cref="IReadOnlyDictionary{TKey, TValue}"/> is exempt only when its static type is an
-    /// interface or a type parameter, whose runtime implementations are dictionaries that delegate; a concrete type
-    /// implementing only the read-only interface is not a collection and is scanned with the default comparer.
+    /// only converts to <see cref="IReadOnlyDictionary{TKey, TValue}"/> is exempt only when that conversion comes
+    /// from an interface — the static type itself, or an interface constraint of a type parameter — whose runtime
+    /// implementations are dictionaries that delegate; a concrete type implementing only the read-only interface,
+    /// directly or as a type parameter's class constraint, is not a collection and is scanned with the default comparer.
     /// The overload that takes a comparer does not delegate, and a source whose static type is only a key/value
     /// pair sequence carries no dictionary semantics, so both stay checked
     /// </summary>
@@ -195,8 +196,27 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
             return true;
         }
 
-        return sourceType.TypeKind is TypeKind.Interface or TypeKind.TypeParameter
-               && IsImplicitlyConvertibleToDictionary(compilation, sourceType, "System.Collections.Generic.IReadOnlyDictionary`2", keyValuePairType.TypeArguments);
+        return IsReadOnlyDictionaryInterface(compilation, sourceType, keyValuePairType.TypeArguments);
+    }
+
+    /// <summary>
+    /// Determines whether the type is an interface that converts to <see cref="IReadOnlyDictionary{TKey, TValue}"/>,
+    /// or a type parameter with such an interface among its constraints, followed through nested type parameters.
+    /// A class constraint is not followed, because a concrete type implementing only the read-only interface does
+    /// not delegate the lookup
+    /// </summary>
+    /// <param name="compilation">Compilation</param>
+    /// <param name="type">Type to check</param>
+    /// <param name="keyAndValueTypes">Key and value type arguments</param>
+    /// <returns><see langword="true"/> if the type is, or is constrained to, a read-only dictionary interface</returns>
+    private static bool IsReadOnlyDictionaryInterface(Compilation compilation, ITypeSymbol type, ImmutableArray<ITypeSymbol> keyAndValueTypes)
+    {
+        return type switch
+               {
+                   ITypeParameterSymbol typeParameter => typeParameter.ConstraintTypes.Any(constraintType => IsReadOnlyDictionaryInterface(compilation, constraintType, keyAndValueTypes)),
+                   { TypeKind: TypeKind.Interface } => IsImplicitlyConvertibleToDictionary(compilation, type, "System.Collections.Generic.IReadOnlyDictionary`2", keyAndValueTypes),
+                   _ => false
+               };
     }
 
     /// <summary>
