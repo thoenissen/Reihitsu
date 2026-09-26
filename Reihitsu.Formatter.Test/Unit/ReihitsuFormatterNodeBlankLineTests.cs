@@ -1001,17 +1001,946 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                 }
                                 """;
 
-        await AssertFormatsTarget(input, expected, SelectLastIfStatement);
+        await AssertFormatsTarget(input, expected, SelectLast<IfStatementSyntax>);
     }
 
     /// <summary>
-    /// Selects the last <see cref="IfStatementSyntax"/> node below the root
+    /// Verifies that a blank line is inserted above a statement that no phase rewrites, when it directly follows a declaration statement
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveUnchangedStatementAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+                                     if (copy > 0)
+                                     {
+                                         copy++;
+                                     }
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+
+                                        if (copy > 0)
+                                        {
+                                            copy++;
+                                        }
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("if (copy"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a statement that no phase rewrites, when it directly follows a closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveUnchangedStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                                     Consume(value);
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+
+                                        Consume(value);
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(value)"));
+    }
+
+    /// <summary>
+    /// Verifies that the blank line required after a closing brace is inserted below a directive that directly precedes the statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineBelowDirectiveAboveStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                             #if !DEBUG
+                                     Consume(value);
+                             #endif
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+                                #if !DEBUG
+
+                                        Consume(value);
+                                #endif
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(value)"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a statement whose body a structural transform braces, when a directive directly precedes it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineBelowDirectiveAboveRewrittenStatementAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+                             #if !DEBUG
+                                     if (copy > 0)
+                                         copy++;
+                             #endif
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+                                #if !DEBUG
+                                        if (copy > 0)
+                                        {
+                                            copy++;
+                                        }
+                                #endif
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("if (copy"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a statement whose body a structural transform braces, when the preceding line ends in a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveRewrittenStatementAfterTrailingComment()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value; // Copy
+                                     if (copy > 0)
+                                         copy++;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value; // Copy
+
+                                        if (copy > 0)
+                                        {
+                                            copy++;
+                                        }
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("if (copy"));
+    }
+
+    /// <summary>
+    /// Verifies that two blank lines above a statement whose body a structural transform braces collapse to exactly one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task CollapsesTwoBlankLinesAboveRewrittenStatementToOne()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+
+
+                                     if (copy > 0)
+                                         copy++;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+
+                                        if (copy > 0)
+                                        {
+                                            copy++;
+                                        }
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("if (copy"));
+    }
+
+    /// <summary>
+    /// Verifies that the blank line above a statement whose body a structural transform braces lands above its leading comment, not between the comment and the statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveCommentOfRewrittenStatementAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+                                     // Increment
+                                     if (copy > 0)
+                                         copy++;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+
+                                        // Increment
+                                        if (copy > 0)
+                                        {
+                                            copy++;
+                                        }
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("if (copy"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a declaration statement that directly follows an expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveDeclarationAfterExpression()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     value++;
+                                     var copy = value;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        value++;
+
+                                        var copy = value;
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("var copy"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a declaration statement that directly follows another declaration statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveDeclarationAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var first = value;
+                                     var copy = first;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var first = value;
+                                        var copy = first;
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("var copy"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above an invocation statement that directly follows a declaration statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveInvocationAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+                                     Consume(copy);
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+
+                                        Consume(copy);
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(copy)"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above an assignment statement that directly follows a declaration statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveAssignmentAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+                                     copy = copy + 1;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+                                        copy = copy + 1;
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("copy = copy"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above an invocation statement that directly follows another expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveInvocationAfterExpression()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     value++;
+                                     Consume(value);
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        value++;
+                                        Consume(value);
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(value)"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a yield statement that directly follows an expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveYieldAfterExpression()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public System.Collections.Generic.IEnumerable<int> M(int value)
+                                 {
+                                     value++;
+                                     yield return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public System.Collections.Generic.IEnumerable<int> M(int value)
+                                    {
+                                        value++;
+
+                                        yield return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("yield return value"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a yield statement that directly follows another yield statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveYieldAfterYield()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public System.Collections.Generic.IEnumerable<int> M(int value)
+                                 {
+                                     yield return value;
+                                     yield return value + 1;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public System.Collections.Generic.IEnumerable<int> M(int value)
+                                    {
+                                        yield return value;
+                                        yield return value + 1;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("yield return value + 1"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a break statement inside a loop body that directly follows an expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveBreakInLoopAfterExpression()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     while (value > 0)
+                                     {
+                                         value--;
+                                         break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        while (value > 0)
+                                        {
+                                            value--;
+
+                                            break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("break"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above the terminal break statement of a switch section that directly follows an expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveTerminalSwitchSectionBreakAfterExpression()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             value++;
+                                             break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                value++;
+                                                break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("break"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above the terminal break statement of a switch section that directly follows a closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveTerminalSwitchSectionBreakAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             if (value > 0)
+                                             {
+                                                 value++;
+                                             }
+                                             break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                if (value > 0)
+                                                {
+                                                    value++;
+                                                }
+                                                break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("break"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a statement that directly follows a break statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveStatementAfterBreak()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     while (value > 0)
+                                     {
+                                         break;
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        while (value > 0)
+                                        {
+                                            break;
+
+                                            Consume(value);
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(value)"));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a switch section whose preceding section ends in a break statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveSwitchSectionAfterBreakSection()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             value++;
+                                             break;
+                                         case 2:
+                                             value--;
+                                             break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                value++;
+                                                break;
+
+                                            case 2:
+                                                value--;
+                                                break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<SwitchSectionSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a switch section whose preceding section ends in a return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveSwitchSectionAfterReturnSection()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             return value;
+                                         case 2:
+                                             value--;
+                                             break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                return value;
+                                            case 2:
+                                                value--;
+                                                break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<SwitchSectionSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a statement whose body a structural transform braces, when it is the first statement of its block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveRewrittenFirstStatementInBlock()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 0)
+                                         value++;
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 0)
+                                        {
+                                            value++;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("if (value"));
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above an expression statement whose preceding statement ends in a semicolon, even when document-level formatting would brace that preceding statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveStatementAfterUnbracedStatement()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                         value--;
+                                     Consume(value);
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                            value--;
+                                        Consume(value);
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(value)"));
+    }
+
+    /// <summary>
+    /// Verifies that the gap above a statement that shares its line with the preceding statement stays unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveStatementOnSameLineAsPreviousStatement()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value; Consume(copy);
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value; Consume(copy);
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(copy)"));
+    }
+
+    /// <summary>
+    /// Selects the last node of the given type below the root
+    /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
     /// <param name="root">The document root</param>
     /// <returns>The last matching node</returns>
-    private static SyntaxNode SelectLastIfStatement(SyntaxNode root)
+    private static SyntaxNode SelectLast<TNode>(SyntaxNode root)
+        where TNode : SyntaxNode
     {
-        return root.DescendantNodes().OfType<IfStatementSyntax>().Last();
+        return root.DescendantNodes().OfType<TNode>().Last();
+    }
+
+    /// <summary>
+    /// Creates a selector for the first statement below the root whose text starts with the given prefix
+    /// </summary>
+    /// <param name="prefix">The start of the statement text, without leading trivia</param>
+    /// <returns>The selector</returns>
+    private static Func<SyntaxNode, SyntaxNode> SelectStatement(string prefix)
+    {
+        return root => root.DescendantNodes().OfType<StatementSyntax>().First(statement => statement.ToString().StartsWith(prefix, StringComparison.Ordinal));
     }
 
     /// <summary>
