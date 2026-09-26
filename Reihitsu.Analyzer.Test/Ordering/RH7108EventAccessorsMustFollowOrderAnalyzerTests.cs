@@ -161,6 +161,49 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying the code fix for block event accessors written on one line places each reordered accessor on its
+    /// own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SingleLineEventAccessorsAreFixedOntoSeparateLines()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class TestClass
+                                {
+                                    private EventHandler _changed;
+
+                                    public event EventHandler Changed { remove { _changed -= value; } {|#0:add|} { _changed += value; } }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class TestClass
+                                 {
+                                     private EventHandler _changed;
+
+                                     public event EventHandler Changed
+                                     {
+                                         add
+                                         {
+                                             _changed += value;
+                                         }
+                                         remove
+                                         {
+                                             _changed -= value;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7108MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
