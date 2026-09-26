@@ -1814,7 +1814,8 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a block comment trailing the statement's semicolon in a single-line accessor list stays on the line of
-    /// the converted accessor, because only a single-line comment needs to end its line
+    /// the converted accessor, because only a single-line comment needs to end its line, while the following accessor
+    /// still starts a line of its own
     /// </summary>
     [TestMethod]
     public void TrailingBlockCommentStaysOnLineInSingleLineAccessorList()
@@ -1835,7 +1836,8 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
 
                                     public int X
                                     {
-                                        get => _x; /* c */ set => _x = value;
+                                        get => _x; /* c */
+                                        set => _x = value;
                                     }
                                 }
                                 """;

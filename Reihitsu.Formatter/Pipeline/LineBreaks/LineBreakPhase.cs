@@ -13,7 +13,8 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// Line breaks — determines where line breaks are placed.
 /// Handles Allman brace placement, argument wrapping, chain link collapsing,
 /// operator position, ternary placement, constructor initializer placement,
-/// generic constraint placement, and expression-bodied property collapse
+/// generic constraint placement, expression-bodied property collapse, and accessor-list layout
+/// (one accessor per line, or a single-line auto-accessor list)
 /// </summary>
 internal sealed class LineBreakPhase : IFormattingPhase
 {
@@ -30,6 +31,7 @@ internal sealed class LineBreakPhase : IFormattingPhase
     {
         var gapNormalizer = new TokenGapNormalizer(context.EndOfLine);
         var bracePlacer = new BracePlacer(gapNormalizer, context.EndOfLine);
+        var accessorListLayout = new AccessorListLayout(bracePlacer);
 
         return [
                    new LineBreakBlockRewriter(gapNormalizer, bracePlacer, cancellationToken),
@@ -38,9 +40,9 @@ internal sealed class LineBreakPhase : IFormattingPhase
                    new LineBreakAssignmentRewriter(cancellationToken),
                    new DeclarationSemicolonLineBreakRewriter(cancellationToken),
                    new LineBreakListRewriter(context, cancellationToken),
-                   new PropertyLayoutLineBreakRewriter(bracePlacer, cancellationToken),
+                   new PropertyLayoutLineBreakRewriter(accessorListLayout, cancellationToken),
                    new GenericConstraintLineBreakRewriter(context, cancellationToken),
-                   new DeclarationBraceLineBreakRewriter(context, bracePlacer, cancellationToken),
+                   new DeclarationBraceLineBreakRewriter(context, bracePlacer, accessorListLayout, cancellationToken),
                    new AttributeTargetFormattingRewriter(context, cancellationToken),
                    new BinaryOperatorLineBreakRewriter(context, cancellationToken),
                    new ChainLineBreakRewriter(context, cancellationToken),
