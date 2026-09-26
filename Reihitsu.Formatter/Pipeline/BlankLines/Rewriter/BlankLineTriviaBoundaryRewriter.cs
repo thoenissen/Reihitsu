@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
@@ -205,9 +207,31 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Counts the line breaks rendered between the end of the preceding token and the start of the comment, which equals the
+    /// difference of their line numbers. Line breaks inside multi-line comments count as well, and no position is read, so
+    /// the count is valid for the first token of a detached formatting root
+    /// </summary>
+    /// <param name="previousToken">The facts about the token that precedes the comment's token</param>
+    /// <param name="trivia">The leading trivia that contains the comment</param>
+    /// <param name="commentIndex">The index of the comment in <paramref name="trivia"/></param>
+    /// <returns>The number of rendered line breaks between the preceding token and the comment</returns>
+    private static int CountRenderedLineBreaksBeforeComment(PrecedingTokenFacts previousToken, SyntaxTriviaList trivia, int commentIndex)
+    {
+        var gapText = new StringBuilder(previousToken.TrailingTrivia.ToFullString());
+
+        for (var triviaIndex = 0; triviaIndex < commentIndex; triviaIndex++)
+        {
+            gapText.Append(trivia[triviaIndex].ToFullString());
+        }
+
+        return SourceText.From(gapText.ToString()).Lines.Count - 1;
+    }
+
+    /// <summary>
     /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
+    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, resolved through <see cref="PrecedingTokenFacts.Resolve"/></param>
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
@@ -228,8 +252,16 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// is measured the same way, and switching to the range measure would put a blank line into a shape that is a
     /// fixed point today - that gap is a defect of its own rather than part of this one
     /// </para>
+    /// <para>
+    /// The rendered line numbers are derived from the text of the gap, see <see cref="CountRenderedLineBreaksBeforeComment"/>,
+    /// rather than from positions, because the first token of a formatting root that an earlier phase detached has no
+    /// previous token in its tree. <paramref name="previousTokenFacts"/> still carry that token's trailing trivia, so the
+    /// detached root is measured exactly like an attached one. The number of line breaks to insert keeps reading the live
+    /// previous token: a detached root keeps its rewritten leading trivia only when it starts its own line, which is exactly
+    /// when the comment cannot share the preceding token's line
+    /// </para>
     /// </remarks>
-    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
+    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
     {
         var trivia = token.LeadingTrivia;
         var commentIndex = FindFirstCommentIndex(trivia);
@@ -246,11 +278,9 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         var previousToken = token.GetPreviousToken();
 
-        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
+        if (previousTokenFacts.Exists)
         {
-            var previousLine = previousToken.GetLocation().GetLineSpan().EndLinePosition.Line;
-            var commentLine = trivia[commentIndex].GetLocation().GetLineSpan().StartLinePosition.Line;
-            var blankLineCountByLine = commentLine - previousLine - 1;
+            var blankLineCountByLine = CountRenderedLineBreaksBeforeComment(previousTokenFacts, trivia, commentIndex) - 1;
 
             if (blankLineCountByLine == 1)
             {
@@ -261,7 +291,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var lineStartIndex = FindLineStartIndex(trivia, commentIndex);
         var gapStartIndex = FindGapStartIndex(trivia, lineStartIndex);
         var localBlankLineCount = CountLocalBlankLines(trivia, gapStartIndex, lineStartIndex);
-        var blankLineCount = BlankLineEditor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex);
+        var blankLineCount = BlankLineEditor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex, previousTokenFacts);
 
         if (blankLineCount == 1 || (localBlankLineCount == 0 && BlankLineEditor.HasBlankLineBeforeIndex(trivia, commentIndex)))
         {
@@ -372,20 +402,21 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         token = base.VisitToken(token);
 
         var previousToken = token.GetPreviousToken();
-        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousToken);
-        var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken);
+        var previousTokenFacts = PrecedingTokenFacts.Resolve(previousToken, _context);
+        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousTokenFacts);
+        var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousTokenFacts);
 
         if (HasCommentInLeadingTrivia(token)
             && isFirstInBlock == false
             && IsStrandedInlineDocumentation(token, previousToken) == false)
         {
-            token = EnsureBlankLineBeforeFirstComment(token);
+            token = EnsureBlankLineBeforeFirstComment(token, previousTokenFacts);
         }
 
         if (HasEndRegionDirectiveInLeadingTrivia(token)
             && isExemptFromPrecedingBlankLineBeforeRegionDirective == false)
         {
-            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousToken);
+            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousTokenFacts);
         }
 
         if (HasEndRegionDirectiveInTrailingTrivia(token)

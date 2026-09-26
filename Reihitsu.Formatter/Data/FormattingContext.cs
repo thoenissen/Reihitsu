@@ -34,17 +34,22 @@ internal record FormattingContext
     /// The C# language version the source targets. It is resolved through <see cref="LanguageVersionResolver.Resolve(Microsoft.CodeAnalysis.CSharp.LanguageVersion)"/>,
     /// so <see cref="LanguageVersion.Default"/> stands for <see cref="LanguageVersionResolver.MaxSupportedLanguageVersion"/>
     /// </param>
+    /// <param name="rootPrecedingToken">
+    /// The facts about the token that precedes the formatting root in its document, or <see langword="default"/> when the caller supplies none
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
                              ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None,
-                             LanguageVersion languageVersion = LanguageVersion.Default)
+                             LanguageVersion languageVersion = LanguageVersion.Default,
+                             PrecedingTokenFacts rootPrecedingToken = default)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
         PreserveRootDocumentationBoundary = preserveRootDocumentationBoundary;
         DisabledStructuralTransforms = disabledStructuralTransforms;
         LanguageVersion = LanguageVersionResolver.Resolve(languageVersion);
+        RootPrecedingToken = rootPrecedingToken;
     }
 
     #endregion // Constructor
@@ -80,6 +85,16 @@ internal record FormattingContext
     /// Version-dependent rules read it instead of a node's parse options, which an earlier rewrite can reset to the defaults
     /// </summary>
     public LanguageVersion LanguageVersion { get; }
+
+    /// <summary>
+    /// The facts about the token that precedes the formatting root in its document. A phase that replaces the root detaches
+    /// it, so the root's first token no longer reaches this token through
+    /// <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; the facts are captured before the pipeline runs so
+    /// that detachment does not change the blank-line decisions for that token. Only
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
+    /// <see langword="default"/>, which means no preceding token is known — not that the root starts its file
+    /// </summary>
+    public PrecedingTokenFacts RootPrecedingToken { get; }
 
     #endregion // Properties
 

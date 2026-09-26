@@ -172,7 +172,8 @@ public static class ReihitsuFormatter
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: targetNode != root,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
-                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
+                                            rootPrecedingToken: PrecedingTokenFacts.From(originalFirstToken.GetPreviousToken()));
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
         var columnOffset = originalColumn - formattedColumn;

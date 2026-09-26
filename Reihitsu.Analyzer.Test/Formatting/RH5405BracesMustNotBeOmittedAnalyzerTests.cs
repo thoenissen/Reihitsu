@@ -258,6 +258,47 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the fix keeps the blank line that separates the braced statement from the previous statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineAboveFixedStatementIsKept()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method(int value)
+                                    {
+                                        var copy = value;
+
+                                        if (copy > 0)
+                                            {|#0:copy++;|}
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Method(int value)
+                                     {
+                                         var copy = value;
+
+                                         if (copy > 0)
+                                         {
+                                             copy++;
+                                         }
+
+                                         return copy;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

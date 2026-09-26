@@ -183,6 +183,57 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that the fix keeps the blank line between a file-scoped namespace and the converted class
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineAboveFixedClassInFileScopedNamespaceIsKept()
+    {
+        const string testData = """
+                                namespace Sample;
+
+                                internal class {|#0:Example|}
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace Sample;
+
+                                 internal class Example;
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix inserts the blank line above a comment that directly follows a file-scoped namespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineAboveCommentOfFixedClassInFileScopedNamespaceIsInserted()
+    {
+        const string testData = """
+                                namespace Sample;
+                                // Describes the class
+                                internal class {|#0:Example|}
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace Sample;
+
+                                 // Describes the class
+                                 internal class Example;
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

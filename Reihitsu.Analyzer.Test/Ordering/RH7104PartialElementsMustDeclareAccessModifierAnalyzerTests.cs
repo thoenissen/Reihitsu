@@ -100,6 +100,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                      protected internal partial class Inner
                                      {
                                      }
+
                                      protected internal partial class Inner;
                                  }
                                  """;
