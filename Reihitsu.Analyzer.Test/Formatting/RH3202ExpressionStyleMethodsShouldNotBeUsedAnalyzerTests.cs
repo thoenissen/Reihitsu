@@ -172,6 +172,37 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                      Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that the fix keeps the blank line that separates the converted method from the previous member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineAboveFixedMethodIsKept()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    private int _value;
+
+                                    public int GetValue() {|#0:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      private int _value;
+
+                                      public int GetValue()
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -195,6 +226,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                       {
                                           return 1;
                                       }
+
                                       public int Second()
                                       {
                                           return 2;

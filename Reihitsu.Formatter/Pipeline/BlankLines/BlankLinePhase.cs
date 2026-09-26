@@ -30,7 +30,7 @@ internal sealed class BlankLinePhase : IFormattingPhase
         var editor = new BlankLineEditor(context);
 
         return [
-                   new BlankLineTokenCleanupRewriter(context.PreserveRootDocumentationBoundary, cancellationToken),
+                   new BlankLineTokenCleanupRewriter(context, cancellationToken),
                    new BlankLineTriviaBoundaryRewriter(context, editor, cancellationToken),
                    new BlankLineRegionDirectiveRewriter(context, editor, cancellationToken),
                    new BlankLineStatementSpacingRewriter(editor, cancellationToken),

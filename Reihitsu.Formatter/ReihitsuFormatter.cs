@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
@@ -168,11 +169,14 @@ public static class ReihitsuFormatter
         var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
+        var precedingToken = originalFirstToken.GetPreviousToken();
         var context = new FormattingContext(endOfLine,
                                             baseIndentLevel,
                                             preserveRootDocumentationBoundary: targetNode != root,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
-                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions));
+                                            languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
+                                            rootPrecedingTokenKind: precedingToken.Kind(),
+                                            rootPrecedingTokenEndsLine: precedingToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia));
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
         var columnOffset = originalColumn - formattedColumn;

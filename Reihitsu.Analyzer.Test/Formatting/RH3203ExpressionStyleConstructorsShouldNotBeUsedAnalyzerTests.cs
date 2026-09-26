@@ -121,6 +121,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                   internal class RH3203
                                   {
                                       private int _value;
+
                                       public RH3203()
                                       {
                                           _value = 1
@@ -157,10 +158,12 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                   internal class RH3203
                                   {
                                       private int _value;
+
                                       public RH3203()
                                       {
                                           _value = 1;
                                       }
+
                                       public RH3203(int value)
                                       {
                                           _value = value;

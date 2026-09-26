@@ -34,17 +34,25 @@ internal record FormattingContext
     /// The C# language version the source targets. It is resolved through <see cref="LanguageVersionResolver.Resolve(Microsoft.CodeAnalysis.CSharp.LanguageVersion)"/>,
     /// so <see cref="LanguageVersion.Default"/> stands for <see cref="LanguageVersionResolver.MaxSupportedLanguageVersion"/>
     /// </param>
+    /// <param name="rootPrecedingTokenKind">
+    /// The kind of the token that precedes the formatting root in its document, or <see cref="SyntaxKind.None"/> when the root has no preceding token
+    /// </param>
+    /// <param name="rootPrecedingTokenEndsLine">Whether the trailing trivia of the token that precedes the formatting root contains a line break</param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
                              ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None,
-                             LanguageVersion languageVersion = LanguageVersion.Default)
+                             LanguageVersion languageVersion = LanguageVersion.Default,
+                             SyntaxKind rootPrecedingTokenKind = SyntaxKind.None,
+                             bool rootPrecedingTokenEndsLine = false)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
         PreserveRootDocumentationBoundary = preserveRootDocumentationBoundary;
         DisabledStructuralTransforms = disabledStructuralTransforms;
         LanguageVersion = LanguageVersionResolver.Resolve(languageVersion);
+        RootPrecedingTokenKind = rootPrecedingTokenKind;
+        RootPrecedingTokenEndsLine = rootPrecedingTokenEndsLine;
     }
 
     #endregion // Constructor
@@ -80,6 +88,20 @@ internal record FormattingContext
     /// Version-dependent rules read it instead of a node's parse options, which an earlier rewrite can reset to the defaults
     /// </summary>
     public LanguageVersion LanguageVersion { get; }
+
+    /// <summary>
+    /// The kind of the token that precedes the formatting root in its document, or <see cref="SyntaxKind.None"/> when the root
+    /// starts its document or has no document. A phase that replaces the root detaches it, so the root's first token no longer
+    /// reaches this token through <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; it is captured before the
+    /// pipeline runs so that detachment does not turn the root into the start of a file
+    /// </summary>
+    public SyntaxKind RootPrecedingTokenKind { get; }
+
+    /// <summary>
+    /// Whether the trailing trivia of the token that precedes the formatting root contains a line break.
+    /// Only meaningful when <see cref="RootPrecedingTokenKind"/> is not <see cref="SyntaxKind.None"/>
+    /// </summary>
+    public bool RootPrecedingTokenEndsLine { get; }
 
     #endregion // Properties
 
