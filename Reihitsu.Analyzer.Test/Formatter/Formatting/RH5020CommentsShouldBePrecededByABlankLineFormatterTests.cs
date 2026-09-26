@@ -113,5 +113,38 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
                               Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that the formatter inserts the blank line above a comment below a multi-line block comment behind the
+    /// previous member, whose inner line break the analyzer does not count as a blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterSeparatesCommentBelowMultiLineTrailingBlockComment()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 private string _d; /* a
+                                 b */
+                                 {|#0:// Describes|}
+                                 public string Description { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private string _d; /* a
+                                     b */
+
+                                     // Describes
+                                     public string Description { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
     #endregion // Tests
 }
