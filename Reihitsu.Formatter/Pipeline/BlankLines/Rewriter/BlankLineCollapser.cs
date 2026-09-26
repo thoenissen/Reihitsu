@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
@@ -17,6 +18,11 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     #region Fields
 
     /// <summary>
+    /// Formatting context of the current blank-line subphase
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
     /// Cancellation token of the current blank-line subphase
     /// </summary>
     private readonly CancellationToken _cancellationToken;
@@ -28,9 +34,11 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineCollapser(CancellationToken cancellationToken)
+    public BlankLineCollapser(FormattingContext context, CancellationToken cancellationToken)
     {
+        _context = context;
         _cancellationToken = cancellationToken;
     }
 
@@ -130,6 +138,12 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     #region CSharpSyntaxRewriter
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Whether the first trivia line continues the preceding token's line is read from the facts resolved through
+    /// <see cref="PrecedingTokenFacts.Resolve"/>. The first token of a formatting root that an earlier subphase detached
+    /// has no previous token in its tree, and reading the live previous token there would treat the line break that
+    /// ends the preceding token's line as a blank line and collapse a blank line the boundary rewriters just inserted
+    /// </remarks>
     public override SyntaxToken VisitToken(SyntaxToken token)
     {
         _cancellationToken.ThrowIfCancellationRequested();
@@ -143,12 +157,11 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
             return token;
         }
 
-        var previousToken = token.GetPreviousToken();
-        var firstLineHasContent = previousToken != default
-                                  && previousToken.IsKind(SyntaxKind.None) == false
-                                  && TokenGapAnalysis.OfTriviaRange(previousToken.TrailingTrivia,
+        var previousTokenFacts = PrecedingTokenFacts.Resolve(token.GetPreviousToken(), _context);
+        var firstLineHasContent = previousTokenFacts.Exists
+                                  && TokenGapAnalysis.OfTriviaRange(previousTokenFacts.TrailingTrivia,
                                                                     0,
-                                                                    previousToken.TrailingTrivia.Count).HasTerminalLineBreak == false;
+                                                                    previousTokenFacts.TrailingTrivia.Count).HasTerminalLineBreak == false;
         var collapsed = CollapseBlankLinesInTrivia(leading, firstLineHasContent);
 
         if (collapsed.Count != leading.Count)

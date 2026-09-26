@@ -51,7 +51,7 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Counts blank lines from the previous token to a leading-trivia prefix of the specified token
+    /// Analyzes the gap from the previous token to a leading-trivia prefix of the specified token
     /// </summary>
     /// <param name="token">The token whose leading-trivia prefix should be inspected</param>
     /// <param name="leadingTriviaEndExclusive">Exclusive upper bound in the leading-trivia list</param>
@@ -60,12 +60,12 @@ internal sealed class BlankLineEditor
     /// <see cref="PrecedingTokenFacts.Resolve"/> so that a detached formatting root still counts the line break that ends
     /// the preceding token's line
     /// </param>
-    /// <returns>The number of blank lines up to the specified leading-trivia index</returns>
-    public static int CountBlankLinesBeforeLeadingTriviaIndex(SyntaxToken token, int leadingTriviaEndExclusive, PrecedingTokenFacts previousToken)
+    /// <returns>The analysis of the trivia up to the specified leading-trivia index</returns>
+    public static TokenGapAnalysis AnalyzeGapBeforeLeadingTriviaIndex(SyntaxToken token, int leadingTriviaEndExclusive, PrecedingTokenFacts previousToken)
     {
         var gap = SyntaxFactory.TriviaList(previousToken.TrailingTrivia.Concat(token.LeadingTrivia.Take(leadingTriviaEndExclusive)));
 
-        return TokenGapAnalysis.OfTriviaRange(gap, 0, gap.Count).BlankLineCount;
+        return TokenGapAnalysis.OfTriviaRange(gap, 0, gap.Count);
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ internal sealed class BlankLineEditor
     /// Scans backward from <paramref name="leadingTriviaEndExclusive"/> and stops at the first non-blank
     /// content, matching <see cref="RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>,
     /// which only ever inspects the single line directly above the directive. Counting blank lines anywhere in
-    /// the full gap (as <see cref="CountBlankLinesBeforeLeadingTriviaIndex(SyntaxToken, int, PrecedingTokenFacts)"/> does) would let
+    /// the full gap (as <see cref="AnalyzeGapBeforeLeadingTriviaIndex(SyntaxToken, int, PrecedingTokenFacts)"/> does) would let
     /// an unrelated blank line further up the gap — for example above a preceding header comment — incorrectly
     /// satisfy the requirement.
     /// </remarks>

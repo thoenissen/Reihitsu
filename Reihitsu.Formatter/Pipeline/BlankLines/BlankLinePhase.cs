@@ -35,7 +35,7 @@ internal sealed class BlankLinePhase : IFormattingPhase
                    new BlankLineRegionDirectiveRewriter(context, editor, cancellationToken),
                    new BlankLineStatementSpacingRewriter(editor, cancellationToken),
                    new BlankLineBreakSpacingRewriter(context, editor, cancellationToken),
-                   new BlankLineCollapser(cancellationToken),
+                   new BlankLineCollapser(context, cancellationToken),
                ];
     }
 
