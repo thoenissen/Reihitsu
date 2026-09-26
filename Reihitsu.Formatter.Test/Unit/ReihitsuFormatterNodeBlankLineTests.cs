@@ -916,6 +916,105 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a blank line is inserted above a statement whose body a structural transform braces, when the
+    /// statement directly follows a declaration statement without a blank line between them in the input
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveRewrittenStatementAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+                                     if (copy > 0)
+                                         copy++;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+
+                                        if (copy > 0)
+                                        {
+                                            copy++;
+                                        }
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectSingle<IfStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a statement whose body a structural transform braces, when the
+    /// statement directly follows the closing brace of a preceding braced statement without a blank line between
+    /// them in the input
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveRewrittenStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                                     if (value > 0)
+                                         value++;
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+
+                                        if (value > 0)
+                                        {
+                                            value++;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLastIfStatement);
+    }
+
+    /// <summary>
+    /// Selects the last <see cref="IfStatementSyntax"/> node below the root
+    /// </summary>
+    /// <param name="root">The document root</param>
+    /// <returns>The last matching node</returns>
+    private static SyntaxNode SelectLastIfStatement(SyntaxNode root)
+    {
+        return root.DescendantNodes().OfType<IfStatementSyntax>().Last();
+    }
+
+    /// <summary>
     /// Selects the single node of the given type below the root
     /// </summary>
     /// <typeparam name="TNode">The node type</typeparam>
