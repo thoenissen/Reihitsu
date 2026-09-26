@@ -141,6 +141,67 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying the code fix for expression-bodied accessors written on one line places each reordered accessor
+    /// on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SingleLineExpressionBodiedAccessorsAreFixedOntoSeparateLines()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _value;
+
+                                    public int Value { set => _value = value; {|#0:get|} => _value; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     private int _value;
+
+                                     public int Value
+                                     {
+                                         get => _value;
+                                         set => _value = value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the code fix for a multi-line auto indexer collapses the reordered accessor list to a single line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MultiLineAutoIndexerAccessorsAreFixedOntoSingleLine()
+    {
+        const string testCode = """
+                                public interface ITestInterface
+                                {
+                                    int this[int index]
+                                    {
+                                        set;
+                                        {|#0:get|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface ITestInterface
+                                 {
+                                     int this[int index] { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

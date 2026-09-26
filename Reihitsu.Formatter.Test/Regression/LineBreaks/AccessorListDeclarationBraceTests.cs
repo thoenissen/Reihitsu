@@ -411,11 +411,11 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multi-line auto-accessor indexer keeps its existing layout, including the
-    /// opening brace on the declaration line
+    /// Verifies that a multi-line auto-accessor indexer, including one whose opening brace sits on the
+    /// declaration line, collapses to a single line like the matching auto-property
     /// </summary>
     [TestMethod]
-    public void MultiLineAutoAccessorIndexerRemainsUnchanged()
+    public void MultiLineAutoAccessorIndexerCollapses()
     {
         // Arrange
         const string input = """
@@ -427,9 +427,15 @@ public class AccessorListDeclarationBraceTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                interface IValues
+                                {
+                                    int this[int index] { get; set; }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

@@ -9,8 +9,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
 /// Applies Allman brace placement for declarations, member bodies and the accessor lists of
-/// indexer and event declarations, collapses parameter-list openers onto the declaration line, and
-/// places constructor initializers on their own line
+/// indexer and event declarations — including the accessor-list layout that indexers share with
+/// properties — collapses parameter-list openers onto the declaration line, and places constructor
+/// initializers on their own line
 /// </summary>
 internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -31,6 +32,11 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// </summary>
     private readonly BracePlacer _bracePlacer;
 
+    /// <summary>
+    /// The accessor-list layout
+    /// </summary>
+    private readonly AccessorListLayout _accessorListLayout;
+
     #endregion // Fields
 
     #region Constructor
@@ -40,14 +46,17 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="context">The formatting context</param>
     /// <param name="bracePlacer">The brace placer</param>
+    /// <param name="accessorListLayout">The accessor-list layout</param>
     /// <param name="cancellationToken">Cancellation token</param>
     public DeclarationBraceLineBreakRewriter(FormattingContext context,
                                              BracePlacer bracePlacer,
+                                             AccessorListLayout accessorListLayout,
                                              CancellationToken cancellationToken)
     {
         _context = context;
         _cancellationToken = cancellationToken;
         _bracePlacer = bracePlacer;
+        _accessorListLayout = accessorListLayout;
     }
 
     #endregion // Constructor
@@ -206,6 +215,19 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
         return node;
     }
 
+    /// <summary>
+    /// Places the accessor-list braces of an event declaration on their own lines and starts every accessor on
+    /// its own line
+    /// </summary>
+    /// <param name="eventDeclaration">The event declaration</param>
+    /// <returns>The event declaration with its accessor list laid out</returns>
+    private EventDeclarationSyntax NormalizeEventAccessorList(EventDeclarationSyntax eventDeclaration)
+    {
+        eventDeclaration = _bracePlacer.NormalizeOwnedBraces(eventDeclaration, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken);
+
+        return _bracePlacer.EnsureAccessorsStartOnSeparateLines(eventDeclaration, static declaration => declaration.AccessorList);
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -284,15 +306,13 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
 
             case IndexerDeclarationSyntax indexer:
                 {
-                    return LineBreakDetection.ShouldNormalizeAccessorListBraces(indexer.AccessorList)
-                               ? _bracePlacer.NormalizeOwnedBraces(indexer, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
-                               : visited;
+                    return _accessorListLayout.Apply(indexer);
                 }
 
             case EventDeclarationSyntax eventDeclaration:
                 {
                     return LineBreakDetection.ShouldNormalizeAccessorListBraces(eventDeclaration.AccessorList)
-                               ? _bracePlacer.NormalizeOwnedBraces(eventDeclaration, static declaration => declaration.AccessorList.OpenBraceToken, static declaration => declaration.AccessorList.CloseBraceToken)
+                               ? NormalizeEventAccessorList(eventDeclaration)
                                : visited;
                 }
 
