@@ -572,12 +572,11 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment preceded by a multi-line block comment in the gap is left
-    /// alone. The boundary is measured on rendered lines, so the block comment's own lines already satisfy it;
-    /// counting end-of-line trivia instead would insert a blank line here and change a file that is stable today
+    /// Verifies that a delimited documentation comment below a multi-line block comment behind code gets its blank
+    /// line. The line break inside the block comment is comment text and does not count as the blank line
     /// </summary>
     [TestMethod]
-    public void PreservesDelimitedDocumentationAfterMultilineBlockCommentInGap()
+    public void SeparatesDelimitedDocumentationBelowMultilineBlockCommentInGap()
     {
         const string input = """
                              internal class TestClass
@@ -588,18 +587,24 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
                                  private int _y;
                              }
                              """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int _x; /* a
+                                                       b */
 
-        AssertRuleResult(input);
+                                    /** doc */
+                                    private int _y;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment preceded by a multi-line block comment that ends on the
-    /// comment's own line receives a single line break and no blank line. This is the one shape on which the
-    /// rendered-line measure the boundary uses and the range measure in
-    /// <see cref="Reihitsu.Core.TokenGapAnalysis.RequiredLineBreakCountForBlankLine"/> disagree, so the output is
-    /// pinned here: the blank line the rule asks for is missing, the file is still a fixed point, and the layout
-    /// is the same one the formatter produced before the one-pass separation existed. Closing that gap means
-    /// changing a stable file and belongs to its own fix
+    /// Verifies that a delimited documentation comment behind a multi-line block comment that ends on the comment's
+    /// own line is moved onto its own line with one blank line above it in one pass, exactly like the same comment
+    /// behind a single-line block comment
     /// </summary>
     [TestMethod]
     public void MovesDelimitedDocumentationBelowMultilineBlockCommentEndingOnItsLine()
@@ -617,6 +622,7 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
                                 {
                                     private int _x; /* a
                                                        b */
+
                                     /** doc */
                                     private int _y;
                                 }

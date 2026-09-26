@@ -524,17 +524,22 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line comment below a multi-line block comment behind the previous member is measured the same way
-    /// whether or not a structural transform rewrites the property the line comment belongs to
+    /// Verifies that a line comment below a multi-line block comment behind the previous member gets its blank line whether
+    /// or not a structural transform rewrites the property the line comment belongs to. The line break inside the block
+    /// comment is comment text and does not count as the blank line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task MeasuresCommentGapAfterMultiLineBlockCommentAlikeForRewrittenAndUnchangedProperty()
+    public async Task InsertsBlankLineBelowMultiLineBlockCommentForRewrittenAndUnchangedProperty()
     {
         const string separator = "    /* first\n    second */\n    // Describes the instance\n";
-        var expected = BracedPropertyAfterField(separator).Replace("private string _d;\n    /* first", "private string _d; /* first");
+        const string separatedSeparator = "    /* first\n    second */\n\n    // Describes the instance\n";
+        var expected = BracedPropertyAfterField(separatedSeparator).Replace("private string _d;\n    /* first", "private string _d; /* first");
 
         await AssertFormatsTarget(UnbracedPropertyAfterField(separator).Replace("private string _d;\n    /* first", "private string _d; /* first"),
+                                  expected,
+                                  SelectSingle<PropertyDeclarationSyntax>);
+        await AssertFormatsTarget(BracedPropertyAfterField(separator).Replace("private string _d;\n    /* first", "private string _d; /* first"),
                                   expected,
                                   SelectSingle<PropertyDeclarationSyntax>);
         await AssertFormatsTarget(expected, expected, SelectSingle<PropertyDeclarationSyntax>);
