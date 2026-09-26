@@ -524,6 +524,23 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a line comment below a multi-line block comment behind the previous member is measured the same way
+    /// whether or not a structural transform rewrites the property the line comment belongs to
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MeasuresCommentGapAfterMultiLineBlockCommentAlikeForRewrittenAndUnchangedProperty()
+    {
+        const string separator = "    /* first\n    second */\n    // Describes the instance\n";
+        var expected = BracedPropertyAfterField(separator).Replace("private string _d;\n    /* first", "private string _d; /* first");
+
+        await AssertFormatsTarget(UnbracedPropertyAfterField(separator).Replace("private string _d;\n    /* first", "private string _d; /* first"),
+                                  expected,
+                                  SelectSingle<PropertyDeclarationSyntax>);
+        await AssertFormatsTarget(expected, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
     /// Verifies that no blank line is inserted above a line comment that directly follows the opening brace when a structural
     /// transform rewrites the member the comment belongs to
     /// </summary>
