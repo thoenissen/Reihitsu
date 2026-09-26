@@ -69,6 +69,19 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Ensures the blank line required before a statement that directly follows a <see langword="break"/> statement
+    /// </summary>
+    /// <param name="statement">The current statement</param>
+    /// <param name="previous">The preceding statement</param>
+    /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
+    private StatementSyntax EnsureBlankLineAfterBreak(StatementSyntax statement, StatementSyntax previous)
+    {
+        return previous is BreakStatementSyntax
+                   ? _editor.EnsureBlankLineBeforeStatement(statement)
+                   : statement;
+    }
+
+    /// <summary>
     /// Ensures a blank line exists before the first token of the specified switch section
     /// </summary>
     /// <param name="section">The switch section</param>
@@ -110,15 +123,8 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 
         for (var statementIndex = 1; statementIndex < statements.Count; statementIndex++)
         {
-            var previousStatement = newStatements[statementIndex - 1];
-
-            if (previousStatement is not BreakStatementSyntax)
-            {
-                continue;
-            }
-
             var currentStatement = newStatements[statementIndex];
-            var updatedStatement = _editor.EnsureBlankLineBeforeStatement(currentStatement);
+            var updatedStatement = EnsureBlankLineAfterBreak(currentStatement, newStatements[statementIndex - 1]);
 
             if (updatedStatement == currentStatement)
             {
@@ -156,9 +162,9 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 
         switch (visited)
         {
-            case StatementSyntax statement when position.PreviousStatement is BreakStatementSyntax:
+            case StatementSyntax statement when position.PreviousStatement != null:
                 {
-                    return _editor.EnsureBlankLineBeforeStatement(statement);
+                    return EnsureBlankLineAfterBreak(statement, position.PreviousStatement);
                 }
 
             case SwitchSectionSyntax section when position.PreviousSection != null

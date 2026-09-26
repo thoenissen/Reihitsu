@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Data;
@@ -58,8 +59,9 @@ internal readonly struct RootListPosition
 
     /// <summary>
     /// Captures the position of the specified formatting root inside the list that contains it in its document. A root
-    /// whose first token does not start its line gets no position, because its leading trivia is restored from the document,
-    /// and neither does a block statement, whose leading gap the line-break phase owns
+    /// whose first token does not start its line gets no position, because its leading trivia is restored from the document.
+    /// Neither does a block statement unless an own-line comment is the last content above its opening brace; see
+    /// <see cref="KeepsBlankLineAboveBlockStatement"/>
     /// </summary>
     /// <param name="root">The formatting root, still attached to its document</param>
     /// <returns>The position of the root</returns>
@@ -72,10 +74,8 @@ internal readonly struct RootListPosition
 
         switch (root)
         {
-            case BlockSyntax:
+            case BlockSyntax block when KeepsBlankLineAboveBlockStatement(block) == false:
                 {
-                    // The line-break phase leaves no blank line above the opening brace of a block statement, so in
-                    // document-level formatting it removes every blank line the list-level rules insert there
                     return default;
                 }
 
@@ -101,6 +101,28 @@ internal readonly struct RootListPosition
                     return default;
                 }
         }
+    }
+
+    /// <summary>
+    /// Determines whether document-level formatting keeps a blank line that the list-level rules insert above the specified
+    /// block statement. The line-break phase leaves no blank line directly above the opening brace of a block statement,
+    /// but it keeps everything up to an own-line comment or directive that owns its own placement
+    /// (<see cref="TokenGapNormalizer.HasOwnLinePlacementOwner"/>). The list-level rules insert their blank line at the start
+    /// of the gap or right after its last directive, so the blank line survives only when the last content of the gap is
+    /// such an owner and not a directive, which leaves an own-line comment
+    /// </summary>
+    /// <param name="block">The block statement</param>
+    /// <returns><see langword="true"/> if a blank line inserted above the block statement survives the line-break phase</returns>
+    private static bool KeepsBlankLineAboveBlockStatement(BlockSyntax block)
+    {
+        var leadingTrivia = block.OpenBraceToken.LeadingTrivia;
+
+        if (TokenGapNormalizer.HasOwnLinePlacementOwner(leadingTrivia) == false)
+        {
+            return false;
+        }
+
+        return leadingTrivia[SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(leadingTrivia)].IsDirective == false;
     }
 
     /// <summary>

@@ -13,7 +13,8 @@ namespace Reihitsu.Formatter.Test.Unit;
 
 /// <summary>
 /// Tests that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> decides the blank lines above a nested, line-starting
-/// target from the token that precedes it in the document, even when a phase before the blank-line phase replaced the target
+/// target from the token that precedes it in the document and, for a statement or switch section, from the sibling that
+/// precedes it in its list, both for an unchanged target and when a phase before the blank-line phase replaced the target
 /// with a detached node
 /// </summary>
 [TestClass]
@@ -2055,6 +2056,367 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                 """;
 
         await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line required after a closing brace is inserted above the own-line comment of a block statement, which document-level formatting keeps above the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveCommentOfBlockStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                                     // Scope
+                                     {
+                                         value++;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+
+                                        // Scope
+                                        {
+                                            value++;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line required after a closing brace is inserted below a directive and above the own-line comment of a block statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineBelowDirectiveAboveCommentOfBlockStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                             #if !DEBUG
+                                     // Scope
+                                     {
+                                         value++;
+                                     }
+                             #endif
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+                                #if !DEBUG
+
+                                        // Scope
+                                        {
+                                            value++;
+                                        }
+                                #endif
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted between a directive and a block statement that follows a closing brace, because document-level formatting keeps the opening brace directly below the directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineBelowDirectiveAboveBlockStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                             #if !DEBUG
+                                     {
+                                         value++;
+                                     }
+                             #endif
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+                                #if !DEBUG
+                                        {
+                                            value++;
+                                        }
+                                #endif
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line above a switch section whose preceding section ends in a break statement lands above the section's leading comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveCommentOfSwitchSectionAfterBreakSection()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             value++;
+                                             break;
+                                         // Second
+                                         case 2:
+                                             value--;
+                                             break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                value++;
+                                                break;
+
+                                            // Second
+                                            case 2:
+                                                value--;
+                                                break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<SwitchSectionSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line above a switch section whose preceding section ends in a break statement lands above the directive that precedes the section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveDirectiveOfSwitchSectionAfterBreakSection()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             value++;
+                                             break;
+                             #if !DEBUG
+                                         case 2:
+                                             value--;
+                                             break;
+                             #endif
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                value++;
+                                                break;
+
+                                #if !DEBUG
+                                            case 2:
+                                                value--;
+                                                break;
+                                #endif
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<SwitchSectionSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above the first section of a switch statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveFirstSwitchSection()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             value++;
+                                             break;
+                                         case 2:
+                                             value--;
+                                             break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                value++;
+                                                break;
+                                            case 2:
+                                                value--;
+                                                break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectFirst<SwitchSectionSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a block statement that directly follows a break statement gets the same gap as in document-level formatting, where the line-break phase keeps its opening brace directly below the break statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveBlockStatementAfterBreak()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     while (value > 0)
+                                     {
+                                         break;
+                                         {
+                                             value++;
+                                         }
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        while (value > 0)
+                                        {
+                                            break;
+                                            {
+                                                value++;
+                                            }
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Selects the first node of the given type below the root
+    /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <param name="root">The document root</param>
+    /// <returns>The first matching node</returns>
+    private static SyntaxNode SelectFirst<TNode>(SyntaxNode root)
+        where TNode : SyntaxNode
+    {
+        return root.DescendantNodes().OfType<TNode>().First();
     }
 
     /// <summary>

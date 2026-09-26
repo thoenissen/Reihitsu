@@ -59,8 +59,8 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified statement directly follows a closing brace, i.e. the shape RH5030
-    /// requires a blank line for
+    /// Determines whether a statement needs the blank line that RH5030 requires after a closing brace, from its preceding
+    /// statement and whether the statement itself is exempt as the terminal <see langword="break"/> of its switch section
     /// </summary>
     /// <param name="previous">The preceding statement</param>
     /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
