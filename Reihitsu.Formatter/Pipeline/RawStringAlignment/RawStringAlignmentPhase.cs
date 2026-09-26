@@ -218,14 +218,10 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
 
     #region IFormattingPhase
 
-    /// <summary>
-    /// Executes the raw string alignment phase as part of the formatting pipeline.
+    /// <inheritdoc/>
+    /// <remarks>
     /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
-    /// </summary>
-    /// <param name="root">The root syntax node to process</param>
-    /// <param name="context">The formatting context (unused)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The syntax node with aligned raw string literals</returns>
+    /// </remarks>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         return Execute(root, cancellationToken);

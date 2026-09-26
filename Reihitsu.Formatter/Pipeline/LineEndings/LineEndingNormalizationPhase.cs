@@ -12,13 +12,7 @@ internal sealed class LineEndingNormalizationPhase : IFormattingPhase
 {
     #region IFormattingPhase
 
-    /// <summary>
-    /// Rewrites all end-of-line trivia and documentation XML newline tokens to <see cref="FormattingContext.EndOfLine"/>
-    /// </summary>
-    /// <param name="root">The root syntax node to normalize</param>
-    /// <param name="context">The active formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The normalized syntax node</returns>
+    /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

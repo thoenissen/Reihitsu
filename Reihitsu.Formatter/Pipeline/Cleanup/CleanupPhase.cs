@@ -297,14 +297,10 @@ internal sealed class CleanupPhase : IFormattingPhase
 
     #region IFormattingPhase
 
-    /// <summary>
-    /// Executes the cleanup phase as part of the formatting pipeline.
+    /// <inheritdoc/>
+    /// <remarks>
     /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
-    /// </summary>
-    /// <param name="root">The root syntax node to clean up</param>
-    /// <param name="context">The formatting context (unused)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The cleaned-up syntax node</returns>
+    /// </remarks>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         return Execute(root, cancellationToken);

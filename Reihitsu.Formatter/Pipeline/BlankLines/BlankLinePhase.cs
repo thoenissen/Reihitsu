@@ -43,13 +43,7 @@ internal sealed class BlankLinePhase : IFormattingPhase
 
     #region IFormattingPhase
 
-    /// <summary>
-    /// Applies blank line formatting rules to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to format</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The formatted syntax node</returns>
+    /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var current = root;

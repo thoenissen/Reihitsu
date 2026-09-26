@@ -392,13 +392,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 
     #region IFormattingPhase
 
-    /// <summary>
-    /// Applies XML documentation comment formatting to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to format</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The formatted syntax node</returns>
+    /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var sourceText = root.SyntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());

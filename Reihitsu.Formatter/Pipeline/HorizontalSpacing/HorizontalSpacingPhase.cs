@@ -34,14 +34,10 @@ internal sealed class HorizontalSpacingPhase : IFormattingPhase
 
     #region IFormattingPhase
 
-    /// <summary>
-    /// Applies horizontal spacing rules to the given syntax tree as part of the formatting pipeline.
+    /// <inheritdoc/>
+    /// <remarks>
     /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
-    /// </summary>
-    /// <param name="root">The root syntax node</param>
-    /// <param name="context">The formatting context (unused)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The syntax tree with normalized horizontal spacing</returns>
+    /// </remarks>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         return Execute(root, cancellationToken);

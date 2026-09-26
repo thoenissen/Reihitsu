@@ -68,13 +68,7 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
 
     #region IFormattingPhase
 
-    /// <summary>
-    /// Applies all structural transforms to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to transform</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The transformed syntax node</returns>
+    /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var current = root;

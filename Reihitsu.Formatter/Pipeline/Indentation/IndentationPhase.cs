@@ -12,14 +12,7 @@ internal sealed class IndentationPhase : IFormattingPhase
 {
     #region IFormattingPhase
 
-    /// <summary>
-    /// Applies indentation and alignment to the given syntax node by computing the layout model
-    /// and rewriting first-on-line tokens to their desired indentation
-    /// </summary>
-    /// <param name="root">The syntax node to format</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The formatted syntax node</returns>
+    /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
