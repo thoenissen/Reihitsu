@@ -563,6 +563,577 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                              }
                                              """;
 
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> is checked
+    /// </summary>
+    private const string ContainsTestData = """
+                                            using System;
+                                            using System.Collections.Concurrent;
+                                            using System.Collections.Generic;
+                                            using System.Collections.Immutable;
+                                            using System.Collections.ObjectModel;
+                                            using System.Linq;
+
+                                            namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                            internal struct NotImplementedStruct;
+
+                                            internal class RH1002
+                                            {
+                                                internal class ContainsTest
+                                                {
+                                                    private IEnumerable<NotImplementedStruct> _enumerable;
+                                                    private NotImplementedStruct _value;
+
+                                                    public void Test()
+                                                    {
+                                                        _enumerable.{|#0:Contains|}(_value);
+                                                    }
+                                                }
+                                            }
+                                            """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.SequenceEqual</c> is checked
+    /// </summary>
+    private const string SequenceEqualTestData = """
+                                                 using System;
+                                                 using System.Collections.Concurrent;
+                                                 using System.Collections.Generic;
+                                                 using System.Collections.Immutable;
+                                                 using System.Collections.ObjectModel;
+                                                 using System.Linq;
+
+                                                 namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                 internal struct NotImplementedStruct;
+
+                                                 internal class RH1002
+                                                 {
+                                                     internal class SequenceEqualTest
+                                                     {
+                                                         private IEnumerable<NotImplementedStruct> _enumerable;
+
+                                                         public void Test()
+                                                         {
+                                                             _enumerable.{|#0:SequenceEqual|}(_enumerable);
+                                                         }
+                                                     }
+                                                 }
+                                                 """;
+
+    /// <summary>
+    /// Test data for verifying that the static invocation forms of <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> are checked
+    /// </summary>
+    private const string StaticContainsAndSequenceEqualTestData = """
+                                                                  using System;
+                                                                  using System.Collections.Concurrent;
+                                                                  using System.Collections.Generic;
+                                                                  using System.Collections.Immutable;
+                                                                  using System.Collections.ObjectModel;
+                                                                  using System.Linq;
+
+                                                                  namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                  internal struct NotImplementedStruct;
+
+                                                                  internal class RH1002
+                                                                  {
+                                                                      internal class StaticInvocationTest
+                                                                      {
+                                                                          private IEnumerable<NotImplementedStruct> _enumerable;
+                                                                          private NotImplementedStruct _value;
+
+                                                                          public void Test()
+                                                                          {
+                                                                              Enumerable.{|#0:Contains|}(_enumerable, _value);
+                                                                              Enumerable.{|#1:Contains<NotImplementedStruct>|}(_enumerable, _value);
+                                                                              Enumerable.{|#2:SequenceEqual|}(_enumerable, _enumerable);
+                                                                              Enumerable.{|#3:Contains|}(value: _value, source: _enumerable);
+                                                                          }
+                                                                      }
+                                                                  }
+                                                                  """;
+
+    /// <summary>
+    /// Test data for verifying that conditional-access invocations of <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> are checked
+    /// </summary>
+    private const string ConditionalAccessContainsAndSequenceEqualTestData = """
+                                                                             using System;
+                                                                             using System.Collections.Concurrent;
+                                                                             using System.Collections.Generic;
+                                                                             using System.Collections.Immutable;
+                                                                             using System.Collections.ObjectModel;
+                                                                             using System.Linq;
+
+                                                                             namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                             internal struct NotImplementedStruct;
+
+                                                                             internal class RH1002
+                                                                             {
+                                                                                 internal class ConditionalAccessTest
+                                                                                 {
+                                                                                     private IEnumerable<NotImplementedStruct> _enumerable;
+                                                                                     private NotImplementedStruct _value;
+
+                                                                                     public void Test()
+                                                                                     {
+                                                                                         _ = _enumerable?{|#0:.Contains(_value)|};
+                                                                                         _ = _enumerable?{|#1:.SequenceEqual(_enumerable)|};
+                                                                                     }
+                                                                                 }
+                                                                             }
+                                                                             """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> with a custom comparer are exempt
+    /// </summary>
+    private const string ContainsAndSequenceEqualCustomComparerTestData = """
+                                                                          using System;
+                                                                          using System.Collections.Concurrent;
+                                                                          using System.Collections.Generic;
+                                                                          using System.Collections.Immutable;
+                                                                          using System.Collections.ObjectModel;
+                                                                          using System.Linq;
+
+                                                                          namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                          internal struct NotImplementedStruct;
+
+                                                                          internal class RH1002
+                                                                          {
+                                                                              internal class CustomComparerTest
+                                                                              {
+                                                                                  private IEnumerable<NotImplementedStruct> _enumerable;
+                                                                                  private NotImplementedStruct _value;
+                                                                                  private IEqualityComparer<NotImplementedStruct> _comparer;
+
+                                                                                  public void Test()
+                                                                                  {
+                                                                                      _enumerable.Contains(_value, _comparer);
+                                                                                      _enumerable.Contains(_value, comparer: _comparer);
+                                                                                      _enumerable.SequenceEqual(_enumerable, _comparer);
+                                                                                      Enumerable.Contains(comparer: _comparer, value: _value, source: _enumerable);
+                                                                                  }
+                                                                              }
+                                                                          }
+                                                                          """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> with a comparer argument that is not custom are checked
+    /// </summary>
+    private const string ContainsAndSequenceEqualNonCustomComparerTestData = """
+                                                                             using System;
+                                                                             using System.Collections.Concurrent;
+                                                                             using System.Collections.Generic;
+                                                                             using System.Collections.Immutable;
+                                                                             using System.Collections.ObjectModel;
+                                                                             using System.Linq;
+
+                                                                             namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                             internal struct NotImplementedStruct;
+
+                                                                             internal class RH1002
+                                                                             {
+                                                                                 internal class NonCustomComparerTest
+                                                                                 {
+                                                                                     private IEnumerable<NotImplementedStruct> _enumerable;
+                                                                                     private NotImplementedStruct _value;
+
+                                                                                     public void Test()
+                                                                                     {
+                                                                                         _enumerable.{|#0:Contains|}(_value, null);
+                                                                                         _enumerable.{|#1:Contains|}(_value, default);
+                                                                                         _enumerable.{|#2:Contains|}(_value, EqualityComparer<NotImplementedStruct>.Default);
+                                                                                         _enumerable.{|#3:SequenceEqual|}(_enumerable, null);
+                                                                                         _enumerable.{|#4:SequenceEqual|}(_enumerable, EqualityComparer<NotImplementedStruct>.Default);
+                                                                                     }
+                                                                                 }
+                                                                             }
+                                                                             """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> are not flagged for element types with equality members or without struct semantics
+    /// </summary>
+    private const string ContainsAndSequenceEqualNotFlaggedElementTypesTestData = """
+                                                                                  using System;
+                                                                                  using System.Collections.Concurrent;
+                                                                                  using System.Collections.Generic;
+                                                                                  using System.Collections.Immutable;
+                                                                                  using System.Collections.ObjectModel;
+                                                                                  using System.Linq;
+
+                                                                                  namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                                  internal class Class;
+                                                                                  internal struct NotImplementedStruct;
+                                                                                  internal struct OverrideStruct
+                                                                                  {
+                                                                                      public override bool Equals(object obj) => true;
+                                                                                      public override int GetHashCode() => 0;
+                                                                                  }
+                                                                                  internal struct EquatableStruct : IEquatable<EquatableStruct>
+                                                                                  {
+                                                                                      public bool Equals(EquatableStruct other) => true;
+                                                                                  }
+
+                                                                                  internal class RH1002
+                                                                                  {
+                                                                                      internal class NotFlaggedElementTypesTest
+                                                                                      {
+                                                                                          private IEnumerable<Class> _classes;
+                                                                                          private IEnumerable<OverrideStruct> _overrideStructs;
+                                                                                          private IEnumerable<EquatableStruct> _equatableStructs;
+                                                                                          private IEnumerable<int> _integers;
+                                                                                          private IEnumerable<object> _objects;
+
+                                                                                          public void Test()
+                                                                                          {
+                                                                                              _classes.Contains(null);
+                                                                                              _classes.SequenceEqual(_classes);
+                                                                                              _overrideStructs.Contains(default);
+                                                                                              _overrideStructs.SequenceEqual(_overrideStructs);
+                                                                                              _equatableStructs.Contains(default);
+                                                                                              _equatableStructs.SequenceEqual(_equatableStructs);
+                                                                                              _integers.Contains(1);
+                                                                                              _integers.SequenceEqual(_integers);
+                                                                                              _objects.Contains(default(NotImplementedStruct));
+                                                                                          }
+                                                                                      }
+                                                                                  }
+                                                                                  """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Contains</c> and <c>SequenceEqual</c> methods not declared on <c>Enumerable</c> are not flagged
+    /// </summary>
+    private const string NonEnumerableContainsAndSequenceEqualTestData = """
+                                                                         using System;
+                                                                         using System.Collections.Concurrent;
+                                                                         using System.Collections.Generic;
+                                                                         using System.Collections.Immutable;
+                                                                         using System.Collections.ObjectModel;
+                                                                         using System.Linq;
+
+                                                                         namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                         internal struct NotImplementedStruct;
+
+                                                                         internal class RH1002
+                                                                         {
+                                                                             internal class NonEnumerableMethodTest
+                                                                             {
+                                                                                 private List<NotImplementedStruct> _list;
+                                                                                 private HashSet<NotImplementedStruct> _hashSet;
+                                                                                 private ICollection<NotImplementedStruct> _collection;
+                                                                                 private IQueryable<NotImplementedStruct> _queryable;
+                                                                                 private ImmutableArray<NotImplementedStruct> _immutableArray;
+                                                                                 private IImmutableDictionary<NotImplementedStruct, int> _immutableDictionary;
+                                                                                 private IDictionary<string, int> _dictionaryInterface;
+                                                                                 private KeyValuePair<string, int> _pair;
+                                                                                 private NotImplementedStruct _value;
+
+                                                                                 public void Test()
+                                                                                 {
+                                                                                     _list.Contains(_value);
+                                                                                     _hashSet.Contains(_value);
+                                                                                     _collection.Contains(_value);
+                                                                                     _queryable.Contains(_value);
+                                                                                     _immutableArray.SequenceEqual(_immutableArray);
+                                                                                     "text".Contains("t");
+                                                                                     _immutableDictionary.Contains(_value, 1);
+                                                                                     ImmutableDictionary.Contains(_immutableDictionary, _value, 1);
+                                                                                     _dictionaryInterface.Contains(_pair);
+                                                                                 }
+                                                                             }
+                                                                         }
+                                                                         """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> is checked on receivers that bind it without dictionary semantics
+    /// </summary>
+    private const string ReadOnlyCollectionReceiverContainsTestData = """
+                                                                      using System;
+                                                                      using System.Collections.Concurrent;
+                                                                      using System.Collections.Generic;
+                                                                      using System.Collections.Immutable;
+                                                                      using System.Collections.ObjectModel;
+                                                                      using System.Linq;
+
+                                                                      namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                      internal struct NotImplementedStruct;
+
+                                                                      internal class RH1002
+                                                                      {
+                                                                          internal class ReadOnlyCollectionReceiverTest
+                                                                          {
+                                                                              private IReadOnlyList<NotImplementedStruct> _readOnlyList;
+                                                                              private IReadOnlyCollection<NotImplementedStruct> _readOnlyCollection;
+                                                                              private Dictionary<string, NotImplementedStruct> _dictionary;
+                                                                              private NotImplementedStruct _value;
+
+                                                                              public void Test()
+                                                                              {
+                                                                                  _readOnlyList.{|#0:Contains|}(_value);
+                                                                                  _readOnlyCollection.{|#1:Contains|}(_value);
+                                                                                  _dictionary.Values.{|#2:Contains|}(_value);
+                                                                              }
+                                                                          }
+                                                                      }
+                                                                      """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a dictionary receiver, because it delegates to the dictionary's key lookup
+    /// </summary>
+    private const string DictionaryReceiverContainsTestData = """
+                                                              using System;
+                                                              using System.Collections.Concurrent;
+                                                              using System.Collections.Generic;
+                                                              using System.Collections.Immutable;
+                                                              using System.Collections.ObjectModel;
+                                                              using System.Linq;
+
+                                                              namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                              internal class RH1002
+                                                              {
+                                                                  internal class DictionaryReceiverTest
+                                                                  {
+                                                                      private Dictionary<string, int> _dictionary;
+                                                                      private IDictionary<string, int> _dictionaryInterface;
+                                                                      private SortedDictionary<string, int> _sortedDictionary;
+                                                                      private ConcurrentDictionary<string, int> _concurrentDictionary;
+                                                                      private ReadOnlyDictionary<string, int> _readOnlyDictionary;
+                                                                      private KeyValuePair<string, int> _value;
+
+                                                                      public void Test()
+                                                                      {
+                                                                          _dictionary.Contains(_value);
+                                                                          Enumerable.Contains(_dictionaryInterface, _value);
+                                                                          _sortedDictionary.Contains(_value);
+                                                                          _concurrentDictionary.Contains(_value);
+                                                                          _readOnlyDictionary.Contains(_value);
+                                                                          Enumerable.Contains(_dictionary, _value);
+                                                                          Enumerable.Contains(value: _value, source: _dictionary);
+                                                                          _ = _dictionary?.Contains(_value);
+                                                                      }
+                                                                  }
+                                                              }
+                                                              """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a receiver typed as <c>IReadOnlyDictionary&lt;TKey, TValue&gt;</c>
+    /// </summary>
+    private const string ReadOnlyDictionaryReceiverContainsTestData = """
+                                                                      using System;
+                                                                      using System.Collections.Concurrent;
+                                                                      using System.Collections.Generic;
+                                                                      using System.Collections.Immutable;
+                                                                      using System.Collections.ObjectModel;
+                                                                      using System.Linq;
+
+                                                                      namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                      internal class RH1002
+                                                                      {
+                                                                          internal class ReadOnlyDictionaryReceiverTest
+                                                                          {
+                                                                              private IReadOnlyDictionary<string, int> _readOnlyDictionary;
+                                                                              private KeyValuePair<string, int> _value;
+
+                                                                              public void Test()
+                                                                              {
+                                                                                  _readOnlyDictionary.Contains(_value);
+                                                                              }
+                                                                          }
+                                                                      }
+                                                                      """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> with a comparer argument that is not custom is checked on a dictionary receiver, because that overload compares the key/value pairs itself
+    /// </summary>
+    private const string DictionaryReceiverContainsWithComparerTestData = """
+                                                                          using System;
+                                                                          using System.Collections.Concurrent;
+                                                                          using System.Collections.Generic;
+                                                                          using System.Collections.Immutable;
+                                                                          using System.Collections.ObjectModel;
+                                                                          using System.Linq;
+
+                                                                          namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                          internal class RH1002
+                                                                          {
+                                                                              internal class DictionaryReceiverWithComparerTest
+                                                                              {
+                                                                                  private Dictionary<string, int> _dictionary;
+                                                                                  private KeyValuePair<string, int> _value;
+
+                                                                                  public void Test()
+                                                                                  {
+                                                                                      _dictionary.{|#0:Contains|}(_value, null);
+                                                                                      _dictionary.{|#1:Contains|}(_value, EqualityComparer<KeyValuePair<string, int>>.Default);
+                                                                                  }
+                                                                              }
+                                                                          }
+                                                                          """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> is checked on a key/value pair sequence whose static type carries no dictionary semantics
+    /// </summary>
+    private const string KeyValuePairSequenceContainsTestData = """
+                                                                using System;
+                                                                using System.Collections.Concurrent;
+                                                                using System.Collections.Generic;
+                                                                using System.Collections.Immutable;
+                                                                using System.Collections.ObjectModel;
+                                                                using System.Linq;
+
+                                                                namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                internal class RH1002
+                                                                {
+                                                                    internal class KeyValuePairSequenceTest
+                                                                    {
+                                                                        private IEnumerable<KeyValuePair<string, int>> _enumerable;
+                                                                        private Dictionary<string, int> _dictionary;
+                                                                        private KeyValuePair<string, int> _value;
+
+                                                                        public void Test()
+                                                                        {
+                                                                            _enumerable.{|#0:Contains|}(_value);
+                                                                            ((IEnumerable<KeyValuePair<string, int>>)_dictionary).{|#1:Contains|}(_value);
+                                                                        }
+                                                                    }
+                                                                }
+                                                                """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.SequenceEqual</c> is checked on a dictionary receiver, because it compares the key/value pairs itself
+    /// </summary>
+    private const string DictionaryReceiverSequenceEqualTestData = """
+                                                                   using System;
+                                                                   using System.Collections.Concurrent;
+                                                                   using System.Collections.Generic;
+                                                                   using System.Collections.Immutable;
+                                                                   using System.Collections.ObjectModel;
+                                                                   using System.Linq;
+
+                                                                   namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                   internal class RH1002
+                                                                   {
+                                                                       internal class DictionaryReceiverSequenceEqualTest
+                                                                       {
+                                                                           private Dictionary<string, int> _dictionary;
+
+                                                                           public void Test()
+                                                                           {
+                                                                               _dictionary.{|#0:SequenceEqual|}(_dictionary);
+                                                                           }
+                                                                       }
+                                                                   }
+                                                                   """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a receiver typed as a type parameter constrained to a dictionary
+    /// </summary>
+    private const string TypeParameterDictionaryReceiverContainsTestData = """
+                                                                           using System.Collections.Generic;
+                                                                           using System.Linq;
+
+                                                                           namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                           internal class RH1002
+                                                                           {
+                                                                               internal class TypeParameterDictionaryReceiverTest
+                                                                               {
+                                                                                   private KeyValuePair<string, int> _value;
+
+                                                                                   public void Test<TDictionary, TReadOnlyDictionary, TConcreteDictionary, TNestedReadOnlyDictionary>(TDictionary dictionary, TReadOnlyDictionary readOnlyDictionary, TConcreteDictionary concreteDictionary, TNestedReadOnlyDictionary nestedReadOnlyDictionary)
+                                                                                       where TDictionary : IDictionary<string, int>
+                                                                                       where TReadOnlyDictionary : IReadOnlyDictionary<string, int>
+                                                                                       where TConcreteDictionary : Dictionary<string, int>
+                                                                                       where TNestedReadOnlyDictionary : TReadOnlyDictionary
+                                                                                   {
+                                                                                       Enumerable.Contains(dictionary, _value);
+                                                                                       readOnlyDictionary.Contains(_value);
+                                                                                       concreteDictionary.Contains(_value);
+                                                                                       nestedReadOnlyDictionary.Contains(_value);
+                                                                                   }
+                                                                               }
+                                                                           }
+                                                                           """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a dictionary whose tuple key type differs from the searched value's only in element names
+    /// </summary>
+    private const string TupleKeyDictionaryReceiverContainsTestData = """
+                                                                      using System.Collections.Generic;
+                                                                      using System.Linq;
+
+                                                                      namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                      internal class RH1002
+                                                                      {
+                                                                          internal class TupleKeyDictionaryReceiverTest
+                                                                          {
+                                                                              private Dictionary<(int First, int Second), int> _dictionary;
+
+                                                                              public void Test()
+                                                                              {
+                                                                                  _dictionary.Contains(new KeyValuePair<(int, int), int>((1, 2), 3));
+                                                                                  _dictionary.Contains(KeyValuePair.Create((1, 2), 3));
+                                                                              }
+                                                                          }
+                                                                      }
+                                                                      """;
+
+    /// <summary>
+    /// Test data for verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface, directly or through a type parameter constrained to it, because it is not a collection that the call delegates to
+    /// </summary>
+    private const string ReadOnlyOnlyDictionaryReceiverContainsTestData = """
+                                                                          using System.Collections;
+                                                                          using System.Collections.Generic;
+                                                                          using System.Linq;
+
+                                                                          namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                          internal abstract class ReadOnlyOnlyDictionary : IReadOnlyDictionary<string, int>
+                                                                          {
+                                                                              public abstract int this[string key] { get; }
+                                                                              public abstract IEnumerable<string> Keys { get; }
+                                                                              public abstract IEnumerable<int> Values { get; }
+                                                                              public abstract int Count { get; }
+                                                                              public abstract bool ContainsKey(string key);
+                                                                              public abstract bool TryGetValue(string key, out int value);
+                                                                              public abstract IEnumerator<KeyValuePair<string, int>> GetEnumerator();
+                                                                              IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                                                                          }
+
+                                                                          internal class RH1002
+                                                                          {
+                                                                              internal class ReadOnlyOnlyDictionaryReceiverTest
+                                                                              {
+                                                                                  private ReadOnlyOnlyDictionary _dictionary;
+                                                                                  private KeyValuePair<string, int> _value;
+
+                                                                                  public void Test()
+                                                                                  {
+                                                                                      _dictionary.{|#0:Contains|}(_value);
+                                                                                  }
+
+                                                                                  public void Test<TReadOnlyOnlyDictionary>(TReadOnlyOnlyDictionary dictionary)
+                                                                                      where TReadOnlyOnlyDictionary : ReadOnlyOnlyDictionary
+                                                                                  {
+                                                                                      dictionary.{|#1:Contains|}(_value);
+                                                                                  }
+                                                                              }
+                                                                          }
+                                                                          """;
+
     #endregion // Constants
 
     #region Methods
@@ -710,6 +1281,176 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     public async Task VerifyToHashSetIsChecked()
     {
         await Verify(ToHashSetTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsIsChecked()
+    {
+        await Verify(ContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.SequenceEqual</c> is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySequenceEqualIsChecked()
+    {
+        await Verify(SequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that the static invocation forms of <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> are checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStaticContainsAndSequenceEqualFormsAreChecked()
+    {
+        await Verify(StaticContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifying that conditional-access invocations of <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> are checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalAccessContainsAndSequenceEqualAreChecked()
+    {
+        await Verify(ConditionalAccessContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> with a custom comparer are exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsAndSequenceEqualWithCustomComparerAreExempt()
+    {
+        await Verify(ContainsAndSequenceEqualCustomComparerTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> with a comparer argument that is not custom are checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsAndSequenceEqualWithNonCustomComparerAreChecked()
+    {
+        await Verify(ContainsAndSequenceEqualNonCustomComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> and <c>Enumerable.SequenceEqual</c> are not flagged for element types with equality members or without struct semantics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsAndSequenceEqualAreNotFlaggedForEqualityCapableElementTypes()
+    {
+        await Verify(ContainsAndSequenceEqualNotFlaggedElementTypesTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Contains</c> and <c>SequenceEqual</c> methods not declared on <c>Enumerable</c> are not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsAndSequenceEqualNotDeclaredOnEnumerableAreNotFlagged()
+    {
+        await Verify(NonEnumerableContainsAndSequenceEqualTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> is checked on receivers that bind it without dictionary semantics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsOnReceiversWithoutDictionarySemanticsIsChecked()
+    {
+        await Verify(ReadOnlyCollectionReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a dictionary receiver, because it delegates to the dictionary's key lookup
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsWithoutComparerOnDictionaryReceiverIsNotFlagged()
+    {
+        await Verify(DictionaryReceiverContainsTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a receiver typed as <c>IReadOnlyDictionary&lt;TKey, TValue&gt;</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsWithoutComparerOnReadOnlyDictionaryReceiverIsNotFlagged()
+    {
+        await Verify(ReadOnlyDictionaryReceiverContainsTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> with a comparer argument that is not custom is checked on a dictionary receiver
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsWithNonCustomComparerOnDictionaryReceiverIsChecked()
+    {
+        await Verify(DictionaryReceiverContainsWithComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> is checked on a key/value pair sequence whose static type carries no dictionary semantics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsOnKeyValuePairSequenceWithoutDictionaryTypeIsChecked()
+    {
+        await Verify(KeyValuePairSequenceContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.SequenceEqual</c> is checked on a dictionary receiver
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySequenceEqualOnDictionaryReceiverIsChecked()
+    {
+        await Verify(DictionaryReceiverSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a receiver typed as a type parameter constrained to a dictionary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsWithoutComparerOnTypeParameterDictionaryReceiverIsNotFlagged()
+    {
+        await Verify(TypeParameterDictionaryReceiverContainsTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> without a comparer is not flagged on a dictionary whose tuple key type differs from the searched value's only in element names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsWithoutComparerOnDictionaryWithNamedTupleKeyIsNotFlagged()
+    {
+        await Verify(TupleKeyDictionaryReceiverContainsTestData);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Enumerable.Contains</c> is checked on a concrete type that implements only the read-only dictionary interface, directly or through a type parameter constrained to it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContainsOnConcreteReadOnlyOnlyDictionaryIsChecked()
+    {
+        await Verify(ReadOnlyOnlyDictionaryReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
     }
 
     #endregion // Methods
