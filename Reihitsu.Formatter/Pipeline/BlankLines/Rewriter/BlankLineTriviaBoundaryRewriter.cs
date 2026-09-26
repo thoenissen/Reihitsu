@@ -208,6 +208,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
+    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, resolved through <see cref="PrecedingTokenFacts.Resolve"/></param>
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
@@ -228,8 +229,15 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// is measured the same way, and switching to the range measure would put a blank line into a shape that is a
     /// fixed point today - that gap is a defect of its own rather than part of this one
     /// </para>
+    /// <para>
+    /// The first token of a formatting root that an earlier phase detached has no previous token in its tree, so there
+    /// are no line numbers to compare. The gap is then counted from <paramref name="previousTokenFacts"/>, which include
+    /// the line break that ends the preceding token's line, and one line break is inserted: such a root keeps its
+    /// rewritten leading trivia only when it starts its own line, which is exactly when the comment cannot share the
+    /// preceding token's line
+    /// </para>
     /// </remarks>
-    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
+    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token, PrecedingTokenFacts previousTokenFacts)
     {
         var trivia = token.LeadingTrivia;
         var commentIndex = FindFirstCommentIndex(trivia);
@@ -261,7 +269,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var lineStartIndex = FindLineStartIndex(trivia, commentIndex);
         var gapStartIndex = FindGapStartIndex(trivia, lineStartIndex);
         var localBlankLineCount = CountLocalBlankLines(trivia, gapStartIndex, lineStartIndex);
-        var blankLineCount = BlankLineEditor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex);
+        var blankLineCount = BlankLineEditor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex, previousTokenFacts);
 
         if (blankLineCount == 1 || (localBlankLineCount == 0 && BlankLineEditor.HasBlankLineBeforeIndex(trivia, commentIndex)))
         {
@@ -372,20 +380,21 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         token = base.VisitToken(token);
 
         var previousToken = token.GetPreviousToken();
-        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousToken);
-        var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken);
+        var previousTokenFacts = PrecedingTokenFacts.Resolve(previousToken, _context);
+        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousTokenFacts);
+        var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousTokenFacts);
 
         if (HasCommentInLeadingTrivia(token)
             && isFirstInBlock == false
             && IsStrandedInlineDocumentation(token, previousToken) == false)
         {
-            token = EnsureBlankLineBeforeFirstComment(token);
+            token = EnsureBlankLineBeforeFirstComment(token, previousTokenFacts);
         }
 
         if (HasEndRegionDirectiveInLeadingTrivia(token)
             && isExemptFromPrecedingBlankLineBeforeRegionDirective == false)
         {
-            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousToken);
+            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousTokenFacts);
         }
 
         if (HasEndRegionDirectiveInTrailingTrivia(token)

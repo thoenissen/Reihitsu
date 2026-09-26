@@ -99,10 +99,25 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    private string _d;
 
-        var formatted = await FormatTarget(NormalizeLineEndings(input, "\n"), SelectSingle<PropertyDeclarationSyntax>);
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                            /// <summary>
+                                            /// Assigns the value
+                                            /// </summary>
+                                            _d = value;
+                                        }
+                                    }
+                                }
+                                """;
 
-        Assert.Contains("    private string _d;\n\n    public string Description", formatted, "The blank line above the property must be kept.");
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
     }
 
     /// <summary>
@@ -493,6 +508,349 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                 """;
 
         await AssertFormatsTarget(input, expected, SelectSingle<IfStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a line comment that directly follows the previous member when a structural
+    /// transform rewrites the property the comment belongs to
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveCommentOfRewrittenProperty()
+    {
+        await AssertFormatsTarget(UnbracedPropertyAfterField("    // Describes the instance\n"),
+                                  BracedPropertyAfterField("\n    // Describes the instance\n"),
+                                  SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a line comment that directly follows the opening brace when a structural
+    /// transform rewrites the member the comment belongs to
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveCommentOfRewrittenFirstMember()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 // Describes the instance
+                                 public string Description
+                                 {
+                                     set
+                                     {
+                                         if (value != null)
+                                             Value = value;
+                                     }
+                                 }
+
+                                 public string Value { get; set; }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    // Describes the instance
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                            if (value != null)
+                                            {
+                                                Value = value;
+                                            }
+                                        }
+                                    }
+
+                                    public string Value { get; set; }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a line comment that directly follows a switch label when a structural
+    /// transform rewrites the statement the comment belongs to
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveCommentOfRewrittenStatementAfterSwitchLabel()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public int Method(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             // Handles one
+                                             if (value > 0)
+                                                 value++;
+
+                                             break;
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public int Method(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                // Handles one
+                                                if (value > 0)
+                                                {
+                                                    value++;
+                                                }
+
+                                                break;
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectSingle<IfStatementSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a region directive that directly follows the previous member when a
+    /// structural transform rewrites the property the directive precedes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveRegionOfRewrittenProperty()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 private string _d;
+                                 #region Properties
+
+                                 public string Description
+                                 {
+                                     set
+                                     {
+                                         if (value != null)
+                                             _d = value;
+                                     }
+                                 }
+
+                                 #endregion // Properties
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    private string _d;
+
+                                    #region Properties
+
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                            if (value != null)
+                                            {
+                                                _d = value;
+                                            }
+                                        }
+                                    }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a region directive that directly follows the opening brace when a
+    /// structural transform rewrites the property the directive precedes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveRegionOfRewrittenFirstMember()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 #region Properties
+
+                                 public string Description
+                                 {
+                                     set
+                                     {
+                                         if (value != null)
+                                             Value = value;
+                                     }
+                                 }
+
+                                 public string Value { get; set; }
+
+                                 #endregion // Properties
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    #region Properties
+
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                            if (value != null)
+                                            {
+                                                Value = value;
+                                            }
+                                        }
+                                    }
+
+                                    public string Value { get; set; }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a region directive that follows an opening brace carrying a trailing
+    /// comment when a structural transform rewrites the property the directive precedes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveRegionOfRewrittenFirstMemberAfterCommentedOpeningBrace()
+    {
+        const string input = """
+                             public class TestClass
+                             { // Members
+                                 #region Properties
+
+                                 public string Description
+                                 {
+                                     set
+                                     {
+                                         if (value != null)
+                                             Value = value;
+                                     }
+                                 }
+
+                                 public string Value { get; set; }
+
+                                 #endregion // Properties
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                { // Members
+
+                                    #region Properties
+
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                            if (value != null)
+                                            {
+                                                Value = value;
+                                            }
+                                        }
+                                    }
+
+                                    public string Value { get; set; }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above an end region directive that directly follows the previous member when a
+    /// structural transform rewrites the property the directive precedes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveEndRegionOfRewrittenProperty()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 #region Fields
+
+                                 private string _d;
+                                 #endregion // Fields
+
+                                 public string Description
+                                 {
+                                     set
+                                     {
+                                         if (value != null)
+                                             _d = value;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    #region Fields
+
+                                    private string _d;
+
+                                    #endregion // Fields
+
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                            if (value != null)
+                                            {
+                                                _d = value;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted above a line comment between a file-scoped namespace and a type that a structural
+    /// transform rewrites
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveCommentOfRewrittenTypeInFileScopedNamespace()
+    {
+        const string input = """
+                             namespace Sample;
+                             // Describes the type
+                             internal class Empty
+                             {
+                             }
+                             """;
+        const string expected = """
+                                namespace Sample;
+
+                                // Describes the type
+                                internal class Empty;
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectSingle<ClassDeclarationSyntax>);
     }
 
     /// <summary>

@@ -22,7 +22,8 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     private readonly CancellationToken _cancellationToken;
 
     /// <summary>
-    /// The formatting context, which carries the facts about the token that precedes the formatting root in its document
+    /// The formatting context, which carries the facts about the token that precedes the formatting root in its document and
+    /// whether node-scoped formatting keeps one line break before root documentation
     /// </summary>
     private readonly FormattingContext _context;
 
@@ -449,28 +450,20 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         token = base.VisitToken(token);
 
-        var previousToken = token.GetPreviousToken();
-        var previousTokenKind = previousToken.Kind();
-        var previousTokenEndsLine = previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+        var previousToken = PrecedingTokenFacts.Resolve(token.GetPreviousToken(), _context);
 
-        if (previousTokenKind == SyntaxKind.None)
+        if (previousToken.Exists == false)
         {
-            // Only the first token of the visited root has no previous token. An earlier phase may have replaced the root
-            // with a detached node, so the token that precedes the root in its document comes from the context instead.
-            // Without such a token the root starts its file and its leading blank lines are collapsed
-            previousTokenKind = _context.RootPrecedingTokenKind;
-            previousTokenEndsLine = _context.RootPrecedingTokenEndsLine;
+            // Neither the visited tree nor the caller knows a preceding token: the root starts its file, or the caller
+            // formats a node on its own. Leading blank lines are collapsed, except that node-scoped formatting keeps one
+            // line break before the root's documentation
+            var keepDocumentationBoundary = _context.PreserveRootDocumentationBoundary
+                                            && StartsWithSingleLineDocumentationCommentAfterLineBreak(token);
 
-            if (previousTokenKind == SyntaxKind.None)
-            {
-                var keepDocumentationBoundary = _context.PreserveRootDocumentationBoundary
-                                                && StartsWithSingleLineDocumentationCommentAfterLineBreak(token);
-
-                token = CollapseLeadingBlankLines(token, keepDocumentationBoundary);
-            }
+            token = CollapseLeadingBlankLines(token, keepDocumentationBoundary);
         }
 
-        if (previousTokenKind == SyntaxKind.OpenBraceToken)
+        if (previousToken.Kind == SyntaxKind.OpenBraceToken)
         {
             token = RemoveLeadingBlankLines(token);
         }
@@ -497,7 +490,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
             if (hasNonRegionDirective == false)
             {
-                var keepSingleLineBreak = previousTokenEndsLine == false;
+                var keepSingleLineBreak = previousToken.EndsLine == false;
                 token = CollapseLeadingBlankLines(token, keepSingleLineBreak);
             }
 

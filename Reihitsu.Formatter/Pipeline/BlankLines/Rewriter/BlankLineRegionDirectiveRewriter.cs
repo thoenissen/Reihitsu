@@ -138,7 +138,7 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        var previousToken = token.GetPreviousToken();
+        var previousToken = PrecedingTokenFacts.Resolve(token.GetPreviousToken(), _context);
 
         token = EnsureBlankLineAfterRegionDirectives(token);
 
