@@ -202,6 +202,61 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
         await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying the code fix keeps the blank line above the reordered property when a preceding structural
+    /// transform (bracing the if-statement body) rewrites the accessor being moved
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task BlankLineAboveReorderedPropertyIsKeptWhenAccessorBodyIsBraced()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private string _d;
+
+                                    public string Description
+                                    {
+                                        set
+                                        {
+                                            if (value != null)
+                                                _d = value;
+                                        }
+
+                                        {|#0:get|}
+                                        {
+                                            return _d;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     private string _d;
+
+                                     public string Description
+                                     {
+                                         get
+                                         {
+                                             return _d;
+                                         }
+
+                                         set
+                                         {
+                                             if (value != null)
+                                             {
+                                                 _d = value;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

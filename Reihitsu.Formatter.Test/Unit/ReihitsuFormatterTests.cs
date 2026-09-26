@@ -1528,6 +1528,87 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps the blank line above a nested member
+    /// whose accessor body a structural transform braces, under both LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncKeepsBlankLineAboveTargetWhenStructuralTransformRewritesIt()
+    {
+        const string inputWithLf = """
+                                   public class TestClass
+                                   {
+                                       private string _d;
+
+                                       public string Description
+                                       {
+                                           set
+                                           {
+                                               if (value != null)
+                                                   _d = value;
+                                           }
+
+                                           get
+                                           {
+                                               return _d;
+                                           }
+                                       }
+                                   }
+                                   """;
+        const string expectedWithLf = """
+                                      public class TestClass
+                                      {
+                                          private string _d;
+
+                                          public string Description
+                                          {
+                                              set
+                                              {
+                                                  if (value != null)
+                                                  {
+                                                      _d = value;
+                                                  }
+                                              }
+
+                                              get
+                                              {
+                                                  return _d;
+                                              }
+                                          }
+                                      }
+                                      """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            var input = NormalizeLineEndings(inputWithLf, endOfLine);
+            var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
+
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(input));
+                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+                var property = root?.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single();
+
+                if (property == null)
+                {
+                    Assert.Fail("Expected a property declaration in the test document.");
+                }
+
+                // Act — the set accessor's if-statement body is braced by a structural transform, without
+                // reordering the accessors, so the only expected change is the braced if-body
+                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, property, TestContext.CancellationToken);
+                var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+                // Assert
+                Assert.AreEqual(expected,
+                                resultText,
+                                $"The blank line above the target property should be kept under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> converts an expression-bodied indexer to an
     /// accessor list whose getter keeps its block, while document-level formatting converts that getter to an expression body
     /// </summary>
