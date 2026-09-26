@@ -141,7 +141,9 @@ public static class ReihitsuFormatter
     /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies,
     /// including when the target is the document root, because this entry point serves code fixes.
     /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
-    /// supported version
+    /// supported version. The blank lines above a target that starts its line are decided from its surroundings in the
+    /// document: the token that precedes it and, for a statement or switch section, the sibling that precedes it in its
+    /// list, so the target gets the blank line document-level formatting would give it
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default)
     {
@@ -173,7 +175,8 @@ public static class ReihitsuFormatter
                                             preserveRootDocumentationBoundary: targetNode != root,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
                                             languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
-                                            rootPrecedingToken: PrecedingTokenFacts.From(originalFirstToken.GetPreviousToken()));
+                                            rootPrecedingToken: PrecedingTokenFacts.From(originalFirstToken.GetPreviousToken()),
+                                            rootListPosition: RootListPosition.From(targetNode));
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
         var columnOffset = originalColumn - formattedColumn;

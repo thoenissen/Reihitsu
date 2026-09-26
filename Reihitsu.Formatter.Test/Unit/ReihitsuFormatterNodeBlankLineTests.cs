@@ -1922,6 +1922,142 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the blank line above the leading comment of a statement whose body a structural transform braces is kept, and that no second blank line is inserted between the comment and the statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsBlankLineAboveCommentOfRewrittenStatementAfterDeclaration()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     var copy = value;
+
+                                     // Increment
+                                     if (copy > 0)
+                                         copy++;
+
+                                     return copy;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        var copy = value;
+
+                                        // Increment
+                                        if (copy > 0)
+                                        {
+                                            copy++;
+                                        }
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("if (copy"));
+    }
+
+    /// <summary>
+    /// Verifies that the blank line required after a closing brace is inserted below a conditional block whose branch the compiler skips
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineBelowDisabledTextAboveStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                             #if DEBUG
+                                     value++;
+                             #endif
+                                     Consume(value);
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+                                #if DEBUG
+                                        value++;
+                                #endif
+
+                                        Consume(value);
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectStatement("Consume(value)"));
+    }
+
+    /// <summary>
+    /// Verifies that a block statement that directly follows a closing brace gets the same gap as in document-level formatting, where the line-break phase keeps its opening brace directly below the preceding closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DoesNotInsertBlankLineAboveBlockStatementAfterClosingBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     if (value > 1)
+                                     {
+                                         value--;
+                                     }
+                                     {
+                                         Consume(value);
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+                                        {
+                                            Consume(value);
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
     /// Selects the last node of the given type below the root
     /// </summary>
     /// <typeparam name="TNode">The node type</typeparam>

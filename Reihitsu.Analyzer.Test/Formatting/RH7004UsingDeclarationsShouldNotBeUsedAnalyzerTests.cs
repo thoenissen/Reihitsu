@@ -369,6 +369,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                                      public void Execute()
                                      {
                                          var value = 0;
+
                                          using (var stream = new MemoryStream())
                                          {
                                              Consume(stream);
