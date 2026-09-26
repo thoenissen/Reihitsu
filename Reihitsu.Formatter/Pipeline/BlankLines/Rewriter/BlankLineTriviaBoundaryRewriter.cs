@@ -98,27 +98,25 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        return StartsOwnLine(previousTokenFacts, token.LeadingTrivia, commentIndex) == false;
+        return StartsOwnLine(token, commentIndex, previousTokenFacts) == false;
     }
 
     /// <summary>
     /// Determines whether the trivia at the specified leading-trivia index starts its own line, that is whether a line
     /// break follows the last content between the preceding token and that index
     /// </summary>
-    /// <param name="previousTokenFacts">The facts about the token that precedes the trivia's token</param>
-    /// <param name="trivia">The leading trivia that contains the index</param>
+    /// <param name="token">The token whose leading trivia contains the index</param>
     /// <param name="leadingTriviaEndExclusive">The exclusive end of the leading-trivia prefix to measure</param>
+    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/></param>
     /// <returns><see langword="true"/> if a line break follows the last content in front of the index</returns>
     /// <remarks>
     /// Line breaks inside comment text do not count: a multi-line comment that ends on the line of the index leaves
     /// that index on the comment's last line. No position is read, so the result is valid for the first token of a
     /// detached formatting root, whose facts still carry the preceding token's trailing trivia
     /// </remarks>
-    private static bool StartsOwnLine(PrecedingTokenFacts previousTokenFacts, SyntaxTriviaList trivia, int leadingTriviaEndExclusive)
+    private static bool StartsOwnLine(SyntaxToken token, int leadingTriviaEndExclusive, PrecedingTokenFacts previousTokenFacts)
     {
-        var gap = SyntaxFactory.TriviaList(previousTokenFacts.TrailingTrivia.Concat(trivia.Take(leadingTriviaEndExclusive)));
-
-        return TokenGapAnalysis.OfTriviaRange(gap, 0, gap.Count).HasTerminalLineBreak;
+        return BlankLineEditor.AnalyzeGapBeforeLeadingTriviaIndex(token, leadingTriviaEndExclusive, previousTokenFacts).HasTerminalLineBreak;
     }
 
     /// <summary>
@@ -257,7 +255,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var lineStartIndex = FindLineStartIndex(trivia, commentIndex);
         var gapStartIndex = FindGapStartIndex(trivia, lineStartIndex);
         var localBlankLineCount = CountLocalBlankLines(trivia, gapStartIndex, lineStartIndex);
-        var blankLineCount = BlankLineEditor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex, previousTokenFacts);
+        var blankLineCount = BlankLineEditor.AnalyzeGapBeforeLeadingTriviaIndex(token, commentIndex, previousTokenFacts).BlankLineCount;
 
         if (blankLineCount == 1 || (localBlankLineCount == 0 && BlankLineEditor.HasBlankLineBeforeIndex(trivia, commentIndex)))
         {
@@ -271,7 +269,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             indentationTrivia.Add(trivia[triviaIndex]);
         }
 
-        var lineBreakCount = StartsOwnLine(previousTokenFacts, trivia, gapStartIndex) ? 1 : 2;
+        var lineBreakCount = StartsOwnLine(token, gapStartIndex, previousTokenFacts) ? 1 : 2;
         var newTrivia = new List<SyntaxTrivia>(trivia.Count - (lineStartIndex - gapStartIndex) + indentationTrivia.Count + lineBreakCount);
 
         for (var triviaIndex = 0; triviaIndex < gapStartIndex; triviaIndex++)

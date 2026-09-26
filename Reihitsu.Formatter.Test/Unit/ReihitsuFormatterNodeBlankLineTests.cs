@@ -546,6 +546,46 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment behind the previous member is moved onto its own line with one
+    /// blank line above it in one pass, whether or not a structural transform rewrites the property it documents. The
+    /// whitespace in front of the comment stays behind the field, which lies outside the formatted target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task SeparatesDelimitedDocumentationBehindPreviousMemberInOnePassForRewrittenAndUnchangedProperty()
+    {
+        var expected = BracedPropertyAfterField("\n    /** doc */\n").Replace("private string _d;\n", "private string _d; \n");
+
+        await AssertFormatsTarget(UnbracedPropertyAfterField("    /** doc */\n").Replace("private string _d;\n    /** doc */", "private string _d; /** doc */"),
+                                  expected,
+                                  SelectSingle<PropertyDeclarationSyntax>);
+        await AssertFormatsTarget(BracedPropertyAfterField("    /** doc */\n").Replace("private string _d;\n    /** doc */", "private string _d; /** doc */"),
+                                  expected,
+                                  SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind a multi-line block comment that trails the previous member
+    /// is moved onto its own line with one blank line above it in one pass, whether or not a structural transform
+    /// rewrites the property it documents. The whitespace in front of the comment stays behind the block comment, which
+    /// is trailing trivia of the field outside the formatted target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task SeparatesDelimitedDocumentationBehindMultiLineBlockCommentInOnePassForRewrittenAndUnchangedProperty()
+    {
+        const string trailing = "private string _d; /* a\n    b */ /** doc */";
+        var expected = BracedPropertyAfterField("    b */ \n\n    /** doc */\n").Replace("private string _d;\n", "private string _d; /* a\n");
+
+        await AssertFormatsTarget(UnbracedPropertyAfterField(string.Empty).Replace("private string _d;", trailing),
+                                  expected,
+                                  SelectSingle<PropertyDeclarationSyntax>);
+        await AssertFormatsTarget(BracedPropertyAfterField(string.Empty).Replace("private string _d;", trailing),
+                                  expected,
+                                  SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
     /// Verifies that no blank line is inserted above a line comment that directly follows the opening brace when a structural
     /// transform rewrites the member the comment belongs to
     /// </summary>
