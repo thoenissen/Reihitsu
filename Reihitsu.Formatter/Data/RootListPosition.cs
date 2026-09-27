@@ -104,12 +104,15 @@ internal readonly struct RootListPosition
     }
 
     /// <summary>
-    /// Determines whether document-level formatting keeps a blank line that the list-level rules insert above the specified
-    /// block statement. The line-break phase leaves no blank line directly above the opening brace of a block statement,
-    /// but it keeps everything up to an own-line comment or directive that owns its own placement
-    /// (<see cref="TokenGapNormalizer.HasOwnLinePlacementOwner"/>). The list-level rules insert their blank line at the start
-    /// of the gap or right after its last directive, so the blank line survives only when the last content of the gap is
-    /// such an owner and not a directive, which leaves an own-line comment
+    /// Determines whether a block statement gets a position, because a blank line that the list-level rules insert above it
+    /// is kept by document-level formatting in a way this position reproduces. The line-break phase leaves no blank line
+    /// directly above the opening brace of a block statement. When the last content of the gap is an own-line comment or
+    /// directive that owns its own placement (<see cref="TokenGapNormalizer.HasOwnLinePlacementOwner"/>), it keeps everything
+    /// up to that content. The list-level rules insert their blank line at the start of the gap or right after its last
+    /// directive, so under such an owner the blank line survives exactly when the owner is an own-line comment rather than a
+    /// directive. Every other gap is left without a position on purpose: when its last content is glued to the brace, a
+    /// documentation comment, or a region directive, the line-break phase rewrites the gap itself in document-level
+    /// formatting, which a position for the list-level rules cannot reproduce
     /// </summary>
     /// <param name="block">The block statement</param>
     /// <returns><see langword="true"/> if a blank line inserted above the block statement survives the line-break phase</returns>
