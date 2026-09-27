@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -550,21 +554,171 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment leading the moved directive moves along with it
+    /// Verifies that a form feed between the directives is removed together with the other whitespace, so
+    /// the fix leaves no trailing whitespace behind
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task DelimitedDocumentationCommentMovesWithTheFollowingDirective()
+    public async Task FormFeedBetweenDirectivesIsRemovedByTheFix()
     {
-        const string testData = "using System; /** core */ using System.Linq;\n\ninternal class TestClass\n{\n}\n";
-        const string expected = "using System;\n/** core */ using System.Linq;\n\ninternal class TestClass\n{\n}\n";
+        const string testData = "using System;\fusing System.Linq;\n\ninternal class TestClass\n{\n}\n";
+        const string expected = "using System;\nusing System.Linq;\n\ninternal class TestClass\n{\n}\n";
 
         var actual = await ApplyCodeFixAsync(testData);
 
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a no-break space between the directives is removed together with the other whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoBreakSpaceBetweenDirectivesIsRemovedByTheFix()
+    {
+        const string testData = "using System;\u00A0using System.Linq;\n\ninternal class TestClass\n{\n}\n";
+        const string expected = "using System;\nusing System.Linq;\n\ninternal class TestClass\n{\n}\n";
+
+        var actual = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the directive is still reported but no fix is offered when a delimited documentation
+    /// comment leads it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsNotOfferedWhenDocumentationCommentLeadsTheMovedDirective()
+    {
+        const string testData = """
+                                using System; /** core */ {|#0:using System.Linq;|}
+
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(testData, testData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when a syntax error sits between the directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsNotOfferedWhenSyntaxErrorSitsBetweenTheDirectives()
+    {
+        const string testData = """
+                                using System; ` using System.Linq;
+
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        var (usingDirectiveCount, hasSyntaxError) = InspectParsedSource(testData);
+
+        Assert.AreEqual(2, usingDirectiveCount);
+        Assert.IsTrue(hasSyntaxError);
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<UsingDirectiveSyntax>()
+                                                               .Last()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the fix places the moved directive at the indentation of its scope's line when a block
+    /// comment precedes the first directive on that line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DirectiveBehindCommentedFirstDirectiveIsMovedToTheLineIndentation()
+    {
+        const string testData = """
+                                namespace Example
+                                {
+                                    /* core */ using System; {|#0:using System.Linq;|}
+
+                                    internal class TestClass
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace Example
+                                 {
+                                     /* core */ using System;
+                                     using System.Linq;
+
+                                     internal class TestClass
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix reads the indentation from the first directive's own line rather than from a
+    /// less indented header comment above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DirectiveBelowUnindentedHeaderCommentIsMovedToTheDirectiveIndentation()
+    {
+        const string testData = """
+                                namespace Example
+                                {
+                                // Header
+                                    using System; {|#0:using System.Linq;|}
+
+                                    internal class TestClass
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace Example
+                                 {
+                                 // Header
+                                     using System;
+                                     using System.Linq;
+
+                                     internal class TestClass
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Parses the source and reports how many using directives the compilation unit holds and whether the
+    /// parse produced a syntax error, so a test can prove its input really reaches the code fix
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <returns>The number of using directives and whether a syntax error was reported</returns>
+    private static (int UsingDirectiveCount, bool HasSyntaxError) InspectParsedSource(string source)
+    {
+        var root = CSharpSyntaxTree.ParseText(source).GetCompilationUnitRoot();
+
+        return (root.Usings.Count, root.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

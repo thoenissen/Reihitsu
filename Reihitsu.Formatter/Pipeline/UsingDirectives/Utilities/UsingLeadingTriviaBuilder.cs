@@ -25,8 +25,9 @@ internal static class UsingLeadingTriviaBuilder
     /// <param name="startsNewGroup"><see langword="true"/> if the using starts a new group</param>
     /// <param name="isFirst"><see langword="true"/> if the using is the first directive in the block</param>
     /// <param name="lineIndentation">
-    /// Indentation to place the directive at instead of the indentation read from its own leading trivia,
-    /// or <see langword="null"/> to keep that indentation. Ignored for the first directive
+    /// Indentation to place the directive at instead of the indentation read from its own leading trivia —
+    /// used for a directive that did not start its own line before the rebuild but does after it — or
+    /// <see langword="null"/> to keep that indentation. Ignored for the first directive
     /// </param>
     /// <param name="endOfLine">Preferred end-of-line sequence</param>
     /// <returns>The leading trivia to apply</returns>
@@ -69,18 +70,6 @@ internal static class UsingLeadingTriviaBuilder
 
         return linePrefix.AddRange(indentationBeforeSignificantTrivia)
                          .AddRange(significantLeadingTrivia);
-    }
-
-    /// <summary>
-    /// Gets the indentation of a scope's using directives from the whitespace prefix of its first
-    /// directive: the whitespace that follows the prefix's last line break. When the first directive does
-    /// not start its own line, its prefix carries no whitespace and the result is empty
-    /// </summary>
-    /// <param name="firstLeadingTriviaPrefix">Whitespace prefix of the scope's first using directive</param>
-    /// <returns>The indentation whitespace</returns>
-    public static SyntaxTriviaList GetScopeIndentation(SyntaxTriviaList firstLeadingTriviaPrefix)
-    {
-        return GetIndentationTrivia(firstLeadingTriviaPrefix);
     }
 
     /// <summary>

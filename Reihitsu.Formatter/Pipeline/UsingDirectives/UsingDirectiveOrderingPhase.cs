@@ -6,7 +6,9 @@ using Reihitsu.Formatter.Pipeline.UsingDirectives.Rewriter;
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 /// <summary>
-/// Reorders using directives into canonical groups before whitespace phases run
+/// Reorders using directives into canonical groups and places every directive on its own line before
+/// whitespace phases run. A block that cannot be reordered safely keeps its order and only has
+/// directives that share a line separated
 /// </summary>
 internal sealed class UsingDirectiveOrderingPhase : IFormattingPhase
 {

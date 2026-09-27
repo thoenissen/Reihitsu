@@ -312,15 +312,29 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive following a block comment that spans lines but ends on the directive's
-    /// line is moved onto a line of its own after the comment
+    /// Verifies that a block comment spanning lines already places the following same-group directive on a
+    /// later line, so no additional line break is inserted
     /// </summary>
     [TestMethod]
-    public void DirectiveAfterMultiLineBlockCommentIsMovedBehindTheComment()
+    public void SameGroupDirectiveAfterMultiLineBlockCommentIsNotSplit()
     {
         // Arrange
         const string input = "using System; /* first\n   second */ using System.Linq;";
-        var expected = $"using System; /* first\n   second */{Environment.NewLine}using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a cross-group directive after a block comment spanning lines is split behind the comment
+    /// so that its group separator forms a blank line
+    /// </summary>
+    [TestMethod]
+    public void CrossGroupDirectiveAfterMultiLineBlockCommentIsSplitWithBlankLine()
+    {
+        // Arrange
+        const string input = "using System; /* first\n   second */ using Microsoft.Win32;";
+        var expected = $"using System; /* first\n   second */{Environment.NewLine}{Environment.NewLine}using Microsoft.Win32;";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));
@@ -340,15 +354,74 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line documentation comment trailing a directive on its line is moved onto a
-    /// line of its own, because the directive's trailing trivia does not end the line itself
+    /// Verifies that a single-line documentation comment behind a same-group directive already ends that
+    /// directive's line, so no additional line break is inserted
     /// </summary>
     [TestMethod]
-    public void SingleLineDocumentationCommentBehindDirectiveIsMovedOntoItsOwnLine()
+    public void SameGroupDirectiveAfterSingleLineDocumentationCommentIsNotSplit()
     {
         // Arrange
         const string input = "using System; /// core\nusing System.Linq;";
-        var expected = $"using System;{Environment.NewLine}/// core\nusing System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive split off behind a block comment that precedes the scope's first directive
+    /// receives the indentation of that directive's line
+    /// </summary>
+    [TestMethod]
+    public void DirectiveSplitBehindCommentedFirstDirectiveUsesTheLineIndentation()
+    {
+        // Arrange
+        const string input = "namespace N\n{\n    /* core */ using System; using System.Linq;\n}";
+        var expected = $"namespace N\n{{\n    /* core */ using System;{Environment.NewLine}    using System.Linq;\n}}";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive split off below an unindented header comment receives the indentation of
+    /// the first directive's line rather than the header's
+    /// </summary>
+    [TestMethod]
+    public void DirectiveSplitBelowUnindentedHeaderCommentUsesTheDirectiveIndentation()
+    {
+        // Arrange
+        const string input = "namespace N\n{\n// Header\n    using System; using Microsoft.Win32;\n}";
+        var expected = $"namespace N\n{{\n// Header\n    using System;{Environment.NewLine}{Environment.NewLine}    using Microsoft.Win32;\n}}";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive that shared a line and is reordered behind a directive that already ends its
+    /// line receives the scope's indentation
+    /// </summary>
+    [TestMethod]
+    public void ReorderedSameLineDirectiveBehindTerminatedPredecessorUsesTheScopeIndentation()
+    {
+        // Arrange
+        const string input = "namespace N\n{\n    using System; using System.Text;\n    using System.IO;\n}";
+        var expected = $"namespace N\n{{\n    using System;{Environment.NewLine}    using System.IO;\n    using System.Text;\n}}";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive that shared a line and is reordered into a new group receives the scope's
+    /// indentation behind its group separator
+    /// </summary>
+    [TestMethod]
+    public void ReorderedSameLineDirectiveStartingNewGroupUsesTheScopeIndentation()
+    {
+        // Arrange
+        const string input = "namespace N\n{\n    using System; using Microsoft.Win32;\n    using System.IO;\n}";
+        var expected = $"namespace N\n{{\n    using System;{Environment.NewLine}    using System.IO;\n{Environment.NewLine}    using Microsoft.Win32;\n}}";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));

@@ -184,6 +184,36 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
+    /// Gets the indentation of a scope's using directives: the leading whitespace of the physical line on
+    /// which the scope's first using directive starts. A directive that is split off a shared line is
+    /// placed at this indentation, whether the first directive starts its line or follows a comment or an
+    /// opening brace on it
+    /// </summary>
+    /// <param name="firstUsingDirective">First using directive of the scope</param>
+    /// <returns>The leading whitespace of the directive's line</returns>
+    public static string GetLineIndentation(UsingDirectiveSyntax firstUsingDirective)
+    {
+        var sourceText = firstUsingDirective.SyntaxTree.GetText();
+        var line = sourceText.Lines.GetLineFromPosition(firstUsingDirective.SpanStart);
+
+        return FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+    }
+
+    /// <summary>
+    /// Determines whether the first token of a using directive is the first token of its physical line
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns><see langword="true"/> if nothing but whitespace precedes the directive on its line; otherwise, <see langword="false"/></returns>
+    public static bool StartsItsLine(UsingDirectiveSyntax usingDirective)
+    {
+        var sourceText = usingDirective.SyntaxTree.GetText();
+        var line = sourceText.Lines.GetLineFromPosition(usingDirective.SpanStart);
+        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+
+        return line.Start + indentation.Length == usingDirective.SpanStart;
+    }
+
+    /// <summary>
     /// Gets the usings from the given scope
     /// </summary>
     /// <param name="scope">Compilation unit or namespace declaration</param>

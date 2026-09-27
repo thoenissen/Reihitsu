@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,8 +27,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesCodeFixProvider : C
     /// <summary>
     /// Applies the code fix. Only the gap between the two directives is rewritten: comments that trail the
     /// previous directive stay on its line, the whitespace behind them is replaced by a line break and the
-    /// scope's indentation, and a comment that leads the moved directive moves along with it. The
-    /// directives are neither reordered nor separated by a blank line
+    /// scope's indentation, and any whitespace that leads the moved directive is dropped. The directives
+    /// are neither reordered nor separated by a blank line
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="previousDirective">Using directive whose line the moved directive shares</param>
@@ -44,58 +45,37 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesCodeFixProvider : C
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var previousTrailingText = previousDirective.GetTrailingTrivia().ToFullString().TrimEnd(' ', '\t');
-        var directiveLeadingText = directive.GetLeadingTrivia().ToFullString().TrimStart(' ', '\t');
-        var replacementText = $"{previousTrailingText}{LineEndingUtilities.DetectEndOfLine(root)}{GetScopeIndentation(sourceText, directive)}{directiveLeadingText}";
+        var previousTrailingTrivia = previousDirective.GetTrailingTrivia().Reverse().SkipWhile(IsWhitespace).Reverse();
+        var directiveLeadingTrivia = directive.GetLeadingTrivia().SkipWhile(IsWhitespace);
+        var indentation = UsingDirectiveOrderingUtilities.GetLineIndentation(UsingDirectiveOrderingUtilities.GetUsings(directive.Parent)[0]);
+        var replacementText = $"{SyntaxFactory.TriviaList(previousTrailingTrivia).ToFullString()}{LineEndingUtilities.DetectEndOfLine(root)}{indentation}{SyntaxFactory.TriviaList(directiveLeadingTrivia).ToFullString()}";
         var replacementSpan = TextSpan.FromBounds(previousDirective.Span.End, directive.Span.Start);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacementText));
     }
 
     /// <summary>
-    /// Gets the indentation of the scope's using directives: the leading whitespace of the line of the
-    /// scope's first directive when that directive is the first token on its line, and no indentation
-    /// otherwise
+    /// Determines whether a trivia is whitespace
     /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="directive">Using directive to move</param>
-    /// <returns>The indentation to place before the moved directive</returns>
-    private static string GetScopeIndentation(SourceText sourceText, UsingDirectiveSyntax directive)
+    /// <param name="trivia">Trivia</param>
+    /// <returns><see langword="true"/> if the trivia is whitespace; otherwise, <see langword="false"/></returns>
+    private static bool IsWhitespace(SyntaxTrivia trivia)
     {
-        var firstDirectiveStart = GetUsingDirectives(directive)[0].SpanStart;
-        var firstDirectiveLine = sourceText.Lines.GetLineFromPosition(firstDirectiveStart);
-        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, firstDirectiveLine));
-
-        return firstDirectiveLine.Start + indentation.Length == firstDirectiveStart
-                   ? indentation
-                   : string.Empty;
+        return trivia.IsKind(SyntaxKind.WhitespaceTrivia);
     }
 
     /// <summary>
-    /// Gets the using directive list that contains the given directive
-    /// </summary>
-    /// <param name="directive">Using directive</param>
-    /// <returns>The containing using directive list</returns>
-    private static SyntaxList<UsingDirectiveSyntax> GetUsingDirectives(UsingDirectiveSyntax directive)
-    {
-        return directive.Parent switch
-               {
-                   CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
-                   BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Usings,
-                   _ => default
-               };
-    }
-
-    /// <summary>
-    /// Gets the using directive that precedes the given directive in its list when both still share a line
-    /// and only trivia without syntax errors separates them
+    /// Gets the using directive that precedes the given directive in its list when the gap between them
+    /// can be rewritten. The fix is withheld when the directives no longer share a line, when a
+    /// documentation comment leads the moved directive — moving it to the start of a line would turn it
+    /// into a misplaced documentation comment — or when a syntax error touches the gap
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="directive">Reported using directive</param>
     /// <returns>The preceding using directive, or <see langword="null"/> if the gap cannot be rewritten</returns>
     private static UsingDirectiveSyntax GetEditablePreviousDirective(SyntaxNode root, UsingDirectiveSyntax directive)
     {
-        var usingDirectives = GetUsingDirectives(directive);
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(directive.Parent);
         var directiveIndex = usingDirectives.IndexOf(directive);
 
         if (directiveIndex < 1)
@@ -110,9 +90,16 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesCodeFixProvider : C
             return null;
         }
 
+        if (directive.GetLeadingTrivia().Any(static trivia => trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+                                                              || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)))
+        {
+            return null;
+        }
+
         var gap = TextSpan.FromBounds(previousDirective.Span.End, directive.Span.Start);
 
-        return root.SyntaxTree.GetDiagnostics().Any(diagnostic => diagnostic.Location.SourceSpan.IntersectsWith(gap))
+        return root.SyntaxTree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error
+                                                                  && diagnostic.Location.SourceSpan.IntersectsWith(gap))
                    ? null
                    : previousDirective;
     }

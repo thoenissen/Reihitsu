@@ -2,18 +2,20 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives.Utilities;
 
 /// <summary>
 /// The trailing-trivia reconstruction half of the using-directive ordering phase. Reordering carries
 /// each directive's original trailing trivia along with its node, but that trivia was authored for the
 /// directive's old neighbor. It only becomes wrong when the old neighbor relationship it encodes cannot
-/// safely carry over: a directive that ends up with a successor must be separated from it by a line
-/// break, so every successor starts its own line. Trailing trivia that already ends in a line break is
-/// left untouched; otherwise the whitespace run at the end of the trailing trivia is replaced by exactly
-/// one line break, so a block comment stays on the directive's line and no trailing whitespace is left
-/// behind. A directive that ends up last needs none of that — nothing follows it within the block —
-/// except that an unterminated single-line comment it already carries must still be closed before the
+/// safely carry over: a directive that ends up with a successor must not share its line with it. When
+/// <see cref="RequiresSeparatingLineBreak"/> finds that the trailing trivia does not already separate the
+/// two, the whitespace run at the end of the trailing trivia is replaced by exactly one line break, so a
+/// block comment stays on the directive's line and no trailing whitespace is left behind; otherwise the
+/// trailing trivia is left untouched. A directive that ends up last needs none of that — nothing follows
+/// it within the block — except that an unterminated single-line comment it already carries must still be closed before the
 /// block's own original closing shape (whitespace and/or a line break, transplanted rather than reduced
 /// to a single flag) is appended after it
 /// </summary>
@@ -72,18 +74,53 @@ internal static class UsingTrailingTriviaBuilder
     }
 
     /// <summary>
-    /// Determines whether a directive's trailing trivia fails to end its line, so the directive must gain
-    /// a line break before whatever follows it: the trivia contains no end-of-line trivia at all — it is
-    /// empty, whitespace, or block comments, including one that spans lines — or it ends in a single-line
-    /// comment that has not been terminated by a line break and would otherwise swallow the next
-    /// directive's text into itself. A successor only starts its own line, and a group separator added
-    /// ahead of it only forms a blank line, after trailing trivia that ends in a line break
+    /// Determines whether a directive must gain a line break before its successor in the rebuilt block.
+    /// That is the case when its trailing trivia ends in an unterminated single-line comment, which would
+    /// otherwise swallow whatever follows it, and when its trailing trivia contains no end-of-line trivia
+    /// while the successor would otherwise not start a line of its own. A line break inside a comment
+    /// already places the successor on a later line: a block comment in the trailing trivia that spans
+    /// lines, or a single-line documentation comment that leads the successor. Neither counts as a line
+    /// shared with the successor unless the successor starts a new group, whose blank-line separator only
+    /// forms a blank line after trailing trivia that ends in an end-of-line trivia
     /// </summary>
-    /// <param name="trailingTrivia">Trailing trivia to inspect</param>
+    /// <param name="trailingTrivia">Trailing trivia of the directive</param>
+    /// <param name="successorLeadingTrivia">Leading trivia of the directive that follows it</param>
+    /// <param name="successorStartsNewGroup"><see langword="true"/> if the successor starts a new group</param>
     /// <returns><see langword="true"/> if a line break must be added; otherwise, <see langword="false"/></returns>
-    public static bool RequiresSeparatingLineBreak(SyntaxTriviaList trailingTrivia)
+    public static bool RequiresSeparatingLineBreak(SyntaxTriviaList trailingTrivia, SyntaxTriviaList successorLeadingTrivia, bool successorStartsNewGroup)
     {
-        return ContainsLineBreak(trailingTrivia) == false || EndsInUnterminatedSingleLineComment(trailingTrivia);
+        if (EndsInUnterminatedSingleLineComment(trailingTrivia))
+        {
+            return true;
+        }
+
+        if (ContainsLineBreak(trailingTrivia))
+        {
+            return false;
+        }
+
+        if (successorStartsNewGroup)
+        {
+            return true;
+        }
+
+        return SpansLine(trailingTrivia) == false
+               && StartsWithSingleLineDocumentationComment(successorLeadingTrivia) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list contains an end-of-line trivia anywhere in it. For the block's own
+    /// terminating trivia, which <see cref="GetTrailingLayoutTrivia"/> guarantees contains only whitespace
+    /// and end-of-line trivia, anything ahead of its first end-of-line is therefore whitespace, and
+    /// re-parsing it directly after an unterminated single-line comment absorbs that whitespace into the
+    /// comment's own text the same way it would have absorbed it originally, so the terminal trivia
+    /// already closes the comment on its own without an additional inserted break
+    /// </summary>
+    /// <param name="trivia">Trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list contains an end-of-line trivia; otherwise, <see langword="false"/></returns>
+    public static bool ContainsLineBreak(SyntaxTriviaList trivia)
+    {
+        return trivia.Any(static item => item.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>
@@ -108,18 +145,28 @@ internal static class UsingTrailingTriviaBuilder
     }
 
     /// <summary>
-    /// Determines whether a trivia list contains an end-of-line trivia anywhere in it. For the block's own
-    /// terminating trivia, which <see cref="GetTrailingLayoutTrivia"/> guarantees contains only whitespace
-    /// and end-of-line trivia, anything ahead of its first end-of-line is therefore whitespace, and
-    /// re-parsing it directly after an unterminated single-line comment absorbs that whitespace into the
-    /// comment's own text the same way it would have absorbed it originally, so the terminal trivia
-    /// already closes the comment on its own without an additional inserted break
+    /// Determines whether the text of a trivia list spans a line, which for trailing trivia without an
+    /// end-of-line trivia means it holds a block comment that spans lines
     /// </summary>
     /// <param name="trivia">Trivia list to inspect</param>
-    /// <returns><see langword="true"/> if the list contains an end-of-line trivia; otherwise, <see langword="false"/></returns>
-    private static bool ContainsLineBreak(SyntaxTriviaList trivia)
+    /// <returns><see langword="true"/> if the text contains a line break; otherwise, <see langword="false"/></returns>
+    private static bool SpansLine(SyntaxTriviaList trivia)
     {
-        return trivia.Any(static item => item.IsKind(SyntaxKind.EndOfLineTrivia));
+        return trivia.ToFullString().IndexOfAny(['\r', '\n']) >= 0;
+    }
+
+    /// <summary>
+    /// Determines whether the first significant trivia of a leading trivia list is a single-line
+    /// documentation comment, whose own line break already ends the line it starts on
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia to inspect</param>
+    /// <returns><see langword="true"/> if the first significant trivia is a single-line documentation comment; otherwise, <see langword="false"/></returns>
+    private static bool StartsWithSingleLineDocumentationComment(SyntaxTriviaList leadingTrivia)
+    {
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+
+        return firstSignificantTriviaIndex >= 0
+               && leadingTrivia[firstSignificantTriviaIndex].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
     }
 
     /// <summary>

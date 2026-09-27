@@ -76,6 +76,49 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the line indentation is read from the physical line of the directive, even when a
+    /// comment precedes the directive on that line or a less indented comment sits above it
+    /// </summary>
+    [TestMethod]
+    public void GetLineIndentationReadsTheDirectiveLine()
+    {
+        var namespaceDeclaration = CoreSyntaxTestHelper.ParseCompilationUnit("namespace Example\n{\n// Header\n    /* core */ using System; using System.Linq;\n}")
+                                                       .Members
+                                                       .OfType<NamespaceDeclarationSyntax>()
+                                                       .Single();
+
+        Assert.AreEqual("    ", UsingDirectiveOrderingUtilities.GetLineIndentation(namespaceDeclaration.Usings[0]));
+    }
+
+    /// <summary>
+    /// Verifies that a directive on an unindented line after an opening brace has no line indentation
+    /// </summary>
+    [TestMethod]
+    public void GetLineIndentationIsEmptyForUnindentedLine()
+    {
+        var namespaceDeclaration = CoreSyntaxTestHelper.ParseCompilationUnit("namespace Example { using System; using System.Linq; }")
+                                                       .Members
+                                                       .OfType<NamespaceDeclarationSyntax>()
+                                                       .Single();
+
+        Assert.AreEqual(string.Empty, UsingDirectiveOrderingUtilities.GetLineIndentation(namespaceDeclaration.Usings[0]));
+    }
+
+    /// <summary>
+    /// Verifies that only a directive preceded by nothing but whitespace on its line starts its line
+    /// </summary>
+    [TestMethod]
+    public void StartsItsLineDistinguishesLeadingAndSharedDirectives()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("using System; using System.IO;\n  using System.Linq;\n/* core */ using System.Text;").Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.StartsItsLine(usingDirectives[0]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.StartsItsLine(usingDirectives[1]));
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.StartsItsLine(usingDirectives[2]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.StartsItsLine(usingDirectives[3]));
+    }
+
+    /// <summary>
     /// Verifies that sort helpers use alias names and compare keys case-insensitively
     /// </summary>
     [TestMethod]

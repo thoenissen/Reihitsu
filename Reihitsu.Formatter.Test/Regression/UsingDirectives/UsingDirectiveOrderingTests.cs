@@ -554,5 +554,24 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a same-group directive that a block comment spanning lines already places on a later
+    /// line is left where it is
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindMultiLineBlockCommentIsLeftUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             using System; /* first
+                                second */ using System.Linq;
+
+                             class C;
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }
