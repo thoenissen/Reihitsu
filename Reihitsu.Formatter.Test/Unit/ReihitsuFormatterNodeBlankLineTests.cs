@@ -2408,6 +2408,106 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the blank line required after a break statement is inserted above the own-line comment of a block statement that follows it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveCommentOfBlockStatementAfterBreak()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     while (value > 0)
+                                     {
+                                         break;
+                                         // Scope
+                                         {
+                                             value++;
+                                         }
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        while (value > 0)
+                                        {
+                                            break;
+
+                                            // Scope
+                                            {
+                                                value++;
+                                            }
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line required after a break statement is inserted above a directive that precedes the own-line comment of a block statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task InsertsBlankLineAboveDirectiveOfCommentedBlockStatementAfterBreak()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M(int value)
+                                 {
+                                     while (value > 0)
+                                     {
+                                         break;
+                             #if !DEBUG
+                                         // Scope
+                                         {
+                                             value++;
+                                         }
+                             #endif
+                                     }
+
+                                     return value;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class C
+                                {
+                                    public int M(int value)
+                                    {
+                                        while (value > 0)
+                                        {
+                                            break;
+
+                                #if !DEBUG
+                                            // Scope
+                                            {
+                                                value++;
+                                            }
+                                #endif
+                                        }
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
     /// Selects the first node of the given type below the root
     /// </summary>
     /// <typeparam name="TNode">The node type</typeparam>
