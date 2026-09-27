@@ -341,7 +341,7 @@ internal sealed class TokenGapNormalizer
     /// </summary>
     /// <param name="leadingTrivia">The leading trivia to inspect</param>
     /// <returns><see langword="true"/> if the gap carries content that owns its own blank-line placement; otherwise, <see langword="false"/></returns>
-    private static bool HasOwnLinePlacementOwner(SyntaxTriviaList leadingTrivia)
+    internal static bool HasOwnLinePlacementOwner(SyntaxTriviaList leadingTrivia)
     {
         var lastContentIndex = SyntaxTriviaUtilities.FindLastSignificantTriviaIndex(leadingTrivia);
 

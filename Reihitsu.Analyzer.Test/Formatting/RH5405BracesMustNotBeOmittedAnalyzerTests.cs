@@ -299,6 +299,141 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix inserts the blank line that separates the braced statement from a preceding declaration statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineIsInsertedAboveFixedStatementAfterDeclaration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method(int value)
+                                    {
+                                        var copy = value;
+                                        if (copy > 0)
+                                            {|#0:copy++;|}
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Method(int value)
+                                     {
+                                         var copy = value;
+
+                                         if (copy > 0)
+                                         {
+                                             copy++;
+                                         }
+
+                                         return copy;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix inserts the blank line that separates the braced statement from a preceding closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineIsInsertedAboveFixedStatementAfterClosingBrace()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method(int value)
+                                    {
+                                        if (value > 1)
+                                        {
+                                            value--;
+                                        }
+                                        if (value > 0)
+                                            {|#0:value++;|}
+
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Method(int value)
+                                     {
+                                         if (value > 1)
+                                         {
+                                             value--;
+                                         }
+
+                                         if (value > 0)
+                                         {
+                                             value++;
+                                         }
+
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing two adjacent statements inserts the blank line above each of them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLinesAreInsertedAboveAdjacentFixedStatements()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method(int value)
+                                    {
+                                        var copy = value;
+                                        if (copy > 0)
+                                            {|#0:copy++;|}
+                                        if (copy > 1)
+                                            {|#1:copy--;|}
+
+                                        return copy;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Method(int value)
+                                     {
+                                         var copy = value;
+
+                                         if (copy > 0)
+                                         {
+                                             copy++;
+                                         }
+
+                                         if (copy > 1)
+                                         {
+                                             copy--;
+                                         }
+
+                                         return copy;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -37,12 +37,16 @@ internal record FormattingContext
     /// <param name="rootPrecedingToken">
     /// The facts about the token that precedes the formatting root in its document, or <see langword="default"/> when the caller supplies none
     /// </param>
+    /// <param name="rootListPosition">
+    /// The position of the formatting root inside the statement or switch-section list of its document, or <see langword="default"/> when the caller supplies none
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
                              ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None,
                              LanguageVersion languageVersion = LanguageVersion.Default,
-                             PrecedingTokenFacts rootPrecedingToken = default)
+                             PrecedingTokenFacts rootPrecedingToken = default,
+                             RootListPosition rootListPosition = default)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -50,6 +54,7 @@ internal record FormattingContext
         DisabledStructuralTransforms = disabledStructuralTransforms;
         LanguageVersion = LanguageVersionResolver.Resolve(languageVersion);
         RootPrecedingToken = rootPrecedingToken;
+        RootListPosition = rootListPosition;
     }
 
     #endregion // Constructor
@@ -95,6 +100,15 @@ internal record FormattingContext
     /// <see langword="default"/>, which means no preceding token is known — not that the root starts its file
     /// </summary>
     public PrecedingTokenFacts RootPrecedingToken { get; }
+
+    /// <summary>
+    /// The position of the formatting root inside the statement or switch-section list of its document. The blank-line
+    /// decisions that compare a list element with its preceding sibling run in the visitor of the list's parent, which a
+    /// formatting run rooted at the element never visits; these facts let them decide the root's own leading gap. Only
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
+    /// <see langword="default"/>, which means the root has no known preceding sibling
+    /// </summary>
+    public RootListPosition RootListPosition { get; }
 
     #endregion // Properties
 

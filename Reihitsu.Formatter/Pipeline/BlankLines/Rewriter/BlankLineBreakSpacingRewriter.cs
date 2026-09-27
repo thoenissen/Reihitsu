@@ -8,7 +8,9 @@ using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
 /// <summary>
-/// Subphase that inserts blank lines after break statements
+/// Subphase that inserts blank lines after break statements. A formatting root that is itself a statement or switch section
+/// following a <see langword="break"/> is decided against its preceding sibling in the document, which
+/// <see cref="FormattingContext.RootListPosition"/> carries
 /// </summary>
 internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 {
@@ -28,6 +30,11 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     /// Cancellation token of the current blank-line subphase
     /// </summary>
     private readonly CancellationToken _cancellationToken;
+
+    /// <summary>
+    /// Whether the formatting root has been entered, so that every later <see cref="Visit"/> call visits a descendant
+    /// </summary>
+    private bool _isRootEntered;
 
     #endregion // Fields
 
@@ -51,6 +58,50 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether the specified switch section ends in a <see langword="break"/> statement, which requires a blank
+    /// line before the section that follows it
+    /// </summary>
+    /// <param name="section">The switch section</param>
+    /// <returns><see langword="true"/> if the section ends in a <see langword="break"/> statement</returns>
+    private static bool EndsInBreak(SwitchSectionSyntax section)
+    {
+        return section.Statements.LastOrDefault() is BreakStatementSyntax;
+    }
+
+    /// <summary>
+    /// Ensures the blank line required before a statement that directly follows a <see langword="break"/> statement
+    /// </summary>
+    /// <param name="statement">The current statement</param>
+    /// <param name="previous">The preceding statement</param>
+    /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
+    private StatementSyntax EnsureBlankLineAfterBreak(StatementSyntax statement, StatementSyntax previous)
+    {
+        return previous is BreakStatementSyntax
+                   ? _editor.EnsureBlankLineBeforeStatement(statement)
+                   : statement;
+    }
+
+    /// <summary>
+    /// Ensures a blank line exists before the first token of the specified switch section
+    /// </summary>
+    /// <param name="section">The switch section</param>
+    /// <returns>The section with a blank line inserted before it, or the original if one already exists</returns>
+    private SwitchSectionSyntax EnsureBlankLineBeforeSection(SwitchSectionSyntax section)
+    {
+        var firstToken = section.GetFirstToken();
+
+        if (_editor.HasBlankLineBeforeToken(firstToken))
+        {
+            return section;
+        }
+
+        var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
+        var newLeadingTrivia = firstToken.LeadingTrivia.Insert(0, endOfLine);
+
+        return section.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(newLeadingTrivia));
+    }
+
+    /// <summary>
     /// Applies break-spacing rules to a statement list
     /// </summary>
     /// <param name="statements">Statements to process</param>
@@ -72,15 +123,8 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 
         for (var statementIndex = 1; statementIndex < statements.Count; statementIndex++)
         {
-            var previousStatement = newStatements[statementIndex - 1];
-
-            if (previousStatement is not BreakStatementSyntax)
-            {
-                continue;
-            }
-
             var currentStatement = newStatements[statementIndex];
-            var updatedStatement = _editor.EnsureBlankLineBeforeStatement(currentStatement);
+            var updatedStatement = EnsureBlankLineAfterBreak(currentStatement, newStatements[statementIndex - 1]);
 
             if (updatedStatement == currentStatement)
             {
@@ -97,6 +141,44 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The first call receives the formatting root. After its descendants are visited, a root statement or switch section is
+    /// decided against its preceding sibling in the document, because the visitor of the list that contains it lies outside
+    /// this run
+    /// </remarks>
+    public override SyntaxNode Visit(SyntaxNode node)
+    {
+        if (_isRootEntered)
+        {
+            return base.Visit(node);
+        }
+
+        _isRootEntered = true;
+
+        var visited = base.Visit(node);
+        var position = _context.RootListPosition;
+
+        switch (visited)
+        {
+            case StatementSyntax statement when position.PreviousStatement != null:
+                {
+                    return EnsureBlankLineAfterBreak(statement, position.PreviousStatement);
+                }
+
+            case SwitchSectionSyntax section when position.PreviousSection != null
+                                                  && EndsInBreak(position.PreviousSection):
+                {
+                    return EnsureBlankLineBeforeSection(section);
+                }
+
+            default:
+                {
+                    return visited;
+                }
+        }
+    }
 
     /// <inheritdoc />
     public override SyntaxNode VisitBlock(BlockSyntax node)
@@ -165,27 +247,20 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 
         for (var sectionIndex = 1; sectionIndex < sections.Count; sectionIndex++)
         {
-            var previousSection = newSections[sectionIndex - 1];
-            var lastStatement = previousSection.Statements.LastOrDefault();
-
-            if (lastStatement is not BreakStatementSyntax)
+            if (EndsInBreak(newSections[sectionIndex - 1]) == false)
             {
                 continue;
             }
 
             var section = newSections[sectionIndex];
-            var firstToken = section.GetFirstToken();
+            var updatedSection = EnsureBlankLineBeforeSection(section);
 
-            if (BlankLineEditor.HasBlankLineBeforeToken(firstToken))
+            if (updatedSection == section)
             {
                 continue;
             }
 
-            var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
-            var newLeadingTrivia = firstToken.LeadingTrivia.Insert(0, endOfLine);
-            var newToken = firstToken.WithLeadingTrivia(newLeadingTrivia);
-
-            newSections[sectionIndex] = section.ReplaceToken(firstToken, newToken);
+            newSections[sectionIndex] = updatedSection;
             modified = true;
         }
 

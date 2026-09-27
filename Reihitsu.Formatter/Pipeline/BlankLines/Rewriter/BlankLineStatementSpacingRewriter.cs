@@ -3,16 +3,24 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
 /// <summary>
-/// Subphase that inserts required blank lines before statements
+/// Subphase that inserts required blank lines before statements. Each statement of a block or switch section is decided
+/// against its preceding sibling; a formatting root that is itself such a statement is decided against its preceding
+/// sibling in the document, which <see cref="FormattingContext.RootListPosition"/> carries
 /// </summary>
 internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
 {
     #region Fields
+
+    /// <summary>
+    /// Formatting context of the current blank-line subphase
+    /// </summary>
+    private readonly FormattingContext _context;
 
     /// <summary>
     /// Shared blank-line query and edit collaborator
@@ -24,6 +32,11 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Whether the formatting root has been entered, so that every later <see cref="Visit"/> call visits a descendant
+    /// </summary>
+    private bool _isRootEntered;
+
     #endregion // Fields
 
     #region Constructor
@@ -31,10 +44,12 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="context">The formatting context</param>
     /// <param name="editor">Shared blank-line query and edit collaborator</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineStatementSpacingRewriter(BlankLineEditor editor, CancellationToken cancellationToken)
+    public BlankLineStatementSpacingRewriter(FormattingContext context, BlankLineEditor editor, CancellationToken cancellationToken)
     {
+        _context = context;
         _editor = editor;
         _cancellationToken = cancellationToken;
     }
@@ -44,21 +59,21 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified statement directly follows a closing brace, i.e. the shape RH5030
-    /// requires a blank line for
+    /// Determines whether a statement needs the blank line that RH5030 requires after a closing brace, from its preceding
+    /// statement and whether the statement itself is exempt as the terminal <see langword="break"/> of its switch section
     /// </summary>
-    /// <param name="statement">The current statement</param>
     /// <param name="previous">The preceding statement</param>
+    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
     /// <returns><see langword="true"/> if the statement follows a closing brace and needs a blank line</returns>
     /// <remarks>
     /// This mirrors RH5030, which carries no directive exemption, unlike the statement-kind rules in
     /// <see cref="NeedsBlankLineForStatementKind"/>. Callers must reposition the insertion past a leading
     /// directive rather than skip it.
     /// </remarks>
-    private static bool IsAfterClosingBrace(StatementSyntax statement, StatementSyntax previous)
+    private static bool IsAfterClosingBrace(StatementSyntax previous, bool isTerminalDirectSwitchSectionBreak)
     {
         return previous.GetLastToken().IsKind(SyntaxKind.CloseBraceToken)
-               && BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statement) == false;
+               && isTerminalDirectSwitchSectionBreak == false;
     }
 
     /// <summary>
@@ -66,8 +81,9 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="statement">The current statement</param>
     /// <param name="previous">The preceding statement</param>
+    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
     /// <returns><see langword="true"/> if a blank line should be inserted before the statement</returns>
-    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, StatementSyntax previous)
+    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, StatementSyntax previous, bool isTerminalDirectSwitchSectionBreak)
     {
         switch (statement)
         {
@@ -92,7 +108,7 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
                 return true;
 
             case BreakStatementSyntax:
-                return BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(statement) == false;
+                return isTerminalDirectSwitchSectionBreak == false;
 
             case YieldStatementSyntax:
                 return previous is YieldStatementSyntax == false;
@@ -104,6 +120,25 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
             default:
                 return false;
         }
+    }
+
+    /// <summary>
+    /// Ensures the blank line the statement-spacing rules require before a statement
+    /// </summary>
+    /// <param name="statement">The current statement</param>
+    /// <param name="previous">The preceding statement</param>
+    /// <param name="isTerminalDirectSwitchSectionBreak">Whether the current statement is the terminal <see langword="break"/> directly inside its switch section</param>
+    /// <returns>The statement with a blank line inserted before it, or the original if none is required or one already exists</returns>
+    private StatementSyntax ApplyStatementSpacing(StatementSyntax statement, StatementSyntax previous, bool isTerminalDirectSwitchSectionBreak)
+    {
+        if (IsAfterClosingBrace(previous, isTerminalDirectSwitchSectionBreak))
+        {
+            return _editor.EnsureBlankLineAfterClosingBrace(statement);
+        }
+
+        return NeedsBlankLineForStatementKind(statement, previous, isTerminalDirectSwitchSectionBreak)
+                   ? _editor.EnsureBlankLineBeforeStatement(statement)
+                   : statement;
     }
 
     /// <summary>
@@ -128,19 +163,10 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
 
         for (var statementIndex = 1; statementIndex < statements.Count; statementIndex++)
         {
-            var previousStatement = newStatements[statementIndex - 1];
             var currentStatement = newStatements[statementIndex];
-            var isAfterClosingBrace = IsAfterClosingBrace(currentStatement, previousStatement);
-
-            if (isAfterClosingBrace == false
-                && NeedsBlankLineForStatementKind(currentStatement, previousStatement) == false)
-            {
-                continue;
-            }
-
-            var updatedStatement = isAfterClosingBrace
-                                       ? _editor.EnsureBlankLineAfterClosingBrace(currentStatement)
-                                       : _editor.EnsureBlankLineBeforeStatement(currentStatement);
+            var updatedStatement = ApplyStatementSpacing(currentStatement,
+                                                         newStatements[statementIndex - 1],
+                                                         BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(currentStatement));
 
             if (updatedStatement == currentStatement)
             {
@@ -157,6 +183,32 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The first call receives the formatting root. After its descendants are visited, a root statement is decided against
+    /// its preceding sibling in the document, because the visitor of the list that contains it lies outside this run
+    /// </remarks>
+    public override SyntaxNode Visit(SyntaxNode node)
+    {
+        if (_isRootEntered)
+        {
+            return base.Visit(node);
+        }
+
+        _isRootEntered = true;
+
+        var visited = base.Visit(node);
+        var position = _context.RootListPosition;
+
+        if (visited is StatementSyntax statement
+            && position.PreviousStatement != null)
+        {
+            return ApplyStatementSpacing(statement, position.PreviousStatement, position.IsTerminalDirectSwitchSectionBreak);
+        }
+
+        return visited;
+    }
 
     /// <inheritdoc />
     public override SyntaxNode VisitBlock(BlockSyntax node)
