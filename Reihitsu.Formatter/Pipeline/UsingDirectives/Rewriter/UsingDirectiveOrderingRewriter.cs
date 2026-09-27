@@ -10,10 +10,10 @@ using Reihitsu.Formatter.Pipeline.UsingDirectives.Utilities;
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives.Rewriter;
 
 /// <summary>
-/// Rewrites using directive scopes into canonical grouped order. It is thin glue that reads each
-/// scope, orders the directives via <see cref="UsingGrouping"/>, restitches their leading trivia via
-/// <see cref="UsingLeadingTriviaBuilder"/> and their trailing trivia via
-/// <see cref="UsingTrailingTriviaBuilder"/>, and writes the result back with <c>WithUsings</c>
+/// Rewrites using directive scopes into canonical grouped order with every directive on its own line.
+/// It is thin glue that reads each scope, orders the directives via <see cref="UsingGrouping"/>,
+/// restitches their leading trivia via <see cref="UsingLeadingTriviaBuilder"/> and their trailing trivia
+/// via <see cref="UsingTrailingTriviaBuilder"/>, and writes the result back with <c>WithUsings</c>
 /// </summary>
 internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 {
@@ -49,7 +49,9 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Organizes the provided using directives into grouped canonical order
+    /// Organizes the provided using directives into grouped canonical order. A block that cannot be
+    /// reordered safely keeps its order and blank lines, and only has directives that share a line
+    /// separated, see <see cref="SeparateDirectivesSharingALine"/>
     /// </summary>
     /// <param name="usingDirectives">Using directives to organize</param>
     /// <param name="endOfLine">Preferred end-of-line sequence</param>
@@ -64,13 +66,15 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return usingDirectives;
         }
 
-        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
-        {
-            return usingDirectives;
-        }
-
         var originalFirst = usingDirectives.First();
         var firstLeadingTriviaPrefix = UsingLeadingTriviaBuilder.GetWhitespacePrefix(originalFirst.GetLeadingTrivia());
+        var scopeIndentation = UsingLeadingTriviaBuilder.GetScopeIndentation(firstLeadingTriviaPrefix);
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return SeparateDirectivesSharingALine(usingDirectives, scopeIndentation, endOfLine, cancellationToken);
+        }
+
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         if (ReferenceEquals(canonical[0], originalFirst) == false)
@@ -89,28 +93,77 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 
         var originalBlockTerminalTrivia = UsingTrailingTriviaBuilder.GetTrailingLayoutTrivia(usingDirectives.Last().GetTrailingTrivia());
         var result = new List<UsingDirectiveSyntax>();
+        var followsInsertedLineBreak = false;
 
         for (var usingIndex = 0; usingIndex < canonical.Count; usingIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var current = canonical[usingIndex];
-            var trailingTrivia = UsingTrailingTriviaBuilder.CreateTrailingTrivia(current, isLast: usingIndex == canonical.Count - 1, originalBlockTerminalTrivia, endOfLine);
+            var isLast = usingIndex == canonical.Count - 1;
+            var requiresSeparatingLineBreak = isLast == false && UsingTrailingTriviaBuilder.RequiresSeparatingLineBreak(current.GetTrailingTrivia());
+            var trailingTrivia = UsingTrailingTriviaBuilder.CreateTrailingTrivia(current, isLast, requiresSeparatingLineBreak, originalBlockTerminalTrivia, endOfLine);
+            SyntaxTriviaList? lineIndentation = followsInsertedLineBreak ? scopeIndentation : null;
+            var leadingTrivia = usingIndex == 0
+                                    ? UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup: false, isFirst: true, lineIndentation: null, endOfLine)
+                                    : UsingLeadingTriviaBuilder.CreateLeadingTrivia(current,
+                                                                                    firstLeadingTriviaPrefix,
+                                                                                    startsNewGroup: UsingGrouping.AreInSameGroup(canonical[usingIndex - 1], current) == false,
+                                                                                    isFirst: false,
+                                                                                    lineIndentation,
+                                                                                    endOfLine);
 
-            if (usingIndex == 0)
+            result.Add(current.WithLeadingTrivia(leadingTrivia)
+                              .WithTrailingTrivia(trailingTrivia));
+
+            followsInsertedLineBreak = requiresSeparatingLineBreak;
+        }
+
+        return SyntaxFactory.List(result);
+    }
+
+    /// <summary>
+    /// Separates directives that share a line in a block that cannot be reordered safely. The order, the
+    /// blank lines and every leading trivia — which holds every preprocessor directive — stay as they
+    /// are; only a directive whose trailing trivia does not end its line has the whitespace at the end of
+    /// that trivia replaced by a line break, and its successor is placed at the scope's indentation
+    /// </summary>
+    /// <param name="usingDirectives">Using directives to separate</param>
+    /// <param name="scopeIndentation">Indentation of the scope's using directives</param>
+    /// <param name="endOfLine">Preferred end-of-line sequence</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The separated directives</returns>
+    private static SyntaxList<UsingDirectiveSyntax> SeparateDirectivesSharingALine(SyntaxList<UsingDirectiveSyntax> usingDirectives,
+                                                                                   SyntaxTriviaList scopeIndentation,
+                                                                                   string endOfLine,
+                                                                                   CancellationToken cancellationToken)
+    {
+        var result = new List<UsingDirectiveSyntax>();
+        var followsInsertedLineBreak = false;
+
+        for (var usingIndex = 0; usingIndex < usingDirectives.Count; usingIndex++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var current = usingDirectives[usingIndex];
+
+            if (followsInsertedLineBreak)
             {
-                result.Add(current.WithLeadingTrivia(UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup: false, isFirst: true, endOfLine))
-                                  .WithTrailingTrivia(trailingTrivia));
-
-                continue;
+                current = current.WithLeadingTrivia(scopeIndentation.AddRange(current.GetLeadingTrivia()));
             }
 
-            result.Add(current.WithLeadingTrivia(UsingLeadingTriviaBuilder.CreateLeadingTrivia(current,
-                                                                                               firstLeadingTriviaPrefix,
-                                                                                               startsNewGroup: UsingGrouping.AreInSameGroup(canonical[usingIndex - 1], current) == false,
-                                                                                               isFirst: false,
-                                                                                               endOfLine))
-                              .WithTrailingTrivia(trailingTrivia));
+            followsInsertedLineBreak = usingIndex < usingDirectives.Count - 1 && UsingTrailingTriviaBuilder.RequiresSeparatingLineBreak(current.GetTrailingTrivia());
+
+            if (followsInsertedLineBreak)
+            {
+                current = current.WithTrailingTrivia(UsingTrailingTriviaBuilder.CreateTrailingTrivia(current,
+                                                                                                     isLast: false,
+                                                                                                     requiresSeparatingLineBreak: true,
+                                                                                                     SyntaxFactory.TriviaList(),
+                                                                                                     endOfLine));
+            }
+
+            result.Add(current);
         }
 
         return SyntaxFactory.List(result);

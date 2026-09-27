@@ -87,7 +87,7 @@ public class UsingLeadingTriviaBuilderTests
         var prefix = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "));
 
         // Act
-        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, prefix, startsNewGroup: false, isFirst: true, "\n");
+        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, prefix, startsNewGroup: false, isFirst: true, lineIndentation: null, "\n");
 
         // Assert
         Assert.AreEqual("    ", result.ToFullString());
@@ -103,7 +103,7 @@ public class UsingLeadingTriviaBuilderTests
         var usingDirective = ParseFirstUsing("using System;").WithLeadingTrivia(SyntaxFactory.Whitespace("    "));
 
         // Act
-        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, SyntaxFactory.TriviaList(), startsNewGroup: false, isFirst: false, "\n");
+        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, SyntaxFactory.TriviaList(), startsNewGroup: false, isFirst: false, lineIndentation: null, "\n");
 
         // Assert
         Assert.AreEqual("    ", result.ToFullString());
@@ -119,7 +119,7 @@ public class UsingLeadingTriviaBuilderTests
         var usingDirective = ParseFirstUsing("using System;").WithLeadingTrivia(SyntaxFactory.Whitespace("    "));
 
         // Act
-        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, SyntaxFactory.TriviaList(), startsNewGroup: true, isFirst: false, "\n");
+        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, SyntaxFactory.TriviaList(), startsNewGroup: true, isFirst: false, lineIndentation: null, "\n");
 
         // Assert
         Assert.AreEqual("\n    ", result.ToFullString());
@@ -139,7 +139,7 @@ public class UsingLeadingTriviaBuilderTests
         var usingDirective = ParseFirstUsing("using System;").WithLeadingTrivia(leadingTrivia);
 
         // Act
-        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, SyntaxFactory.TriviaList(), startsNewGroup: true, isFirst: false, "\n");
+        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, SyntaxFactory.TriviaList(), startsNewGroup: true, isFirst: false, lineIndentation: null, "\n");
 
         // Assert
         Assert.AreEqual("\n    // keep\n    ", result.ToFullString());
@@ -157,7 +157,7 @@ public class UsingLeadingTriviaBuilderTests
         var prefix = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("  "));
 
         // Act
-        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, prefix, startsNewGroup: false, isFirst: true, "\n");
+        var result = UsingLeadingTriviaBuilder.CreateLeadingTrivia(usingDirective, prefix, startsNewGroup: false, isFirst: true, lineIndentation: null, "\n");
 
         // Assert
         Assert.AreEqual("  // header\n", result.ToFullString());

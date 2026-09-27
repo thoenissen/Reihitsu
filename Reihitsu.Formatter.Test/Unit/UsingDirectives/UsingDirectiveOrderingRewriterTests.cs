@@ -151,15 +151,16 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a reorder does not force a line break between directives whose block never had one
-    /// to begin with, so the block stays on the one physical line it was authored on.
+    /// Verifies that a reorder splits directives that share one physical line even when their block never
+    /// had a line break, and that the split-off directive gains no indentation because the scope's first
+    /// directive does not start its own line either
     /// </summary>
     [TestMethod]
-    public void DirectivesSharingOneLineWithNoLineBreakAnywhereInTheBlockStayOnThatLine()
+    public void DirectivesSharingOneLineWithNoLineBreakAnywhereInTheBlockAreSplit()
     {
         // Arrange
         const string input = "namespace N { using System.Linq; using System.Collections.Generic; }";
-        const string expected = "namespace N { using System.Collections.Generic; using System.Linq; }";
+        var expected = $"namespace N {{ using System.Collections.Generic;{Environment.NewLine}using System.Linq; }}";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));
@@ -167,17 +168,15 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
     /// <summary>
     /// Verifies that reordering a directive into the last position, where the block's own closing brace
-    /// shares its line, preserves the space before that brace instead of gluing the directive to it.
-    /// The five-space gap after the first directive is a pre-existing, unrelated quirk of
-    /// this phase's leading-trivia indentation extraction on a directive that no longer starts a fresh
-    /// line, not a defect this fix introduces or is responsible for correcting
+    /// shares its line, preserves the space before that brace instead of gluing the directive to it, while
+    /// the directive that now precedes it is split onto its own line at the scope's indentation
     /// </summary>
     [TestMethod]
     public void LastDirectiveSharingItsLineWithTheClosingBraceKeepsTheSpaceBeforeIt()
     {
         // Arrange
         const string input = "namespace N\n{\n    using System.Linq;\n    using System.Collections.Generic; }";
-        const string expected = "namespace N\n{\n    using System.Collections.Generic;     using System.Linq; }";
+        var expected = $"namespace N\n{{\n    using System.Collections.Generic;{Environment.NewLine}    using System.Linq; }}";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));
@@ -193,7 +192,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     {
         // Arrange
         const string input = "namespace N { using System.Linq; // keep\nusing System.Collections.Generic; }";
-        const string expected = "namespace N { using System.Collections.Generic; using System.Linq; // keep\n }";
+        var expected = $"namespace N {{ using System.Collections.Generic;{Environment.NewLine}using System.Linq; // keep\n }}";
 
         // Assert
         Assert.AreEqual(expected, ApplyPhase(input));
@@ -266,6 +265,123 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
         // Assert
         Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that ordered same-group directives separated only by a space are split onto separate lines
+    /// without leaving the space behind as trailing whitespace
+    /// </summary>
+    [TestMethod]
+    public void OrderedSameGroupDirectivesSeparatedBySpaceAreSplit()
+    {
+        // Arrange
+        const string input = "using System; using System.Linq;";
+        var expected = $"using System;{Environment.NewLine}using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that ordered same-group directives separated only by a tab are split onto separate lines
+    /// </summary>
+    [TestMethod]
+    public void OrderedSameGroupDirectivesSeparatedByTabAreSplit()
+    {
+        // Arrange
+        const string input = "using System;\tusing System.Linq;";
+        var expected = $"using System;{Environment.NewLine}using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment between two directives on one line stays on the preceding directive's
+    /// line when the directives are split
+    /// </summary>
+    [TestMethod]
+    public void BlockCommentBetweenDirectivesOnOneLineStaysWithThePrecedingDirective()
+    {
+        // Arrange
+        const string input = "using System; /* keep */ using System.Linq;";
+        var expected = $"using System; /* keep */{Environment.NewLine}using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive following a block comment that spans lines but ends on the directive's
+    /// line is moved onto a line of its own after the comment
+    /// </summary>
+    [TestMethod]
+    public void DirectiveAfterMultiLineBlockCommentIsMovedBehindTheComment()
+    {
+        // Arrange
+        const string input = "using System; /* first\n   second */ using System.Linq;";
+        var expected = $"using System; /* first\n   second */{Environment.NewLine}using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that whitespace ahead of an existing line break is not treated as a same-line gap
+    /// </summary>
+    [TestMethod]
+    public void OrderedDirectivesOnSeparateLinesKeepTheirTrivia()
+    {
+        // Arrange
+        const string input = "using System;  \nusing System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a cross-group pair on one line is split with the blank-line group separator in one pass
+    /// instead of receiving only a single line break
+    /// </summary>
+    [TestMethod]
+    public void CrossGroupDirectivesSeparatedBySpaceAreSplitWithBlankLine()
+    {
+        // Arrange
+        const string input = "using System; using Microsoft.Win32;";
+        var expected = $"using System;{Environment.NewLine}{Environment.NewLine}using Microsoft.Win32;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive split off inside a block namespace receives the indentation of the scope's
+    /// first directive
+    /// </summary>
+    [TestMethod]
+    public void DirectiveSplitInsideNamespaceUsesTheScopeIndentation()
+    {
+        // Arrange
+        const string input = "namespace N\n{\n    using System; using System.Linq;\n}";
+        var expected = $"namespace N\n{{\n    using System;{Environment.NewLine}    using System.Linq;\n}}";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive-bearing block that cannot be reordered still has its same-line directives
+    /// split, without reordering them and without touching the directive
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBearingBlockSplitsSameLineDirectivesWithoutReordering()
+    {
+        // Arrange
+        const string input = "using System.Linq; using System;\n#pragma warning disable CS8019\nusing System.IO;";
+        var expected = $"using System.Linq;{Environment.NewLine}using System;\n#pragma warning disable CS8019\nusing System.IO;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>

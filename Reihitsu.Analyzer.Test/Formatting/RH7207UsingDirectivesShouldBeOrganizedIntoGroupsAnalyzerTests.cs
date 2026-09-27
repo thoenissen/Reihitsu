@@ -961,6 +961,28 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a cross-group pair sharing one line behind a space is separated by a blank line in a
+    /// single application of the code fix, without leaving the space behind as trailing whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CrossGroupPairSharingOneLineConvergesInOneApplication()
+    {
+        const string testCode = """
+                                using System; using Microsoft.Win32;
+                                """;
+        const string expected = """
+                                using System;
+
+                                using Microsoft.Win32;
+                                """;
+
+        var actual = await ApplyCodeFixAsync(testCode);
+
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

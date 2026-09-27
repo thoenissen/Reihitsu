@@ -503,5 +503,56 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a cross-group pair sharing one line is formatted into separate groups in one pass
+    /// </summary>
+    [TestMethod]
+    public void CrossGroupPairSharingOneLineIsSeparatedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System; using Microsoft.Win32;
+
+                             class C;
+                             """;
+        const string expected = """
+                                using System;
+
+                                using Microsoft.Win32;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that same-line directives in a block that cannot be reordered are split without being reordered
+    /// </summary>
+    [TestMethod]
+    public void SameLineDirectivesInDirectiveBearingBlockAreSplitWithoutReordering()
+    {
+        // Arrange
+        const string input = """
+                             using System.Linq; using System;
+                             #pragma warning disable CS8019
+                             using System.IO;
+
+                             class C;
+                             """;
+        const string expected = """
+                                using System.Linq;
+                                using System;
+                                #pragma warning disable CS8019
+                                using System.IO;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
