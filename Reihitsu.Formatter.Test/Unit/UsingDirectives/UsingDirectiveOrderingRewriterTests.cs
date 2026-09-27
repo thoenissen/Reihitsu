@@ -340,6 +340,21 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that a single-line documentation comment trailing a directive on its line is moved onto a
+    /// line of its own, because the directive's trailing trivia does not end the line itself
+    /// </summary>
+    [TestMethod]
+    public void SingleLineDocumentationCommentBehindDirectiveIsMovedOntoItsOwnLine()
+    {
+        // Arrange
+        const string input = "using System; /// core\nusing System.Linq;";
+        var expected = $"using System;{Environment.NewLine}/// core\nusing System.Linq;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that a cross-group pair on one line is split with the blank-line group separator in one pass
     /// instead of receiving only a single line break
     /// </summary>

@@ -486,6 +486,55 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     }
 
     /// <summary>
+    /// Verifies that a directive behind a single-line documentation comment that ends the previous
+    /// directive's line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoDiagnosticWhenSingleLineDocumentationCommentEndsThePreviousLine()
+    {
+        const string testData = """
+                                using System; /// core
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(testData, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a directive moved inside a namespace whose first directive shares the line of the
+    /// opening brace receives no indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DirectiveInSingleLineNamespaceHeaderIsMovedWithoutIndentation()
+    {
+        const string testData = """
+                                namespace Example { using System; {|#0:using System.Linq;|}
+
+                                    internal class TestClass
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace Example { using System;
+                                 using System.Linq;
+
+                                     internal class TestClass
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the code fix inserts the line ending of a CRLF document
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
