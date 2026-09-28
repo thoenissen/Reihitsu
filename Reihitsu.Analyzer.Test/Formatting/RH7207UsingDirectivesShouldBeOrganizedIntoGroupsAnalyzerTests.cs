@@ -999,6 +999,22 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that reordering a block keeps a delimited documentation comment on the line of the directive
+    /// it trails when a paragraph separator already ends that line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReorderKeepsDelimitedDocumentationCommentBeforeParagraphSeparatorOnItsLine()
+    {
+        const string testCode = "using System.Text;\nusing System; /** first */\u2029using System.Linq;\n";
+        const string expected = "using System; /** first */\u2029using System.Linq;\nusing System.Text;\n";
+
+        var actual = await ApplyCodeFixAsync(testCode);
+
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

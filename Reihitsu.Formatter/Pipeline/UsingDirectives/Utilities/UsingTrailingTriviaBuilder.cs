@@ -152,14 +152,14 @@ internal static class UsingTrailingTriviaBuilder
     }
 
     /// <summary>
-    /// Determines whether the text of a trivia list spans a line, which for trailing trivia without an
-    /// end-of-line trivia means it holds a block comment that spans lines
+    /// Determines whether the text of a trivia list spans a line, recognizing every C# line terminator:
+    /// carriage return, line feed, next line, line separator, and paragraph separator
     /// </summary>
     /// <param name="trivia">Trivia list to inspect</param>
     /// <returns><see langword="true"/> if the text contains a line break; otherwise, <see langword="false"/></returns>
     private static bool SpansLine(SyntaxTriviaList trivia)
     {
-        return trivia.ToFullString().IndexOfAny(['\r', '\n']) >= 0;
+        return trivia.ToFullString().IndexOfAny(['\r', '\n', '\u0085', '\u2028', '\u2029']) >= 0;
     }
 
     /// <summary>

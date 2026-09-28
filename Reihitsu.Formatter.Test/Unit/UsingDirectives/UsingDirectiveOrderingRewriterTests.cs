@@ -497,6 +497,48 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that a line separator already places a same-group directive on a later line behind a
+    /// delimited documentation comment, so no additional line break is inserted
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindLineSeparatorIsNotSplit()
+    {
+        // Arrange
+        const string input = "using System; /** first */\u2028using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a next-line character already places a same-group directive on a later line behind a
+    /// delimited documentation comment, so no additional line break is inserted
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindNextLineCharacterIsNotSplit()
+    {
+        // Arrange
+        const string input = "using System; /** first */\u0085using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment spanning lines through a paragraph separator already places the
+    /// following same-group directive on a later line
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindBlockCommentSpanningParagraphSeparatorIsNotSplit()
+    {
+        // Arrange
+        const string input = "using System; /* first\u2029 second */ using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that a directive split off behind a block comment that precedes the scope's first directive
     /// receives the indentation of that directive's line
     /// </summary>
