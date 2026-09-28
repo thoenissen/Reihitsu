@@ -683,6 +683,22 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     }
 
     /// <summary>
+    /// Verifies that the fix places the moved directive at the indentation of the line on which a comment
+    /// continued by the first directive's line starts
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DirectiveBehindIndentedCommentContinuationLineIsMovedToTheCommentIndentation()
+    {
+        const string testData = "namespace Example\n{\n    /* first\n       second */ using System; using System.Linq;\n\n    internal class TestClass\n    {\n    }\n}\n";
+        const string expected = "namespace Example\n{\n    /* first\n       second */ using System;\n    using System.Linq;\n\n    internal class TestClass\n    {\n    }\n}\n";
+
+        var actual = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that the fix reads the indentation from the first directive's own line rather than from a
     /// less indented header comment above it
     /// </summary>

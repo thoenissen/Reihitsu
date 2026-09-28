@@ -75,18 +75,20 @@ internal static class UsingTrailingTriviaBuilder
     /// Determines whether a directive must gain a line break before its successor in the rebuilt block.
     /// That is the case when its trailing trivia ends in an unterminated single-line comment, which would
     /// otherwise swallow whatever follows it, and when its trailing trivia contains no end-of-line trivia
-    /// while the successor would otherwise not start a line of its own. A line break inside a comment
-    /// between the two already places the successor on a later line: a block comment in the trailing
-    /// trivia that spans lines, or a documentation comment leading the successor that spans lines — a
-    /// single-line documentation comment always does. Neither counts as a line shared with the successor
-    /// unless the successor starts a new group, whose blank-line separator only forms a blank line after
-    /// trailing trivia that ends in an end-of-line trivia
+    /// while the successor would otherwise not start a line of its own. A successor that starts a new group
+    /// always needs the line break, because its blank-line separator only forms a blank line after trailing
+    /// trivia that ends in an end-of-line trivia. For a successor of the same group, a line break inside a
+    /// comment already places it on a later line: when both directives were neighbors in the source, any
+    /// line break in the gap between them does — the same rule the analyzer applies — and when the rebuild
+    /// made them neighbors, the gap was written for other neighbors, so only a block comment in the
+    /// trailing trivia or a documentation comment leading the successor that spans lines does
     /// </summary>
     /// <param name="trailingTrivia">Trailing trivia of the directive</param>
     /// <param name="successorLeadingTrivia">Leading trivia of the directive that follows it</param>
     /// <param name="successorStartsNewGroup"><see langword="true"/> if the successor starts a new group</param>
+    /// <param name="wereSourceNeighbors"><see langword="true"/> if the successor directly followed the directive in the source</param>
     /// <returns><see langword="true"/> if a line break must be added; otherwise, <see langword="false"/></returns>
-    public static bool RequiresSeparatingLineBreak(SyntaxTriviaList trailingTrivia, SyntaxTriviaList successorLeadingTrivia, bool successorStartsNewGroup)
+    public static bool RequiresSeparatingLineBreak(SyntaxTriviaList trailingTrivia, SyntaxTriviaList successorLeadingTrivia, bool successorStartsNewGroup, bool wereSourceNeighbors)
     {
         if (EndsInUnterminatedSingleLineComment(trailingTrivia))
         {
@@ -103,8 +105,14 @@ internal static class UsingTrailingTriviaBuilder
             return true;
         }
 
-        return SpansLine(trailingTrivia) == false
-               && LeadingDocumentationCommentSpansLine(successorLeadingTrivia) == false;
+        if (SpansLine(trailingTrivia))
+        {
+            return false;
+        }
+
+        return wereSourceNeighbors
+                   ? SpansLine(successorLeadingTrivia) == false
+                   : LeadingDocumentationCommentSpansLine(successorLeadingTrivia) == false;
     }
 
     /// <summary>

@@ -106,7 +106,7 @@ public class UsingDirectiveOrderingUtilitiesTests
 
     /// <summary>
     /// Verifies that the whitespace at the start of a line that continues a comment spanning lines is not
-    /// read as the line's indentation
+    /// read as the line's indentation, so an unindented comment start yields no indentation
     /// </summary>
     [TestMethod]
     public void GetLineIndentationIsEmptyWhenTheLineStartsInsideAComment()
@@ -114,6 +114,21 @@ public class UsingDirectiveOrderingUtilitiesTests
         var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("/* first\n   second */ using System; using System.Linq;").Usings;
 
         Assert.AreEqual(string.Empty, UsingDirectiveOrderingUtilities.GetLineIndentation(usingDirectives[0]));
+    }
+
+    /// <summary>
+    /// Verifies that a line that continues a comment takes the indentation of the line on which the comment
+    /// starts
+    /// </summary>
+    [TestMethod]
+    public void GetLineIndentationReadsTheLineOnWhichTheCommentStarts()
+    {
+        var namespaceDeclaration = CoreSyntaxTestHelper.ParseCompilationUnit("namespace Example\n{\n    /* first\n       second */ using System; using System.Linq;\n}")
+                                                       .Members
+                                                       .OfType<NamespaceDeclarationSyntax>()
+                                                       .Single();
+
+        Assert.AreEqual("    ", UsingDirectiveOrderingUtilities.GetLineIndentation(namespaceDeclaration.Usings[0]));
     }
 
     /// <summary>

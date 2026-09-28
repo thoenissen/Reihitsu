@@ -77,6 +77,13 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
         }
 
         var directivesStartingTheirLine = new HashSet<UsingDirectiveSyntax>(usingDirectives.Where(UsingDirectiveOrderingUtilities.StartsItsLine));
+        var sourceIndices = new Dictionary<UsingDirectiveSyntax, int>();
+
+        for (var sourceIndex = 0; sourceIndex < usingDirectives.Count; sourceIndex++)
+        {
+            sourceIndices[usingDirectives[sourceIndex]] = sourceIndex;
+        }
+
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         if (ReferenceEquals(canonical[0], originalFirst) == false)
@@ -94,6 +101,8 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
                     directivesStartingTheirLine.Add(detachedFirst);
                 }
 
+                sourceIndices[detachedFirst] = sourceIndices[originalFirst];
+
                 canonical = canonical.ConvertAll(current => ReferenceEquals(current, originalFirst) ? detachedFirst : current);
             }
         }
@@ -110,7 +119,8 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             var requiresSeparatingLineBreak = isLast == false
                                               && UsingTrailingTriviaBuilder.RequiresSeparatingLineBreak(current.GetTrailingTrivia(),
                                                                                                         canonical[usingIndex + 1].GetLeadingTrivia(),
-                                                                                                        UsingGrouping.AreInSameGroup(current, canonical[usingIndex + 1]) == false);
+                                                                                                        UsingGrouping.AreInSameGroup(current, canonical[usingIndex + 1]) == false,
+                                                                                                        sourceIndices[canonical[usingIndex + 1]] == sourceIndices[current] + 1);
             var trailingTrivia = UsingTrailingTriviaBuilder.CreateTrailingTrivia(current, isLast, requiresSeparatingLineBreak, originalBlockTerminalTrivia, endOfLine);
 
             if (usingIndex == 0)
@@ -172,7 +182,8 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             followsInsertedLineBreak = usingIndex < usingDirectives.Count - 1
                                        && UsingTrailingTriviaBuilder.RequiresSeparatingLineBreak(current.GetTrailingTrivia(),
                                                                                                  usingDirectives[usingIndex + 1].GetLeadingTrivia(),
-                                                                                                 successorStartsNewGroup: false);
+                                                                                                 successorStartsNewGroup: false,
+                                                                                                 wereSourceNeighbors: true);
 
             if (followsInsertedLineBreak)
             {

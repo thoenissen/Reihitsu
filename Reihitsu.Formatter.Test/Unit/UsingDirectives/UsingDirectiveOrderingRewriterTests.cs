@@ -440,6 +440,63 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that a same-group directive already on a later line behind a single-line delimited
+    /// documentation comment is not split from its source neighbor
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveOnLaterLineBehindDelimitedDocumentationCommentIsNotSplit()
+    {
+        // Arrange
+        const string input = "using System; /** first */\nusing System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a same-group directive already on a later line behind a delimited documentation comment
+    /// and a line comment is not split from its source neighbor
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveOnLaterLineBehindDelimitedDocumentationAndLineCommentIsNotSplit()
+    {
+        // Arrange
+        const string input = "using System; /** first */ // second\nusing System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a directive already on a later line behind a delimited documentation comment and a
+    /// preprocessor directive is not split from its source neighbor in a block that cannot be reordered
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBearingBlockDoesNotSplitDirectiveOnLaterLineBehindDelimitedDocumentationComment()
+    {
+        // Arrange
+        const string input = "using System; /** first */\n#pragma warning disable CS8019\nusing System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a reorder which keeps two source neighbors next to each other does not split a
+    /// directive that a delimited documentation comment already places on a later line
+    /// </summary>
+    [TestMethod]
+    public void ReorderKeepsSourceNeighborBehindDelimitedDocumentationCommentOnItsLine()
+    {
+        // Arrange
+        const string input = "using System.Text;\nusing System; /** first */\nusing System.Linq;\n";
+        const string expected = "using System; /** first */\nusing System.Linq;\nusing System.Text;\n";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that a directive split off behind a block comment that precedes the scope's first directive
     /// receives the indentation of that directive's line
     /// </summary>
