@@ -105,6 +105,18 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the whitespace at the start of a line that continues a comment spanning lines is not
+    /// read as the line's indentation
+    /// </summary>
+    [TestMethod]
+    public void GetLineIndentationIsEmptyWhenTheLineStartsInsideAComment()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("/* first\n   second */ using System; using System.Linq;").Usings;
+
+        Assert.AreEqual(string.Empty, UsingDirectiveOrderingUtilities.GetLineIndentation(usingDirectives[0]));
+    }
+
+    /// <summary>
     /// Verifies that only a directive preceded by nothing but whitespace on its line starts its line
     /// </summary>
     [TestMethod]

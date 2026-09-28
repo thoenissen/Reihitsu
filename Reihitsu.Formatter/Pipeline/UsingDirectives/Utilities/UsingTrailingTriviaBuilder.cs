@@ -2,8 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Core;
-
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives.Utilities;
 
 /// <summary>
@@ -78,10 +76,11 @@ internal static class UsingTrailingTriviaBuilder
     /// That is the case when its trailing trivia ends in an unterminated single-line comment, which would
     /// otherwise swallow whatever follows it, and when its trailing trivia contains no end-of-line trivia
     /// while the successor would otherwise not start a line of its own. A line break inside a comment
-    /// already places the successor on a later line: a block comment in the trailing trivia that spans
-    /// lines, or a single-line documentation comment that leads the successor. Neither counts as a line
-    /// shared with the successor unless the successor starts a new group, whose blank-line separator only
-    /// forms a blank line after trailing trivia that ends in an end-of-line trivia
+    /// between the two already places the successor on a later line: a block comment in the trailing
+    /// trivia that spans lines, or a documentation comment leading the successor that spans lines — a
+    /// single-line documentation comment always does. Neither counts as a line shared with the successor
+    /// unless the successor starts a new group, whose blank-line separator only forms a blank line after
+    /// trailing trivia that ends in an end-of-line trivia
     /// </summary>
     /// <param name="trailingTrivia">Trailing trivia of the directive</param>
     /// <param name="successorLeadingTrivia">Leading trivia of the directive that follows it</param>
@@ -105,7 +104,7 @@ internal static class UsingTrailingTriviaBuilder
         }
 
         return SpansLine(trailingTrivia) == false
-               && StartsWithSingleLineDocumentationComment(successorLeadingTrivia) == false;
+               && LeadingDocumentationCommentSpansLine(successorLeadingTrivia) == false;
     }
 
     /// <summary>
@@ -156,17 +155,41 @@ internal static class UsingTrailingTriviaBuilder
     }
 
     /// <summary>
-    /// Determines whether the first significant trivia of a leading trivia list is a single-line
-    /// documentation comment, whose own line break already ends the line it starts on
+    /// Determines whether the documentation comments at the start of a successor's leading trivia already
+    /// end the line they start on. Whitespace and documentation comments are walked from the first
+    /// significant trivia on: a single-line documentation comment, or a delimited documentation comment
+    /// whose text spans lines, separates the successor from the line; any other trivia — an ordinary
+    /// comment or an end-of-line trivia that a reorder carried in front of the successor — or the end of
+    /// the list does not
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia to inspect</param>
-    /// <returns><see langword="true"/> if the first significant trivia is a single-line documentation comment; otherwise, <see langword="false"/></returns>
-    private static bool StartsWithSingleLineDocumentationComment(SyntaxTriviaList leadingTrivia)
+    /// <returns><see langword="true"/> if a leading documentation comment spans a line; otherwise, <see langword="false"/></returns>
+    private static bool LeadingDocumentationCommentSpansLine(SyntaxTriviaList leadingTrivia)
     {
-        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
+        foreach (var trivia in leadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
 
-        return firstSignificantTriviaIndex >= 0
-               && leadingTrivia[firstSignificantTriviaIndex].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+            {
+                return true;
+            }
+
+            if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) == false)
+            {
+                return false;
+            }
+
+            if (SpansLine(SyntaxFactory.TriviaList(trivia)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

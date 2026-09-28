@@ -368,6 +368,78 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment spanning lines in front of a same-group directive
+    /// already places that directive on a later line, so no additional line break is inserted
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindMultiLineDelimitedDocumentationCommentIsNotSplit()
+    {
+        // Arrange
+        const string input = "using System; /** first\n   second */ using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line delimited documentation comment followed by a single-line documentation
+    /// comment in front of a same-group directive already places that directive on a later line
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindDelimitedAndSingleLineDocumentationCommentsIsNotSplit()
+    {
+        // Arrange
+        const string input = "using System; /** first */ /// second\nusing System.Linq;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a same-group directive behind a single-line delimited documentation comment that does
+    /// not span lines is still split in front of the comment
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindSingleLineDelimitedDocumentationCommentIsSplit()
+    {
+        // Arrange
+        const string input = "using System; /** core */ using System.Linq;";
+        var expected = $"using System;{Environment.NewLine}/** core */ using System.Linq;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a cross-group directive behind a delimited documentation comment spanning lines is split
+    /// in front of the comment so that its group separator forms a blank line
+    /// </summary>
+    [TestMethod]
+    public void CrossGroupDirectiveBehindMultiLineDelimitedDocumentationCommentIsSplitWithBlankLine()
+    {
+        // Arrange
+        const string input = "using System; /** first\n   second */ using Microsoft.Win32;";
+        var expected = $"using System;{Environment.NewLine}{Environment.NewLine}/** first\n   second */ using Microsoft.Win32;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a same-group directive behind a delimited documentation comment spanning lines is not
+    /// split in a block that cannot be reordered either
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBearingBlockDoesNotSplitDirectiveBehindMultiLineDelimitedDocumentationComment()
+    {
+        // Arrange
+        const string input = "using System; /** first\n   second */ using System.Linq;\n#pragma warning disable CS8019\nusing System.IO;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that a directive split off behind a block comment that precedes the scope's first directive
     /// receives the indentation of that directive's line
     /// </summary>

@@ -667,6 +667,22 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     }
 
     /// <summary>
+    /// Verifies that the fix adds no indentation when the first directive's line starts inside a comment
+    /// that spans lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DirectiveBehindCommentContinuationLineIsMovedWithoutIndentation()
+    {
+        const string testData = "/* first\n   second */ using System; using System.Linq;\n\ninternal class TestClass\n{\n}\n";
+        const string expected = "/* first\n   second */ using System;\nusing System.Linq;\n\ninternal class TestClass\n{\n}\n";
+
+        var actual = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that the fix reads the indentation from the first directive's own line rather than from a
     /// less indented header comment above it
     /// </summary>
