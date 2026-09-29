@@ -164,6 +164,32 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that only the lists sharing a target are merged when a list of another target sits between them
+    /// </summary>
+    [TestMethod]
+    public void OnlyAttributeListsOfTheSameTargetAreMerged()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([property: Obsolete] [CLSCompliant(false)] [property: Serializable] int Id);
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal sealed record Example([property: Obsolete, Serializable] [CLSCompliant(false)] int Id);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a <c>property:</c> list and a <c>field:</c> list on one parameter are not merged
     /// </summary>
     [TestMethod]
@@ -418,6 +444,29 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>field:</c> list and a list without a specifier on an accessor of a single-line property are
+    /// not merged, because the merged list would move the accessor attribute to the backing field
+    /// </summary>
+    [TestMethod]
+    public void FieldTargetedAndImplicitAttributeListsOnSingleLinePropertyAccessorAreNotMerged()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 public int Value { [field: Obsolete] [CLSCompliant(false)] get; set; }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     #endregion // Methods
