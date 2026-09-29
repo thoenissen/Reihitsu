@@ -108,8 +108,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
             var group = candidates.Where(list => AttributeTargetUtilities.HaveSameTarget(candidate, list))
                                   .ToArray();
 
-            if (group.Length > 1
-                && SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(group) == false)
+            if (AttributeTargetUtilities.CanMergeAttributeListGroup(group))
             {
                 return group;
             }

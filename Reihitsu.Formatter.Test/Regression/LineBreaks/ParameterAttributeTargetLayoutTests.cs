@@ -1,5 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Threading;
 
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
@@ -629,5 +634,82 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that same-target lists are not merged when a comment on its own line follows them, because the merge
+    /// would pull the comment up onto the merged list's line; the result is stable in one pass and the comment stays
+    /// directly before the parameter type
+    /// </summary>
+    [TestMethod]
+    public void SameTargetListsFollowedByCommentLineAreNotMerged()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([property: Obsolete] [property: CLSCompliant(false)]
+                                                            /* keep */ int Id);
+                             """;
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Act
+            var firstPass = Format(NormalizeLineEndings(input, endOfLine), endOfLine);
+            var secondPass = Format(firstPass, endOfLine);
+
+            // Assert
+            Assert.AreEqual(firstPass, secondPass, $"Formatter is not idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.Contains("[property: Obsolete] [property: CLSCompliant(false)]" + endOfLine, firstPass);
+            Assert.Contains("/* keep */ int Id);", firstPass);
+            AssertUsesLineEnding(firstPass, endOfLine);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that removing a merged list that directly follows a list of another target without a space keeps
+    /// the parameter type separated from that list
+    /// </summary>
+    [TestMethod]
+    public void MergeAfterListWithoutTrailingSpaceKeepsTokensSeparated()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([property: Obsolete] [field: CLSCompliant(false)][property: Serializable]
+                                                            int Id);
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal sealed record Example([property: Obsolete, Serializable] [field: CLSCompliant(false)] int Id);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
+
+    #region Helpers
+
+    /// <summary>
+    /// Runs the complete formatting pipeline once
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    /// <param name="endOfLine">The end-of-line sequence to format with</param>
+    /// <returns>The formatted source text</returns>
+    private static string Format(string input, string endOfLine)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input);
+
+        return FormattingPipeline.Execute(tree.GetRoot(), new FormattingContext(endOfLine), CancellationToken.None).ToFullString();
+    }
+
+    #endregion // Helpers
 }

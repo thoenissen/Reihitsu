@@ -208,13 +208,29 @@ public static class AttributeTargetUtilities
     }
 
     /// <summary>
+    /// Determines whether a group of attribute lists on one owner can be merged without touching user-authored trivia.
+    /// A comment or directive inside the group would be dropped or moved by the merge, and so would a comment that
+    /// leads the token following a member: that token only starts its own line because the member ended the line
+    /// before it, so removing the member would pull the comment up onto the merged list's line
+    /// </summary>
+    /// <param name="group">The owner's attribute lists to merge, in document order</param>
+    /// <returns><see langword="true"/> when the group has more than one member and can be merged safely</returns>
+    public static bool CanMergeAttributeListGroup(IReadOnlyList<AttributeListSyntax> group)
+    {
+        return group.Count > 1
+               && SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(group) == false
+               && GetGapTokens(group).Any(token => token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia)) == false;
+    }
+
+    /// <summary>
     /// Merges a group of attribute lists on an owner into the group's first list. The first list keeps its
     /// specifier and leading trivia, the attributes of every later member are appended to it, and the later members
     /// are removed together with their trivia. Removing a member that ended its line, or joining the first list with
     /// what follows it, would otherwise leave the old line indentation of the next token behind as a run of spaces
-    /// on the merged line, so that whitespace is dropped whenever the token no longer starts a line. The caller is
-    /// responsible for choosing a group whose members share one target and whose interior carries no comment or
-    /// directive
+    /// on the merged line, so that whitespace is dropped whenever the token no longer starts a line, and a single
+    /// space is added after the token before it when that token would otherwise touch it. The caller is
+    /// responsible for choosing a group whose members share one target and that
+    /// <see cref="CanMergeAttributeListGroup"/> accepts
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <param name="group">The owner's attribute lists to merge, in document order</param>
@@ -223,15 +239,9 @@ public static class AttributeTargetUtilities
     {
         var lists = GetAttributeLists(owner);
         var groupIndices = group.Select(list => IndexOf(lists, list)).ToArray();
-        var memberOpenBrackets = group.Skip(1)
-                                      .Select(list => list.OpenBracketToken)
-                                      .ToArray();
-        var gapTokens = group.Select(list => list.CloseBracketToken.GetNextToken())
-                             .Where(token => memberOpenBrackets.Contains(token) == false)
-                             .ToArray();
         var annotation = new SyntaxAnnotation();
 
-        owner = owner.ReplaceTokens(gapTokens, (_, rewritten) => rewritten.WithAdditionalAnnotations(annotation));
+        owner = owner.ReplaceTokens(GetGapTokens(group), (_, rewritten) => rewritten.WithAdditionalAnnotations(annotation));
         lists = GetAttributeLists(owner);
 
         var firstList = lists[groupIndices[0]];
@@ -245,18 +255,28 @@ public static class AttributeTargetUtilities
 
         owner = WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
 
-        var annotatedTokens = owner.GetAnnotatedTokens(annotation).ToArray();
+        var joinedTokens = owner.GetAnnotatedTokens(annotation)
+                                .Where(token => StartsLine(token) == false
+                                                && token.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
+                                .ToArray();
+        var unseparatedTokens = joinedTokens.Select(token => token.GetPreviousToken())
+                                            .Where(token => token.TrailingTrivia.Count == 0)
+                                            .ToArray();
 
-        return owner.ReplaceTokens(annotatedTokens,
-                                   (original, rewritten) =>
-                                   {
-                                       rewritten = rewritten.WithoutAnnotations(annotation);
+        owner = owner.ReplaceTokens(joinedTokens.Concat(unseparatedTokens),
+                                    (original, rewritten) =>
+                                    {
+                                        if (joinedTokens.Contains(original))
+                                        {
+                                            rewritten = rewritten.WithLeadingTrivia(SyntaxFactory.TriviaList());
+                                        }
 
-                                       return StartsLine(original) == false
-                                              && rewritten.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                                                  ? rewritten.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                  : rewritten;
-                                   });
+                                        return unseparatedTokens.Contains(original)
+                                                   ? rewritten.WithTrailingTrivia(SyntaxFactory.Space)
+                                                   : rewritten;
+                                    });
+
+        return owner.ReplaceTokens(owner.GetAnnotatedTokens(annotation), (_, rewritten) => rewritten.WithoutAnnotations(annotation));
     }
 
     /// <summary>
@@ -282,6 +302,23 @@ public static class AttributeTargetUtilities
     {
         return attributeList.Target?.Identifier.ValueText == "type"
                && attributeList.Parent is not (BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
+    }
+
+    /// <summary>
+    /// Gets the tokens whose leading gap a merge closes: the token after each member of the group, except where that
+    /// token opens the next member, which the merge removes
+    /// </summary>
+    /// <param name="group">The owner's attribute lists to merge, in document order</param>
+    /// <returns>The gap tokens</returns>
+    private static SyntaxToken[] GetGapTokens(IReadOnlyList<AttributeListSyntax> group)
+    {
+        var memberOpenBrackets = group.Skip(1)
+                                      .Select(list => list.OpenBracketToken)
+                                      .ToArray();
+
+        return group.Select(list => list.CloseBracketToken.GetNextToken())
+                    .Where(token => memberOpenBrackets.Contains(token) == false)
+                    .ToArray();
     }
 
     /// <summary>

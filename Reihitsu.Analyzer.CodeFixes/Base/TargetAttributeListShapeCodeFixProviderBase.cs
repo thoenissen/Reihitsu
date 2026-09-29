@@ -214,7 +214,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                 && ResolveListShapeMode(list) == listShapeMode)
                                  .ToArray();
 
-        if (matchingLists.Length <= 1 || SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(matchingLists))
+        if (AttributeTargetUtilities.CanMergeAttributeListGroup(matchingLists) == false)
         {
             return document;
         }
@@ -272,8 +272,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                                    && ResolveListShapeMode(list) == expectedListShapeMode)
                                                     .ToArray();
 
-        return matchingLists.Length > 1
-               && SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(matchingLists) == false;
+        return AttributeTargetUtilities.CanMergeAttributeListGroup(matchingLists);
     }
 
     #endregion // Methods
