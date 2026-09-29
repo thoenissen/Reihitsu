@@ -46,5 +46,26 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterFormatterTests : Form
                               Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a leading comma kept on its own line by a line comment is aligned with the parameters, stays
+    /// unreported, and is otherwise left as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLeadingCommaAfterLineCommentIsStable()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 void Method(int first // keep
+                                             , int second)
+                                 {
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

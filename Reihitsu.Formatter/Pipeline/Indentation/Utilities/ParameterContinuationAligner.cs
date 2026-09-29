@@ -9,8 +9,9 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 /// type parameter, or function-pointer parameter list) with the first token of the element they belong to
 /// </summary>
 /// <remarks>
-/// A line starts inside an element at a token other than the element's own first token only when the line-break
-/// phase refused to join it to the previous line - a comment, a directive, or disabled text sits in between. The list
+/// A line can start inside an element at a token other than the element's own first token either because the
+/// line-break phase refused to join it to the previous line - a comment, a directive, or disabled text sits in
+/// between - or because the author wrapped the element and the line-break phase keeps that wrap. The list
 /// contributors position only element first tokens, separators, and closers, so without this rule such a line would
 /// keep the block column of the enclosing declaration instead of the element's column. Callers run this from the
 /// list node's own contribution, so contributors of nodes nested inside the element (attribute arguments, type

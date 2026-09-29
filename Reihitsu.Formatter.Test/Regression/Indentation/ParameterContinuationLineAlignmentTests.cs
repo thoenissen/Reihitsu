@@ -672,6 +672,328 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a lambda expression body a parameter's author wrapped without any comment is aligned with the
+    /// parameter
+    /// </summary>
+    [TestMethod]
+    public void WrappedLambdaExpressionBodyInDefaultValueIsAlignedWithItsParameter()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M(Func<int> factory = () =>
+                                 1)
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M(Func<int> factory = () =>
+                                                    1)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma kept on its own line by a line comment is aligned with the parameters
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommaAfterLineCommentStaysAligned()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M(int first // keep
+                                                 , int second)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma that was placed at the base indentation is moved under the parameters
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommaAtBaseIndentationIsAlignedWithTheParameters()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal sealed record Example(int First // keep
+                             , int Second);
+                             """;
+        const string expected = """
+                                namespace Demo;
+
+                                internal sealed record Example(int First // keep
+                                                               , int Second);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma inside an active conditional block is aligned with the parameters
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommaInActiveConditionalBlockStaysAligned()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M(int first
+                             #if !NEVER
+                                                 , int second
+                             #endif
+                                                 )
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma after disabled text is aligned with the parameters and the disabled text is left
+    /// untouched
+    /// </summary>
+    [TestMethod]
+    public void LeadingCommaAfterDisabledTextStaysAligned()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M(int first
+                             #if NEVER
+                                   , int unused
+                             #endif
+                                                 , int second)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comma left alone on its line after a line comment is aligned with the parameters
+    /// </summary>
+    [TestMethod]
+    public void CommaAloneOnItsLineStaysAligned()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M(int first // keep
+                                                 ,
+                                                 int second)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comma after a first parameter held on its own line by a directive is aligned with that
+    /// parameter
+    /// </summary>
+    [TestMethod]
+    public void CommaAfterDirectiveHeldFirstParameterStaysAligned()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M(
+                             #if true
+                                                 int first
+                             #endif
+                                                 ,
+                                                 int second)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma of an indexer parameter list is aligned with the parameters
+    /// </summary>
+    [TestMethod]
+    public void IndexerLeadingCommaStaysAligned()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal int this[int first
+                                                   , int second]
+                                 {
+                                     get => first;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma of an indexer parameter list is aligned with the list's first parameter, not with
+    /// the parameter that shares the previous line
+    /// </summary>
+    [TestMethod]
+    public void IndexerLeadingCommaAfterSharedLineIsAlignedWithTheFirstParameter()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal int this[int first, int second // keep
+                                                   , int third]
+                                 {
+                                     get => first;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the continuation of a parameter that follows a leading comma is aligned with that parameter's
+    /// first token
+    /// </summary>
+    [TestMethod]
+    public void ContinuationOfParameterAfterLeadingCommaIsAlignedWithItsFirstToken()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal int this[int first
+                                                   , [Obsolete] // keep
+                                                     int second]
+                                 {
+                                     get => first;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma of an argument list is not aligned by the parameter rule
+    /// </summary>
+    [TestMethod]
+    public void ArgumentLeadingCommaIsNotAlignedByParameterRule()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(1 // keep
+                                     , 2);
+                                 }
+
+                                 internal void N(int first, int second)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma of a member attribute's argument list is not aligned by the parameter rule
+    /// </summary>
+    [TestMethod]
+    public void AttributeArgumentLeadingCommaIsNotAlignedByParameterRule()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 [Obsolete("a" // keep
+                                 , false)]
+                                 internal void M()
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that a continuation line inside an argument is not aligned by the parameter rule
     /// </summary>
     [TestMethod]
