@@ -24,12 +24,18 @@ internal static class UsingLeadingTriviaBuilder
     /// <param name="firstLeadingTriviaPrefix">Whitespace prefix from the first using directive</param>
     /// <param name="startsNewGroup"><see langword="true"/> if the using starts a new group</param>
     /// <param name="isFirst"><see langword="true"/> if the using is the first directive in the block</param>
+    /// <param name="lineIndentation">
+    /// Indentation to place the directive at instead of the indentation read from its own leading trivia —
+    /// used for a directive that did not start its own line before the rebuild but does after it — or
+    /// <see langword="null"/> to keep that indentation. Ignored for the first directive
+    /// </param>
     /// <param name="endOfLine">Preferred end-of-line sequence</param>
     /// <returns>The leading trivia to apply</returns>
     public static SyntaxTriviaList CreateLeadingTrivia(UsingDirectiveSyntax current,
                                                        SyntaxTriviaList firstLeadingTriviaPrefix,
                                                        bool startsNewGroup,
                                                        bool isFirst,
+                                                       SyntaxTriviaList? lineIndentation,
                                                        string endOfLine)
     {
         var leadingTrivia = current.GetLeadingTrivia();
@@ -42,7 +48,7 @@ internal static class UsingLeadingTriviaBuilder
                 return firstLeadingTriviaPrefix;
             }
 
-            var indentation = GetIndentationTrivia(leadingTrivia);
+            var indentation = lineIndentation ?? GetIndentationTrivia(leadingTrivia);
 
             return startsNewGroup
                        ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
@@ -57,7 +63,7 @@ internal static class UsingLeadingTriviaBuilder
             return firstLeadingTriviaPrefix.AddRange(significantLeadingTrivia);
         }
 
-        var indentationBeforeSignificantTrivia = GetIndentationTriviaBefore(leadingTrivia, firstSignificantTriviaIndex);
+        var indentationBeforeSignificantTrivia = lineIndentation ?? GetIndentationTriviaBefore(leadingTrivia, firstSignificantTriviaIndex);
         var linePrefix = startsNewGroup
                              ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
                              : SyntaxFactory.TriviaList();
