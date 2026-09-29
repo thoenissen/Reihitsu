@@ -53,6 +53,20 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
+    /// Aligns a wrapped parameter list to the column after the open token, then aligns every line that starts
+    /// inside a parameter at a token other than the parameter's first token with that first token
+    /// </summary>
+    /// <param name="openToken">The opening token (parenthesis or bracket)</param>
+    /// <param name="closeToken">The closing token</param>
+    /// <param name="parameters">The parameters in the list</param>
+    /// <param name="model">The layout model to write to</param>
+    private static void AlignParameters(SyntaxToken openToken, SyntaxToken closeToken, SeparatedSyntaxList<ParameterSyntax> parameters, LayoutModel model)
+    {
+        AlignToOpenToken(openToken, closeToken, parameters, model);
+        ParameterContinuationAligner.Align(parameters, model);
+    }
+
+    /// <summary>
     /// Aligns a multi-line dictionary indexer key as a block: the key body is indented
     /// one level deeper than the opening bracket and the closing bracket is aligned
     /// with the opening bracket
@@ -99,47 +113,31 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
         switch (node)
         {
             case ArgumentListSyntax argumentList:
-                {
-                    AlignToOpenToken(argumentList.OpenParenToken, argumentList.CloseParenToken, argumentList.Arguments, model);
-                }
+                AlignToOpenToken(argumentList.OpenParenToken, argumentList.CloseParenToken, argumentList.Arguments, model);
                 break;
 
             case BracketedArgumentListSyntax { Parent: ImplicitElementAccessSyntax } dictionaryKey:
-                {
-                    AlignDictionaryKey(dictionaryKey.OpenBracketToken, dictionaryKey.CloseBracketToken, dictionaryKey.Arguments, model);
-                }
+                AlignDictionaryKey(dictionaryKey.OpenBracketToken, dictionaryKey.CloseBracketToken, dictionaryKey.Arguments, model);
                 break;
 
             case BracketedArgumentListSyntax bracketedArgumentList:
-                {
-                    AlignToOpenToken(bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken, bracketedArgumentList.Arguments, model);
-                }
+                AlignToOpenToken(bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken, bracketedArgumentList.Arguments, model);
                 break;
 
             case ParameterListSyntax parameterList:
-                {
-                    AlignToOpenToken(parameterList.OpenParenToken, parameterList.CloseParenToken, parameterList.Parameters, model);
-                    ParameterContinuationAligner.Align(parameterList.Parameters, model);
-                }
+                AlignParameters(parameterList.OpenParenToken, parameterList.CloseParenToken, parameterList.Parameters, model);
                 break;
 
             case BracketedParameterListSyntax bracketedParameterList:
-                {
-                    AlignToOpenToken(bracketedParameterList.OpenBracketToken, bracketedParameterList.CloseBracketToken, bracketedParameterList.Parameters, model);
-                    ParameterContinuationAligner.Align(bracketedParameterList.Parameters, model);
-                }
+                AlignParameters(bracketedParameterList.OpenBracketToken, bracketedParameterList.CloseBracketToken, bracketedParameterList.Parameters, model);
                 break;
 
             case AttributeArgumentListSyntax attributeArgumentList:
-                {
-                    AlignToOpenToken(attributeArgumentList.OpenParenToken, attributeArgumentList.CloseParenToken, attributeArgumentList.Arguments, model);
-                }
+                AlignToOpenToken(attributeArgumentList.OpenParenToken, attributeArgumentList.CloseParenToken, attributeArgumentList.Arguments, model);
                 break;
 
             case TupleExpressionSyntax tuple:
-                {
-                    AlignToOpenToken(tuple.OpenParenToken, tuple.CloseParenToken, tuple.Arguments, model);
-                }
+                AlignToOpenToken(tuple.OpenParenToken, tuple.CloseParenToken, tuple.Arguments, model);
                 break;
         }
     }

@@ -70,6 +70,24 @@ internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
         LayoutComputer.SetIfFirstOnLine(closeToken, anchorColumn, "AngleBracketList", model);
     }
 
+    /// <summary>
+    /// Aligns a wrapped type parameter or function-pointer parameter list to its first element's column, then
+    /// aligns every line that starts inside an element at a token other than the element's first token with
+    /// that first token
+    /// </summary>
+    /// <typeparam name="TElement">The type of the list's elements</typeparam>
+    /// <param name="elements">The list's elements</param>
+    /// <param name="closeToken">The closing angle bracket</param>
+    /// <param name="model">The layout model</param>
+    private static void AlignParameters<TElement>(SeparatedSyntaxList<TElement> elements,
+                                                  SyntaxToken closeToken,
+                                                  LayoutModel model)
+        where TElement : SyntaxNode
+    {
+        Align(elements, closeToken, model);
+        ParameterContinuationAligner.Align(elements, model);
+    }
+
     #endregion // Private methods
 
     #region ILayoutContributor
@@ -82,23 +100,18 @@ internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
         switch (node)
         {
             case TypeArgumentListSyntax typeArgumentList:
-                {
-                    Align(typeArgumentList.Arguments, typeArgumentList.GreaterThanToken, model);
-                }
+                Align(typeArgumentList.Arguments, typeArgumentList.GreaterThanToken, model);
+
                 break;
 
             case TypeParameterListSyntax typeParameterList:
-                {
-                    Align(typeParameterList.Parameters, typeParameterList.GreaterThanToken, model);
-                    ParameterContinuationAligner.Align(typeParameterList.Parameters, model);
-                }
+                AlignParameters(typeParameterList.Parameters, typeParameterList.GreaterThanToken, model);
+
                 break;
 
             case FunctionPointerParameterListSyntax functionPointerParameterList:
-                {
-                    Align(functionPointerParameterList.Parameters, functionPointerParameterList.GreaterThanToken, model);
-                    ParameterContinuationAligner.Align(functionPointerParameterList.Parameters, model);
-                }
+                AlignParameters(functionPointerParameterList.Parameters, functionPointerParameterList.GreaterThanToken, model);
+
                 break;
         }
     }
