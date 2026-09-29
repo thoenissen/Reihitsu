@@ -8,13 +8,14 @@ namespace Reihitsu.Formatter.Pipeline.UsingDirectives.Utilities;
 /// The trailing-trivia reconstruction half of the using-directive ordering phase. Reordering carries
 /// each directive's original trailing trivia along with its node, but that trivia was authored for the
 /// directive's old neighbor. It only becomes wrong when the old neighbor relationship it encodes cannot
-/// safely carry over: a directive that ends up with a successor needs a genuine gap between the two —
-/// existing whitespace, an existing line break, or a self-terminating block comment already provide one
-/// and are left untouched, while empty trailing trivia or an unterminated single-line comment do not and
-/// gain exactly one appended line break. A directive that ends up last needs none of that — nothing
-/// follows it within the block — except that an unterminated single-line comment it already carries must
-/// still be closed before the block's own original closing shape (whitespace and/or a line break,
-/// transplanted rather than reduced to a single flag) is appended after it
+/// safely carry over: a directive that ends up with a successor must not share its line with it. When
+/// <see cref="RequiresSeparatingLineBreak"/> finds that the trailing trivia does not already separate the
+/// two, the whitespace run at the end of the trailing trivia is replaced by exactly one line break, so a
+/// block comment stays on the directive's line and no trailing whitespace is left behind; otherwise the
+/// trailing trivia is left untouched. A directive that ends up last needs none of that — nothing follows
+/// it within the block — except that an unterminated single-line comment it already carries must still be closed before the
+/// block's own original closing shape (whitespace and/or a line break, transplanted rather than reduced
+/// to a single flag) is appended after it
 /// </summary>
 internal static class UsingTrailingTriviaBuilder
 {
@@ -25,6 +26,10 @@ internal static class UsingTrailingTriviaBuilder
     /// </summary>
     /// <param name="current">Current using directive</param>
     /// <param name="isLast"><see langword="true"/> if the directive is the last in the reordered block</param>
+    /// <param name="requiresSeparatingLineBreak">
+    /// <see langword="true"/> if the directive is not the last one and must gain a line break before its
+    /// successor, as decided by <see cref="RequiresSeparatingLineBreak"/>
+    /// </param>
     /// <param name="originalBlockTerminalTrivia">
     /// The layout trivia (whitespace and end-of-line) that trailed the original, pre-reorder block
     /// </param>
@@ -32,6 +37,7 @@ internal static class UsingTrailingTriviaBuilder
     /// <returns>The trailing trivia to apply</returns>
     public static SyntaxTriviaList CreateTrailingTrivia(UsingDirectiveSyntax current,
                                                         bool isLast,
+                                                        bool requiresSeparatingLineBreak,
                                                         SyntaxTriviaList originalBlockTerminalTrivia,
                                                         string endOfLine)
     {
@@ -49,8 +55,8 @@ internal static class UsingTrailingTriviaBuilder
             return contentPrefix.AddRange(originalBlockTerminalTrivia);
         }
 
-        return RequiresSeparatingLineBreak(trailingTrivia)
-                   ? trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine))
+        return requiresSeparatingLineBreak
+                   ? StripTrailingLayoutTrivia(trailingTrivia).Add(SyntaxFactory.EndOfLine(endOfLine))
                    : trailingTrivia;
     }
 
@@ -66,16 +72,62 @@ internal static class UsingTrailingTriviaBuilder
     }
 
     /// <summary>
-    /// Determines whether a directive's trailing trivia provides no safe separation from whatever
-    /// immediately follows it: either nothing trails the directive at all, or the trivia ends in a
-    /// single-line comment that has not been terminated by a line break and would otherwise swallow the
-    /// next directive's text into itself
+    /// Determines whether a directive must gain a line break before its successor in the rebuilt block.
+    /// That is the case when its trailing trivia ends in an unterminated single-line comment, which would
+    /// otherwise swallow whatever follows it, and when its trailing trivia contains no end-of-line trivia
+    /// while the successor would otherwise not start a line of its own. A successor that starts a new group
+    /// always needs the line break, because its blank-line separator only forms a blank line after trailing
+    /// trivia that ends in an end-of-line trivia. For a successor of the same group, a line break inside a
+    /// comment already places it on a later line: when both directives were neighbors in the source, any
+    /// line break in the gap between them does — the same rule the analyzer applies — and when the rebuild
+    /// made them neighbors, the gap was written for other neighbors, so only a block comment in the
+    /// trailing trivia or a documentation comment leading the successor that spans lines does
     /// </summary>
-    /// <param name="trailingTrivia">Trailing trivia to inspect</param>
+    /// <param name="trailingTrivia">Trailing trivia of the directive</param>
+    /// <param name="successorLeadingTrivia">Leading trivia of the directive that follows it</param>
+    /// <param name="successorStartsNewGroup"><see langword="true"/> if the successor starts a new group</param>
+    /// <param name="wereSourceNeighbors"><see langword="true"/> if the successor directly followed the directive in the source</param>
     /// <returns><see langword="true"/> if a line break must be added; otherwise, <see langword="false"/></returns>
-    private static bool RequiresSeparatingLineBreak(SyntaxTriviaList trailingTrivia)
+    public static bool RequiresSeparatingLineBreak(SyntaxTriviaList trailingTrivia, SyntaxTriviaList successorLeadingTrivia, bool successorStartsNewGroup, bool wereSourceNeighbors)
     {
-        return trailingTrivia.Count == 0 || EndsInUnterminatedSingleLineComment(trailingTrivia);
+        if (EndsInUnterminatedSingleLineComment(trailingTrivia))
+        {
+            return true;
+        }
+
+        if (ContainsLineBreak(trailingTrivia))
+        {
+            return false;
+        }
+
+        if (successorStartsNewGroup)
+        {
+            return true;
+        }
+
+        if (SpansLine(trailingTrivia))
+        {
+            return false;
+        }
+
+        return wereSourceNeighbors
+                   ? SpansLine(successorLeadingTrivia) == false
+                   : LeadingDocumentationCommentSpansLine(successorLeadingTrivia) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list contains an end-of-line trivia anywhere in it. For the block's own
+    /// terminating trivia, which <see cref="GetTrailingLayoutTrivia"/> guarantees contains only whitespace
+    /// and end-of-line trivia, anything ahead of its first end-of-line is therefore whitespace, and
+    /// re-parsing it directly after an unterminated single-line comment absorbs that whitespace into the
+    /// comment's own text the same way it would have absorbed it originally, so the terminal trivia
+    /// already closes the comment on its own without an additional inserted break
+    /// </summary>
+    /// <param name="trivia">Trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list contains an end-of-line trivia; otherwise, <see langword="false"/></returns>
+    public static bool ContainsLineBreak(SyntaxTriviaList trivia)
+    {
+        return trivia.Any(static item => item.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>
@@ -100,18 +152,52 @@ internal static class UsingTrailingTriviaBuilder
     }
 
     /// <summary>
-    /// Determines whether a trivia list contains an end-of-line trivia anywhere in it. Callers pass the
-    /// block's own terminating trivia here, which <see cref="GetTrailingLayoutTrivia"/> guarantees
-    /// contains only whitespace and end-of-line trivia; anything ahead of its first end-of-line is
-    /// therefore whitespace, and re-parsing it directly after an unterminated single-line comment absorbs
-    /// that whitespace into the comment's own text the same way it would have absorbed it originally, so
-    /// the terminal trivia already closes the comment on its own without an additional inserted break
+    /// Determines whether the text of a trivia list spans a line, recognizing every C# line terminator:
+    /// carriage return, line feed, next line, line separator, and paragraph separator
     /// </summary>
     /// <param name="trivia">Trivia list to inspect</param>
-    /// <returns><see langword="true"/> if the list contains an end-of-line trivia; otherwise, <see langword="false"/></returns>
-    private static bool ContainsLineBreak(SyntaxTriviaList trivia)
+    /// <returns><see langword="true"/> if the text contains a line break; otherwise, <see langword="false"/></returns>
+    private static bool SpansLine(SyntaxTriviaList trivia)
     {
-        return trivia.Any(static item => item.IsKind(SyntaxKind.EndOfLineTrivia));
+        return trivia.ToFullString().IndexOfAny(['\r', '\n', '\u0085', '\u2028', '\u2029']) >= 0;
+    }
+
+    /// <summary>
+    /// Determines whether the documentation comments at the start of a successor's leading trivia already
+    /// end the line they start on. Whitespace and documentation comments are walked from the first
+    /// significant trivia on: a single-line documentation comment, or a delimited documentation comment
+    /// whose text spans lines, separates the successor from the line; any other trivia — an ordinary
+    /// comment or an end-of-line trivia that a reorder carried in front of the successor — or the end of
+    /// the list does not
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia to inspect</param>
+    /// <returns><see langword="true"/> if a leading documentation comment spans a line; otherwise, <see langword="false"/></returns>
+    private static bool LeadingDocumentationCommentSpansLine(SyntaxTriviaList leadingTrivia)
+    {
+        foreach (var trivia in leadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+            {
+                return true;
+            }
+
+            if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) == false)
+            {
+                return false;
+            }
+
+            if (SpansLine(SyntaxFactory.TriviaList(trivia)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

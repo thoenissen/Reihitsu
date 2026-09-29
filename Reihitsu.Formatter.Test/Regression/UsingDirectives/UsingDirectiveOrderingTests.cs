@@ -503,5 +503,136 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a cross-group pair sharing one line is formatted into separate groups in one pass
+    /// </summary>
+    [TestMethod]
+    public void CrossGroupPairSharingOneLineIsSeparatedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System; using Microsoft.Win32;
+
+                             class C;
+                             """;
+        const string expected = """
+                                using System;
+
+                                using Microsoft.Win32;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that same-line directives in a block that cannot be reordered are split without being reordered
+    /// </summary>
+    [TestMethod]
+    public void SameLineDirectivesInDirectiveBearingBlockAreSplitWithoutReordering()
+    {
+        // Arrange
+        const string input = """
+                             using System.Linq; using System;
+                             #pragma warning disable CS8019
+                             using System.IO;
+
+                             class C;
+                             """;
+        const string expected = """
+                                using System.Linq;
+                                using System;
+                                #pragma warning disable CS8019
+                                using System.IO;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a same-group directive that a block comment spanning lines already places on a later
+    /// line is left where it is
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindMultiLineBlockCommentIsLeftUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             using System; /* first
+                                second */ using System.Linq;
+
+                             class C;
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a same-group directive behind a delimited documentation comment spanning lines is not
+    /// split by the using-directive ordering, so the only change is the blank-line phase separating the
+    /// delimited documentation comment from the preceding directive, as it does for any using directive
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindMultiLineDelimitedDocumentationCommentKeepsTheCommentWithIt()
+    {
+        // Arrange
+        const string input = """
+                             using System; /** first
+                                second */ using System.Linq;
+
+                             class C;
+                             """;
+        const string expected = """
+                                using System;
+
+                                /** first
+                                   second */ using System.Linq;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a same-group directive behind a delimited documentation comment spanning lines is not
+    /// split in a block that a preprocessor directive keeps from being reordered either
+    /// </summary>
+    [TestMethod]
+    public void SameGroupDirectiveBehindMultiLineDelimitedDocumentationCommentInDirectiveBearingBlockKeepsTheCommentWithIt()
+    {
+        // Arrange
+        const string input = """
+                             using System; /** first
+                                second */ using System.Linq;
+                             #pragma warning disable CS8019
+                             using System.IO;
+                             #pragma warning restore CS8019
+
+                             class C;
+                             """;
+        const string expected = """
+                                using System;
+
+                                /** first
+                                   second */ using System.Linq;
+                                #pragma warning disable CS8019
+                                using System.IO;
+                                #pragma warning restore CS8019
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

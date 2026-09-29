@@ -783,4 +783,7 @@
   <data name="RH5113Title" xml:space="preserve">
     <value>Move semicolon onto the declaration line</value>
   </data>
+  <data name="RH5114Title" xml:space="preserve">
+    <value>Move using directive to a new line</value>
+  </data>
 </root>
