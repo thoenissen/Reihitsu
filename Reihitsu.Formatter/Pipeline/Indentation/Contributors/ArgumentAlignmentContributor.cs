@@ -8,7 +8,8 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Aligns arguments, parameters, and attribute arguments to the column after the opening parenthesis
-/// when the list spans multiple lines
+/// when the list spans multiple lines; a line that starts inside a parameter at a token other than the
+/// parameter's first token is aligned with that first token
 /// </summary>
 internal sealed class ArgumentAlignmentContributor : ILayoutContributor
 {
@@ -98,31 +99,47 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
         switch (node)
         {
             case ArgumentListSyntax argumentList:
-                AlignToOpenToken(argumentList.OpenParenToken, argumentList.CloseParenToken, argumentList.Arguments, model);
+                {
+                    AlignToOpenToken(argumentList.OpenParenToken, argumentList.CloseParenToken, argumentList.Arguments, model);
+                }
                 break;
 
             case BracketedArgumentListSyntax { Parent: ImplicitElementAccessSyntax } dictionaryKey:
-                AlignDictionaryKey(dictionaryKey.OpenBracketToken, dictionaryKey.CloseBracketToken, dictionaryKey.Arguments, model);
+                {
+                    AlignDictionaryKey(dictionaryKey.OpenBracketToken, dictionaryKey.CloseBracketToken, dictionaryKey.Arguments, model);
+                }
                 break;
 
             case BracketedArgumentListSyntax bracketedArgumentList:
-                AlignToOpenToken(bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken, bracketedArgumentList.Arguments, model);
+                {
+                    AlignToOpenToken(bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken, bracketedArgumentList.Arguments, model);
+                }
                 break;
 
             case ParameterListSyntax parameterList:
-                AlignToOpenToken(parameterList.OpenParenToken, parameterList.CloseParenToken, parameterList.Parameters, model);
+                {
+                    AlignToOpenToken(parameterList.OpenParenToken, parameterList.CloseParenToken, parameterList.Parameters, model);
+                    ParameterContinuationAligner.Align(parameterList.Parameters, model);
+                }
                 break;
 
             case BracketedParameterListSyntax bracketedParameterList:
-                AlignToOpenToken(bracketedParameterList.OpenBracketToken, bracketedParameterList.CloseBracketToken, bracketedParameterList.Parameters, model);
+                {
+                    AlignToOpenToken(bracketedParameterList.OpenBracketToken, bracketedParameterList.CloseBracketToken, bracketedParameterList.Parameters, model);
+                    ParameterContinuationAligner.Align(bracketedParameterList.Parameters, model);
+                }
                 break;
 
             case AttributeArgumentListSyntax attributeArgumentList:
-                AlignToOpenToken(attributeArgumentList.OpenParenToken, attributeArgumentList.CloseParenToken, attributeArgumentList.Arguments, model);
+                {
+                    AlignToOpenToken(attributeArgumentList.OpenParenToken, attributeArgumentList.CloseParenToken, attributeArgumentList.Arguments, model);
+                }
                 break;
 
             case TupleExpressionSyntax tuple:
-                AlignToOpenToken(tuple.OpenParenToken, tuple.CloseParenToken, tuple.Arguments, model);
+                {
+                    AlignToOpenToken(tuple.OpenParenToken, tuple.CloseParenToken, tuple.Arguments, model);
+                }
                 break;
         }
     }
