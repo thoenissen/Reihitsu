@@ -276,6 +276,29 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that an explicit assembly specifier on an accessor of a single-line property is not reported, because the formatter keeps the list inline
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForAssemblySpecifierOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [assembly: First] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

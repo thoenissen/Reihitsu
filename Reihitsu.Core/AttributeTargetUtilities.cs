@@ -30,6 +30,24 @@ public static class AttributeTargetUtilities
     }
 
     /// <summary>
+    /// Determines whether the attribute list is attached to an accessor that the formatter keeps on a single-line
+    /// property's line. That holds only when the property is single-line, no accessor has a body or an expression
+    /// body, and the accessor list itself contains no comment or directive — otherwise the formatter expands the
+    /// accessor list and lays out the attribute lists by their target's default policy. The last two conditions
+    /// mirror the formatter's <c>LineBreakDetection.ShouldNormalizeAccessorListBraces</c> and must stay in step
+    /// with it. Trivia outside the accessor list, such as a comment after its closing brace, does not count
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> if the formatter keeps the attribute list inline on its property's line; otherwise, <see langword="false"/></returns>
+    public static bool IsAttributeListOnInlineAutoPropertyAccessor(AttributeListSyntax attributeList)
+    {
+        return IsAttributeListOnSingleLinePropertyAccessor(attributeList)
+               && attributeList.Parent?.Parent is AccessorListSyntax accessorList
+               && accessorList.Accessors.All(accessor => accessor.Body == null && accessor.ExpressionBody == null)
+               && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(accessorList) == false;
+    }
+
+    /// <summary>
     /// Gets attribute lists attached to an owner node
     /// </summary>
     /// <param name="owner">Owner node</param>

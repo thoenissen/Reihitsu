@@ -326,6 +326,139 @@ public class AttributeTargetUtilitiesTests
         Assert.IsTrue(AttributeTargetUtilities.HaveSameTarget(GetAttributeList(source, 0), GetAttributeList(source, 1)));
     }
 
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for an accessor of a single-line auto-property
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsTrueForAutoAccessorOfSingleLineProperty()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  public int Value { [return: System.Obsolete] get; set; }
+                              }
+                              """;
+
+        Assert.IsTrue(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 0)));
+    }
+
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for a single-line auto-property whose accessor list is followed by a comment
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsTrueWhenCommentFollowsAccessorList()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  public int Value { [return: System.Obsolete] get; set; } // Comment
+                              }
+                              """;
+
+        Assert.IsTrue(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 0)));
+    }
+
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for a single-line auto-property whose own attribute list is on the preceding line
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsTrueWhenPropertyAttributeListIsOnPrecedingLine()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  [System.CLSCompliant(false)]
+                                  public int Value { [return: System.Obsolete] get; set; }
+                              }
+                              """;
+
+        Assert.IsTrue(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 1)));
+    }
+
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for an accessor of a multi-line property
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsFalseForMultiLineProperty()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  public int Value
+                                  {
+                                      [return: System.Obsolete] get;
+                                      set;
+                                  }
+                              }
+                              """;
+
+        Assert.IsFalse(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 0)));
+    }
+
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for a single-line property with an expression-bodied accessor
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsFalseForExpressionBodiedAccessor()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  public int Value { [return: System.Obsolete] get => 1; }
+                              }
+                              """;
+
+        Assert.IsFalse(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 0)));
+    }
+
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for a single-line property with a block-bodied accessor
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsFalseForBlockBodiedAccessor()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  public int Value { [return: System.Obsolete] get { return 1; } }
+                              }
+                              """;
+
+        Assert.IsFalse(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 0)));
+    }
+
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for a single-line auto-property whose accessor list contains a comment
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsFalseForCommentInsideAccessorList()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  public int Value { [return: System.Obsolete] get; /* Comment */ set; }
+                              }
+                              """;
+
+        Assert.IsFalse(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 0)));
+    }
+
+    /// <summary>
+    /// Verifies the inline auto-property accessor predicate for an attribute list owned by a method
+    /// </summary>
+    [TestMethod]
+    public void IsAttributeListOnInlineAutoPropertyAccessorReturnsFalseForMethodOwner()
+    {
+        const string source = """
+                              internal class Sample
+                              {
+                                  [return: System.Obsolete] public int Execute() => 1;
+                              }
+                              """;
+
+        Assert.IsFalse(AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(GetAttributeList(source, 0)));
+    }
+
     #endregion // Tests
 
     #region Methods

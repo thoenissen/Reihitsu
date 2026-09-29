@@ -222,6 +222,94 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
+    /// <summary>
+    /// Verifies that a merged return-specifier list is still reported when an accessor has an expression body, because the formatter expands the accessor list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMergedReturnSpecifierListOnSingleLinePropertyAccessorWithExpressionBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { {|#0:[return: First, Second]|} get => 1; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value {
+                                         [return: First]
+                                         [return: Second]
+                                         get => 1; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a merged return-specifier list on an accessor of a multi-line property is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMergedReturnSpecifierListOnMultiLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value
+                                    {
+                                        {|#0:[return: First, Second]|}
+                                        get;
+                                        set;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value
+                                     {
+                                         [return: First]
+                                         [return: Second]
+                                         get;
+                                         set;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

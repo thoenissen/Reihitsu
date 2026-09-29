@@ -55,6 +55,23 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
     }
 
     /// <summary>
+    /// Resolves the placement mode that is actually enforced for an attribute list. The formatter keeps every
+    /// attribute list of an inline auto-property accessor on the property's line, whatever its explicit target, so a
+    /// separate-line placement is never enforced there
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns>Enforced placement mode</returns>
+    private TargetAttributePlacementMode ResolveEnforcedPlacementMode(AttributeListSyntax attributeList)
+    {
+        var placementMode = ResolvePlacementMode(attributeList);
+
+        return placementMode == TargetAttributePlacementMode.SeparateLine
+               && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList)
+                   ? TargetAttributePlacementMode.SingleLine
+                   : placementMode;
+    }
+
+    /// <summary>
     /// Analyzes an attribute list
     /// </summary>
     /// <param name="context">Context</param>
@@ -71,7 +88,7 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
 
         var closeLine = attributeList.GetLocation().GetLineSpan().EndLinePosition.Line;
         var nextLine = tokenAfter.GetLocation().GetLineSpan().StartLinePosition.Line;
-        var expectedMode = ResolvePlacementMode(attributeList);
+        var expectedMode = ResolveEnforcedPlacementMode(attributeList);
         var hasViolation = expectedMode == TargetAttributePlacementMode.SeparateLine
                                ? closeLine == nextLine
                                : closeLine != nextLine;

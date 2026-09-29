@@ -225,6 +225,221 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
+    /// <summary>
+    /// Verifies that an explicit return specifier on an accessor of a single-line interface property is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLineInterfacePropertyAccessor()
+    {
+        const string testData = """
+                                internal interface IExample
+                                {
+                                    int Value { [return: First] get; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit return specifier on an accessor of a single-line property with an initializer is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithInitializer()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [return: First] get; set; } = 1;
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after the accessor list does not remove the single-line exemption, because the formatter keeps such a property inline
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithTrailingComment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [return: First] get; set; } // Comment
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the property's own attribute list on the preceding line does not remove the single-line exemption
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorBelowPropertyAttributeList()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    [Second]
+                                    public int Value { [return: First] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an accessor list with an expression-bodied accessor is still reported, because the formatter expands it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithExpressionBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { {|#0:[return: First]|} get => 1; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value { [return: First]
+                                         get => 1; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an accessor list containing a comment is still reported, because the formatter expands it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithCommentInsideAccessorList()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { {|#0:[return: First]|} get; /* Comment */ set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value { [return: First]
+                                         get; /* Comment */ set; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an explicit return specifier on an accessor of a multi-line property is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForReturnSpecifierOnMultiLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value
+                                    {
+                                        {|#0:[return: First]|} get;
+                                        set;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value
+                                     {
+                                         [return: First]
+                                         get;
+                                         set;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

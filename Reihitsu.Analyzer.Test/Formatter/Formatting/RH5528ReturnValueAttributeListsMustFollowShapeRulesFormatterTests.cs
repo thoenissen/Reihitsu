@@ -70,12 +70,8 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesFormatterTests :
                              {
                                  public int Other { [return: First, Second] get; set; }
                              }
-                             sealed class FirstAttribute : System.Attribute
-                             {
-                             }
-                             sealed class SecondAttribute : System.Attribute
-                             {
-                             }
+                             sealed class FirstAttribute : System.Attribute;
+                             sealed class SecondAttribute : System.Attribute;
                              """;
 
         await VerifyFormatter(input);
