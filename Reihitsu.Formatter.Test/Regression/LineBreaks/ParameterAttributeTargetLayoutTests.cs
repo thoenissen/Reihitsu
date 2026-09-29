@@ -469,5 +469,165 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that same-target lists on one line followed by a line break are merged and joined in a single pass
+    /// </summary>
+    [TestMethod]
+    public void SameTargetListsFollowedByLineBreakAreMergedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([property: Obsolete] [property: CLSCompliant(false)]
+                                                            int Id);
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal sealed record Example([property: Obsolete, CLSCompliant(false)] int Id);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that same-target lists on separate lines are merged and joined in a single pass
+    /// </summary>
+    [TestMethod]
+    public void SameTargetListsOnSeparateLinesAreMergedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([property: Obsolete]
+                                                            [property: CLSCompliant(false)]
+                                                            int Id);
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal sealed record Example([property: Obsolete, CLSCompliant(false)] int Id);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that same-target lists separated by a list of another target on separate lines are merged and joined in a single pass
+    /// </summary>
+    [TestMethod]
+    public void InterleavedSameTargetListsOnSeparateLinesAreMergedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([property: Obsolete]
+                                                            [CLSCompliant(false)]
+                                                            [property: Serializable]
+                                                            int Id);
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal sealed record Example([property: Obsolete, Serializable] [CLSCompliant(false)] int Id);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that same-target lists on separate lines before a type parameter are merged and joined in a single pass
+    /// </summary>
+    [TestMethod]
+    public void SameTargetListsOnSeparateLinesOnTypeParameterAreMergedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal class Example<[property: Obsolete]
+                                                    [property: CLSCompliant(false)]
+                                                    T>;
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal class Example<[property: Obsolete, CLSCompliant(false)] T>;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that lists without a specifier on separate lines before a parameter are merged and joined in a single pass
+    /// </summary>
+    [TestMethod]
+    public void ImplicitListsOnSeparateLinesAreMergedInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([Obsolete]
+                                                            [CLSCompliant(false)]
+                                                            int Id);
+                             """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal sealed record Example([Obsolete, CLSCompliant(false)] int Id);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>type:</c> list on a parameter is not merged with a list without a specifier, because the
+    /// compiler ignores the <c>type:</c> list there and merging would change which attributes apply
+    /// </summary>
+    [TestMethod]
+    public void TypeTargetedAndImplicitAttributeListsOnParameterAreNotMerged()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal sealed record Example([CLSCompliant(false)] [type: Obsolete] int Id);
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }

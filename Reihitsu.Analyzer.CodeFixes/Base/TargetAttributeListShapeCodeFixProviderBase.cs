@@ -219,36 +219,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             return document;
         }
 
-        var mergedAttributes = new List<AttributeSyntax>();
-        var firstList = matchingLists[0];
-
-        foreach (var list in matchingLists)
-        {
-            foreach (var attribute in list.Attributes)
-            {
-                mergedAttributes.Add(attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                              .WithTrailingTrivia(SyntaxFactory.TriviaList()));
-            }
-        }
-
-        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
-                                  .WithTrailingTrivia(SyntaxFactory.Space);
-
-        var updatedLists = new List<AttributeListSyntax>();
-
-        foreach (var list in lists)
-        {
-            if (ReferenceEquals(list, firstList))
-            {
-                updatedLists.Add(mergedList);
-            }
-            else if (matchingLists.Contains(list) == false)
-            {
-                updatedLists.Add(list);
-            }
-        }
-
-        var updatedOwner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+        var updatedOwner = AttributeTargetUtilities.MergeAttributeListGroup(owner, matchingLists);
         var updatedRoot = root.ReplaceNode(owner, updatedOwner);
 
         return document.WithSyntaxRoot(updatedRoot);

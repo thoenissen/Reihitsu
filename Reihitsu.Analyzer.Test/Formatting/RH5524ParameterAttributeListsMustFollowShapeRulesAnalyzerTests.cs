@@ -243,6 +243,68 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that merging <c>property:</c> attribute lists placed on separate lines leaves no stray whitespace before the parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeListsOnSeparateLines()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First]
+                                                               {|#0:[property: Second]|}
+                                                               int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First, Second] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>type:</c> list on a parameter is not reported as a duplicate, because the compiler ignores it there and merging would change which attributes apply
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForTypeTargetedAttributeList()
+    {
+        const string testData = """
+                                internal sealed record Example([Second] [type: First] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

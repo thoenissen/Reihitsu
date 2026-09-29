@@ -153,6 +153,31 @@ public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a <c>property:</c> attribute list with several attributes on a type parameter is left to the type-parameter rules
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyTargetedAttributeListOnTypeParameter()
+    {
+        const string testData = """
+                                internal class Example<[property: First, Second] T>
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

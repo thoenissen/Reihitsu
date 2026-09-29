@@ -303,6 +303,29 @@ public class AttributeTargetUtilitiesTests
         Assert.IsFalse(AttributeTargetUtilities.HaveSameTarget(GetAttributeList(source, 0), GetAttributeList(source, 1)));
     }
 
+    /// <summary>
+    /// Verifies that a <c>type:</c> list on a parameter, which the compiler ignores, never has the same target as a
+    /// list without a specifier
+    /// </summary>
+    [TestMethod]
+    public void HaveSameTargetReturnsFalseForTypeTargetOnParameter()
+    {
+        const string source = "internal record Sample([System.CLSCompliant(false)] [type: System.Obsolete] int Value);";
+
+        Assert.IsFalse(AttributeTargetUtilities.HaveSameTarget(GetAttributeList(source, 0), GetAttributeList(source, 1)));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>type:</c> list on a class has the same target as a list without a specifier
+    /// </summary>
+    [TestMethod]
+    public void HaveSameTargetReturnsTrueForTypeTargetOnClass()
+    {
+        const string source = "[type: System.Obsolete] [System.CLSCompliant(false)] internal class Sample { }";
+
+        Assert.IsTrue(AttributeTargetUtilities.HaveSameTarget(GetAttributeList(source, 0), GetAttributeList(source, 1)));
+    }
+
     #endregion // Tests
 
     #region Methods

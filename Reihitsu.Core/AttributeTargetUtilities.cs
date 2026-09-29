@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -190,16 +191,72 @@ public static class AttributeTargetUtilities
     /// <summary>
     /// Determines whether two attribute lists resolve to the same attribute target. Only such lists may be merged
     /// into one list, because the merged list keeps the first list's specifier and would otherwise silently apply
-    /// the other list's attributes to a different target
+    /// the other list's attributes to a different target. A <c>type:</c> list on an owner that is not a type
+    /// declaration never qualifies: the compiler ignores it there, so merging it with any other list would change
+    /// which attributes apply
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
     /// <param name="otherAttributeList">Other attribute list</param>
     /// <returns><see langword="true"/> when both lists resolve to the same supported target</returns>
     public static bool HaveSameTarget(AttributeListSyntax attributeList, AttributeListSyntax otherAttributeList)
     {
-        return TryResolveTarget(attributeList, out var target)
+        return IsIgnoredTypeTarget(attributeList) == false
+               && IsIgnoredTypeTarget(otherAttributeList) == false
+               && TryResolveTarget(attributeList, out var target)
                && TryResolveTarget(otherAttributeList, out var otherTarget)
                && target == otherTarget;
+    }
+
+    /// <summary>
+    /// Merges a group of attribute lists on an owner into the group's first list. The first list keeps its
+    /// specifier and leading trivia, the attributes of every later member are appended to it, and the later members
+    /// are removed together with their trivia. Removing a member that ended its line, or joining the first list with
+    /// what follows it, would otherwise leave the old line indentation of the next token behind as a run of spaces
+    /// on the merged line, so that whitespace is dropped whenever the token no longer starts a line. The caller is
+    /// responsible for choosing a group whose members share one target and whose interior carries no comment or
+    /// directive
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <param name="group">The owner's attribute lists to merge, in document order</param>
+    /// <returns>Updated owner node</returns>
+    public static SyntaxNode MergeAttributeListGroup(SyntaxNode owner, IReadOnlyList<AttributeListSyntax> group)
+    {
+        var lists = GetAttributeLists(owner);
+        var groupIndices = group.Select(list => IndexOf(lists, list)).ToArray();
+        var memberOpenBrackets = group.Skip(1)
+                                      .Select(list => list.OpenBracketToken)
+                                      .ToArray();
+        var gapTokens = group.Select(list => list.CloseBracketToken.GetNextToken())
+                             .Where(token => memberOpenBrackets.Contains(token) == false)
+                             .ToArray();
+        var annotation = new SyntaxAnnotation();
+
+        owner = owner.ReplaceTokens(gapTokens, (_, rewritten) => rewritten.WithAdditionalAnnotations(annotation));
+        lists = GetAttributeLists(owner);
+
+        var firstList = lists[groupIndices[0]];
+        var mergedAttributes = groupIndices.SelectMany(index => lists[index].Attributes)
+                                           .Select(attribute => attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                                         .WithTrailingTrivia(SyntaxFactory.TriviaList()));
+        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
+                                  .WithTrailingTrivia(SyntaxFactory.Space);
+        var updatedLists = lists.Where((_, index) => index == groupIndices[0] || groupIndices.Contains(index) == false)
+                                .Select(list => ReferenceEquals(list, firstList) ? mergedList : list);
+
+        owner = WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+
+        var annotatedTokens = owner.GetAnnotatedTokens(annotation).ToArray();
+
+        return owner.ReplaceTokens(annotatedTokens,
+                                   (original, rewritten) =>
+                                   {
+                                       rewritten = rewritten.WithoutAnnotations(annotation);
+
+                                       return StartsLine(original) == false
+                                              && rewritten.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                                                  ? rewritten.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                  : rewritten;
+                                   });
     }
 
     /// <summary>
@@ -213,6 +270,50 @@ public static class AttributeTargetUtilities
         token = attributeList.CloseBracketToken.GetNextToken(includeZeroWidth: false);
 
         return token.IsKind(SyntaxKind.None) == false;
+    }
+
+    /// <summary>
+    /// Determines whether an attribute list names the <c>type:</c> target on an owner that is not a type declaration,
+    /// where the compiler ignores the list
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when the list's <c>type:</c> specifier does not apply to its owner</returns>
+    private static bool IsIgnoredTypeTarget(AttributeListSyntax attributeList)
+    {
+        return attributeList.Target?.Identifier.ValueText == "type"
+               && attributeList.Parent is not (BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
+    }
+
+    /// <summary>
+    /// Determines whether a token starts a line, that is, whether the token before it ends with a line break
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> when the token starts a line</returns>
+    private static bool StartsLine(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        return previousToken.IsKind(SyntaxKind.None)
+               || previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Gets the index of an attribute list among an owner's attribute lists
+    /// </summary>
+    /// <param name="lists">The owner's attribute lists</param>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns>Zero-based index of the list</returns>
+    private static int IndexOf(IReadOnlyList<AttributeListSyntax> lists, AttributeListSyntax attributeList)
+    {
+        for (var index = 0; index < lists.Count; index++)
+        {
+            if (ReferenceEquals(lists[index], attributeList))
+            {
+                return index;
+            }
+        }
+
+        throw new ArgumentException("The attribute list does not belong to the owner.", nameof(attributeList));
     }
 
     /// <summary>

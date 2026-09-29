@@ -119,14 +119,55 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that a <c>typevar:</c> list and a <c>param:</c> list on one type parameter are not reported, because they resolve to different targets
+    /// Verifies that a second <c>property:</c> attribute list on a type parameter is reported and merged into the first
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForGenericParameterAndParameterTargetedAttributeLists()
+    public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeListsOnTypeParameter()
     {
         const string testData = """
-                                internal class Example<[typevar: First] [param: Second] T>
+                                internal class Example<[property: First] {|#0:[property: Second]|} T>
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example<[property: First, Second] T>
+                                 {
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> list and a list without a specifier on one type parameter are not reported, because merging them would move an attribute to another target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyTargetedAndImplicitAttributeListsOnTypeParameter()
+    {
+        const string testData = """
+                                internal class Example<[property: First] [Second] T>
                                 {
                                 }
                                 sealed class FirstAttribute : System.Attribute

@@ -137,18 +137,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
                 return owner;
             }
 
-            var firstList = matchingLists[0];
-            var mergedAttributes = matchingLists.SelectMany(attributeList => attributeList.Attributes)
-                                                .Select(attribute => attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                                              .WithTrailingTrivia(SyntaxFactory.TriviaList()));
-
-            var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
-                                      .WithTrailingTrivia(SyntaxFactory.Space);
-            var updatedLists = lists.Where(attributeList => ReferenceEquals(attributeList, firstList)
-                                                            || matchingLists.Contains(attributeList) == false)
-                                    .Select(attributeList => ReferenceEquals(attributeList, firstList) ? mergedList : attributeList);
-
-            owner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+            owner = AttributeTargetUtilities.MergeAttributeListGroup(owner, matchingLists);
         }
     }
 

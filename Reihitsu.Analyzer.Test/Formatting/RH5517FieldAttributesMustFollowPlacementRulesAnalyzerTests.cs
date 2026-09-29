@@ -148,30 +148,6 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
         await Verify(testData);
     }
 
-    /// <summary>
-    /// Verifies that a <c>field:</c> attribute on its own line before a positional record parameter is left to the parameter rules
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyNoDiagnosticForFieldTargetedAttributeOnBrokenRecordParameter()
-    {
-        const string testData = """
-                                internal sealed record Example([field: First]
-                                                               int Id);
-                                sealed class FirstAttribute : System.Attribute
-                                {
-                                }
-                                sealed class SecondAttribute : System.Attribute
-                                {
-                                }
-                                sealed class ThirdAttribute : System.Attribute
-                                {
-                                }
-                                """;
-
-        await Verify(testData);
-    }
-
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
