@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -121,6 +121,126 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a second <c>property:</c> attribute list on a positional record parameter is reported and merged into the first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeListsOnRecordParameter()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] {|#0:[property: Second]|} int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First, Second] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that only the attribute lists sharing a target are merged when a list of another target sits between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixMergeOnlyListsOfTheSameTarget()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] [Second] {|#0:[property: Third]|} int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First, Third] [Second] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> list and a list without a specifier on one parameter are not reported, because merging them would move an attribute to another target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForAttributeListsOfDifferentTargets()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] [Second] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> list and a <c>field:</c> list on one parameter are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyAndFieldTargetedAttributeLists()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] [field: Second] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -218,6 +218,91 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
                                 {
                                 }
                                 sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> attribute on its own line before a positional record parameter is reported and joined onto the parameter's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeOnRecordParameter()
+    {
+        const string testData = """
+                                internal sealed record Example({|#0:[property: First]|}
+                                                               int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> attribute on a positional record parameter's line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyTargetedAttributeOnRecordParameterLine()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> attribute separated from its parameter by a line comment is not reported, because joining would move the parameter into the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyTargetedAttributeFollowedByLineComment()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] // keep
+                                                               int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
                                 {
                                 }
                                 """;

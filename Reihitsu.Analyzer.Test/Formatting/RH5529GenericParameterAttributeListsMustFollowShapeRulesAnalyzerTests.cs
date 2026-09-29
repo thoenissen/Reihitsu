@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -116,6 +116,31 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>typevar:</c> list and a <c>param:</c> list on one type parameter are not reported, because they resolve to different targets
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForGenericParameterAndParameterTargetedAttributeLists()
+    {
+        const string testData = """
+                                internal class Example<[typevar: First] [param: Second] T>
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

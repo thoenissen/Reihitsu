@@ -75,7 +75,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     /// Determines whether the attribute list is in scope for this code-fix provider
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
-    /// <param name="target">Resolved target</param>
+    /// <param name="target">Resolved layout target (see <see cref="AttributeTargetUtilities.TryResolveLayoutTarget"/>)</param>
     /// <returns><see langword="true"/> when the attribute list should be processed</returns>
     protected virtual bool IsAttributeListInScope(AttributeListSyntax attributeList, AttributeTargets target)
     {
@@ -208,8 +208,9 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-        var matchingLists = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var target)
+        var matchingLists = lists.Where(list => AttributeTargetUtilities.TryResolveLayoutTarget(list, out var target)
                                                 && IsAttributeListInScope(list, target)
+                                                && AttributeTargetUtilities.HaveSameTarget(attributeList, list)
                                                 && ResolveListShapeMode(list) == listShapeMode)
                                  .ToArray();
 
@@ -271,7 +272,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                       .FirstOrDefault();
 
         if (attributeList == null
-            || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
+            || AttributeTargetUtilities.TryResolveLayoutTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false)
         {
             return false;
@@ -292,9 +293,11 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var expectedListShapeMode = listShapeMode;
+        var diagnosedList = attributeList;
         var matchingLists = AttributeTargetUtilities.GetAttributeLists(owner)
-                                                    .Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var siblingTarget)
+                                                    .Where(list => AttributeTargetUtilities.TryResolveLayoutTarget(list, out var siblingTarget)
                                                                    && IsAttributeListInScope(list, siblingTarget)
+                                                                   && AttributeTargetUtilities.HaveSameTarget(diagnosedList, list)
                                                                    && ResolveListShapeMode(list) == expectedListShapeMode)
                                                     .ToArray();
 

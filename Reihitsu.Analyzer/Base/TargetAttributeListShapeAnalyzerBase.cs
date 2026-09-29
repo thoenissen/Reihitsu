@@ -78,7 +78,7 @@ public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRule
     {
         var attributeList = (AttributeListSyntax)context.Node;
 
-        if (AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
+        if (AttributeTargetUtilities.TryResolveLayoutTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false)
         {
             return;
@@ -96,8 +96,11 @@ public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRule
             return;
         }
 
-        var siblings = GetSiblingAttributeLists(attributeList).Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var siblingTarget)
+        // Only lists of the same target can be merged, so a sibling of another target neither makes this list a
+        // duplicate nor becomes the group's first list
+        var siblings = GetSiblingAttributeLists(attributeList).Where(list => AttributeTargetUtilities.TryResolveLayoutTarget(list, out var siblingTarget)
                                                                              && IsAttributeListInScope(list, siblingTarget)
+                                                                             && AttributeTargetUtilities.HaveSameTarget(attributeList, list)
                                                                              && ResolveListShapeMode(list) == TargetAttributeListShapeMode.MergedList)
                                                               .ToArray();
 

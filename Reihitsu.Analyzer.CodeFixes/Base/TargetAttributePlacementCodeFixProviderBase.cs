@@ -59,7 +59,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     /// Determines whether the attribute list is in scope for this code-fix provider
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
-    /// <param name="target">Resolved target</param>
+    /// <param name="target">Resolved layout target (see <see cref="AttributeTargetUtilities.TryResolveLayoutTarget"/>)</param>
     /// <returns><see langword="true"/> when the attribute list should be processed</returns>
     protected virtual bool IsAttributeListInScope(AttributeListSyntax attributeList, AttributeTargets target)
     {
@@ -186,7 +186,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
                                       .FirstOrDefault();
 
         if (attributeList == null
-            || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
+            || AttributeTargetUtilities.TryResolveLayoutTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
             || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false
             || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))

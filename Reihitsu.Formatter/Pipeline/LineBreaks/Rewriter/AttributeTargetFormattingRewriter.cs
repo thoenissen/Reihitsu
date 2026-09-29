@@ -89,7 +89,37 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Merges attribute lists that use the merged-list policy
+    /// Finds the first group of attribute lists that use the merged-list policy, resolve to the same target, and can
+    /// be merged without touching a comment or directive. Lists of different targets are never merged, because the
+    /// merged list keeps the first list's specifier and would move the other attributes to that target
+    /// </summary>
+    /// <param name="lists">The owner's attribute lists</param>
+    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
+    /// <returns>The mergeable group, or an empty array when no group can be merged</returns>
+    private static AttributeListSyntax[] FindMergeableGroup(IReadOnlyList<AttributeListSyntax> lists,
+                                                            bool keepAccessorListsSingleLine)
+    {
+        var candidates = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
+                                             && ResolveListShapeMode(list, keepAccessorListsSingleLine) == TargetAttributeListShapeMode.MergedList)
+                              .ToArray();
+
+        foreach (var candidate in candidates)
+        {
+            var group = candidates.Where(list => AttributeTargetUtilities.HaveSameTarget(candidate, list))
+                                  .ToArray();
+
+            if (group.Length > 1
+                && SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(group) == false)
+            {
+                return group;
+            }
+        }
+
+        return [];
+    }
+
+    /// <summary>
+    /// Merges attribute lists that use the merged-list policy and resolve to the same target
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
@@ -100,12 +130,9 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
         while (true)
         {
             var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-            var matchingLists = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
-                                                    && ResolveListShapeMode(list, keepAccessorListsSingleLine) == TargetAttributeListShapeMode.MergedList)
-                                     .ToArray();
+            var matchingLists = FindMergeableGroup(lists, keepAccessorListsSingleLine);
 
-            if (matchingLists.Length <= 1
-                || SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(matchingLists))
+            if (matchingLists.Length == 0)
             {
                 return owner;
             }

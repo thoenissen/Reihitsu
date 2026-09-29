@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -128,6 +128,29 @@ public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> attribute list with several attributes on a positional record parameter is left to the parameter rules
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyTargetedAttributeListOnRecordParameter()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First, Second] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

@@ -62,7 +62,7 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
     {
         var attributeList = (AttributeListSyntax)context.Node;
 
-        if (AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
+        if (AttributeTargetUtilities.TryResolveLayoutTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
             || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
         {

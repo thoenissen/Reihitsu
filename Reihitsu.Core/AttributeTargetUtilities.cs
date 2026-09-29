@@ -155,6 +155,54 @@ public static class AttributeTargetUtilities
     }
 
     /// <summary>
+    /// Tries to resolve the target whose layout rules govern an attribute list. A list attached to a parameter or a
+    /// type parameter sits inside a parameter or type-parameter list, where the declaration-level layout its explicit
+    /// specifier names (for example <c>property:</c> on a positional record parameter) has no valid form, so such a
+    /// list follows its owner's layout rules instead: <see cref="AttributeTargets.Parameter"/> for a parameter and
+    /// <see cref="AttributeTargets.GenericParameter"/> for a type parameter. A specifier that already resolves to one
+    /// of those two targets keeps it, and every other owner keeps the target <see cref="TryResolveTarget"/> resolves
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <param name="target">Resolved layout target</param>
+    /// <returns><see langword="true"/> when a supported target was resolved</returns>
+    public static bool TryResolveLayoutTarget(AttributeListSyntax attributeList, out AttributeTargets target)
+    {
+        if (TryResolveTarget(attributeList, out target) == false)
+        {
+            return false;
+        }
+
+        if (target is AttributeTargets.Parameter or AttributeTargets.GenericParameter)
+        {
+            return true;
+        }
+
+        target = attributeList.Parent switch
+                 {
+                     ParameterSyntax => AttributeTargets.Parameter,
+                     TypeParameterSyntax => AttributeTargets.GenericParameter,
+                     _ => target
+                 };
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether two attribute lists resolve to the same attribute target. Only such lists may be merged
+    /// into one list, because the merged list keeps the first list's specifier and would otherwise silently apply
+    /// the other list's attributes to a different target
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <param name="otherAttributeList">Other attribute list</param>
+    /// <returns><see langword="true"/> when both lists resolve to the same supported target</returns>
+    public static bool HaveSameTarget(AttributeListSyntax attributeList, AttributeListSyntax otherAttributeList)
+    {
+        return TryResolveTarget(attributeList, out var target)
+               && TryResolveTarget(otherAttributeList, out var otherTarget)
+               && target == otherTarget;
+    }
+
+    /// <summary>
     /// Tries to resolve the token after an attribute list
     /// </summary>
     /// <param name="attributeList">Attribute list</param>

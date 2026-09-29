@@ -44,7 +44,7 @@ public abstract class AttributeTargetRuleAnalyzerBase : DiagnosticAnalyzerBase
     /// Determines whether the attribute list is in scope for this analyzer
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
-    /// <param name="target">Resolved target</param>
+    /// <param name="target">Resolved layout target (see <see cref="Reihitsu.Core.AttributeTargetUtilities.TryResolveLayoutTarget"/>)</param>
     /// <returns><see langword="true"/> when the attribute list should be analyzed</returns>
     protected virtual bool IsAttributeListInScope(AttributeListSyntax attributeList, AttributeTargets target)
     {

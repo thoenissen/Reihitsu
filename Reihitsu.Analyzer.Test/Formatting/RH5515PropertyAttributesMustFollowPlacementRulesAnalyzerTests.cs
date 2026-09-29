@@ -125,6 +125,53 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a <c>property:</c> attribute on a positional record parameter is left to the parameter rules
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyTargetedAttributeOnRecordParameter()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> attribute on its own line before a positional record parameter is left to the parameter rules
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyTargetedAttributeOnBrokenRecordParameter()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First]
+                                                               int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
