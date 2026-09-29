@@ -56,5 +56,28 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesFormatterTests :
                               Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that analyzer-clean single-line property accessor with return specifier stays untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsReturnSpecifierOnSingleLinePropertyAccessor()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 public int Value { [return: First] get; set; }
+                             }
+                             sealed class FirstAttribute : System.Attribute
+                             {
+                             }
+                             sealed class SecondAttribute : System.Attribute
+                             {
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

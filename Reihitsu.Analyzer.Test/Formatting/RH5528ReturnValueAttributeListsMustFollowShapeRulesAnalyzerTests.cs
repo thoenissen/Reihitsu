@@ -130,6 +130,98 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a merged return-specifier list on a single-line property accessor is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMergedReturnSpecifierListOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Other { [return: First, Second] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a merged return-specifier list on a single-line property accessor is not reported (CRLF)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMergedReturnSpecifierListOnSingleLinePropertyAccessorCrLf()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Other { [return: First, Second] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that separate return-specifier lists on a single-line property accessor are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSeparateReturnSpecifierListsOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Other { [return: First] [return: Second] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that separate return-specifier lists on a single-line property accessor are not reported (CRLF)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForSeparateReturnSpecifierListsOnSingleLinePropertyAccessorCrLf()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Other { [return: First] [return: Second] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

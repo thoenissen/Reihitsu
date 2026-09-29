@@ -179,6 +179,52 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that an explicit return specifier on a single-line property accessor is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [return: First] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit return specifier on a single-line property accessor is not reported (CRLF)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorCrLf()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [return: First] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
