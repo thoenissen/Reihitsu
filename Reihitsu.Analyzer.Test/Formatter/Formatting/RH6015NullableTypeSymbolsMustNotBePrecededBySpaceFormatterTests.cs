@@ -46,6 +46,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
 
     /// <summary>
     /// Verifies that a continuation-line nullable type symbol remains analyzer-clean with LF and CRLF line endings
+    /// when the formatter aligns it with its parameter
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -60,8 +61,17 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
                                     }
                                 }
                                 """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int
+                                                 ? value)
+                                     {
+                                     }
+                                 }
+                                 """;
 
-        await VerifyFormatter(testData);
+        await VerifyFormatter(testData, fixedData);
     }
 
     #endregion // Tests
