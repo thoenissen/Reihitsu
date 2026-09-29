@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -155,6 +156,130 @@ public static class AttributeTargetUtilities
     }
 
     /// <summary>
+    /// Tries to resolve the target whose layout rules govern an attribute list. A list attached to a parameter or a
+    /// type parameter sits inside a parameter or type-parameter list, where the declaration-level layout its explicit
+    /// specifier names (for example <c>property:</c> on a positional record parameter) has no valid form, so such a
+    /// list follows its owner's layout rules instead: <see cref="AttributeTargets.Parameter"/> for a parameter and
+    /// <see cref="AttributeTargets.GenericParameter"/> for a type parameter. A specifier that already resolves to one
+    /// of those two targets keeps it, and every other owner keeps the target <see cref="TryResolveTarget"/> resolves
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <param name="target">Resolved layout target</param>
+    /// <returns><see langword="true"/> when a supported target was resolved</returns>
+    public static bool TryResolveLayoutTarget(AttributeListSyntax attributeList, out AttributeTargets target)
+    {
+        if (TryResolveTarget(attributeList, out target) == false)
+        {
+            return false;
+        }
+
+        if (target is AttributeTargets.Parameter or AttributeTargets.GenericParameter)
+        {
+            return true;
+        }
+
+        target = attributeList.Parent switch
+                 {
+                     ParameterSyntax => AttributeTargets.Parameter,
+                     TypeParameterSyntax => AttributeTargets.GenericParameter,
+                     _ => target
+                 };
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether two attribute lists resolve to the same attribute target. Only such lists may be merged
+    /// into one list, because the merged list keeps the first list's specifier and would otherwise silently apply
+    /// the other list's attributes to a different target. A <c>type:</c> list on an owner that is not a type
+    /// declaration never qualifies: the compiler ignores it there, so merging it with any other list would change
+    /// which attributes apply
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <param name="otherAttributeList">Other attribute list</param>
+    /// <returns><see langword="true"/> when both lists resolve to the same supported target</returns>
+    public static bool HaveSameTarget(AttributeListSyntax attributeList, AttributeListSyntax otherAttributeList)
+    {
+        return IsIgnoredTypeTarget(attributeList) == false
+               && IsIgnoredTypeTarget(otherAttributeList) == false
+               && TryResolveTarget(attributeList, out var target)
+               && TryResolveTarget(otherAttributeList, out var otherTarget)
+               && target == otherTarget;
+    }
+
+    /// <summary>
+    /// Determines whether a group of attribute lists on one owner can be merged without touching user-authored trivia.
+    /// A comment or directive inside the group would be dropped or moved by the merge, and so would a comment that
+    /// leads the token following a member: that token only starts its own line because the member ended the line
+    /// before it, so removing the member would pull the comment up onto the merged list's line
+    /// </summary>
+    /// <param name="group">The owner's attribute lists to merge, in document order</param>
+    /// <returns><see langword="true"/> when the group has more than one member and can be merged safely</returns>
+    public static bool CanMergeAttributeListGroup(IReadOnlyList<AttributeListSyntax> group)
+    {
+        return group.Count > 1
+               && SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(group) == false
+               && GetGapTokens(group).Any(token => token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia)) == false;
+    }
+
+    /// <summary>
+    /// Merges a group of attribute lists on an owner into the group's first list. The first list keeps its
+    /// specifier and leading trivia, the attributes of every later member are appended to it, and the later members
+    /// are removed together with their trivia. Removing a member that ended its line, or joining the first list with
+    /// what follows it, would otherwise leave the old line indentation of the next token behind as a run of spaces
+    /// on the merged line, so that whitespace is dropped whenever the token no longer starts a line, and a single
+    /// space is added after the token before it when that token would otherwise touch it. The caller is
+    /// responsible for choosing a group whose members share one target and that
+    /// <see cref="CanMergeAttributeListGroup"/> accepts
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <param name="group">The owner's attribute lists to merge, in document order</param>
+    /// <returns>Updated owner node</returns>
+    public static SyntaxNode MergeAttributeListGroup(SyntaxNode owner, IReadOnlyList<AttributeListSyntax> group)
+    {
+        var lists = GetAttributeLists(owner);
+        var groupIndices = group.Select(list => IndexOf(lists, list)).ToArray();
+        var annotation = new SyntaxAnnotation();
+
+        owner = owner.ReplaceTokens(GetGapTokens(group), (_, rewritten) => rewritten.WithAdditionalAnnotations(annotation));
+        lists = GetAttributeLists(owner);
+
+        var firstList = lists[groupIndices[0]];
+        var mergedAttributes = groupIndices.SelectMany(index => lists[index].Attributes)
+                                           .Select(attribute => attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                                         .WithTrailingTrivia(SyntaxFactory.TriviaList()));
+        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
+                                  .WithTrailingTrivia(SyntaxFactory.Space);
+        var updatedLists = lists.Where((_, index) => index == groupIndices[0] || groupIndices.Contains(index) == false)
+                                .Select(list => ReferenceEquals(list, firstList) ? mergedList : list);
+
+        owner = WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+
+        var joinedTokens = owner.GetAnnotatedTokens(annotation)
+                                .Where(token => StartsLine(token) == false
+                                                && token.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
+                                .ToArray();
+        var unseparatedTokens = joinedTokens.Select(token => token.GetPreviousToken())
+                                            .Where(token => token.TrailingTrivia.Count == 0)
+                                            .ToArray();
+
+        owner = owner.ReplaceTokens(joinedTokens.Concat(unseparatedTokens),
+                                    (original, rewritten) =>
+                                    {
+                                        if (joinedTokens.Contains(original))
+                                        {
+                                            rewritten = rewritten.WithLeadingTrivia(SyntaxFactory.TriviaList());
+                                        }
+
+                                        return unseparatedTokens.Contains(original)
+                                                   ? rewritten.WithTrailingTrivia(SyntaxFactory.Space)
+                                                   : rewritten;
+                                    });
+
+        return owner.ReplaceTokens(owner.GetAnnotatedTokens(annotation), (_, rewritten) => rewritten.WithoutAnnotations(annotation));
+    }
+
+    /// <summary>
     /// Tries to resolve the token after an attribute list
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
@@ -165,6 +290,67 @@ public static class AttributeTargetUtilities
         token = attributeList.CloseBracketToken.GetNextToken(includeZeroWidth: false);
 
         return token.IsKind(SyntaxKind.None) == false;
+    }
+
+    /// <summary>
+    /// Determines whether an attribute list names the <c>type:</c> target on an owner that is not a type declaration,
+    /// where the compiler ignores the list
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when the list's <c>type:</c> specifier does not apply to its owner</returns>
+    private static bool IsIgnoredTypeTarget(AttributeListSyntax attributeList)
+    {
+        return attributeList.Target?.Identifier.ValueText == "type"
+               && attributeList.Parent is not (BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
+    }
+
+    /// <summary>
+    /// Gets the tokens whose leading gap a merge closes: the token after each member of the group, except where that
+    /// token opens the next member, which the merge removes
+    /// </summary>
+    /// <param name="group">The owner's attribute lists to merge, in document order</param>
+    /// <returns>The gap tokens</returns>
+    private static SyntaxToken[] GetGapTokens(IReadOnlyList<AttributeListSyntax> group)
+    {
+        var memberOpenBrackets = group.Skip(1)
+                                      .Select(list => list.OpenBracketToken)
+                                      .ToArray();
+
+        return group.Select(list => list.CloseBracketToken.GetNextToken())
+                    .Where(token => memberOpenBrackets.Contains(token) == false)
+                    .ToArray();
+    }
+
+    /// <summary>
+    /// Determines whether a token starts a line, that is, whether the token before it ends with a line break
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> when the token starts a line</returns>
+    private static bool StartsLine(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        return previousToken.IsKind(SyntaxKind.None)
+               || previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Gets the index of an attribute list among an owner's attribute lists
+    /// </summary>
+    /// <param name="lists">The owner's attribute lists</param>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns>Zero-based index of the list</returns>
+    private static int IndexOf(IReadOnlyList<AttributeListSyntax> lists, AttributeListSyntax attributeList)
+    {
+        for (var index = 0; index < lists.Count; index++)
+        {
+            if (ReferenceEquals(lists[index], attributeList))
+            {
+                return index;
+            }
+        }
+
+        throw new ArgumentException("The attribute list does not belong to the owner.", nameof(attributeList));
     }
 
     /// <summary>

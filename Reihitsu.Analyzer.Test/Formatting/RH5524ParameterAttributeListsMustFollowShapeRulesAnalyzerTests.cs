@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -118,6 +118,270 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                                    root => root.DescendantNodes()
                                                                .OfType<AttributeListSyntax>()
                                                                .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a second <c>property:</c> attribute list on a positional record parameter is reported and merged into the first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeListsOnRecordParameter()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] {|#0:[property: Second]|} int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First, Second] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that only the attribute lists sharing a target are merged when a list of another target sits between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixMergeOnlyListsOfTheSameTarget()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] [Second] {|#0:[property: Third]|} int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First, Third] [Second] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> list and a list without a specifier on one parameter are not reported, because merging them would move an attribute to another target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForAttributeListsOfDifferentTargets()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] [Second] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>property:</c> list and a <c>field:</c> list on one parameter are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyAndFieldTargetedAttributeLists()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] [field: Second] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that merging <c>property:</c> attribute lists placed on separate lines leaves no stray whitespace before the parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeListsOnSeparateLines()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First]
+                                                               {|#0:[property: Second]|}
+                                                               int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First, Second] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>type:</c> list on a parameter is not reported as a duplicate, because the compiler ignores it there and merging would change which attributes apply
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForTypeTargetedAttributeList()
+    {
+        const string testData = """
+                                internal sealed record Example([Second] [type: First] int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that removing a merged list that directly follows a list of another target without a space keeps the parameter type separated from that list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixKeepTokensSeparatedAfterListWithoutTrailingSpace()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First] [field: Second]{|#0:[property: Third]|}
+                                                               int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First, Third] [field: Second] int Id);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class ThirdAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that same-target lists followed by a comment on its own line are still reported without offering a
+    /// code fix, because merging them would pull the comment up onto the merged list's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenCommentFollowsTheGroup()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First]
+                                                               {|#0:[property: Second]|}
+                                                               /* keep */ int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal sealed record Example([property: First]
+                                                                  [property: Second]
+                                                                  /* keep */ int Id);
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .ElementAt(1)
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
