@@ -88,7 +88,10 @@ public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRule
 
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
-            if (attributeList.Attributes.Count > 1)
+            // The formatter keeps the lists of an inline auto-property accessor merged on the property's line,
+            // whatever their explicit target, so a split is never required there
+            if (attributeList.Attributes.Count > 1
+                && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(attributeList.GetLocation()));
             }

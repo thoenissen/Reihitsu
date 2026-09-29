@@ -56,5 +56,59 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesFormatterTests :
                               Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that analyzer-clean single-line property accessor with return specifier stays untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsReturnSpecifierOnSingleLinePropertyAccessor()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 public int Value { [return: First] get; set; }
+                             }
+                             sealed class FirstAttribute : System.Attribute;
+                             sealed class SecondAttribute : System.Attribute;
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter expands a single-line property whose accessor has an expression body and moves the
+    /// return specifier onto its own line, which is why the analyzer keeps reporting it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesReturnSpecifierOnSingleLinePropertyAccessorWithExpressionBody()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 public int Value { {|#0:[return: First]|} get => 1; }
+                             }
+                             sealed class FirstAttribute : System.Attribute;
+                             sealed class SecondAttribute : System.Attribute;
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value
+                                     {
+                                         [return: First]
+                                         get => 1;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute;
+                                 sealed class SecondAttribute : System.Attribute;
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
     #endregion // Tests
 }

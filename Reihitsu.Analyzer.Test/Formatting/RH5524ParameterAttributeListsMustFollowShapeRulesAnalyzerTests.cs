@@ -387,6 +387,43 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that split parameter-specifier lists on an accessor of a single-line property are still reported and merged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForSplitParameterSpecifierListsOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { get; [param: First] {|#0:[param: Second]|} set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value { get; [param: First, Second] set; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

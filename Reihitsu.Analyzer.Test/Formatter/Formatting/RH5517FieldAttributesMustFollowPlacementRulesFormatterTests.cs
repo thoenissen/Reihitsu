@@ -50,5 +50,24 @@ public class RH5517FieldAttributesMustFollowPlacementRulesFormatterTests : Forma
                               Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a field specifier on an accessor of a single-line auto-property stays untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsFieldSpecifierOnSingleLinePropertyAccessor()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 public int Value { [field: First] get; set; }
+                             }
+                             sealed class FirstAttribute : System.Attribute;
+                             sealed class SecondAttribute : System.Attribute;
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

@@ -115,6 +115,29 @@ public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a merged assembly-specifier list on an accessor of a single-line property is not reported, because the formatter keeps the list inline and merged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMergedAssemblySpecifierListOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [assembly: First, Second] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

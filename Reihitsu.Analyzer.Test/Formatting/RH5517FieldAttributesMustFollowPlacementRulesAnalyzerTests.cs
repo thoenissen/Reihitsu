@@ -148,6 +148,29 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an explicit field specifier on an accessor of a single-line property is not reported, because the formatter keeps the list inline
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFieldSpecifierOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [field: First] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

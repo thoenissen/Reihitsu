@@ -153,6 +153,69 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a merged field-specifier list on an accessor of a single-line property is not reported, because the formatter keeps the list inline and merged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMergedFieldSpecifierListOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [field: First, Second] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a merged field-specifier list is still reported when an accessor has an expression body, because the formatter expands the accessor list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMergedFieldSpecifierListOnSingleLinePropertyAccessorWithExpressionBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { {|#0:[field: First, Second]|} get => 1; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public int Value {
+                                         [field: First]
+                                         [field: Second]
+                                         get => 1; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

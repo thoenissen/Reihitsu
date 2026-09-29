@@ -130,6 +130,29 @@ public class RH5520EventAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a merged event-specifier list on an accessor of a single-line property is not reported, because the formatter keeps the list inline and merged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForMergedEventSpecifierListOnSingleLinePropertyAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    public int Value { [event: First, Second] get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

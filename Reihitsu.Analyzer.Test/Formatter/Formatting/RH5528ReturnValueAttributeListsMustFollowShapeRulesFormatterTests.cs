@@ -58,5 +58,24 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesFormatterTests :
                               Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a merged return-specifier list on a single-line property accessor stays untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsMergedReturnSpecifierListOnSingleLinePropertyAccessor()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 public int Other { [return: First, Second] get; set; }
+                             }
+                             sealed class FirstAttribute : System.Attribute;
+                             sealed class SecondAttribute : System.Attribute;
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

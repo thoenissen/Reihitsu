@@ -206,8 +206,12 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
 
         placementMode = ResolvePlacementMode(attributeList);
 
+        // The analyzer base never enforces a separate line on an inline auto-property accessor, because the formatter
+        // keeps every attribute list there on the property's line. Such a list already sits where a single-line
+        // placement would put it, so there is nothing to offer
         if (placementMode == TargetAttributePlacementMode.SeparateLine
-            && HasIncompleteEnclosingScope(attributeList))
+            && (AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList)
+                || HasIncompleteEnclosingScope(attributeList)))
         {
             return false;
         }

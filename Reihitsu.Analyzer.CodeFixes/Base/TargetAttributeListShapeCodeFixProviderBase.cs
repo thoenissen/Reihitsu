@@ -253,7 +253,11 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
 
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
-            return attributeList.Attributes.Count > 1 && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList) == false;
+            // Mirrors the analyzer base: the formatter keeps the lists of an inline auto-property accessor merged, so
+            // splitting one would only be undone again
+            return attributeList.Attributes.Count > 1
+                   && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList) == false
+                   && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false;
         }
 
         var owner = attributeList.Parent;
