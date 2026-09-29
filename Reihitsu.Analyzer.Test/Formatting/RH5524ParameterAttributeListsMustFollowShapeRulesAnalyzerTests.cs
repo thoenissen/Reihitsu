@@ -283,6 +283,52 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
     }
 
     /// <summary>
+    /// Verifies that merging parameter attribute lists followed by a blank line leaves no trailing whitespace behind the merged list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixLeavesNoTrailingWhitespaceWhenBlankLineFollowsTheGroup()
+    {
+        const string testData = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M([First]
+                                                    {|#0:[Second]|}
+
+                                                    int id)
+                                    {
+                                    }
+                                }
+
+                                internal sealed class FirstAttribute : System.Attribute;
+
+                                internal sealed class SecondAttribute : System.Attribute;
+                                """;
+
+        // Built line by line, so that the absence of trailing whitespace is explicit and cannot hide in a raw string literal
+        var fixedData = string.Join("\n",
+                                    "namespace Demo;",
+                                    string.Empty,
+                                    "internal class Example",
+                                    "{",
+                                    "    internal void M([First, Second]",
+                                    "                    int id)",
+                                    "    {",
+                                    "    }",
+                                    "}",
+                                    string.Empty,
+                                    "internal sealed class FirstAttribute : System.Attribute;",
+                                    string.Empty,
+                                    "internal sealed class SecondAttribute : System.Attribute;");
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that a <c>type:</c> list on a parameter is not reported as a duplicate, because the compiler ignores it there and merging would change which attributes apply
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
