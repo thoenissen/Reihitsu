@@ -310,6 +310,36 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
                      Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that no code fix is offered for a merged return-specifier list on an accessor of a single-line auto-property, which the formatter keeps inline and merged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixForMergedReturnSpecifierListOnSingleLinePropertyAccessor()
+    {
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       public int Value { [return: First, Second] get; set; }
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

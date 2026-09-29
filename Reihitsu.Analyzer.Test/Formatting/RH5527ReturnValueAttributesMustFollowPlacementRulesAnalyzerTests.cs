@@ -440,6 +440,36 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
                      Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that no code fix is offered for an explicit return specifier on an accessor of a single-line auto-property, which the formatter keeps inline
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixForReturnSpecifierOnSingleLinePropertyAccessor()
+    {
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       public int Value { [return: First] get; set; }
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -169,24 +169,6 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     }
 
     /// <summary>
-    /// Resolves the placement mode that is actually enforced for an attribute list. The formatter keeps every
-    /// attribute list of an inline auto-property accessor on the property's line, whatever its explicit target, so a
-    /// separate-line placement is never applied there. This mirrors the analyzer base, so the fix never breaks a
-    /// line the formatter would join again
-    /// </summary>
-    /// <param name="attributeList">Attribute list</param>
-    /// <returns>Enforced placement mode</returns>
-    private TargetAttributePlacementMode ResolveEnforcedPlacementMode(AttributeListSyntax attributeList)
-    {
-        var placementMode = ResolvePlacementMode(attributeList);
-
-        return placementMode == TargetAttributePlacementMode.SeparateLine
-               && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList)
-                   ? TargetAttributePlacementMode.SingleLine
-                   : placementMode;
-    }
-
-    /// <summary>
     /// Tries to get a fixable attribute list from a diagnostic
     /// </summary>
     /// <param name="root">Root</param>
@@ -222,10 +204,14 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             return false;
         }
 
-        placementMode = ResolveEnforcedPlacementMode(attributeList);
+        placementMode = ResolvePlacementMode(attributeList);
 
+        // The analyzer base never enforces a separate line on an inline auto-property accessor, because the formatter
+        // keeps every attribute list there on the property's line. Such a list already sits where a single-line
+        // placement would put it, so there is nothing to offer
         if (placementMode == TargetAttributePlacementMode.SeparateLine
-            && HasIncompleteEnclosingScope(attributeList))
+            && (AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList)
+                || HasIncompleteEnclosingScope(attributeList)))
         {
             return false;
         }
