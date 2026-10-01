@@ -11,10 +11,9 @@ using Reihitsu.Formatter.Pipeline.StructuralTransforms.Enumerations;
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
 /// <summary>
-/// Builds the block body (and the indexer's get-accessor-list variant) that replaces an
-/// expression body, centralizing the brace construction shared by every expression-bodied
-/// member transform. The member-specific decisions (statement form, which trivia carriers
-/// to pass) remain in the individual transforms
+/// Builds the block body that replaces an expression body, centralizing the brace
+/// construction shared by every expression-bodied member transform. The member-specific
+/// decisions (statement form, which trivia carriers to pass) remain in the individual transforms
 /// </summary>
 internal static class ExpressionBodyToBlockConverter
 {
@@ -41,30 +40,6 @@ internal static class ExpressionBodyToBlockConverter
         return SyntaxFactory.Block(openBrace,
                                    SyntaxFactory.SingletonList(statement),
                                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(semicolonToken.TrailingTrivia));
-    }
-
-    /// <summary>
-    /// Creates a get-accessor list whose single getter returns the given expression
-    /// </summary>
-    /// <param name="expression">The arrow expression to return</param>
-    /// <param name="arrowToken">The arrow token being replaced; its leading trivia moves to the accessor-list open brace and any comment in its trailing trivia moves onto the accessor-list open brace's trailing trivia, mirroring a hand-written <c>{ // comment</c> block opener</param>
-    /// <param name="semicolonToken">The semicolon token being replaced; its trailing trivia moves to the accessor-list close brace and any comment in its leading trivia moves in front of the created return statement's semicolon</param>
-    /// <returns>The accessor list with a single get accessor</returns>
-    internal static AccessorListSyntax CreateGetAccessorList(ExpressionSyntax expression,
-                                                             SyntaxToken arrowToken,
-                                                             SyntaxToken semicolonToken)
-    {
-        var returnStatement = CreateStatement(expression, ExpressionBodyStatementForm.ReturnStatement, semicolonToken);
-        var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                                     .WithLeadingTrivia(arrowToken.LeadingTrivia)
-                                     .WithTrailingTrivia(ExtractSignificantTrivia(arrowToken.TrailingTrivia));
-
-        var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                  .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList(returnStatement)));
-
-        return SyntaxFactory.AccessorList(openBrace,
-                                          SyntaxFactory.SingletonList(getter),
-                                          SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(semicolonToken.TrailingTrivia));
     }
 
     /// <summary>

@@ -156,7 +156,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a line comment after the closing bracket keeps the arrow on its own line, because joining
-    /// the arrow would move it into the comment
+    /// the arrow would move it into the comment, exactly like the expression-bodied property counterpart
     /// </summary>
     [TestMethod]
     public void LineCommentAfterClosingBracketKeepsArrowOnOwnLine()
@@ -171,9 +171,18 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                      => _items[index]; // after
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                    public int this[int index] // trailing
+                                    => _items[index]; // after
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

@@ -780,7 +780,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
 
                                  public int X
                                  {
-                                     get => _x;
+                                     set => _x = value;
                                  }
                              }
                              """;

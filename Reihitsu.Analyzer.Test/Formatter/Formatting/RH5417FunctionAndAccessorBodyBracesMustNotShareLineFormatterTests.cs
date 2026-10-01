@@ -75,8 +75,8 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
     }
 
     /// <summary>
-    /// Verifies that the formatter converts a single-line property accessor body holding one return statement to an
-    /// expression-bodied accessor, which the analyzer no longer reports
+    /// Verifies that the formatter converts a get-only property whose single-line accessor body holds one return
+    /// statement to an expression-bodied property, which the analyzer no longer reports
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -91,10 +91,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
         const string fixedData = """
                                  public class C
                                  {
-                                     public int Value
-                                     {
-                                         get => 1;
-                                     }
+                                     public int Value => 1;
                                  }
                                  """;
 

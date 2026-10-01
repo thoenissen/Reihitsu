@@ -1215,5 +1215,225 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
         AssertRuleResult(input, expected, new CSharpParseOptions(LanguageVersion.CSharp5));
     }
 
+    /// <summary>
+    /// Verifies that a comment after the <c>get</c> keyword keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterGetKeywordKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get /* c */ => _value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a line comment between the getter expression and its semicolon keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void LineCommentTrailingExpressionKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get => _value // c
+                                         ;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+                                    {
+                                        get => _value // c
+                                        ;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a pragma directive before the getter keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void PragmaBeforeGetterKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                             #pragma warning disable CS0618
+                                     get => _value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a get-only member inside disabled text is left byte-identical
+    /// </summary>
+    [TestMethod]
+    public void MemberInsideDisabledTextIsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #if false
+                                 public int Value { get { return 0; } }
+                             #endif
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the getter's semicolon still ends its line, so it does not swallow the next
+    /// member, when the accessor list's closing brace shares its line with that member
+    /// </summary>
+    [TestMethod]
+    public void CommentTrailingGetterSemicolonEndsItsLineBeforeNextMember()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get => _value; // Explains the value
+                                 } public int Other => 1;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value => _value; // Explains the value
+                                    public int Other => 1;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer with a multi-line parameter list and a multi-line expression produces the same output as
+    /// the hand-written expression-bodied indexer
+    /// </summary>
+    [TestMethod]
+    public void MultiLineParameterAndExpressionIndexerMatchesHandWrittenExpressionBodiedIndexer()
+    {
+        // Arrange
+        const string accessorListInput = """
+                                         class C
+                                         {
+                                             public int this[int first,
+                                                             int second]
+                                             {
+                                                 get => Compute(first,
+                                                                second);
+                                             }
+
+                                             private static int Compute(int first, int second) => first + second;
+                                         }
+                                         """;
+        const string handWrittenInput = """
+                                        class C
+                                        {
+                                            public int this[int first,
+                                                            int second] => Compute(first,
+                                                                                   second);
+
+                                            private static int Compute(int first, int second) => first + second;
+                                        }
+                                        """;
+        const string expected = """
+                                class C
+                                {
+                                    public int this[int first,
+                                                    int second] => Compute(first,
+                                                                           second);
+
+                                    private static int Compute(int first, int second)
+                                    {
+                                        return first + second;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(handWrittenInput, expected);
+        AssertRuleResult(accessorListInput, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a block-bodied getter returning <c>field</c> keeps its accessor list when the property has an initializer
+    /// </summary>
+    [TestMethod]
+    public void BlockGetterPropertyWithInitializerKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int Value
+                                 {
+                                     get
+                                     {
+                                         return field;
+                                     }
+                                 } = 6;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    public int Value
+                                    {
+                                        get => field;
+                                    } = 6;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, new CSharpParseOptions(LanguageVersion.CSharp14));
+    }
+
     #endregion // Methods
 }

@@ -592,10 +592,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              internal class Example
                              {
                                  internal int this[int first, [Obsolete] // keep
-                                                              int second]
-                                 {
-                                     get => first;
-                                 }
+                                                              int second] => first;
                              }
                              """;
 
@@ -875,10 +872,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              internal class Example
                              {
                                  internal int this[int first
-                                                   , int second]
-                                 {
-                                     get => first;
-                                 }
+                                                   , int second] => first;
                              }
                              """;
 
@@ -900,10 +894,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              internal class Example
                              {
                                  internal int this[int first, int second // keep
-                                                   , int third]
-                                 {
-                                     get => first;
-                                 }
+                                                   , int third] => first;
                              }
                              """;
 
@@ -928,10 +919,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              {
                                  internal int this[int first
                                                    , [Obsolete] // keep
-                                                     int second]
-                                 {
-                                     get => first;
-                                 }
+                                                     int second] => first;
                              }
                              """;
 
