@@ -18,7 +18,9 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 /// in the accessor list. The block is kept whenever a comment, directive, or disabled text sits in trivia the
 /// rewrite would delete or join onto another line, because moving it would change its position relative to the code.
 /// The one exception is a comment trailing the statement's semicolon or the closing brace: it already ends the
-/// accessor's last line and follows the new semicolon instead
+/// accessor's last line and follows the new semicolon instead. Its shape, seam, directive, and trivia-transfer rules
+/// are shared with <see cref="GetOnlyMemberExpressionBodyTransform"/>, which lifts a get-only accessor list to the
+/// member level under the same rules
 /// </summary>
 internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 {
@@ -65,32 +67,20 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Removes line breaks and the whitespace that trails the remaining trivia, so trivia that ended a line can
-    /// be re-hosted in the middle of the converted accessor's line
+    /// Builds the trailing trivia of a new semicolon from the trivia that trailed the semicolon and the closing
+    /// brace the rewrite removes — the statement's semicolon and the body's closing brace for an accessor, the
+    /// getter's semicolon and the accessor list's closing brace for a get-only member. A comment that trailed either
+    /// of them follows the new semicolon. The line is ended by the closing brace's own trailing trivia, or by a new
+    /// line break when a single-line comment needs one and the closing brace did not end its line
     /// </summary>
-    /// <param name="triviaList">The trivia list to clean</param>
-    /// <returns>The trivia without line breaks and trailing whitespace</returns>
-    internal static SyntaxTriviaList RemoveLineBreaks(SyntaxTriviaList triviaList)
-    {
-        var withoutLineBreaks = SyntaxFactory.TriviaList(triviaList.Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false));
-
-        return LineBreakTriviaUtilities.StripTrailingWhitespace(withoutLineBreaks);
-    }
-
-    /// <summary>
-    /// Builds the trailing trivia of the converted accessor's semicolon from the trivia that trailed the
-    /// statement's semicolon and the body's closing brace. A comment that trailed either of them follows the new
-    /// semicolon. The line is ended by the closing brace's own trailing trivia, or by a new line break when a
-    /// single-line comment needs one and the closing brace did not end its line
-    /// </summary>
-    /// <param name="semicolonToken">The statement's semicolon</param>
-    /// <param name="closeBraceToken">The body's closing brace</param>
+    /// <param name="semicolonToken">The removed semicolon</param>
+    /// <param name="closeBraceToken">The removed closing brace</param>
     /// <param name="endOfLine">The end-of-line sequence of the formatting run</param>
-    /// <param name="trailingTrivia">The trailing trivia for the converted accessor's semicolon</param>
+    /// <param name="trailingTrivia">The trailing trivia for the new semicolon</param>
     /// <returns><see langword="true"/> if the trivia can be transferred without losing or misplacing a comment; otherwise, <see langword="false"/></returns>
     /// <remarks>
     /// When both carry a comment, the two cannot share one semicolon without reordering them relative to the
-    /// line structure the author wrote, so the block is kept. A single-line comment behind the statement's semicolon
+    /// line structure the author wrote, so the braced form is kept. A single-line comment behind the removed semicolon
     /// always ends its line, so the new semicolon's trivia ends with a line break even when the closing brace shared
     /// its line with the next token; that keeps the comment from swallowing that token, and it makes the decision
     /// independent of how the accessor list is laid out
@@ -140,6 +130,30 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Prepares an expression to become an expression body: its leading trivia is dropped and the trivia that
+    /// trailed it is re-hosted without line breaks in front of the new semicolon
+    /// </summary>
+    /// <param name="expression">The expression that becomes the expression body</param>
+    /// <param name="bodyExpression">The expression prepared for the expression body</param>
+    /// <returns><see langword="true"/> if the expression can be re-hosted; <see langword="false"/> when a single-line comment trails it, because that comment would swallow the new semicolon</returns>
+    internal static bool TryRehostExpression(ExpressionSyntax expression, out ExpressionSyntax bodyExpression)
+    {
+        bodyExpression = null;
+
+        var expressionTail = expression.GetLastToken().TrailingTrivia;
+
+        if (expressionTail.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)))
+        {
+            return false;
+        }
+
+        bodyExpression = expression.WithoutLeadingTrivia()
+                                   .WithTrailingTrivia(RemoveLineBreaks(expressionTail));
+
+        return true;
+    }
+
+    /// <summary>
     /// Converts the accessor's body to an expression body when its statement shape and trivia allow it
     /// </summary>
     /// <param name="accessor">The accessor to convert</param>
@@ -171,16 +185,12 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
             return accessor;
         }
 
-        var expressionTail = expression.GetLastToken().TrailingTrivia;
-
-        if (expressionTail.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+        if (TryRehostExpression(expression, out var bodyExpression) == false
             || TryBuildSemicolonTrailingTrivia(semicolonToken, body.CloseBraceToken, endOfLine, out var semicolonTrailingTrivia) == false)
         {
             return accessor;
         }
 
-        var bodyExpression = expression.WithoutLeadingTrivia()
-                                       .WithTrailingTrivia(RemoveLineBreaks(expressionTail));
         var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken).WithTrailingTrivia(SyntaxFactory.Space),
                                                                         bodyExpression);
 
@@ -188,6 +198,19 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
                        .WithBody(null)
                        .WithExpressionBody(arrowExpressionClause)
                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(semicolonTrailingTrivia));
+    }
+
+    /// <summary>
+    /// Removes line breaks and the whitespace that trails the remaining trivia, so trivia that ended a line can
+    /// be re-hosted in the middle of the line of the converted accessor or member
+    /// </summary>
+    /// <param name="triviaList">The trivia list to clean</param>
+    /// <returns>The trivia without line breaks and trailing whitespace</returns>
+    private static SyntaxTriviaList RemoveLineBreaks(SyntaxTriviaList triviaList)
+    {
+        var withoutLineBreaks = SyntaxFactory.TriviaList(triviaList.Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false));
+
+        return LineBreakTriviaUtilities.StripTrailingWhitespace(withoutLineBreaks);
     }
 
     /// <summary>

@@ -178,18 +178,13 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
             return false;
         }
 
-        var expressionTail = expression.GetLastToken().TrailingTrivia;
-
         if (HasLayoutOnlySeams(accessorList, getter) == false
             || AccessorExpressionBodyTransform.ContainsBlockingDirective(accessorList.Parent, accessorList)
-            || expressionTail.Any(SyntaxKind.SingleLineCommentTrivia)
+            || AccessorExpressionBodyTransform.TryRehostExpression(expression, out var bodyExpression) == false
             || AccessorExpressionBodyTransform.TryBuildSemicolonTrailingTrivia(getter.SemicolonToken, accessorList.CloseBraceToken, _context.EndOfLine, out var semicolonTrailingTrivia) == false)
         {
             return false;
         }
-
-        var bodyExpression = expression.WithoutLeadingTrivia()
-                                       .WithTrailingTrivia(AccessorExpressionBodyTransform.RemoveLineBreaks(expressionTail));
 
         arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken)
                                                                                  .WithLeadingTrivia(SyntaxFactory.Space)

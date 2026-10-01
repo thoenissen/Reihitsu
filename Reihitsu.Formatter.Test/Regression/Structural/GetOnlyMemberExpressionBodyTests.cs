@@ -1435,5 +1435,391 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
         AssertRuleResult(input, expected, new CSharpParseOptions(LanguageVersion.CSharp14));
     }
 
+    /// <summary>
+    /// Verifies that a comment line between the property name and the opening brace keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeOpeningBraceKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 // Explains the value
+                                 {
+                                     get => _value;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+
+                                    // Explains the value
+                                    {
+                                        get => _value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between the property name and the opening brace keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBeforeOpeningBraceKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                             #pragma warning disable CS0618
+                                 {
+                                     get => _value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the opening brace keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void CommentAfterOpeningBraceKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 { // Explains the value
+                                     get => _value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the <c>get</c> keyword and the getter's arrow keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeGetterArrowKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get
+                                         // Explains the value
+                                         => _value;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+                                    {
+                                        get
+
+                                        // Explains the value
+                                        => _value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between the <c>get</c> keyword and the getter's arrow keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBeforeGetterArrowKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get
+                             #pragma warning disable CS0618
+                                         => _value;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+                                    {
+                                        get
+                                #pragma warning disable CS0618
+                                        => _value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the getter's arrow and its expression keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeGetterExpressionKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get =>
+                                         // Explains the value
+                                         _value;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+                                    {
+                                        get =>
+
+                                        // Explains the value
+                                        _value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between the getter's arrow and its expression keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBeforeGetterExpressionKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get =>
+                             #pragma warning disable CS0618
+                                         _value;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+                                    {
+                                        get =>
+                                #pragma warning disable CS0618
+                                        _value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment line between the getter's expression and its semicolon keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void CommentBeforeGetterSemicolonKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get => _value
+                                         // Explains the value
+                                         ;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+                                    {
+                                        get => _value
+
+                                        // Explains the value
+                                        ;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between the getter's expression and its semicolon keeps the accessor list
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBeforeGetterSemicolonKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _value;
+
+                                 public int Value
+                                 {
+                                     get => _value
+                             #pragma warning disable CS0618
+                                         ;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int Value
+                                    {
+                                        get => _value
+                                #pragma warning disable CS0618
+                                        ;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive whose branches each close the accessor list keeps the accessor list when its symbol is undefined
+    /// </summary>
+    [TestMethod]
+    public void UnbalancedConditionalAcrossClosingBraceKeepsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int Value
+                                 {
+                                     get => Compute(1,
+                             #if FEATURE
+                                                    2);
+                                 }
+                             #else
+                                                    3);
+                                 }
+                             #endif
+
+                                 private static int Compute(int first, int second)
+                                 {
+                                     return first + second;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive whose branches each close the accessor list keeps the accessor list when its symbol is defined
+    /// </summary>
+    [TestMethod]
+    public void UnbalancedConditionalAcrossClosingBraceKeepsAccessorListWhenSymbolIsDefined()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public int Value
+                                 {
+                                     get => Compute(1,
+                             #if FEATURE
+                                                    2);
+                                 }
+                             #else
+                                                    3);
+                                 }
+                             #endif
+
+                                 private static int Compute(int first, int second)
+                                 {
+                                     return first + second;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input, parseOptions: new CSharpParseOptions(preprocessorSymbols: ["FEATURE"]));
+    }
+
     #endregion // Methods
 }

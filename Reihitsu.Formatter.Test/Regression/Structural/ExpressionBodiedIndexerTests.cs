@@ -274,5 +274,71 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that a directive between the closing bracket and the arrow keeps the arrow on its own line, exactly like the expression-bodied property counterpart
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBeforeArrowKeepsArrowOnOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private readonly int[] _items = [1, 2, 3];
+
+                                 public int this[int index]
+                             #pragma warning disable CS0618
+                                     => _items[index];
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                    public int this[int index]
+                                #pragma warning disable CS0618
+                                    => _items[index];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between the arrow and the expression keeps the expression on its own line, exactly like the expression-bodied property counterpart
+    /// </summary>
+    [TestMethod]
+    public void DirectiveAfterArrowKeepsExpressionOnOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private readonly int[] _items = [1, 2, 3];
+
+                                 public int this[int index] =>
+                             #pragma warning disable CS0618
+                                     _items[index];
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                    public int this[int index] =>
+                                #pragma warning disable CS0618
+                                    _items[index];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
