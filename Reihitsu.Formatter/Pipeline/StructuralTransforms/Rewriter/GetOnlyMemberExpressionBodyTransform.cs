@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
@@ -129,21 +128,6 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
     }
 
     /// <summary>
-    /// Determines whether a directive inside the accessor list would be split or reconstructed by the rewrite. A
-    /// conditional group whose partner lies outside the list is orphaned once the braces disappear, and a region
-    /// directive cannot keep both endpoints in place while the list is rebuilt. A balanced conditional group or
-    /// other directive wholly inside the expression travels with it unchanged
-    /// </summary>
-    /// <param name="member">The property or indexer declaration</param>
-    /// <param name="accessorList">The member's accessor list</param>
-    /// <returns><see langword="true"/> if the accessor list carries such a directive; otherwise, <see langword="false"/></returns>
-    private static bool ContainsBlockingDirective(SyntaxNode member, AccessorListSyntax accessorList)
-    {
-        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(member, accessorList.Span)
-               || SyntaxTriviaUtilities.ContainsRegionDirectives(member, accessorList.FullSpan);
-    }
-
-    /// <summary>
     /// Removes the layout trivia that separated the member signature from the accessor list, so the arrow follows
     /// the signature on its line
     /// </summary>
@@ -197,7 +181,7 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
         var expressionTail = expression.GetLastToken().TrailingTrivia;
 
         if (HasLayoutOnlySeams(accessorList, getter) == false
-            || ContainsBlockingDirective(accessorList.Parent, accessorList)
+            || AccessorExpressionBodyTransform.ContainsBlockingDirective(accessorList.Parent, accessorList)
             || expressionTail.Any(SyntaxKind.SingleLineCommentTrivia)
             || AccessorExpressionBodyTransform.TryBuildSemicolonTrailingTrivia(getter.SemicolonToken, accessorList.CloseBraceToken, _context.EndOfLine, out var semicolonTrailingTrivia) == false)
         {

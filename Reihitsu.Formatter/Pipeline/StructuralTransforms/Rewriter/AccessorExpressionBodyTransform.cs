@@ -124,6 +124,22 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a directive inside a braced node that the rewrite removes would be split or reconstructed.
+    /// A conditional group whose partner lies outside the braces is orphaned once they disappear, and a region
+    /// directive cannot keep both endpoints in place while the node is rebuilt. These are the hazards
+    /// <see cref="ExpressionBodyRewriteUtilities.BlocksRewrite"/> refuses for the inverse rewrite. A balanced
+    /// conditional group or other directive wholly inside the expression travels with it unchanged
+    /// </summary>
+    /// <param name="owner">The declaration that contains the braced node</param>
+    /// <param name="bracedNode">The accessor body or accessor list the rewrite removes</param>
+    /// <returns><see langword="true"/> if the braced node carries such a directive; otherwise, <see langword="false"/></returns>
+    internal static bool ContainsBlockingDirective(SyntaxNode owner, SyntaxNode bracedNode)
+    {
+        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(owner, bracedNode.Span)
+               || SyntaxTriviaUtilities.ContainsRegionDirectives(owner, bracedNode.FullSpan);
+    }
+
+    /// <summary>
     /// Converts the accessor's body to an expression body when its statement shape and trivia allow it
     /// </summary>
     /// <param name="accessor">The accessor to convert</param>
@@ -150,7 +166,7 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
 
         if (TryGetConvertibleExpression(accessor, statement, out var expression, out var semicolonToken) == false
             || HasLayoutOnlySeams(accessor, statement, expression, semicolonToken) == false
-            || ContainsBlockingDirective(accessor))
+            || ContainsBlockingDirective(accessor, accessor.Body))
         {
             return accessor;
         }
@@ -280,21 +296,6 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
                && IsLayoutOnly(expression.GetFirstToken().LeadingTrivia)
                && IsLayoutOnly(semicolonToken.LeadingTrivia)
                && IsLayoutOnly(body.CloseBraceToken.LeadingTrivia);
-    }
-
-    /// <summary>
-    /// Determines whether a directive inside the accessor body would be split or reconstructed by the rewrite.
-    /// A conditional group whose partner lies outside the body is orphaned once the braces disappear, and a
-    /// region directive cannot keep both endpoints in place while the block is rebuilt. These are the hazards
-    /// <see cref="ExpressionBodyRewriteUtilities.BlocksRewrite"/> refuses for the inverse rewrite. A balanced
-    /// conditional group or other directive wholly inside the expression travels with it unchanged
-    /// </summary>
-    /// <param name="accessor">The accessor to inspect</param>
-    /// <returns><see langword="true"/> if the body carries such a directive; otherwise, <see langword="false"/></returns>
-    private static bool ContainsBlockingDirective(AccessorDeclarationSyntax accessor)
-    {
-        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(accessor, accessor.Body.Span)
-               || SyntaxTriviaUtilities.ContainsRegionDirectives(accessor, accessor.Body.FullSpan);
     }
 
     #endregion // Methods
