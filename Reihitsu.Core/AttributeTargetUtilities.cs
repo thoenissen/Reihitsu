@@ -245,9 +245,10 @@ public static class AttributeTargetUtilities
     /// specifier and leading trivia, the attributes of every later member are appended to it, and the later members
     /// are removed together with their trivia. Removing a member that ended its line, or joining the first list with
     /// what follows it, would otherwise leave the old line indentation of the next token behind as a run of spaces
-    /// on the merged line, so that whitespace is dropped whenever the token no longer starts a line, and a single
-    /// space is added after the token before it when that token would otherwise touch it. The caller is
-    /// responsible for choosing a group whose members share one target and that
+    /// on the merged line, and a blank line in front of that token would leave the merged line ending in the space
+    /// before it. So the token's leading whitespace and line breaks are dropped whenever the token no longer starts a
+    /// line, and a single space is added after the token before it when that token would otherwise touch it. The
+    /// caller is responsible for choosing a group whose members share one target and that
     /// <see cref="CanMergeAttributeListGroup"/> accepts
     /// </summary>
     /// <param name="owner">Owner node</param>
@@ -273,9 +274,11 @@ public static class AttributeTargetUtilities
 
         owner = WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
 
+        // Deliberately an allowlist: any other leading trivia kind, such as skipped tokens, keeps the token in place
         var joinedTokens = owner.GetAnnotatedTokens(annotation)
                                 .Where(token => StartsLine(token) == false
-                                                && token.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
+                                                && token.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                                                                                     || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
                                 .ToArray();
         var unseparatedTokens = joinedTokens.Select(token => token.GetPreviousToken())
                                             .Where(token => token.TrailingTrivia.Count == 0)

@@ -184,6 +184,133 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a type parameter separated from its merged attribute lists by a blank line is joined onto the merged list's line, leaving no trailing whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixJoinsTypeParameterWhenBlankLineFollowsTheGroup()
+    {
+        const string testData = """
+                                internal class Example<[First]
+                                                       {|#0:[Second]|}
+
+                                                       T>
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example<[First, Second] T>
+                                 {
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a variant type parameter separated from its merged attribute lists by a blank line is joined onto the merged list's line together with its variance keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixJoinsVariantTypeParameterWhenBlankLineFollowsTheGroup()
+    {
+        const string testData = """
+                                internal interface IExample<[First]
+                                                            {|#0:[Second]|}
+
+                                                            out T>
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal interface IExample<[First, Second] out T>
+                                 {
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that same-target lists followed by a blank line and a pragma directive are still reported without offering a code fix, because joining the type parameter would pull the directive up onto the merged list's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenPragmaFollowsBlankLineAfterTheGroup()
+    {
+        const string testData = """
+                                internal interface IExample<[First]
+                                                            {|#0:[Second]|}
+
+                                #pragma warning disable CS0168
+                                                            out T>
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal interface IExample<[First]
+                                                               [Second]
+
+                                   #pragma warning disable CS0168
+                                                               out T>
+                                   {
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .ElementAt(1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -51,5 +51,49 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesFormatterTests : F
                               Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter joins a parameter separated from its merged attribute lists by a blank line onto the merged list's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterJoinsParameterWhenBlankLineFollowsTheGroup()
+    {
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M([First]
+                                                 {|#0:[Second]|}
+
+                                                 int id)
+                                 {
+                                 }
+                             }
+
+                             internal sealed class FirstAttribute : System.Attribute;
+
+                             internal sealed class SecondAttribute : System.Attribute;
+                             """;
+        const string fixedData = """
+                                 namespace Demo;
+
+                                 internal class Example
+                                 {
+                                     internal void M([First, Second] int id)
+                                     {
+                                     }
+                                 }
+
+                                 internal sealed class FirstAttribute : System.Attribute;
+
+                                 internal sealed class SecondAttribute : System.Attribute;
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
     #endregion // Tests
 }
