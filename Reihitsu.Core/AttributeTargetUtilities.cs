@@ -274,6 +274,7 @@ public static class AttributeTargetUtilities
 
         owner = WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
 
+        // Deliberately an allowlist: any other leading trivia kind, such as skipped tokens, keeps the token in place
         var joinedTokens = owner.GetAnnotatedTokens(annotation)
                                 .Where(token => StartsLine(token) == false
                                                 && token.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)

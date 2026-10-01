@@ -260,6 +260,57 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                      Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that same-target lists followed by a blank line and a pragma directive are still reported without offering a code fix, because joining the type parameter would pull the directive up onto the merged list's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenPragmaFollowsBlankLineAfterTheGroup()
+    {
+        const string testData = """
+                                internal interface IExample<[First]
+                                                            {|#0:[Second]|}
+
+                                #pragma warning disable CS0168
+                                                            out T>
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal interface IExample<[First]
+                                                               [Second]
+
+                                   #pragma warning disable CS0168
+                                                               out T>
+                                   {
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .ElementAt(1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

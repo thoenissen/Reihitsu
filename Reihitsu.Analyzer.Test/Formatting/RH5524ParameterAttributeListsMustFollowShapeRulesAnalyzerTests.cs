@@ -848,6 +848,106 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                      Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that same-target lists followed by a blank line and a conditional directive with disabled text are still reported without offering a code fix, because joining the parameter would pull the directives up onto the merged list's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenConditionalDirectiveFollowsBlankLineAfterTheGroup()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First]
+                                                               {|#0:[property: Second]|}
+
+                                #if DEBUG
+                                                               int Id);
+                                #else
+                                                               long Id);
+                                #endif
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal sealed record Example([property: First]
+                                                                  [property: Second]
+
+                                   #if DEBUG
+                                                                  int Id);
+                                   #else
+                                                                  long Id);
+                                   #endif
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .ElementAt(1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that same-target lists followed by a blank line and a pragma directive are still reported without offering a code fix, because joining the parameter would pull the directive up onto the merged list's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenPragmaFollowsBlankLineAfterTheGroup()
+    {
+        const string testData = """
+                                internal sealed record Example([property: First]
+                                                               {|#0:[property: Second]|}
+
+                                #pragma warning disable CS0168
+                                                               int Id);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal sealed record Example([property: First]
+                                                                  [property: Second]
+
+                                   #pragma warning disable CS0168
+                                                                  int Id);
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .ElementAt(1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
