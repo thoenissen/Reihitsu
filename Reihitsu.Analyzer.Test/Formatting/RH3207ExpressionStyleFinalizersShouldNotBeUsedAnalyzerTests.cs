@@ -200,6 +200,47 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
         await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a comment trailing the arrow and a comment trailing the semicolon both survive the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentsAroundExpressionBodySurviveFix()
+    {
+        const string testData = """
+                                internal class RH3207First
+                                {
+                                    ~RH3207First() {|#0:=> // why
+                                        System.GC.KeepAlive(this)|};
+                                }
+
+                                internal class RH3207Second
+                                {
+                                    ~RH3207Second() {|#1:=> System.GC.KeepAlive(this)|}; // because
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3207First
+                                  {
+                                      ~RH3207First()
+                                      {// why
+                                          System.GC.KeepAlive(this);
+                                      }
+                                  }
+
+                                  internal class RH3207Second
+                                  {
+                                      ~RH3207Second()
+                                      {
+                                          System.GC.KeepAlive(this);
+                                      } // because
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

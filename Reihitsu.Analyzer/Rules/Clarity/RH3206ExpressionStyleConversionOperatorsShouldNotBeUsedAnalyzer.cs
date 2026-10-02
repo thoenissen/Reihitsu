@@ -4,8 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Enumerations;
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
@@ -13,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3206: Expression style conversion operators should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
+public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer : ExpressionBodyAnalyzerBase<ConversionOperatorDeclarationSyntax>
 {
     #region Constants
 
@@ -30,51 +28,25 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer : D
     /// Constructor
     /// </summary>
     public RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3206Title), nameof(AnalyzerResources.RH3206MessageFormat))
+        : base(DiagnosticId, nameof(AnalyzerResources.RH3206Title), nameof(AnalyzerResources.RH3206MessageFormat), SyntaxKind.ConversionOperatorDeclaration)
     {
     }
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.ConversionOperatorDeclaration"/> occurrences
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnConversionOperatorDeclaration(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not ConversionOperatorDeclarationSyntax conversionOperatorDeclaration)
-        {
-            return;
-        }
-
-        if (conversionOperatorDeclaration.ExpressionBody is null)
-        {
-            return;
-        }
-
-        // The formatter refuses to rebuild an expression body whose span carries a directive the
-        // rewrite would relocate, so reporting here would offer a code fix that cannot converge.
-        if (ExpressionBodyRewriteUtilities.BlocksRewrite(conversionOperatorDeclaration, conversionOperatorDeclaration.ExpressionBody, conversionOperatorDeclaration.SemicolonToken))
-        {
-            return;
-        }
-
-        context.ReportDiagnostic(CreateDiagnostic(conversionOperatorDeclaration.ExpressionBody.GetLocation()));
-    }
-
-    #endregion // Methods
-
-    #region DiagnosticAnalyzer
+    #region ExpressionBodyAnalyzerBase
 
     /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
+    protected override ArrowExpressionClauseSyntax GetExpressionBody(ConversionOperatorDeclarationSyntax node)
     {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeAction(OnConversionOperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration);
+        return node.ExpressionBody;
     }
 
-    #endregion // DiagnosticAnalyzer
+    /// <inheritdoc/>
+    protected override SyntaxToken GetSemicolonToken(ConversionOperatorDeclarationSyntax node)
+    {
+        return node.SemicolonToken;
+    }
+
+    #endregion // ExpressionBodyAnalyzerBase
 }

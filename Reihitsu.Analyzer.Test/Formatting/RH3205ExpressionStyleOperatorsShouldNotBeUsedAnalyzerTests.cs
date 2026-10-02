@@ -307,6 +307,41 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
         await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a comment trailing the arrow and a comment trailing the semicolon both survive the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentsAroundExpressionBodySurviveFix()
+    {
+        const string testData = """
+                                internal class RH3205
+                                {
+                                    public static RH3205 operator +(RH3205 left, RH3205 right) {|#0:=> // why
+                                        left|};
+
+                                    public static RH3205 operator -(RH3205 left, RH3205 right) {|#1:=> right|}; // because
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3205
+                                  {
+                                      public static RH3205 operator +(RH3205 left, RH3205 right)
+                                      {// why
+                                          return left;
+                                      }
+
+                                      public static RH3205 operator -(RH3205 left, RH3205 right)
+                                      {
+                                          return right;
+                                      } // because
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

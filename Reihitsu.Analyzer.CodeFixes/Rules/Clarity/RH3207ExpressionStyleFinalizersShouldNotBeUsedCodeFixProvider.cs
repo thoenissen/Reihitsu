@@ -1,15 +1,11 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Composition;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Clarity;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -18,57 +14,17 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3207ExpressionStyleFinalizersShouldNotBeUsedCodeFixProvider))]
-public class RH3207ExpressionStyleFinalizersShouldNotBeUsedCodeFixProvider : CodeFixProvider
+public class RH3207ExpressionStyleFinalizersShouldNotBeUsedCodeFixProvider : ExpressionBodyToBlockCodeFixProviderBase<DestructorDeclarationSyntax>
 {
-    #region Methods
+    #region Constructor
 
     /// <summary>
-    /// Applying code fix
+    /// Constructor
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="destructorDeclaration">Finalizer declaration</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, DestructorDeclarationSyntax destructorDeclaration, CancellationToken cancellationToken)
+    public RH3207ExpressionStyleFinalizersShouldNotBeUsedCodeFixProvider()
+        : base(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, CodeFixResources.RH3207Title)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, destructorDeclaration, cancellationToken).ConfigureAwait(false);
     }
 
-    #endregion // Methods
-
-    #region CodeFixProvider
-
-    /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId];
-
-    /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
-    {
-        return WellKnownFixAllProviders.BatchFixer;
-    }
-
-    /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-        if (root != null)
-        {
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var destructorDeclaration = root.FindNode(diagnostic.Location.SourceSpan)
-                                                .FirstAncestorOrSelf<DestructorDeclarationSyntax>();
-
-                if (destructorDeclaration != null)
-                {
-                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3207Title,
-                                                              cancellationToken => ApplyCodeFixAsync(context.Document, destructorDeclaration, cancellationToken),
-                                                              nameof(RH3207ExpressionStyleFinalizersShouldNotBeUsedCodeFixProvider)),
-                                            diagnostic);
-                }
-            }
-        }
-    }
-
-    #endregion // CodeFixProvider
+    #endregion // Constructor
 }

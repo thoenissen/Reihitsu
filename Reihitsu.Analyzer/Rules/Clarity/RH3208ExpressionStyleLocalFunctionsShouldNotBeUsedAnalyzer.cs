@@ -4,8 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Enumerations;
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
@@ -13,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3208: Expression style local functions should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
+public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer : ExpressionBodyAnalyzerBase<LocalFunctionStatementSyntax>
 {
     #region Constants
 
@@ -30,51 +28,25 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3208Title), nameof(AnalyzerResources.RH3208MessageFormat))
+        : base(DiagnosticId, nameof(AnalyzerResources.RH3208Title), nameof(AnalyzerResources.RH3208MessageFormat), SyntaxKind.LocalFunctionStatement)
     {
     }
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LocalFunctionStatement"/> occurrences
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnLocalFunctionStatement(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not LocalFunctionStatementSyntax localFunctionStatement)
-        {
-            return;
-        }
-
-        if (localFunctionStatement.ExpressionBody is null)
-        {
-            return;
-        }
-
-        // The formatter refuses to rebuild an expression body whose span carries a directive the
-        // rewrite would relocate, so reporting here would offer a code fix that cannot converge.
-        if (ExpressionBodyRewriteUtilities.BlocksRewrite(localFunctionStatement, localFunctionStatement.ExpressionBody, localFunctionStatement.SemicolonToken))
-        {
-            return;
-        }
-
-        context.ReportDiagnostic(CreateDiagnostic(localFunctionStatement.ExpressionBody.GetLocation()));
-    }
-
-    #endregion // Methods
-
-    #region DiagnosticAnalyzer
+    #region ExpressionBodyAnalyzerBase
 
     /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
+    protected override ArrowExpressionClauseSyntax GetExpressionBody(LocalFunctionStatementSyntax node)
     {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeAction(OnLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
+        return node.ExpressionBody;
     }
 
-    #endregion // DiagnosticAnalyzer
+    /// <inheritdoc/>
+    protected override SyntaxToken GetSemicolonToken(LocalFunctionStatementSyntax node)
+    {
+        return node.SemicolonToken;
+    }
+
+    #endregion // ExpressionBodyAnalyzerBase
 }
