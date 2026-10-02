@@ -633,5 +633,39 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a documentation comment written after a member keeps its own relocated line and the member it documents is not merged onto it
+    /// </summary>
+    [TestMethod]
+    public void KeepsRelocatedDocumentationCommentBeforeMember()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void A() { } /// <summary>x</summary>
+                                 void B() { }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void A()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// x
+                                    /// </summary>
+                                    void B()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
