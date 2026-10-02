@@ -70,24 +70,43 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
     }
 
     /// <summary>
+    /// Gets the label that starts the local function's line. Labels are walked outward only while the current node does
+    /// not start its own line, so an outer label written on an earlier line never becomes the anchor
+    /// </summary>
+    /// <param name="localFunction">Local function that shares its line with at least one preceding label</param>
+    /// <returns>The outermost label on the local function's line</returns>
+    private static StatementSyntax GetLineStartingLabel(LocalFunctionStatementSyntax localFunction)
+    {
+        StatementSyntax node = localFunction;
+
+        while (node.Parent is LabeledStatementSyntax labeledStatement
+               && ReihitsuFormatterHelpers.StartsOnNewLine(node.GetFirstToken()) == false)
+        {
+            node = labeledStatement;
+        }
+
+        return node;
+    }
+
+    /// <summary>
     /// Converts the local function by formatting it. A local function that shares its line with a preceding label starts
-    /// in the middle of that line, so it is formatted in the context of its outermost label, which anchors the new body at
-    /// the statement's column. A local function that starts its own line keeps its own column, labeled or not
+    /// in the middle of that line, so it is formatted in the context of the label that starts the line, which anchors the
+    /// new body at that line's column. A local function that starts its own line keeps its own column, labeled or not
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="localFunction">Local function</param>
-    /// <param name="element">The list element that ends with the local function</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> FormatAsync(Document document, LocalFunctionStatementSyntax localFunction, StatementSyntax element, CancellationToken cancellationToken)
+    private static async Task<Document> FormatAsync(Document document, LocalFunctionStatementSyntax localFunction, CancellationToken cancellationToken)
     {
-        if (element == localFunction
-            || ReihitsuFormatterHelpers.StartsOnNewLine(localFunction.GetFirstToken()))
+        var contextNode = GetLineStartingLabel(localFunction);
+
+        if (contextNode == localFunction)
         {
             return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, localFunction, cancellationToken).ConfigureAwait(false);
         }
 
-        return await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, localFunction, element, cancellationToken).ConfigureAwait(false);
+        return await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, localFunction, contextNode, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods
@@ -106,7 +125,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
 
         if (index < 0 || index == statements.Count - 1)
         {
-            return await FormatAsync(document, node, element, cancellationToken).ConfigureAwait(false);
+            return await FormatAsync(document, node, cancellationToken).ConfigureAwait(false);
         }
 
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -119,9 +138,9 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
         // The formatter replaces only the local function, so the tracked next statement survives the rewrite unchanged and
         // its predecessor in the list is the element that now ends with the converted body
         var nextStatement = statements[index + 1];
-        var trackedDocument = document.WithSyntaxRoot(root.TrackNodes(node, element, nextStatement));
+        var trackedDocument = document.WithSyntaxRoot(root.TrackNodes(node, nextStatement));
         var trackedRoot = await trackedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedDocument = await FormatAsync(trackedDocument, trackedRoot.GetCurrentNode(node), trackedRoot.GetCurrentNode(element), cancellationToken).ConfigureAwait(false);
+        var formattedDocument = await FormatAsync(trackedDocument, trackedRoot.GetCurrentNode(node), cancellationToken).ConfigureAwait(false);
         var formattedRoot = await formattedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var formattedNextStatement = formattedRoot?.GetCurrentNode(nextStatement);
 
