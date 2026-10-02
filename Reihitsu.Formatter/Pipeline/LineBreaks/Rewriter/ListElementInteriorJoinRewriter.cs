@@ -1,10 +1,12 @@
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
+using Reihitsu.Formatter.Pipeline.HorizontalSpacing.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -23,10 +25,15 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// </para>
 /// <para>
 /// A gap that another owner already lays out is never joined: list boundaries (separators, element starts, closers),
-/// brace and pattern constructs, operator wraps of binary, conditional, member-access, is-pattern, and assignment
-/// expressions, multi-line literals, interpolation holes, attribute-list placement, and query clauses. When a new
-/// rewriter takes ownership of a gap inside a list element, that gap has to be excluded here as well, or this rewriter
-/// and the new owner would disagree about the same line break.
+/// the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix,
+/// is-pattern, and assignment expressions, multi-line literals, attribute-list placement, and every line inside a
+/// construct <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names - brace scopes, initializers, switch
+/// expressions, patterns, collection expression interiors, interpolation holes, and the clauses after a query's first
+/// <c>from</c>. When a new rewriter takes ownership of a gap inside a list element, that gap has to be excluded here as
+/// well, or this rewriter and the new owner would disagree about the same line break.
+/// </para>
+/// <para>
+/// The join is a formatter-only layout decision: no analyzer rule reports such an interior wrap.
 /// </para>
 /// </remarks>
 internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
@@ -108,34 +115,13 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     {
         for (var node = token.Parent; node != null; node = node.Parent)
         {
-            if (IsListElement(node))
+            if (ListElementInteriorUtilities.IsListElement(node))
             {
                 return node;
             }
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Determines whether a node is an element of a list whose element interiors this rewriter joins
-    /// </summary>
-    /// <param name="node">The node</param>
-    /// <returns><see langword="true"/> if the node is such a list element; otherwise, <see langword="false"/></returns>
-    private static bool IsListElement(SyntaxNode node)
-    {
-        return node switch
-               {
-                   ArgumentSyntax => true,
-                   AttributeArgumentSyntax => true,
-                   ParameterSyntax { Parent: BaseParameterListSyntax } => true,
-                   TypeParameterSyntax => true,
-                   FunctionPointerParameterSyntax => true,
-                   TupleElementSyntax => true,
-                   AttributeSyntax => true,
-                   TypeSyntax { Parent: TypeArgumentListSyntax } => true,
-                   _ => false
-               };
     }
 
     /// <summary>
@@ -152,6 +138,14 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
         if (token.IsKind(SyntaxKind.CommaToken)
             || previousToken.IsKind(SyntaxKind.CommaToken)
             || IsClosingToken(token))
+        {
+            return true;
+        }
+
+        // LineBreakListRewriter collapses the opening parenthesis of an anonymous method's parameter list onto the
+        // delegate keyword's line, matching RH5105, which covers every parameter-list owner except a parenthesized
+        // lambda; the lambda's opening gap has no other owner and is joined here
+        if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent is ParameterListSyntax { Parent: not ParenthesizedLambdaExpressionSyntax })
         {
             return true;
         }
@@ -179,40 +173,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             return token != interpolatedString.StringStartToken || SpansLines(interpolatedString);
         }
 
-        for (var node = token.Parent; node != null && node != element; node = node.Parent)
-        {
-            if (IsOwningConstruct(node, token))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether a node between a token and its list element owns the line breaks inside it
-    /// </summary>
-    /// <param name="node">The node on the path from the token to its list element</param>
-    /// <param name="token">The token after the gap</param>
-    /// <returns><see langword="true"/> if the node owns the token's line break; otherwise, <see langword="false"/></returns>
-    private static bool IsOwningConstruct(SyntaxNode node, SyntaxToken token)
-    {
-        return node switch
-               {
-                   CollectionExpressionSyntax collection => token != collection.OpenBracketToken,
-                   BlockSyntax => true,
-                   InitializerExpressionSyntax => true,
-                   AnonymousObjectCreationExpressionSyntax => true,
-                   SwitchExpressionSyntax => true,
-                   RecursivePatternSyntax => true,
-                   ListPatternSyntax => true,
-                   ParenthesizedPatternSyntax => true,
-                   AccessorListSyntax => true,
-                   InterpolationSyntax => true,
-                   QueryBodySyntax => true,
-                   _ => false
-               };
+        return ListElementInteriorUtilities.FindOwningConstruct(token, element) != null;
     }
 
     /// <summary>
@@ -267,23 +228,29 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether two joined tokens are written without a space between them. Delimiters, member, nullable, and
-    /// argument-name punctuation, and prefix operators are written tight; every other pair gets one space, and the horizontal spacing
-    /// phase normalizes the pairs its policy has a rule for. A pair that would merge into different tokens when written
-    /// tight - <c>- -x</c>, <c>out var</c> - always keeps its space
+    /// Creates the whitespace written between two joined tokens. The horizontal spacing policy decides every pair it
+    /// has a rule for; for the remaining pairs, delimiters and member, scope, range, nullable, pointer, name, and
+    /// attribute-target punctuation, a cast, and a prefix operator are written tight, and every other pair gets one
+    /// space. A pair that would merge into a different token when written tight - two identifier or keyword
+    /// characters such as <c>out var</c>, or <c>- -x</c> - always keeps its space
     /// </summary>
     /// <param name="previousToken">The token before the gap</param>
     /// <param name="token">The token after the gap</param>
-    /// <returns><see langword="true"/> if the tokens are joined without a space; otherwise, <see langword="false"/></returns>
-    private static bool IsJoinedTight(SyntaxToken previousToken, SyntaxToken token)
+    /// <returns>The trailing whitespace for the previous token</returns>
+    private static SyntaxTriviaList CreateSeparator(SyntaxToken previousToken, SyntaxToken token)
     {
-        var isTightPair = IsTightBefore(token) || IsTightAfter(previousToken);
+        var desiredSpaces = SpacingPolicy.GetDesiredSpacesAfter(previousToken, token);
+        var isTight = desiredSpaces.HasValue
+                          ? desiredSpaces.Value == 0
+                          : IsTightBefore(token) || IsTightAfter(previousToken);
 
-        return isTightPair && LexesUnchanged(previousToken, token);
+        return isTight && WouldMergeWhenTight(previousToken, token) == false
+                   ? SyntaxFactory.TriviaList()
+                   : SyntaxFactory.TriviaList(SyntaxFactory.Space);
     }
 
     /// <summary>
-    /// Determines whether a token is written directly after the previous token
+    /// Determines whether a token without a horizontal spacing rule is written directly after the previous token
     /// </summary>
     /// <param name="token">The token</param>
     /// <returns><see langword="true"/> if no space precedes the token; otherwise, <see langword="false"/></returns>
@@ -291,38 +258,29 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     {
         return token.Kind() switch
                {
-                   SyntaxKind.OpenParenToken => IsTightOpenParenthesis(token),
-                   SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax or ArrayRankSpecifierSyntax,
+                   SyntaxKind.OpenParenToken => token.Parent is ArgumentListSyntax
+                                                             or AttributeArgumentListSyntax
+                                                             or TypeOfExpressionSyntax
+                                                             or DefaultExpressionSyntax
+                                                             or SizeOfExpressionSyntax
+                                                             or CheckedExpressionSyntax
+                                                             or RefTypeExpressionSyntax
+                                                             or RefValueExpressionSyntax
+                                                             or MakeRefExpressionSyntax,
+                   SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax
+                                                               or ArrayRankSpecifierSyntax
+                                                               or FunctionPointerUnmanagedCallingConventionListSyntax,
                    SyntaxKind.DotToken or SyntaxKind.ColonColonToken or SyntaxKind.DotDotToken => true,
                    SyntaxKind.QuestionToken => token.Parent is NullableTypeSyntax,
-                   SyntaxKind.ColonToken => token.Parent is NameColonSyntax or ExpressionColonSyntax,
-                   SyntaxKind.AsteriskToken => token.Parent is PointerTypeSyntax,
+                   SyntaxKind.AsteriskToken => token.Parent is PointerTypeSyntax or FunctionPointerTypeSyntax,
+                   SyntaxKind.ColonToken => token.Parent is NameColonSyntax or ExpressionColonSyntax or AttributeTargetSpecifierSyntax,
                    SyntaxKind.LessThanToken => token.Parent is TypeArgumentListSyntax or TypeParameterListSyntax or FunctionPointerParameterListSyntax,
                    _ => false
                };
     }
 
     /// <summary>
-    /// Determines whether an opening parenthesis is written directly after the previous token: the argument list of an
-    /// invocation, object creation, or attribute, the parameter list of a declaration that is not an anonymous
-    /// function, and the operand of a keyword operator such as <c>typeof</c>. A parenthesized expression, a tuple, a
-    /// cast, or a lambda parameter list keeps a space after a keyword or an argument name
-    /// </summary>
-    /// <param name="openParenthesis">The opening parenthesis</param>
-    /// <returns><see langword="true"/> if no space precedes the parenthesis; otherwise, <see langword="false"/></returns>
-    private static bool IsTightOpenParenthesis(SyntaxToken openParenthesis)
-    {
-        return openParenthesis.Parent switch
-               {
-                   ArgumentListSyntax or AttributeArgumentListSyntax => true,
-                   ParameterListSyntax parameterList => parameterList.Parent is not AnonymousFunctionExpressionSyntax,
-                   TypeOfExpressionSyntax or DefaultExpressionSyntax or SizeOfExpressionSyntax or CheckedExpressionSyntax or RefTypeExpressionSyntax or RefValueExpressionSyntax or MakeRefExpressionSyntax => true,
-                   _ => false
-               };
-    }
-
-    /// <summary>
-    /// Determines whether the token after a token is written directly after it
+    /// Determines whether the token after a token without a horizontal spacing rule is written directly after it
     /// </summary>
     /// <param name="token">The token</param>
     /// <returns><see langword="true"/> if no space follows the token; otherwise, <see langword="false"/></returns>
@@ -338,23 +296,30 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether two tokens written without a space between them still lex as the same two tokens
+    /// Determines whether two tokens written without a space between them would lex as different tokens: two
+    /// identifier or keyword characters meeting, two slashes or a slash and an asterisk starting a comment, or a prefix
+    /// operator gluing into an increment, decrement, or logical operator with its operand
     /// </summary>
     /// <param name="previousToken">The first token</param>
     /// <param name="token">The second token</param>
-    /// <returns><see langword="true"/> if the concatenated text lexes as the same two tokens; otherwise, <see langword="false"/></returns>
-    private static bool LexesUnchanged(SyntaxToken previousToken, SyntaxToken token)
+    /// <returns><see langword="true"/> if the tokens must keep a space between them; otherwise, <see langword="false"/></returns>
+    private static bool WouldMergeWhenTight(SyntaxToken previousToken, SyntaxToken token)
     {
-        var lexed = SyntaxFactory.ParseTokens(previousToken.Text + token.Text).ToList();
+        var last = previousToken.Text[previousToken.Text.Length - 1];
+        var first = token.Text[0];
 
-        return lexed.Count == 3
-               && lexed[0].RawKind == previousToken.RawKind
-               && lexed[0].Text == previousToken.Text
-               && lexed[0].HasTrailingTrivia == false
-               && lexed[1].RawKind == token.RawKind
-               && lexed[1].Text == token.Text
-               && lexed[1].HasLeadingTrivia == false
-               && lexed[2].IsKind(SyntaxKind.EndOfFileToken);
+        if (SyntaxFacts.IsIdentifierPartCharacter(last)
+            && (SyntaxFacts.IsIdentifierPartCharacter(first) || first == '@'))
+        {
+            return true;
+        }
+
+        if (last == '/' && (first is '/' or '*'))
+        {
+            return true;
+        }
+
+        return UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(previousToken, token);
     }
 
     /// <summary>
@@ -375,9 +340,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            var separator = IsJoinedTight(previousToken, token)
-                                ? SyntaxFactory.TriviaList()
-                                : SyntaxFactory.TriviaList(SyntaxFactory.Space);
+            var separator = CreateSeparator(previousToken, token);
             var currentPrevious = replacements.TryGetValue(previousToken, out var replacedPrevious) ? replacedPrevious : previousToken;
             var currentToken = replacements.TryGetValue(token, out var replacedToken) ? replacedToken : token;
             var previousTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(currentPrevious.TrailingTrivia);

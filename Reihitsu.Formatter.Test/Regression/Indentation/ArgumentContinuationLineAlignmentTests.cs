@@ -737,5 +737,102 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the clauses of a query argument are aligned with the query's first token rather than the argument name
+    /// </summary>
+    [TestMethod]
+    public void QueryClausesOfNamedArgumentAreAlignedWithTheQueryStart()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(o: from value in values
+                                     where value > 0
+                                     select value);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(o: from value in values
+                                             where value > 0
+                                             select value);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a held line inside a switch expression arm of an argument is not aligned with the argument but left to the
+    /// switch expression, which places it exactly as it does outside an argument
+    /// </summary>
+    [TestMethod]
+    public void HeldLineInsideSwitchExpressionArgumentIsLeftToTheSwitchExpression()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(1,
+                                       value switch
+                                       {
+                                           1 => // keep
+                                     "one",
+                                           _ => "other",
+                                       });
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a held line inside an object initializer member of an argument is not aligned with the argument but left to
+    /// the initializer, which places it exactly as it does outside an argument
+    /// </summary>
+    [TestMethod]
+    public void HeldLineInsideObjectInitializerArgumentIsLeftToTheInitializer()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(new Example
+                                       {
+                                           A = // keep
+                                     value,
+                                       });
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }

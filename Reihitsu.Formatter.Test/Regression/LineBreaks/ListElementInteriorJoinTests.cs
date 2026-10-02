@@ -1462,5 +1462,391 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a range argument wrapped before its range operator is joined without spaces around the operator
+    /// </summary>
+    [TestMethod]
+    public void RangeWrappedBeforeRangeOperatorIsJoinedWithoutSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     var slice = values[start
+                                     ..end];
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        var slice = values[start..end];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a range argument wrapped after its range operator is joined without a space
+    /// </summary>
+    [TestMethod]
+    public void RangeWrappedAfterRangeOperatorIsJoinedWithoutSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     var slice = values[start..
+                                     end];
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        var slice = values[start..end];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an index-from-end operand wrapped after an open range operator is joined without a space
+    /// </summary>
+    [TestMethod]
+    public void IndexFromEndWrappedAfterOpenRangeIsJoinedWithoutSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     var tail = values[..
+                                     ^1];
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        var tail = values[..^1];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>global::</c> qualified argument wrapped before the scope operator is joined without a space
+    /// </summary>
+    [TestMethod]
+    public void GlobalAliasWrappedBeforeScopeOperatorIsJoinedWithoutSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(global
+                                     ::System.Math.Max(1, 2));
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(global::System.Math.Max(1, 2));
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a function pointer parameter type wrapped before its asterisk and its calling convention list is joined without spaces
+    /// </summary>
+    [TestMethod]
+    public void FunctionPointerTypeWrappedInsideItsSyntaxIsJoinedWithoutSpaces()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal unsafe void M(delegate
+                                 * unmanaged
+                                 [Cdecl]<int, void> callback)
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal unsafe void M(delegate* unmanaged[Cdecl]<int, void> callback)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter attribute target wrapped before its colon is joined without a space before the colon
+    /// </summary>
+    [TestMethod]
+    public void AttributeTargetWrappedBeforeColonIsJoinedWithoutSpace()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M([param
+                                 : Obsolete] int value)
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M([param: Obsolete] int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an anonymous method argument wrapped before its parameter list is collapsed onto the delegate keyword without a space, as outside an argument
+    /// </summary>
+    [TestMethod]
+    public void AnonymousMethodArgumentParameterListIsCollapsedOntoTheDelegateKeyword()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(delegate
+                                     (int x)
+                                     {
+                                         return x;
+                                     });
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(delegate(int x)
+                                        {
+                                            return x;
+                                        });
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an interior wrap a pragma directive holds is not joined and is aligned with the argument's first token
+    /// </summary>
+    [TestMethod]
+    public void InteriorWrapHeldByPragmaDirectiveIsAlignedInsteadOfJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(out
+                             #pragma warning disable CS0168
+                                     var value);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(out
+                                #pragma warning disable CS0168
+                                          var value);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that interior wraps held by conditional directives are not joined, the disabled text is untouched, and the active tokens are aligned with the argument's first token
+    /// </summary>
+    [TestMethod]
+    public void InteriorWrapHeldByConditionalDirectivesIsAlignedInsteadOfJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(out
+                             #if NEVER
+                                             int
+                             #else
+                                     var
+                             #endif
+                                     value);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(out
+                                #if NEVER
+                                                int
+                                #else
+                                          var
+                                #endif
+                                          value);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter wrap that a disabled modifier holds is not joined and is aligned with the parameter's first token
+    /// </summary>
+    [TestMethod]
+    public void ParameterInteriorWrapHeldByDisabledTextIsAlignedInsteadOfJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M(ref
+                             #if NEVER
+                                     in
+                             #endif
+                                 int value)
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M(ref
+                                #if NEVER
+                                        in
+                                #endif
+                                                    int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

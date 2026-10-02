@@ -1,6 +1,7 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
@@ -87,7 +88,10 @@ internal static class ListElementAligner
 
     /// <summary>
     /// Aligns every line that starts inside an element at a token other than the element's first token with that
-    /// first token
+    /// first token. A line inside a construct that lays out its own lines - as
+    /// <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names them, the same constructs whose interior
+    /// wraps the line-break phase keeps - is left to that construct, except that the clauses after a query's first
+    /// <c>from</c> are aligned with the query's first token
     /// </summary>
     /// <typeparam name="TElement">The type of the list's elements</typeparam>
     /// <param name="elements">The list's elements</param>
@@ -104,42 +108,29 @@ internal static class ListElementAligner
                 continue;
             }
 
-            int? column = null;
-
             foreach (var token in element.DescendantTokens())
             {
                 if (token == firstToken
-                    || LayoutComputer.IsFirstOnLine(token) == false
-                    || IsInsideNestedIndentingScope(token, element))
+                    || LayoutComputer.IsFirstOnLine(token) == false)
                 {
                     continue;
                 }
 
-                column ??= LayoutComputer.GetAdjustedColumn(firstToken, model);
+                var anchorToken = firstToken;
+                var owningConstruct = ListElementInteriorUtilities.FindOwningConstruct(token, element);
 
-                model.Set(LayoutComputer.GetLine(token), new TokenLayout(column.Value, "ListElementContinuation"));
+                if (owningConstruct is QueryBodySyntax { Parent: QueryExpressionSyntax query })
+                {
+                    anchorToken = query.GetFirstToken();
+                }
+                else if (owningConstruct != null)
+                {
+                    continue;
+                }
+
+                model.Set(LayoutComputer.GetLine(token), new TokenLayout(LayoutComputer.GetAdjustedColumn(anchorToken, model), "ListElementContinuation"));
             }
         }
-    }
-
-    /// <summary>
-    /// Determines whether a token lies inside a brace scope nested within the element, such as the block of a lambda
-    /// argument; lines inside such a scope keep the indentation their own scope assigns
-    /// </summary>
-    /// <param name="token">The token to check</param>
-    /// <param name="element">The list element containing the token</param>
-    /// <returns><see langword="true"/> if an indenting scope lies between the token and the element</returns>
-    private static bool IsInsideNestedIndentingScope(SyntaxToken token, SyntaxNode element)
-    {
-        for (var node = token.Parent; node != null && node != element; node = node.Parent)
-        {
-            if (SyntaxIndentationUtilities.IsIndentingScope(node))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     #endregion // Methods
