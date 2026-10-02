@@ -29,6 +29,11 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Attribute formatting that runs later in the same line-break pass; used to read a list element as that pass emits it
+    /// </summary>
+    private readonly AttributeTargetFormattingRewriter _attributeFormatter;
+
     #endregion // Fields
 
     #region Constructor
@@ -43,6 +48,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     {
         _context = context;
         _cancellationToken = cancellationToken;
+        _attributeFormatter = new AttributeTargetFormattingRewriter(context, cancellationToken);
     }
 
     #endregion // Constructor
@@ -218,8 +224,8 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <param name="node">The argument list node</param>
     /// <param name="endOfLine">The end-of-line sequence to insert when splitting arguments</param>
     /// <returns>The argument list with arguments on separate lines</returns>
-    private static ArgumentListSyntax EnsureArgumentsOnSeparateLines(ArgumentListSyntax node,
-                                                                     string endOfLine)
+    private ArgumentListSyntax EnsureArgumentsOnSeparateLines(ArgumentListSyntax node,
+                                                              string endOfLine)
     {
         if (node.Arguments.Count <= 1)
         {
@@ -241,7 +247,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// list apart. RH5307 applies the same interior-scoped guard in its analyzer and its code fix, so
     /// all three surfaces agree on the decision, including for the equivalent auto-property collapse
     /// </remarks>
-    private static bool CanSafelyCollapseBracketedArguments(BracketedArgumentListSyntax node)
+    private bool CanSafelyCollapseBracketedArguments(BracketedArgumentListSyntax node)
     {
         if (node.Parent is not ElementAccessExpressionSyntax and not ImplicitElementAccessSyntax)
         {
@@ -256,7 +262,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="node">The bracketed argument list node</param>
     /// <returns>The updated bracketed argument list</returns>
-    private static BracketedArgumentListSyntax CollapseBracketedArgumentsToSingleLine(BracketedArgumentListSyntax node)
+    private BracketedArgumentListSyntax CollapseBracketedArgumentsToSingleLine(BracketedArgumentListSyntax node)
     {
         if (LineBreakDetection.IsMultiLine(node) == false || CanSafelyCollapseBracketedArguments(node) == false)
         {
@@ -307,10 +313,13 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <remarks>
     /// Shared by every interior-scoped collapse in this rewriter: bracketed indexer arguments and
     /// every angle-bracket list (type argument, type parameter, function-pointer parameter). Callers
-    /// that also restrict which owning construct is eligible check that separately before calling this
+    /// that also restrict which owning construct is eligible check that separately before calling this.
+    /// An element blocks the collapse only when it spans lines both as written and once attribute formatting
+    /// has run, so attribute-list gaps that the same pass closes later do not keep the list wrapped. A line
+    /// that attribute formatting opens inside an element written on one line does not block the collapse
     /// </remarks>
-    private static bool CanSafelyCollapseInteriorList<TElement>(SyntaxNode node,
-                                                                SeparatedSyntaxList<TElement> elements)
+    private bool CanSafelyCollapseInteriorList<TElement>(SyntaxNode node,
+                                                         SeparatedSyntaxList<TElement> elements)
         where TElement : SyntaxNode
     {
         if (SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node))
@@ -318,7 +327,26 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        return elements.Any(LineBreakDetection.IsMultiLine) == false;
+        return elements.Any(element => LineBreakDetection.IsMultiLine(element)
+                                       && IsMultiLineAfterAttributeFormatting(element)) == false;
+    }
+
+    /// <summary>
+    /// Determines whether an element spans multiple lines once the attribute lists inside it are formatted.
+    /// <see cref="AttributeTargetFormattingRewriter"/> runs after this rewriter in the same line-break pass and
+    /// can close or open lines inside an element, so a layout decided from the element as written would only
+    /// settle on the next formatter pass
+    /// </summary>
+    /// <param name="element">The list element</param>
+    /// <returns><see langword="true"/> if the element spans multiple lines after attribute formatting; otherwise, <see langword="false"/></returns>
+    private bool IsMultiLineAfterAttributeFormatting(SyntaxNode element)
+    {
+        if (element.DescendantNodes().Any(descendant => descendant is AttributeListSyntax) == false)
+        {
+            return LineBreakDetection.IsMultiLine(element);
+        }
+
+        return LineBreakDetection.IsMultiLine(_attributeFormatter.Visit(element));
     }
 
     /// <summary>
@@ -330,9 +358,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <param name="getElements">Reads the current elements from the (possibly already updated) node</param>
     /// <param name="getCloseToken">Reads the current closing angle bracket from the (possibly already updated) node</param>
     /// <returns>The updated list</returns>
-    private static TNode CollapseAngleBracketListToSingleLine<TNode, TElement>(TNode node,
-                                                                               Func<TNode, SeparatedSyntaxList<TElement>> getElements,
-                                                                               Func<TNode, SyntaxToken> getCloseToken)
+    private TNode CollapseAngleBracketListToSingleLine<TNode, TElement>(TNode node,
+                                                                        Func<TNode, SeparatedSyntaxList<TElement>> getElements,
+                                                                        Func<TNode, SyntaxToken> getCloseToken)
         where TNode : SyntaxNode
         where TElement : SyntaxNode
     {
@@ -387,8 +415,8 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <param name="node">The attribute argument list node</param>
     /// <param name="endOfLine">The end-of-line sequence to insert when splitting arguments</param>
     /// <returns>The attribute argument list with arguments on separate lines</returns>
-    private static AttributeArgumentListSyntax EnsureAttributeArgumentsOnSeparateLines(AttributeArgumentListSyntax node,
-                                                                                       string endOfLine)
+    private AttributeArgumentListSyntax EnsureAttributeArgumentsOnSeparateLines(AttributeArgumentListSyntax node,
+                                                                                string endOfLine)
     {
         if (node.Arguments.Count <= 1)
         {
@@ -404,8 +432,8 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <param name="node">The parameter list node</param>
     /// <param name="endOfLine">The end-of-line sequence to insert when splitting parameters</param>
     /// <returns>The parameter list with parameters on separate lines</returns>
-    private static ParameterListSyntax EnsureParametersOnSeparateLines(ParameterListSyntax node,
-                                                                       string endOfLine)
+    private ParameterListSyntax EnsureParametersOnSeparateLines(ParameterListSyntax node,
+                                                                string endOfLine)
     {
         if (node.Parameters.Count <= 1)
         {
@@ -425,9 +453,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <param name="list">The separated syntax list to process</param>
     /// <param name="endOfLine">The end-of-line sequence to add after separators that need splitting</param>
     /// <returns>The node with updated separators</returns>
-    private static TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node,
-                                                                        SeparatedSyntaxList<TElement> list,
-                                                                        string endOfLine)
+    private TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node,
+                                                                 SeparatedSyntaxList<TElement> list,
+                                                                 string endOfLine)
         where TNode : SyntaxNode
         where TElement : SyntaxNode
     {
@@ -479,11 +507,17 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <typeparam name="TElement">The type of the elements in the separated list</typeparam>
     /// <param name="list">The separated syntax list to inspect</param>
     /// <returns><see langword="true"/> if any element already signals an outer split; otherwise, <see langword="false"/></returns>
-    private static bool HasElementSplitSignal<TElement>(SeparatedSyntaxList<TElement> list)
+    /// <remarks>
+    /// An element that attribute formatting will spread over several lines later in the same pass signals the
+    /// split as well. An element that spans lines as written keeps signaling it even when attribute formatting
+    /// would join it, so a list that is already split stays split
+    /// </remarks>
+    private bool HasElementSplitSignal<TElement>(SeparatedSyntaxList<TElement> list)
         where TElement : SyntaxNode
     {
         return list.Any(element => LineBreakTriviaUtilities.HasLeadingEndOfLine(element.GetFirstToken())
-                                   || LineBreakDetection.IsMultiLine(element));
+                                   || LineBreakDetection.IsMultiLine(element)
+                                   || IsMultiLineAfterAttributeFormatting(element));
     }
 
     #endregion // Methods
