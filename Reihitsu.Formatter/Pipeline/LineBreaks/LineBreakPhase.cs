@@ -11,7 +11,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
 /// Line breaks — determines where line breaks are placed.
-/// Handles Allman brace placement, argument wrapping, joining of wraps inside list elements, chain link collapsing,
+/// Handles Allman brace placement, one member per line in member declaration lists, argument wrapping, joining of wraps inside list elements, chain link collapsing,
 /// operator position, ternary placement, constructor initializer placement,
 /// generic constraint placement, expression-bodied property collapse, and accessor-list layout
 /// (one accessor per line, or a single-line auto-accessor list)
@@ -44,6 +44,7 @@ internal sealed class LineBreakPhase : IFormattingPhase
                    new PropertyLayoutLineBreakRewriter(accessorListLayout, cancellationToken),
                    new GenericConstraintLineBreakRewriter(context, cancellationToken),
                    new DeclarationBraceLineBreakRewriter(context, bracePlacer, accessorListLayout, cancellationToken),
+                   new MemberLineStartRewriter(gapNormalizer, cancellationToken),
                    new AttributeTargetFormattingRewriter(context, cancellationToken),
                    new BinaryOperatorLineBreakRewriter(context, cancellationToken),
                    new ChainLineBreakRewriter(context, cancellationToken),

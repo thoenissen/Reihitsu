@@ -40,6 +40,33 @@ public class RH5404ElementMustNotBeOnSingleLineFormatterTests : FormatterTestsBa
     }
 
     /// <summary>
+    /// Verifies that the formatter places every member of a single-line type on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterPlacesEveryMemberOnItsOwnLine()
+    {
+        const string input = """
+                             internal class {|#0:Example|} { public void Foo() { } public void Bar() { } }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     public void Foo()
+                                     {
+                                     }
+                                     public void Bar()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the formatter moves the opening brace onto its own line when a leading using
     /// directive precedes the single-line type
     /// </summary>
