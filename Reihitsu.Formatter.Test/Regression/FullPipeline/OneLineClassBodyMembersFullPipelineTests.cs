@@ -667,5 +667,112 @@ public class OneLineClassBodyMembersFullPipelineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that members sharing a line inside an active conditional region are split while the directives stay in place
+    /// </summary>
+    [TestMethod]
+    public void SeparatesMembersInsideActiveConditionalRegion()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #if !DEBUG
+                                 int a; int b;
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                #if !DEBUG
+                                    int a;
+                                    int b;
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that members inside an inactive conditional branch stay untouched as disabled text while the active branch is split
+    /// </summary>
+    [TestMethod]
+    public void KeepsDisabledTextWhileSplittingActiveBranch()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #if DEBUG
+                                 int a; int b;
+                             #else
+                                 int c; int d;
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                #if DEBUG
+                                    int a; int b;
+                                #else
+                                    int c;
+                                    int d;
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that members sharing a line next to pragma directives are split while the directive lines stay in place
+    /// </summary>
+    [TestMethod]
+    public void SeparatesMembersAroundPragmaDirectives()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int a; int b;
+                             #pragma warning disable CS0169
+                                 int c; int d;
+                             #pragma warning restore CS0169
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int a;
+                                    int b;
+                                #pragma warning disable CS0169
+                                    int c;
+                                    int d;
+                                #pragma warning restore CS0169
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a top-level statement following an empty top-level statement stays on its line
+    /// </summary>
+    [TestMethod]
+    public void KeepsStatementAfterEmptyTopLevelStatementOnSharedLine()
+    {
+        // Arrange
+        const string input = "System.Console.WriteLine();; System.Console.WriteLine();";
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }

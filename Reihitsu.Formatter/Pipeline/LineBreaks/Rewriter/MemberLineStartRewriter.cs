@@ -65,11 +65,13 @@ internal sealed class MemberLineStartRewriter : CSharpSyntaxRewriter
     /// <returns>The updated node</returns>
     /// <remarks>
     /// The preceding token is the member's actual token predecessor, so the first member is also covered when it
-    /// follows a using directive, an extern alias, or a file-scoped namespace header. A member that follows the
-    /// opening brace already starts a line through the brace placement. The inserted break carries no blank line;
-    /// any comment in the gap stays on the preceding line, and a gap that already contains a line break — including
-    /// one inside a multi-line comment — is left untouched. Empty top-level statements are skipped, matching the
-    /// statement-list rule in <see cref="LineBreakBlockRewriter"/>
+    /// follows a using directive, an extern alias, or a file-scoped namespace header. In namespace and type bodies
+    /// whose braces have a brace-placement owner, the first member already starts a line after the opening brace;
+    /// extension blocks have no such owner, so this rewriter also moves their first member. The inserted break
+    /// carries no blank line; any comment in the gap stays on the preceding line, and a gap that already contains a
+    /// line break — including one inside a multi-line comment — is left untouched. An empty top-level statement and
+    /// the member that directly follows one are left in place, matching the statement-list rule in
+    /// <see cref="LineBreakBlockRewriter"/>
     /// </remarks>
     private TNode EnsureMembersStartOnSeparateLines<TNode>(TNode node,
                                                            Func<TNode, SyntaxList<MemberDeclarationSyntax>> getMembers,
