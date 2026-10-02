@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -101,6 +101,340 @@ public class ListElementAttributeLayoutSinglePassTests : FormatterTestsBase
                                     {
                                         var v = this[[A]
                                                      x => x, 1];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer list still collapses when an argument call nested in it is split in the same pass because of a lambda attribute list
+    /// </summary>
+    [TestMethod]
+    public void IndexerArgumentCallWithAttributedLambdaCollapsesIndexerInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = this[N([A] x => x, 1),
+                                                  2];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = this[N([A]
+                                                       x => x,
+                                                       1), 2];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the closing bracket of an indexer list joins its last argument when that argument is split in the same pass because of a lambda attribute list
+    /// </summary>
+    [TestMethod]
+    public void IndexerArgumentCallWithAttributedLambdaJoinsClosingBracketInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = this[N([A] x => x, 1)
+                                                 ];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = this[N([A]
+                                                       x => x,
+                                                       1)];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the first argument of an indexer list joins its opening bracket when that argument is split in the same pass because of a lambda attribute list
+    /// </summary>
+    [TestMethod]
+    public void IndexerArgumentCallWithAttributedLambdaJoinsOpeningBracketInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = this[
+                                         N([A] x => x, 1)];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = this[N([A]
+                                                       x => x,
+                                                       1)];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an implicit element access in an object initializer collapses when an argument call nested in it is split in the same pass because of a lambda attribute list
+    /// </summary>
+    [TestMethod]
+    public void ImplicitElementAccessArgumentCallWithAttributedLambdaCollapsesInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var d = new D
+                                     {
+                                         [N([A] x => x, 1),
+                                          2] = 3
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new D
+                                                {
+                                                    [N([A]
+                                                       x => x,
+                                                       1), 2] = 3
+                                                };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an outer indexer list collapses in the same pass as an inner indexer list whose lambda parameter carries split attribute lists
+    /// </summary>
+    [TestMethod]
+    public void NestedIndexersWithLambdaParameterSplitAttributeListsSettleInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = a[b[([A]
+                                                   [B] int x) => x,
+                                                 1],
+                                               2];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = a[b[([A, B] int x) => x, 1], 2];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer list collapses in one pass when its lambda argument's parameter list also breaks after the opening parenthesis
+    /// </summary>
+    [TestMethod]
+    public void IndexerLambdaParameterListBreakAfterOpenParenthesisSettlesInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = this[(
+                                                   [A]
+                                                   [B] int x) => x,
+                                                  1];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = this[([A, B] int x) => x, 1];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer list collapses in one pass when its lambda argument's parameter list also breaks before the closing parenthesis
+    /// </summary>
+    [TestMethod]
+    public void IndexerLambdaParameterListBreakBeforeCloseParenthesisSettlesInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = this[([A]
+                                                   [B] int x
+                                                  ) => x,
+                                                  1];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = this[([A, B] int x) => x, 1];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional expression stays on one line when the indexer list inside it collapses in the same pass
+    /// </summary>
+    [TestMethod]
+    public void TernaryWithIndexerLambdaParameterSplitAttributeListsStaysOnOneLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = flag ? this[([A]
+                                                          [B] int y) => y,
+                                                         1] : 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = flag ? this[([A, B] int y) => y, 1] : 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an outer indexer list collapses in the same pass as the wrapped inner indexer list it contains
+    /// </summary>
+    [TestMethod]
+    public void NestedIndexersWithoutAttributesSettleInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = a[b[1,
+                                                 2],
+                                               3];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = a[b[1, 2], 3];
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional element access is not collapsed even when the indexer list nested in it is rewritten in the same pass
+    /// </summary>
+    [TestMethod]
+    public void ConditionalElementAccessKeepsWrappedArgumentsWhenNestedIndexerCollapses()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = a?[b[1,
+                                                  2],
+                                                3];
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var v = a?[b[1, 2],
+                                                   3];
                                     }
                                 }
                                 """;
