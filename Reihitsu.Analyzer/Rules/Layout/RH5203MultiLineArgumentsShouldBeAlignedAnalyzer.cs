@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -66,7 +67,10 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzer : DiagnosticAnalyze
             var argumentLineSpan = argument.GetLocation().GetLineSpan();
             var argumentStartLine = argumentLineSpan.StartLinePosition.Line;
 
-            if (argumentStartLine == openParenLine)
+            // Only an argument that starts its own line has a column to align: one that follows a leading separator
+            // or shares a line with a previous argument is positioned by the token in front of it
+            if (argumentStartLine == openParenLine
+                || SyntaxTokenPositionUtilities.IsFirstOnLine(argument.GetFirstToken()) == false)
             {
                 continue;
             }

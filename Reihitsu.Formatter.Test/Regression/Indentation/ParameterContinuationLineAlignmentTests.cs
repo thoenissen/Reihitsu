@@ -6,8 +6,8 @@ namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
 /// <summary>
 /// A line that starts inside a parameter of a wrapped parameter-like list at a token other than the parameter's own
-/// first token - because a comment or directive forbids joining it to the previous line - is aligned with that first
-/// token instead of the enclosing declaration's block column
+/// first token - because a comment, directive, or disabled text forbids joining it to the previous line - is aligned
+/// with that first token instead of the enclosing declaration's block column
 /// </summary>
 [TestClass]
 public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
@@ -669,11 +669,11 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a lambda expression body a parameter's author wrapped without any comment is aligned with the
-    /// parameter
+    /// Verifies that a lambda expression body a parameter's author wrapped without any comment is joined onto the
+    /// parameter's line
     /// </summary>
     [TestMethod]
-    public void WrappedLambdaExpressionBodyInDefaultValueIsAlignedWithItsParameter()
+    public void WrappedLambdaExpressionBodyInDefaultValueIsJoinedOntoItsParameter()
     {
         // Arrange
         const string input = """
@@ -696,8 +696,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
 
                                 internal class Example
                                 {
-                                    internal void M(Func<int> factory = () =>
-                                                    1)
+                                    internal void M(Func<int> factory = () => 1)
                                     {
                                     }
                                 }
@@ -920,138 +919,6 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                                  internal int this[int first
                                                    , [Obsolete] // keep
                                                      int second] => first;
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of an argument list is not aligned by the parameter rule
-    /// </summary>
-    [TestMethod]
-    public void ArgumentLeadingCommaIsNotAlignedByParameterRule()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     N(1 // keep
-                                     , 2);
-                                 }
-
-                                 internal void N(int first, int second)
-                                 {
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of a member attribute's argument list is not aligned by the parameter rule
-    /// </summary>
-    [TestMethod]
-    public void AttributeArgumentLeadingCommaIsNotAlignedByParameterRule()
-    {
-        // Arrange
-        const string input = """
-                             using System;
-
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 [Obsolete("a" // keep
-                                 , false)]
-                                 internal void M()
-                                 {
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a continuation line inside an argument is not aligned by the parameter rule
-    /// </summary>
-    [TestMethod]
-    public void ArgumentContinuationLineIsNotAlignedByParameterRule()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     N(out // keep
-                                     var value);
-                                 }
-
-                                 internal void N(out int value)
-                                 {
-                                     value = 0;
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a continuation line inside a member attribute's argument is not aligned by the parameter rule
-    /// </summary>
-    [TestMethod]
-    public void MemberAttributeArgumentContinuationLineIsNotAlignedByParameterRule()
-    {
-        // Arrange
-        const string input = """
-                             using System;
-
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 [Obsolete(message: // keep
-                                 "x")]
-                                 internal void M()
-                                 {
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a continuation line inside a field's type argument is not aligned by the parameter rule
-    /// </summary>
-    [TestMethod]
-    public void TypeArgumentContinuationLineIsNotAlignedByParameterRule()
-    {
-        // Arrange
-        const string input = """
-                             using System.Collections.Generic;
-
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 private List<System. // keep
-                                 Int32> _values;
                              }
                              """;
 

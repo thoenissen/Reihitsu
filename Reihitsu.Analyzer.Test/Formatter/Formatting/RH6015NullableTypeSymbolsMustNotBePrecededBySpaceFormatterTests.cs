@@ -45,12 +45,12 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
     }
 
     /// <summary>
-    /// Verifies that a continuation-line nullable type symbol remains analyzer-clean with LF and CRLF line endings
-    /// when the formatter aligns it with its parameter
+    /// Verifies that a nullable type symbol wrapped onto a continuation line is joined onto its type by the formatter
+    /// and remains analyzer-clean with LF and CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyContinuationLineNullableTypeSymbolStaysAnalyzerClean()
+    public async Task VerifyWrappedNullableTypeSymbolIsJoinedAndStaysAnalyzerClean()
     {
         const string testData = """
                                 internal class TestClass
@@ -64,8 +64,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
         const string fixedData = """
                                  internal class TestClass
                                  {
-                                     void Method(int
-                                                 ? value)
+                                     void Method(int? value)
                                      {
                                      }
                                  }
