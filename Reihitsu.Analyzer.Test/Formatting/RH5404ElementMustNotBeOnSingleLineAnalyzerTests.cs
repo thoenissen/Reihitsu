@@ -59,6 +59,31 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
+    /// Verifies that fixing a single-line type with several members places every member on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixPlacesEveryMemberOnItsOwnLine()
+    {
+        const string testData = """
+                                internal class {|#0:TestClass|} { public void Foo() { } public void Bar() { } }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     public void Foo()
+                                     {
+                                     }
+                                     public void Bar()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that fixing an empty single-line type converges to the canonical semicolon declaration in one pass
     /// instead of producing a braced body that would be re-flagged by the empty-type semicolon rules
     /// </summary>
