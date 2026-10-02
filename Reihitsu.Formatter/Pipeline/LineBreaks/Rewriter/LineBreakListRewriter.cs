@@ -145,7 +145,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses misplaced commas onto the previous parameter line
+    /// Collapses misplaced commas onto the previous parameter line. When the moved comma does not already end its line,
+    /// only the whitespace at the end of its trailing trivia is replaced by the line break; whitespace before or between
+    /// block comments that stay after the comma is kept as written
     /// </summary>
     /// <param name="node">The parameter list node</param>
     /// <param name="endOfLine">The end-of-line sequence to keep after a moved separator</param>
@@ -174,12 +176,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 
             if (LineBreakTriviaUtilities.HasTrailingEndOfLine(newSeparator) == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(nextParameter) == false)
             {
-                var newTrailing = newSeparator.TrailingTrivia
-                                              .Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-                                              .ToList();
-
-                newTrailing.Add(SyntaxFactory.EndOfLine(endOfLine));
-                newSeparator = newSeparator.WithTrailingTrivia(SyntaxFactory.TriviaList(newTrailing));
+                newSeparator = newSeparator.WithTrailingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(LineBreakTriviaUtilities.RemoveTrailingWhitespace(newSeparator.TrailingTrivia), endOfLine));
             }
 
             node = node.ReplaceTokens([previousToken, separator],
@@ -466,7 +463,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Ensures that each separator in a separated syntax list has a trailing end-of-line trivia
     /// once the list is already multi-line or an element signals a split, including an element that
-    /// attribute formatting later in this pass spreads over several lines
+    /// attribute formatting later in this pass spreads over several lines. Only the whitespace at the end
+    /// of a separator's trailing trivia is replaced by the line break; whitespace before or between block
+    /// comments that stay after the separator is kept as written
     /// </summary>
     /// <typeparam name="TNode">The type of the containing syntax node</typeparam>
     /// <typeparam name="TElement">The type of the elements in the separated list</typeparam>
@@ -504,14 +503,8 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            var newTrailing = separator.TrailingTrivia
-                                       .Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-                                       .ToList();
-
-            newTrailing.Add(SyntaxFactory.EndOfLine(endOfLine));
-
             tokensToReplace.Add(separator);
-            replacementMap[separator] = separator.WithTrailingTrivia(SyntaxFactory.TriviaList(newTrailing));
+            replacementMap[separator] = separator.WithTrailingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(LineBreakTriviaUtilities.RemoveTrailingWhitespace(separator.TrailingTrivia), endOfLine));
         }
 
         if (hasExistingLineBreak == false || tokensToReplace.Count == 0)
