@@ -267,8 +267,8 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether two joined tokens are written without a space between them. Delimiters, member and nullable
-    /// punctuation, and prefix operators are written tight; every other pair gets one space, and the horizontal spacing
+    /// Determines whether two joined tokens are written without a space between them. Delimiters, member, nullable, and
+    /// argument-name punctuation, and prefix operators are written tight; every other pair gets one space, and the horizontal spacing
     /// phase normalizes the pairs its policy has a rule for. A pair that would merge into different tokens when written
     /// tight - <c>- -x</c>, <c>out var</c> - always keeps its space
     /// </summary>
@@ -295,6 +295,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
                    SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax or ArrayRankSpecifierSyntax,
                    SyntaxKind.DotToken or SyntaxKind.ColonColonToken or SyntaxKind.DotDotToken => true,
                    SyntaxKind.QuestionToken => token.Parent is NullableTypeSyntax,
+                   SyntaxKind.ColonToken => token.Parent is NameColonSyntax or ExpressionColonSyntax,
                    SyntaxKind.AsteriskToken => token.Parent is PointerTypeSyntax,
                    SyntaxKind.LessThanToken => token.Parent is TypeArgumentListSyntax or TypeParameterListSyntax or FunctionPointerParameterListSyntax,
                    _ => false

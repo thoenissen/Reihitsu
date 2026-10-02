@@ -1426,5 +1426,41 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a named argument wrapped between its name and the colon is joined without a space before the colon
+    /// </summary>
+    [TestMethod]
+    public void ArgumentNameWrappedBeforeColonIsJoinedWithoutSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(first
+                                     : 1, 2);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(first: 1, 2);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
