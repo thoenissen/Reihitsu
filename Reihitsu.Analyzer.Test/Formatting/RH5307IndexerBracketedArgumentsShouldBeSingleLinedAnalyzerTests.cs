@@ -223,6 +223,53 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the code fix joins the indexer arguments when the formatter also splits an argument call
+    /// that contains an attributed lambda
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndCodeFixForIndexerArgumentCallWithAttributedLambda()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class Example
+                                {
+                                    private int this[int first, int second] => first + second;
+
+                                    private static int Apply(Func<int, int> function, int value) => function(value);
+
+                                    private int Method()
+                                    {
+                                        return {|#0:this[Apply([Obsolete] (int x) => x, 1),
+                                            2]|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 internal class Example
+                                 {
+                                     private int this[int first, int second] => first + second;
+
+                                     private static int Apply(Func<int, int> function, int value) => function(value);
+
+                                     private int Method()
+                                     {
+                                         return this[Apply([Obsolete]
+                                                           (int x) => x,
+                                                           1), 2];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
