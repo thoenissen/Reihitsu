@@ -9,7 +9,8 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
 /// <summary>
 /// Converts expression-bodied operators (<c>operator +</c>, etc.) to block body
-/// with a <see cref="ReturnStatementSyntax"/>
+/// with a <see cref="ReturnStatementSyntax"/>, or with an <see cref="ExpressionStatementSyntax"/>
+/// for a <c>void</c> operator such as an instance compound assignment or increment operator
 /// </summary>
 internal sealed class ExpressionBodiedOperatorTransform : CSharpSyntaxRewriter
 {
@@ -55,9 +56,12 @@ internal sealed class ExpressionBodiedOperatorTransform : CSharpSyntaxRewriter
         }
 
         var expression = node.ExpressionBody.Expression;
+        var statementForm = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers)
+                                ? ExpressionBodyStatementForm.ExpressionStatement
+                                : ExpressionBodyStatementForm.ReturnStatement;
 
         var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
-                                                               ExpressionBodyStatementForm.ReturnStatement,
+                                                               statementForm,
                                                                node.ExpressionBody.ArrowToken,
                                                                node.SemicolonToken);
 

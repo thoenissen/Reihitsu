@@ -354,6 +354,18 @@
   <data name="RH3203Title" xml:space="preserve">
     <value>Convert to block body</value>
   </data>
+  <data name="RH3205Title" xml:space="preserve">
+    <value>Convert to block body</value>
+  </data>
+  <data name="RH3206Title" xml:space="preserve">
+    <value>Convert to block body</value>
+  </data>
+  <data name="RH3207Title" xml:space="preserve">
+    <value>Convert to block body</value>
+  </data>
+  <data name="RH3208Title" xml:space="preserve">
+    <value>Convert to block body</value>
+  </data>
   <data name="RH5401Title" xml:space="preserve">
     <value>Collapse property to single line</value>
   </data>

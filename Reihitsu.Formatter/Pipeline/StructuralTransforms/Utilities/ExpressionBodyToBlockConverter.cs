@@ -47,7 +47,9 @@ internal static class ExpressionBodyToBlockConverter
     /// always becomes a <see cref="ThrowStatementSyntax"/> regardless of the requested form, because
     /// <c>return throw ...;</c> does not compile (CS8115). Any comment or directive in the semicolon
     /// token's leading trivia that would otherwise be lost with the discarded token is carried in
-    /// front of the newly created semicolon token instead
+    /// front of the newly created semicolon token instead. A <c>return</c> statement drops the
+    /// expression's leading indentation when that is all the expression carries, so an expression
+    /// written on the line after the arrow joins the keyword exactly like one written on the arrow's line
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="statementForm">The statement form</param>
@@ -70,7 +72,30 @@ internal static class ExpressionBodyToBlockConverter
             return SyntaxFactory.ExpressionStatement(expression, newSemicolonToken);
         }
 
-        return SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword), expression, newSemicolonToken);
+        return SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword), RemoveIndentationOnlyLeadingTrivia(expression), newSemicolonToken);
+    }
+
+    /// <summary>
+    /// Removes the leading trivia of an expression that is about to follow a created <c>return</c>
+    /// keyword when that trivia consists of whitespace only. Such a run is the indentation of an
+    /// expression that started its own line after the arrow; the line break itself belonged to the
+    /// discarded arrow token, so keeping the run would leave it between the keyword and the expression,
+    /// where no later phase of the same pass owns it. Leading trivia that carries a line break or a
+    /// comment is kept, because the layout it describes is then the author's
+    /// </summary>
+    /// <param name="expression">The expression to inspect</param>
+    /// <returns>The expression without indentation-only leading trivia, or the unchanged expression</returns>
+    private static ExpressionSyntax RemoveIndentationOnlyLeadingTrivia(ExpressionSyntax expression)
+    {
+        var leadingTrivia = expression.GetLeadingTrivia();
+
+        if (leadingTrivia.Count == 0
+            || leadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false))
+        {
+            return expression;
+        }
+
+        return expression.WithLeadingTrivia(default(SyntaxTriviaList));
     }
 
     /// <summary>

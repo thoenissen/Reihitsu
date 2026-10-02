@@ -203,6 +203,34 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a method whose expression starts on the line after the arrow is fixed to a single-spaced return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExpressionOnNextLineIsFixedToSingleSpacedReturn()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int GetValue() {|#0:=>
+                                        42|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          return 42;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -397,7 +397,7 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                     void M()
                                     {
                                         int Add(int a, int b) {// why
-                                return            a + b;}
+                                returna + b;}
                                     }
                                 }
                                 """;
