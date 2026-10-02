@@ -161,7 +161,8 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> keeps accessor blocks below C# 7 even after an earlier rewrite
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> keeps the accessor blocks of a property with a getter and a
+    /// setter below C# 7 even after an earlier rewrite
     /// </summary>
     [TestMethod]
     public void FormatSyntaxTreeKeepsAccessorBlockBelowCSharp7AfterEarlierTransform()
@@ -176,6 +177,10 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                                      get
                                      {
                                          return _x;
+                                     }
+                                     set
+                                     {
+                                         _x = value;
                                      }
                                  }
 
@@ -197,6 +202,10 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                                         {
                                             return _x;
                                         }
+                                        set
+                                        {
+                                            _x = value;
+                                        }
                                     }
 
                                     public void M(int x)
@@ -206,6 +215,64 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                                             x = 0;
                                         }
                                     }
+                                }
+                                """;
+
+        AssertFormatSyntaxTree(input, expected, LanguageVersion.CSharp6);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> keeps the accessor list of a get-only property below C# 6,
+    /// which introduced expression-bodied properties
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeKeepsGetOnlyAccessorListBelowCSharp6()
+    {
+        const string input = """
+                             public class B
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x;
+                                     }
+                                 }
+                             }
+                             """;
+
+        AssertFormatSyntaxTree(input, input, LanguageVersion.CSharp5);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> converts a get-only property to an expression-bodied
+    /// property in C# 6
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeConvertsGetOnlyPropertyInCSharp6()
+    {
+        const string input = """
+                             public class B
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get
+                                     {
+                                         return _x;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class B
+                                {
+                                    private int _x;
+
+                                    public int X => _x;
                                 }
                                 """;
 

@@ -163,10 +163,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    public int X
-                                    {
-                                        get => throw new System.NotSupportedException();
-                                    }
+                                    public int X => throw new System.NotSupportedException();
                                 }
                                 """;
 
@@ -305,10 +302,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     private int _x;
 
-                                    public int X
-                                    {
-                                        get => _x;
-                                    }
+                                    public int X => _x;
                                 }
                                 """;
 
@@ -347,11 +341,8 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     private int[] _items;
 
-                                    public int[] Positive
-                                    {
-                                        get => _items.Where(x => x > 0)
-                                                     .ToArray();
-                                    }
+                                    public int[] Positive => _items.Where(x => x > 0)
+                                                                   .ToArray();
                                 }
                                 """;
 
@@ -385,10 +376,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     private int _x;
 
-                                    public ref int X
-                                    {
-                                        get => ref _x;
-                                    }
+                                    public ref int X => ref _x;
                                 }
                                 """;
 
@@ -481,18 +469,12 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     int Value { get; }
 
-                                    int Doubled
-                                    {
-                                        get => Value * 2;
-                                    }
+                                    int Doubled => Value * 2;
                                 }
 
                                 class C : IValue
                                 {
-                                    int IValue.Value
-                                    {
-                                        get => 1;
-                                    }
+                                    int IValue.Value => 1;
                                 }
                                 """;
 
@@ -526,10 +508,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     private int _x;
 
-                                    public int X
-                                    {
-                                        get => _x; // cached
-                                    }
+                                    public int X => _x; // cached
                                 }
                                 """;
 
@@ -642,10 +621,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     private int _x;
 
-                                    public int X
-                                    {
-                                        get => _x /* why */;
-                                    }
+                                    public int X => _x /* why */;
                                 }
                                 """;
 
@@ -688,16 +664,13 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    public int X
-                                    {
-                                        get => Compute(
+                                    public int X => Compute(
                                 #if DEBUG
                                                            1
                                 #else
-                                                       2
+                                                            2
                                 #endif
-                                                       );
-                                    }
+                                                            );
 
                                     private static int Compute(int value)
                                     {
@@ -744,16 +717,13 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    public int X
-                                    {
-                                        get => Compute(
+                                    public int X => Compute(
                                 #if DEBUG
-                                                       1
+                                                            1
                                 #else
                                                            2
                                 #endif
-                                                       );
-                                    }
+                                                            );
 
                                     private static int Compute(int value)
                                     {
@@ -1581,10 +1551,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     private int _x;
 
-                                    public int X
-                                    {
-                                        get => _x; // cached
-                                    }
+                                    public int X => _x; // cached
                                 }
                                 """;
 
@@ -1614,10 +1581,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                 {
                                     private int _x;
 
-                                    public int X
-                                    {
-                                        get => _x; // cached
-                                    }
+                                    public int X => _x; // cached
                                 }
                                 """;
 

@@ -32,10 +32,7 @@ public class ExpressionBodiedIndexerFullPipelineTests : FormatterTestsBase
                                       {
                                           private readonly int[] _items = [1, 2, 3];
 
-                                          public int this[int index]
-                                          {
-                                              get => _items[index];
-                                          }
+                                          public int this[int index] => _items[index];
                                       }
                                       """;
 
@@ -44,21 +41,20 @@ public class ExpressionBodiedIndexerFullPipelineTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer is converted to an accessor list with an
-    /// expression-bodied get accessor and fully laid out by a single formatting pass
+    /// Verifies that an expression-bodied indexer stays expression-bodied through the full pipeline
     /// </summary>
     [TestMethod]
-    public void ConvertsExpressionBodiedIndexerToGetAccessor()
+    public void KeepsExpressionBodiedIndexer()
     {
         AssertRuleResult(TestData, ResultData);
     }
 
     /// <summary>
-    /// Verifies that several expression-bodied indexer overloads inside a nested type are converted
-    /// at the correct indentation in a single pass
+    /// Verifies that several get-only indexer overloads inside a nested type become expression-bodied indexers at
+    /// the correct indentation in a single pass, whichever body form they were written in
     /// </summary>
     [TestMethod]
-    public void ConvertsOverloadedIndexersInsideNestedType()
+    public void ConvertsOverloadedGetOnlyIndexersInsideNestedType()
     {
         // Arrange
         const string input = """
@@ -70,7 +66,13 @@ public class ExpressionBodiedIndexerFullPipelineTests : FormatterTestsBase
 
                                      public int this[int index] => _items[index];
 
-                                     public int this[string key] => _items[key.Length];
+                                     public int this[string key]
+                                     {
+                                         get
+                                         {
+                                             return _items[key.Length];
+                                         }
+                                     }
                                  }
                              }
                              """;
@@ -81,15 +83,9 @@ public class ExpressionBodiedIndexerFullPipelineTests : FormatterTestsBase
                                     {
                                         private readonly int[] _items = [1, 2, 3];
 
-                                        public int this[int index]
-                                        {
-                                            get => _items[index];
-                                        }
+                                        public int this[int index] => _items[index];
 
-                                        public int this[string key]
-                                        {
-                                            get => _items[key.Length];
-                                        }
+                                        public int this[string key] => _items[key.Length];
                                     }
                                 }
                                 """;
