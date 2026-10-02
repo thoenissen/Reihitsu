@@ -1042,6 +1042,83 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
         await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a local function on the line below an outdented label is indented from its own column and separated from the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLocalFunctionBelowOutdentedLabelIsIndentedFromOwnColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        goto L;
+                                    L:
+                                        int Local() {|#0:=> 1|};
+                                        return Local();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          goto L;
+                                      L:
+                                          int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          return Local();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a local function on the line below an outdented label that ends its block is indented from its own column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLastLocalFunctionBelowOutdentedLabelIsIndentedFromOwnColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public void Run()
+                                    {
+                                        goto L;
+                                    L:
+                                        void Local() {|#0:=> System.Console.WriteLine()|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public void Run()
+                                      {
+                                          goto L;
+                                      L:
+                                          void Local()
+                                          {
+                                              System.Console.WriteLine();
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

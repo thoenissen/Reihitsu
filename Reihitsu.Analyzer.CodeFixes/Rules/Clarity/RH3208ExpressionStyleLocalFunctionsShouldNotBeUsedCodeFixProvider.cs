@@ -11,6 +11,7 @@ using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -69,8 +70,9 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
     }
 
     /// <summary>
-    /// Converts the local function by formatting it. A labeled local function starts in the middle of its line, so it
-    /// is formatted in the context of its outermost label, which anchors the new body at the statement's column
+    /// Converts the local function by formatting it. A local function that shares its line with a preceding label starts
+    /// in the middle of that line, so it is formatted in the context of its outermost label, which anchors the new body at
+    /// the statement's column. A local function that starts its own line keeps its own column, labeled or not
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="localFunction">Local function</param>
@@ -79,7 +81,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> FormatAsync(Document document, LocalFunctionStatementSyntax localFunction, StatementSyntax element, CancellationToken cancellationToken)
     {
-        if (element == localFunction)
+        if (element == localFunction
+            || ReihitsuFormatterHelpers.StartsOnNewLine(localFunction.GetFirstToken()))
         {
             return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, localFunction, cancellationToken).ConfigureAwait(false);
         }
