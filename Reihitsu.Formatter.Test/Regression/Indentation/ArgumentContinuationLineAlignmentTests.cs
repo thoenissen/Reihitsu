@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -832,6 +832,132 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the clauses after an <c>into</c> continuation of a query argument are aligned with the query's first token
+    /// like the clauses before it
+    /// </summary>
+    [TestMethod]
+    public void QueryContinuationClausesOfPositionalArgumentAreAlignedWithTheQueryStart()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(from value in values
+                                     where value > 0
+                                     select value into positive
+                                     where positive > 1
+                                     select positive);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(from value in values
+                                          where value > 0
+                                          select value into positive
+                                          where positive > 1
+                                          select positive);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the clauses after an <c>into</c> continuation of a named query argument are aligned with the query's first
+    /// token rather than the argument name
+    /// </summary>
+    [TestMethod]
+    public void QueryContinuationClausesOfNamedArgumentAreAlignedWithTheQueryStart()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(o: from value in values
+                                     select value into positive
+                                     where positive > 1
+                                     select positive);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(o: from value in values
+                                             select value into positive
+                                             where positive > 1
+                                             select positive);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the clauses after a <c>group ... into</c> continuation of a query argument are aligned with the query's first
+    /// token
+    /// </summary>
+    [TestMethod]
+    public void GroupIntoContinuationClausesOfArgumentAreAlignedWithTheQueryStart()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(from value in values
+                                     group value by value into grouped
+                                     select grouped.Key);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(from value in values
+                                          group value by value into grouped
+                                          select grouped.Key);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

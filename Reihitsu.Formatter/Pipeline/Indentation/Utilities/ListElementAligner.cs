@@ -90,8 +90,8 @@ internal static class ListElementAligner
     /// Aligns every line that starts inside an element at a token other than the element's first token with that
     /// first token. A line inside a construct that lays out its own lines - as
     /// <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names them, the same constructs whose interior
-    /// wraps the line-break phase keeps - is left to that construct, except that the clauses after a query's first
-    /// <c>from</c> are aligned with the query's first token
+    /// wraps the line-break phase keeps - is left to that construct, except that every clause after a query's first
+    /// <c>from</c>, including the clauses of an <c>into</c> continuation, is aligned with the query's first token
     /// </summary>
     /// <typeparam name="TElement">The type of the list's elements</typeparam>
     /// <param name="elements">The list's elements</param>
@@ -119,9 +119,9 @@ internal static class ListElementAligner
                 var anchorToken = firstToken;
                 var owningConstruct = ListElementInteriorUtilities.FindOwningConstruct(token, element);
 
-                if (owningConstruct is QueryBodySyntax { Parent: QueryExpressionSyntax query })
+                if (owningConstruct is QueryBodySyntax queryBody)
                 {
-                    anchorToken = query.GetFirstToken();
+                    anchorToken = queryBody.FirstAncestorOrSelf<QueryExpressionSyntax>().GetFirstToken();
                 }
                 else if (owningConstruct != null)
                 {
