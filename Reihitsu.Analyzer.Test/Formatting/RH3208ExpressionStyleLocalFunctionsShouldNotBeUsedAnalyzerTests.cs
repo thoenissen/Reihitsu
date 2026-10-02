@@ -817,9 +817,9 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                       public int Calculate()
                                       {
                                           L: int Local()
-                                             {
-                                                 return 1;
-                                             }
+                                          {
+                                              return 1;
+                                          }
 
                                           var z = Local();
 
@@ -857,9 +857,9 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                       public int Calculate()
                                       {
                                           A: B: int Local()
-                                                {
-                                                    return 1;
-                                                }
+                                          {
+                                              return 1;
+                                          }
 
                                           var z = Local();
 
@@ -950,6 +950,91 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                   #pragma warning restore CS0168
 
                                           return z;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a labeled local function that ends its block is indented from the label's statement column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLabeledLocalFunctionEndingItsBlockIsIndentedFromStatementColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public void Run()
+                                    {
+                                        goto L;
+                                        L: int Local() {|#0:=> 1|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public void Run()
+                                      {
+                                          goto L;
+                                          L: int Local()
+                                          {
+                                              return 1;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a labeled local function in a switch section is indented from the label's statement column and separated from the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLabeledLocalFunctionInSwitchSectionIsIndentedFromStatementColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                L: int Local() {|#0:=> 1|};
+                                                return Local();
+
+                                            default:
+                                                goto case 1;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate(int value)
+                                      {
+                                          switch (value)
+                                          {
+                                              case 1:
+                                                  L: int Local()
+                                                  {
+                                                      return 1;
+                                                  }
+
+                                                  return Local();
+
+                                              default:
+                                                  goto case 1;
+                                          }
                                       }
                                   }
                                   """;
