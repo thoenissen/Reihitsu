@@ -207,6 +207,27 @@ public class ListElementAttributeLayoutSinglePassTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an argument whose attribute lists stay on one line after attribute formatting does not split the argument list
+    /// </summary>
+    [TestMethod]
+    public void ArgumentLambdaParameterAttributeOnOneLineKeepsArgumentsOnOneLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     N(([A] int x) => x, 1);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that a single attributed lambda argument keeps its list unsplit, because there is no separator to break
     /// </summary>
     [TestMethod]
