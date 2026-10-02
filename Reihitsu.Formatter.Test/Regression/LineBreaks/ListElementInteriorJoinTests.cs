@@ -740,10 +740,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                              internal class Example
                              {
                                  internal int this[int
-                                 index]
-                                 {
-                                     get => index;
-                                 }
+                                 index] => index;
                              }
                              """;
 
@@ -752,10 +749,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
 
                                 internal class Example
                                 {
-                                    internal int this[int index]
-                                    {
-                                        get => index;
-                                    }
+                                    internal int this[int index] => index;
                                 }
                                 """;
 
