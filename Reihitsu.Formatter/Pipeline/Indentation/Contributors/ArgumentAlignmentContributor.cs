@@ -7,24 +7,30 @@ using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Aligns arguments, parameters, and attribute arguments to the column after the opening parenthesis
-/// when the list spans multiple lines; in parameter lists, a separator that starts a line is aligned to the
-/// same column, and a line that starts inside a parameter at a token other than the parameter's first token
-/// is aligned with that first token
+/// Aligns the elements of a wrapped parenthesized or bracketed list - arguments, parameters, attribute arguments, tuple
+/// elements, tuple type elements, unmanaged calling conventions, and the attributes of an attribute list - when the
+/// list spans multiple lines: element starts, the closer, and every separator that starts a line go to the list's
+/// element column, and a line that starts inside an element at a token other than the element's first token is aligned
+/// with that first token
 /// </summary>
 internal sealed class ArgumentAlignmentContributor : ILayoutContributor
 {
     #region Methods
 
     /// <summary>
-    /// Aligns items in a separated list to the column after the open token
-    /// when the list spans multiple lines
+    /// Aligns a wrapped list to the column after the open token - its element starts, its closing token, and every
+    /// separator that starts a line - then aligns every line that starts inside an element at a token other than the
+    /// element's first token with that first token
     /// </summary>
     /// <typeparam name="T">The syntax node type of the list items</typeparam>
     /// <param name="openToken">The opening token (parenthesis or bracket)</param>
     /// <param name="closeToken">The closing token</param>
     /// <param name="items">The items in the list</param>
     /// <param name="model">The layout model to write to</param>
+    /// <remarks>
+    /// Separators are aligned before the element continuations, so an element whose first token follows a leading
+    /// separator reads the separator's final column in the same sweep
+    /// </remarks>
     private static void AlignToOpenToken<T>(SyntaxToken openToken, SyntaxToken closeToken, SeparatedSyntaxList<T> items, LayoutModel model)
         where T : SyntaxNode
     {
@@ -51,41 +57,15 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
         }
 
         LayoutComputer.SetIfFirstOnLine(closeToken, alignColumn, "ArgumentAlignment", model);
+
+        ListElementAligner.AlignSeparators(items, alignColumn, "ArgumentAlignment", model);
+        ListElementAligner.AlignContinuations(items, model);
     }
 
     /// <summary>
-    /// Aligns a wrapped parameter list to the column after the open token - its parameter starts, its closing token,
-    /// and every separator that starts a line - then aligns every line that starts inside a parameter at a token
-    /// other than the parameter's first token with that first token
-    /// </summary>
-    /// <param name="openToken">The opening token (parenthesis or bracket)</param>
-    /// <param name="closeToken">The closing token</param>
-    /// <param name="parameters">The parameters in the list</param>
-    /// <param name="model">The layout model to write to</param>
-    /// <remarks>
-    /// Separators are aligned here rather than in <see cref="AlignToOpenToken{T}"/> so the argument, attribute
-    /// argument, and tuple lists that share that method keep their layout. They are aligned before the parameter
-    /// continuations, so a parameter whose first token follows a leading separator reads the separator's final
-    /// column in the same sweep
-    /// </remarks>
-    private static void AlignParameters(SyntaxToken openToken, SyntaxToken closeToken, SeparatedSyntaxList<ParameterSyntax> parameters, LayoutModel model)
-    {
-        AlignToOpenToken(openToken, closeToken, parameters, model);
-
-        var alignColumn = LayoutComputer.GetAdjustedColumn(openToken, model) + 1;
-
-        for (var separatorIndex = 0; separatorIndex < parameters.SeparatorCount; separatorIndex++)
-        {
-            LayoutComputer.SetIfFirstOnLine(parameters.GetSeparator(separatorIndex), alignColumn, "ArgumentAlignment", model);
-        }
-
-        ParameterContinuationAligner.Align(parameters, model);
-    }
-
-    /// <summary>
-    /// Aligns a multi-line dictionary indexer key as a block: the key body is indented
-    /// one level deeper than the opening bracket and the closing bracket is aligned
-    /// with the opening bracket
+    /// Aligns a multi-line dictionary indexer key as a block: the key body and every separator that starts a line are
+    /// indented one level deeper than the opening bracket, the closing bracket is aligned with the opening bracket, and a
+    /// line that starts inside an argument at a token other than its first token is aligned with that first token
     /// </summary>
     /// <param name="openBracket">The opening bracket token</param>
     /// <param name="closeBracket">The closing bracket token</param>
@@ -117,6 +97,9 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
         }
 
         LayoutComputer.SetIfFirstOnLine(closeBracket, openColumn, "DictionaryIndexerKey", model);
+
+        ListElementAligner.AlignSeparators(arguments, bodyColumn, "DictionaryIndexerKey", model);
+        ListElementAligner.AlignContinuations(arguments, model);
     }
 
     #endregion // Methods
@@ -129,31 +112,64 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
         switch (node)
         {
             case ArgumentListSyntax argumentList:
-                AlignToOpenToken(argumentList.OpenParenToken, argumentList.CloseParenToken, argumentList.Arguments, model);
+                {
+                    AlignToOpenToken(argumentList.OpenParenToken, argumentList.CloseParenToken, argumentList.Arguments, model);
+                }
                 break;
 
             case BracketedArgumentListSyntax { Parent: ImplicitElementAccessSyntax } dictionaryKey:
-                AlignDictionaryKey(dictionaryKey.OpenBracketToken, dictionaryKey.CloseBracketToken, dictionaryKey.Arguments, model);
+                {
+                    AlignDictionaryKey(dictionaryKey.OpenBracketToken, dictionaryKey.CloseBracketToken, dictionaryKey.Arguments, model);
+                }
                 break;
 
             case BracketedArgumentListSyntax bracketedArgumentList:
-                AlignToOpenToken(bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken, bracketedArgumentList.Arguments, model);
+                {
+                    AlignToOpenToken(bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken, bracketedArgumentList.Arguments, model);
+                }
                 break;
 
             case ParameterListSyntax parameterList:
-                AlignParameters(parameterList.OpenParenToken, parameterList.CloseParenToken, parameterList.Parameters, model);
+                {
+                    AlignToOpenToken(parameterList.OpenParenToken, parameterList.CloseParenToken, parameterList.Parameters, model);
+                }
                 break;
 
             case BracketedParameterListSyntax bracketedParameterList:
-                AlignParameters(bracketedParameterList.OpenBracketToken, bracketedParameterList.CloseBracketToken, bracketedParameterList.Parameters, model);
+                {
+                    AlignToOpenToken(bracketedParameterList.OpenBracketToken, bracketedParameterList.CloseBracketToken, bracketedParameterList.Parameters, model);
+                }
                 break;
 
             case AttributeArgumentListSyntax attributeArgumentList:
-                AlignToOpenToken(attributeArgumentList.OpenParenToken, attributeArgumentList.CloseParenToken, attributeArgumentList.Arguments, model);
+                {
+                    AlignToOpenToken(attributeArgumentList.OpenParenToken, attributeArgumentList.CloseParenToken, attributeArgumentList.Arguments, model);
+                }
                 break;
 
             case TupleExpressionSyntax tuple:
-                AlignToOpenToken(tuple.OpenParenToken, tuple.CloseParenToken, tuple.Arguments, model);
+                {
+                    AlignToOpenToken(tuple.OpenParenToken, tuple.CloseParenToken, tuple.Arguments, model);
+                }
+                break;
+
+            case TupleTypeSyntax tupleType:
+                {
+                    AlignToOpenToken(tupleType.OpenParenToken, tupleType.CloseParenToken, tupleType.Elements, model);
+                }
+                break;
+
+            case FunctionPointerUnmanagedCallingConventionListSyntax callingConventionList:
+                {
+                    AlignToOpenToken(callingConventionList.OpenBracketToken, callingConventionList.CloseBracketToken, callingConventionList.CallingConventions, model);
+                }
+                break;
+
+            case AttributeListSyntax attributeList:
+                {
+                    ListElementAligner.AlignToFirstElement(attributeList.Attributes, attributeList.CloseBracketToken, "AttributeList", model);
+                    ListElementAligner.AlignContinuations(attributeList.Attributes, model);
+                }
                 break;
         }
     }

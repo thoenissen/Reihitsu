@@ -216,7 +216,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                     internal void M()
                                     {
                                         N(1
-                                        #pragma warning disable CS0168
+                                #pragma warning disable CS0168
                                           , 2);
                                     }
                                 }
@@ -346,10 +346,10 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a held line inside a second argument on a shared line is aligned with that argument's first token
+    /// Verifies that a held line inside a wrapped second argument is aligned with that argument's first token
     /// </summary>
     [TestMethod]
-    public void ArgumentInteriorLineOfSecondArgumentIsAlignedWithThatArgument()
+    public void ArgumentInteriorLineOfWrappedSecondArgumentIsAlignedWithThatArgument()
     {
         // Arrange
         const string input = """
@@ -359,7 +359,8 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                              {
                                  internal void M()
                                  {
-                                     N(1, out // keep
+                                     N(1,
+                                       out // keep
                                      var value);
                                  }
                              }
@@ -372,8 +373,9 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                 {
                                     internal void M()
                                     {
-                                        N(1, out // keep
-                                             var value);
+                                        N(1,
+                                          out // keep
+                                          var value);
                                     }
                                 }
                                 """;
@@ -690,6 +692,49 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma of a multi-line dictionary key is aligned with the key body
+    /// </summary>
+    [TestMethod]
+    public void DictionaryKeyLeadingCommaIsAlignedWithTheKeyBody()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     var grid = new Grid
+                                                {
+                                                    [1 // keep
+                                     , 2] = 3,
+                                                };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        var grid = new Grid
+                                                   {
+                                                       [1 // keep
+                                                           , 2] = 3,
+                                                   };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

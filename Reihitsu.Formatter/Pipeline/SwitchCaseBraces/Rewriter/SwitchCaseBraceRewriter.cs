@@ -169,8 +169,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns>The descendants in the section's executable scope</returns>
     private static IEnumerable<SyntaxNode> GetExecutableScopeDescendants(SwitchSectionSyntax section)
     {
-        return section.DescendantNodes(static node =>
-        node is not LocalFunctionStatementSyntax && node is not AnonymousFunctionExpressionSyntax);
+        return section.DescendantNodes(static node => node is not LocalFunctionStatementSyntax && node is not AnonymousFunctionExpressionSyntax);
     }
 
     /// <summary>

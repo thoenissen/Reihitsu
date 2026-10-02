@@ -18,9 +18,8 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// Unlike <see cref="BaseTypeListContributor"/>, this contributor does not skip a
 /// single-element list: a one-argument list can still wrap after its opening bracket, and its closing
 /// bracket can still land on its own line, so both need the same alignment as a multi-element list.
-/// Type parameter and function-pointer parameter lists additionally align a line that starts inside an
-/// element at a token other than the element's first token with that first token; type argument lists
-/// deliberately do not
+/// A line that starts inside an element at a token other than the element's first token is aligned
+/// with that first token
 /// </remarks>
 internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
 {
@@ -28,7 +27,8 @@ internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
 
     /// <summary>
     /// Aligns the element starts, separators, and closing bracket of a wrapped angle-bracket list to its
-    /// first element's column
+    /// first element's column, then aligns every line that starts inside an element at a token other than
+    /// the element's first token with that first token
     /// </summary>
     /// <typeparam name="TElement">The type of the list's elements</typeparam>
     /// <param name="elements">The list's elements</param>
@@ -39,53 +39,8 @@ internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
                                         LayoutModel model)
         where TElement : SyntaxNode
     {
-        if (elements.Count == 0)
-        {
-            return;
-        }
-
-        var anchorToken = elements[0].GetFirstToken();
-
-        // An omitted type argument's token is zero-width (an unbound generic such as
-        // "Dictionary<,>"), so it carries no real column to anchor to. Leave this list to the
-        // block-indentation fallback pass 1 already computed, rather than align to a degenerate
-        // position
-        if (anchorToken.Span.IsEmpty)
-        {
-            return;
-        }
-
-        var anchorColumn = LayoutComputer.GetAdjustedColumn(anchorToken, model);
-
-        for (var elementIndex = 1; elementIndex < elements.Count; elementIndex++)
-        {
-            LayoutComputer.SetIfFirstOnLine(elements[elementIndex].GetFirstToken(), anchorColumn, "AngleBracketList", model);
-        }
-
-        for (var separatorIndex = 0; separatorIndex < elements.SeparatorCount; separatorIndex++)
-        {
-            LayoutComputer.SetIfFirstOnLine(elements.GetSeparator(separatorIndex), anchorColumn, "AngleBracketList", model);
-        }
-
-        LayoutComputer.SetIfFirstOnLine(closeToken, anchorColumn, "AngleBracketList", model);
-    }
-
-    /// <summary>
-    /// Aligns a wrapped type parameter or function-pointer parameter list to its first element's column, then
-    /// aligns every line that starts inside an element at a token other than the element's first token with
-    /// that first token
-    /// </summary>
-    /// <typeparam name="TElement">The type of the list's elements</typeparam>
-    /// <param name="elements">The list's elements</param>
-    /// <param name="closeToken">The closing angle bracket</param>
-    /// <param name="model">The layout model</param>
-    private static void AlignParameters<TElement>(SeparatedSyntaxList<TElement> elements,
-                                                  SyntaxToken closeToken,
-                                                  LayoutModel model)
-        where TElement : SyntaxNode
-    {
-        Align(elements, closeToken, model);
-        ParameterContinuationAligner.Align(elements, model);
+        ListElementAligner.AlignToFirstElement(elements, closeToken, "AngleBracketList", model);
+        ListElementAligner.AlignContinuations(elements, model);
     }
 
     #endregion // Private methods
@@ -105,12 +60,12 @@ internal sealed class AngleBracketListAlignmentContributor : ILayoutContributor
                 break;
 
             case TypeParameterListSyntax typeParameterList:
-                AlignParameters(typeParameterList.Parameters, typeParameterList.GreaterThanToken, model);
+                Align(typeParameterList.Parameters, typeParameterList.GreaterThanToken, model);
 
                 break;
 
             case FunctionPointerParameterListSyntax functionPointerParameterList:
-                AlignParameters(functionPointerParameterList.Parameters, functionPointerParameterList.GreaterThanToken, model);
+                Align(functionPointerParameterList.Parameters, functionPointerParameterList.GreaterThanToken, model);
 
                 break;
         }

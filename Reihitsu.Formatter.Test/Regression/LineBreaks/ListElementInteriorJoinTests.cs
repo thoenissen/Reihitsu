@@ -532,9 +532,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                                  [AttributeUsage(AttributeTargets.All,
                                                  AllowMultiple =
                                  true)]
-                                 internal sealed class MarkerAttribute : Attribute
-                                 {
-                                 }
+                                 internal sealed class MarkerAttribute : Attribute;
                              }
                              """;
 
@@ -547,9 +545,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                                 {
                                     [AttributeUsage(AttributeTargets.All,
                                                     AllowMultiple = true)]
-                                    internal sealed class MarkerAttribute : Attribute
-                                    {
-                                    }
+                                    internal sealed class MarkerAttribute : Attribute;
                                 }
                                 """;
 
@@ -744,7 +740,10 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                              internal class Example
                              {
                                  internal int this[int
-                                 index] => index;
+                                 index]
+                                 {
+                                     get => index;
+                                 }
                              }
                              """;
 
@@ -753,7 +752,10 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
 
                                 internal class Example
                                 {
-                                    internal int this[int index] => index;
+                                    internal int this[int index]
+                                    {
+                                        get => index;
+                                    }
                                 }
                                 """;
 
@@ -772,17 +774,13 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                              namespace Demo;
 
                              internal interface IExample<in
-                             T>
-                             {
-                             }
+                             T>;
                              """;
 
         const string expected = """
                                 namespace Demo;
 
-                                internal interface IExample<in T>
-                                {
-                                }
+                                internal interface IExample<in T>;
                                 """;
 
         // Act & Assert
@@ -838,7 +836,10 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                                  internal void M()
                                  {
                                      int Local(in
-                                     int value) => value;
+                                     int value)
+                                     {
+                                         return value;
+                                     }
                                  }
                              }
                              """;
@@ -850,7 +851,10 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                                 {
                                     internal void M()
                                     {
-                                        int Local(in int value) => value;
+                                        int Local(in int value)
+                                        {
+                                            return value;
+                                        }
                                     }
                                 }
                                 """;
@@ -1121,6 +1125,7 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                                     internal void M()
                                     {
                                         N(out
+
                                           /* keep */
                                           var value);
                                     }
@@ -1158,6 +1163,261 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                                     internal void M(ref // keep
                                                     int value)
                                     {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a cast argument wrapped after the cast's closing parenthesis is joined without a space
+    /// </summary>
+    [TestMethod]
+    public void CastOperandWrappedAfterClosingParenthesisIsJoinedWithoutSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N((int)
+                                     value);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N((int)value);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a tuple argument wrapped after an argument name is joined with a space, unlike an argument list's parenthesis
+    /// </summary>
+    [TestMethod]
+    public void TupleArgumentWrappedAfterNamedArgumentColonKeepsItsSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(pair:
+                                     (1, 2));
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(pair: (1, 2));
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a lambda argument wrapped between its modifier and its parameter list is joined with a space
+    /// </summary>
+    [TestMethod]
+    public void LambdaParameterListWrappedAfterStaticModifierKeepsItsSpace()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(static
+                                     (int value) => value);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(static (int value) => value);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the links of a method chain argument keep their own lines, because chain wraps keep their own layout
+    /// </summary>
+    [TestMethod]
+    public void MethodChainWrapInsideArgumentIsNotJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(text.Trim()
+                                           .ToUpper()
+                                           .ToLower());
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a named argument whose value is a verbatim string spanning lines keeps its wrap
+    /// </summary>
+    [TestMethod]
+    public void MultiLineVerbatimStringArgumentIsNotJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(text:
+                                       @"first
+                                     second");
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a named argument whose value is a single-line verbatim string is joined
+    /// </summary>
+    [TestMethod]
+    public void SingleLineVerbatimStringArgumentIsJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(text:
+                                     @"first");
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(text: @"first");
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the clauses of a query expression argument keep their own lines
+    /// </summary>
+    [TestMethod]
+    public void QueryClauseWrapInsideArgumentIsNotJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(from value in values
+                                       where value > 0
+                                       select value);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line interpolated string argument wrapped after the argument name is joined
+    /// </summary>
+    [TestMethod]
+    public void InterpolatedStringArgumentWrappedAfterNameIsJoined()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void M()
+                                 {
+                                     N(text:
+                                     $"{first}");
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        N(text: $"{first}");
                                     }
                                 }
                                 """;

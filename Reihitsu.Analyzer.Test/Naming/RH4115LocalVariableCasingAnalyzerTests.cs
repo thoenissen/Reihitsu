@@ -1247,9 +1247,9 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// <param name="scope">Fix All scope</param>
     /// <returns>The fixed source, initial and post-fix analyzer diagnostics, and compiler errors after Fix All</returns>
     private static async Task<(string FixedSource,
-    ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
-    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
-    ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAsync(string source, FixAllScope scope = FixAllScope.Document)
+                               ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
+                               ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+                               ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAsync(string source, FixAllScope scope = FixAllScope.Document)
     {
         using (var workspace = new AdhocWorkspace())
         {
@@ -1307,9 +1307,9 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// <param name="projectSources">Source documents grouped by project</param>
     /// <returns>Fixed sources plus initial/post-fix analyzer diagnostics and post-fix compiler errors</returns>
     private static async Task<(ImmutableArray<string> FixedSources,
-    ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
-    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
-    ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAcrossSolutionAsync(FixAllScope scope, params string[][] projectSources)
+                               ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
+                               ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+                               ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAcrossSolutionAsync(FixAllScope scope, params string[][] projectSources)
     {
         using (var workspace = new AdhocWorkspace())
         {
@@ -1412,11 +1412,11 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// <param name="sources">Project source documents</param>
     /// <returns>The action count, resulting sources, post-fix analyzer diagnostics, and compiler errors</returns>
     private static async Task<(int ActionCount,
-    ImmutableArray<string> FixedSources,
-    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
-    ImmutableArray<Diagnostic> CompilerErrors)> ApplyOrdinaryFixAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
-                                                                                     RH4002ClassNameCasingCodeFixProvider provider,
-                                                                                     params string[] sources)
+                               ImmutableArray<string> FixedSources,
+                               ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+                               ImmutableArray<Diagnostic> CompilerErrors)> ApplyOrdinaryFixAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
+                                                                                                                RH4002ClassNameCasingCodeFixProvider provider,
+                                                                                                                params string[] sources)
     {
         using (var workspace = new AdhocWorkspace())
         {
@@ -1497,11 +1497,11 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// <param name="sources">Project source documents</param>
     /// <returns>The resulting sources plus initial/post-fix analyzer diagnostics and compiler errors</returns>
     private static async Task<(ImmutableArray<string> FixedSources,
-    ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
-    ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
-    ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
-                                                                                RH4002ClassNameCasingCodeFixProvider provider,
-                                                                                params string[] sources)
+                               ImmutableArray<Diagnostic> InitialAnalyzerDiagnostics,
+                               ImmutableArray<Diagnostic> PostFixAnalyzerDiagnostics,
+                               ImmutableArray<Diagnostic> CompilerErrors)> ApplyFixAllAcrossDocumentsAsync(DiagnosticAnalyzer analyzer,
+                                                                                                           RH4002ClassNameCasingCodeFixProvider provider,
+                                                                                                           params string[] sources)
     {
         using (var workspace = new AdhocWorkspace())
         {

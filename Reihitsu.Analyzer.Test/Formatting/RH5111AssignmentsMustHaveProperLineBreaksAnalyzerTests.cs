@@ -168,7 +168,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                 {
                                     class TestClass
                                     {
-                                        void Method(int {|#0:value
+                                        void Method({|#0:int value
                                             = 0|})
                                         {
                                         }

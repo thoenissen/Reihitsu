@@ -595,14 +595,14 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The prepared rename inputs, or <see langword="null"/> when the rename is unsafe</returns>
     private static async Task<(Solution Solution,
-    ISymbol Symbol,
-    ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains,
-    ImmutableArray<Diagnostic> OriginalErrors,
-    bool HasNamespaceOwner)?> PrepareRenameAsync(Solution solution,
-                                                 DocumentId documentId,
-                                                 SyntaxAnnotation annotation,
-                                                 string identifier,
-                                                 CancellationToken cancellationToken)
+                               ISymbol Symbol,
+                               ImmutableArray<(DocumentId DocumentId, SyntaxAnnotation Annotation)> Domains,
+                               ImmutableArray<Diagnostic> OriginalErrors,
+                               bool HasNamespaceOwner)?> PrepareRenameAsync(Solution solution,
+                                                                            DocumentId documentId,
+                                                                            SyntaxAnnotation annotation,
+                                                                            string identifier,
+                                                                            CancellationToken cancellationToken)
     {
         var resolved = await ResolveRenameDeclarationAsync(solution, documentId, annotation, cancellationToken).ConfigureAwait(false);
 
