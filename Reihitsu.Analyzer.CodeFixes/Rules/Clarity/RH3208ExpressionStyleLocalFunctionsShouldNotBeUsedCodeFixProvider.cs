@@ -35,13 +35,31 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
     #region Methods
 
     /// <summary>
-    /// Gets the statement list that directly owns the local function
+    /// Gets the statement that represents the local function in its owning statement list. A labeled local function is
+    /// represented by its outermost label, whose last token is still the local function's own last token
     /// </summary>
     /// <param name="localFunction">Local function</param>
-    /// <returns>The owning statement list, or an empty list when the local function is not owned by a block or switch section</returns>
-    private static SyntaxList<StatementSyntax> GetOwningStatements(SyntaxNode localFunction)
+    /// <returns>The list element that ends with the local function</returns>
+    private static StatementSyntax GetListElement(LocalFunctionStatementSyntax localFunction)
     {
-        return localFunction.Parent switch
+        StatementSyntax element = localFunction;
+
+        while (element.Parent is LabeledStatementSyntax labeledStatement)
+        {
+            element = labeledStatement;
+        }
+
+        return element;
+    }
+
+    /// <summary>
+    /// Gets the statement list that directly owns the statement
+    /// </summary>
+    /// <param name="statement">Statement</param>
+    /// <returns>The owning statement list, or an empty list when the statement is not owned by a block or switch section</returns>
+    private static SyntaxList<StatementSyntax> GetOwningStatements(StatementSyntax statement)
+    {
+        return statement.Parent switch
                {
                    BlockSyntax block => block.Statements,
                    SwitchSectionSyntax switchSection => switchSection.Statements,
@@ -59,8 +77,9 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
         // Formatting a single node never decides the gap below it, while the blank-line-after-closing-brace rule does.
         // When the closing brace this conversion creates ends directly above the next statement of the same list, the
         // two are separated by a blank line so the fix does not raise that rule on its own brace.
-        var statements = GetOwningStatements(node);
-        var index = statements.IndexOf(node);
+        var element = GetListElement(node);
+        var statements = GetOwningStatements(element);
+        var index = statements.IndexOf(element);
 
         if (index < 0 || index == statements.Count - 1)
         {
@@ -74,7 +93,8 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
             return document;
         }
 
-        // The formatter replaces only the local function, so the tracked next statement survives the rewrite unchanged
+        // The formatter replaces only the local function, so the tracked next statement survives the rewrite unchanged and
+        // its predecessor in the list is the element that now ends with the converted body
         var nextStatement = statements[index + 1];
         var trackedDocument = document.WithSyntaxRoot(root.TrackNodes(node, nextStatement));
         var trackedRoot = await trackedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
