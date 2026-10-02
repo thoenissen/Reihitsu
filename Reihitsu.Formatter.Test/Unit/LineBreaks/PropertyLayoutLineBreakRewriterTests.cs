@@ -1,3 +1,4 @@
+﻿using System;
 using System.Reflection;
 
 using Microsoft.CodeAnalysis.CSharp;
@@ -27,13 +28,13 @@ public class PropertyLayoutLineBreakRewriterTests
 
     /// <summary>
     /// Verifies that the private collapse helper returns the input node unchanged for a property with no
-    /// expression body, rather than <see langword="null"/>. The rewriter's only call site already guards this
-    /// with <c>node.ExpressionBody != null</c>, so the case is unreachable through formatting today; this test
+    /// expression body, rather than <see langword="null"/>. The rewriter's property and indexer call sites already
+    /// guard this with an <c>ExpressionBody != null</c> check, so the case is unreachable through formatting today; this test
     /// exercises the helper directly because a rewriter treats a <see langword="null"/> return as node removal,
     /// and a future call site that loses the guard must not delete the property
     /// </summary>
     [TestMethod]
-    public void CollapseExpressionBodiedPropertyReturnsNodeForAccessorListProperty()
+    public void CollapseExpressionBodyReturnsNodeForAccessorListProperty()
     {
         // Arrange
         const string source = """
@@ -50,12 +51,14 @@ public class PropertyLayoutLineBreakRewriterTests
 
         Assert.IsNull(property.ExpressionBody, "The fixture property must have no expression body for this boundary to be meaningful.");
 
-        var method = typeof(PropertyLayoutLineBreakRewriter).GetMethod("CollapseExpressionBodiedProperty", BindingFlags.NonPublic | BindingFlags.Static);
+        var method = typeof(PropertyLayoutLineBreakRewriter).GetMethod("CollapseExpressionBody", BindingFlags.NonPublic | BindingFlags.Static);
 
         Assert.IsNotNull(method, "The private collapse helper must still exist under this name for the reflection call to be meaningful.");
 
+        var getExpressionBody = new Func<PropertyDeclarationSyntax, ArrowExpressionClauseSyntax>(static declaration => declaration.ExpressionBody);
+
         // Act
-        var result = (PropertyDeclarationSyntax)method.Invoke(null, [property]);
+        var result = (PropertyDeclarationSyntax)method.MakeGenericMethod(typeof(PropertyDeclarationSyntax)).Invoke(null, [property, getExpressionBody]);
 
         // Assert
         Assert.IsNotNull(result, "An accessor-list property must be returned unchanged, not deleted.");

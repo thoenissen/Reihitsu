@@ -10,8 +10,9 @@ using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
-/// Structural transforms that convert expression-bodied members to block body and single-statement
-/// property and indexer accessors to expression body.
+/// Structural transforms that convert expression-bodied members to block body, single-statement
+/// property and indexer accessors to expression body, and get-only properties and indexers to
+/// expression-bodied members.
 /// Runs every enabled structural transform rewriter sequentially
 /// </summary>
 internal sealed class StructuralTransformPhase : IFormattingPhase
@@ -25,11 +26,13 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The ordered list of rewriters to execute</returns>
     /// <remarks>
-    /// <see cref="AccessorExpressionBodyTransform"/> runs after <see cref="ExpressionBodiedIndexerTransform"/>, so the
-    /// block-bodied getter that the indexer transform synthesizes is converted in the same pass instead of the next one.
-    /// It is the one configurable transform: it is left out when the context disables
-    /// <see cref="ConfigurableStructuralTransforms.AccessorExpressionBody"/>, and when the context's language version
-    /// predates expression-bodied accessors and throw expressions, both introduced with C# 7.0.
+    /// <see cref="AccessorExpressionBodyTransform"/> and <see cref="GetOnlyMemberExpressionBodyTransform"/> are the
+    /// configurable transforms: both are left out when the context disables
+    /// <see cref="ConfigurableStructuralTransforms.AccessorExpressionBody"/>. The accessor-level transform additionally
+    /// requires C# 7.0, which introduced expression-bodied accessors and throw expressions, and the member-level
+    /// transform requires C# 6.0, which introduced expression-bodied properties and indexers. The member-level
+    /// transform converts a block-bodied getter itself through the accessor-level conversion, so it does not depend on
+    /// running after the accessor-level transform and still lifts a getter in C# 6.0, where that transform is absent.
     /// Version gates read <see cref="FormattingContext.LanguageVersion"/> rather than a node's parse options: a node that
     /// an earlier rewriter replaced belongs to a new tree whose options fall back to the defaults, which would silently
     /// lift the gate
@@ -41,14 +44,20 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
                             new ControlFlowBraceTransform(context, cancellationToken),
                             new ExpressionBodiedMethodTransform(cancellationToken),
                             new ExpressionBodiedConstructorTransform(cancellationToken),
-                            new ExpressionBodiedOperatorTransform(cancellationToken),
-                            new ExpressionBodiedIndexerTransform(cancellationToken)
+                            new ExpressionBodiedOperatorTransform(cancellationToken)
                         };
 
-        if (context.IsStructuralTransformEnabled(ConfigurableStructuralTransforms.AccessorExpressionBody)
-            && context.LanguageVersion >= LanguageVersion.CSharp7)
+        if (context.IsStructuralTransformEnabled(ConfigurableStructuralTransforms.AccessorExpressionBody))
         {
-            rewriters.Add(new AccessorExpressionBodyTransform(context, cancellationToken));
+            if (context.LanguageVersion >= LanguageVersion.CSharp7)
+            {
+                rewriters.Add(new AccessorExpressionBodyTransform(context, cancellationToken));
+            }
+
+            if (context.LanguageVersion >= LanguageVersion.CSharp6)
+            {
+                rewriters.Add(new GetOnlyMemberExpressionBodyTransform(context, cancellationToken));
+            }
         }
 
         rewriters.AddRange([

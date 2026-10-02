@@ -111,7 +111,8 @@ public static class ReihitsuFormatter
     /// freshly generated or detached subtree produced by a code fix — that has no file header to
     /// inspect and is not expected to carry whole-file error diagnostics. Callers are responsible for
     /// passing a node that is safe to format. Like every node-level entry point, it keeps single-statement
-    /// accessor blocks instead of converting them to expression bodies. Version-dependent rules follow the language version
+    /// accessor blocks instead of converting them to expression bodies, and keeps the accessor list of get-only
+    /// properties and indexers instead of converting them to expression-bodied members. Version-dependent rules follow the language version
     /// of the node's syntax tree; a detached node carries the default parse options and is formatted for the newest
     /// supported version
     /// </remarks>
@@ -138,7 +139,8 @@ public static class ReihitsuFormatter
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new Document with only the targeted node formatted</returns>
     /// <remarks>
-    /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies,
+    /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies, and
+    /// get-only properties and indexers keep their accessor list rather than becoming expression-bodied members,
     /// including when the target is the document root, because this entry point serves code fixes.
     /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
     /// supported version. The blank lines above a target that starts its line are decided from its surroundings as they stand
@@ -215,7 +217,8 @@ public static class ReihitsuFormatter
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new Document with only the targeted node formatted</returns>
     /// <remarks>
-    /// Single-statement accessor blocks are kept rather than converted to expression bodies, because this entry point
+    /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties and
+    /// indexers keep their accessor list rather than becoming expression-bodied members, because this entry point
     /// serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
     /// to the newest supported version
     /// </remarks>

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -9,8 +10,8 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for property layout: expression-bodied property collapse and the
-/// accessor-list layout shared with indexers (<see cref="AccessorListLayout"/>)
+/// Applies line-break rules for property layout: the arrow placement of expression-bodied properties and
+/// indexers, and the property accessor-list layout shared with indexers (<see cref="AccessorListLayout"/>)
 /// </summary>
 internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -47,30 +48,37 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Collapses a multi-line expression-bodied property to a single line
+    /// Moves the arrow of an expression-bodied property or indexer and the first token of its expression onto the
+    /// line of the token that precedes the arrow — the property name or the indexer's closing bracket. The layout is
+    /// kept when either join would cross a comment, a directive, or disabled text
     /// </summary>
-    /// <param name="node">The property declaration with an expression body</param>
-    /// <returns>The property declaration collapsed to a single line, or unchanged when it has no expression body</returns>
-    private static PropertyDeclarationSyntax CollapseExpressionBodiedProperty(PropertyDeclarationSyntax node)
+    /// <typeparam name="TNode">The declaration type</typeparam>
+    /// <param name="node">The property or indexer declaration</param>
+    /// <param name="getExpressionBody">Gets the declaration's expression body</param>
+    /// <returns>The declaration with the arrow on the signature line, or unchanged when it has no expression body or the join is unsafe</returns>
+    private static TNode CollapseExpressionBody<TNode>(TNode node, Func<TNode, ArrowExpressionClauseSyntax> getExpressionBody)
+        where TNode : BasePropertyDeclarationSyntax
     {
-        if (node?.ExpressionBody == null)
+        var expressionBody = getExpressionBody(node);
+
+        if (expressionBody == null)
         {
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.ExpressionBody.ArrowToken.GetPreviousToken(), node.ExpressionBody.ArrowToken)
-            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.ExpressionBody.ArrowToken, node.ExpressionBody.Expression.GetFirstToken()))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(expressionBody.ArrowToken.GetPreviousToken(), expressionBody.ArrowToken)
+            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(expressionBody.ArrowToken, expressionBody.Expression.GetFirstToken()))
         {
             return node;
         }
 
         var updatedNode = node;
-        var arrowToken = updatedNode.ExpressionBody.ArrowToken;
+        var arrowToken = getExpressionBody(updatedNode).ArrowToken;
 
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(arrowToken) || LineBreakTriviaUtilities.HasTrailingEndOfLine(arrowToken.GetPreviousToken()))
         {
             updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, arrowToken);
-            arrowToken = updatedNode.ExpressionBody.ArrowToken;
+            arrowToken = getExpressionBody(updatedNode).ArrowToken;
         }
 
         if (arrowToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
@@ -78,15 +86,15 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             updatedNode = updatedNode.ReplaceToken(arrowToken, arrowToken.WithLeadingTrivia(arrowToken.LeadingTrivia.Add(SyntaxFactory.Space)));
         }
 
-        var firstExpressionToken = updatedNode.ExpressionBody.Expression.GetFirstToken();
+        var firstExpressionToken = getExpressionBody(updatedNode).Expression.GetFirstToken();
 
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstExpressionToken) || LineBreakTriviaUtilities.HasTrailingEndOfLine(firstExpressionToken.GetPreviousToken()))
         {
             updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, firstExpressionToken);
         }
 
-        arrowToken = updatedNode.ExpressionBody.ArrowToken;
-        firstExpressionToken = updatedNode.ExpressionBody.Expression.GetFirstToken();
+        arrowToken = getExpressionBody(updatedNode).ArrowToken;
+        firstExpressionToken = getExpressionBody(updatedNode).Expression.GetFirstToken();
 
         var previousToken = arrowToken.GetPreviousToken();
         var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
@@ -122,7 +130,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
         if (node.ExpressionBody != null)
         {
-            node = CollapseExpressionBodiedProperty(node);
+            node = CollapseExpressionBody(node, static declaration => declaration.ExpressionBody);
         }
 
         if (node.AccessorList != null)
@@ -131,6 +139,25 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
         }
 
         return node;
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Only the expression-bodied form is handled here; the accessor list of an indexer is laid out by
+    /// <see cref="DeclarationBraceLineBreakRewriter"/>
+    /// </remarks>
+    public override SyntaxNode VisitIndexerDeclaration(IndexerDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (IndexerDeclarationSyntax)base.VisitIndexerDeclaration(node);
+
+        if (node?.ExpressionBody == null)
+        {
+            return node;
+        }
+
+        return CollapseExpressionBody(node, static declaration => declaration.ExpressionBody);
     }
 
     #endregion // CSharpSyntaxVisitor

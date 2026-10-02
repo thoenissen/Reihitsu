@@ -112,6 +112,7 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
                                  public int X
                                  {
                                      get { return _x; }
+                                     set { _x = value; }
                                  }
                              }
                              """;
@@ -127,7 +128,44 @@ public class EmptyTypeDeclarationSemicolonLanguageVersionAfterEarlierTransformTe
                                     public int X
                                     {
                                         get => _x;
+                                        set => _x = value;
                                     }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected, At(LanguageVersion.CSharp11));
+    }
+
+    /// <summary>
+    /// Verifies that an empty class keeps its braced body below C# 12 when a get-only property becoming an expression-bodied
+    /// property is the earlier rewrite
+    /// </summary>
+    [TestMethod]
+    public void EmptyClassStaysBracedBelowCSharp12AfterGetOnlyMemberExpressionBodyTransform()
+    {
+        const string input = """
+                             public class A { }
+
+                             public class B
+                             {
+                                 private int _x;
+
+                                 public int X
+                                 {
+                                     get { return _x; }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class A
+                                {
+                                }
+
+                                public class B
+                                {
+                                    private int _x;
+
+                                    public int X => _x;
                                 }
                                 """;
 

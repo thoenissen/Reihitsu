@@ -5,8 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Tests verifying that converting an expression-bodied indexer produces the final layout in a single
-/// formatting pass, including the accessor-list opening brace
+/// Tests verifying that expression-bodied indexers stay expression-bodied and that their arrow and the first
+/// expression token are laid out on the line of the closing bracket, like expression-bodied properties
 /// </summary>
 [TestClass]
 public class ExpressionBodiedIndexerTests : FormatterTestsBase
@@ -14,11 +14,10 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer is converted to an expression-bodied get accessor and
-    /// that the generated accessor-list opening brace is placed on its own line by the first pass
+    /// Verifies that an expression-bodied indexer is kept
     /// </summary>
     [TestMethod]
-    public void IndexerConvertsToGetAccessorWithBraceOnOwnLine()
+    public void ExpressionBodiedIndexerRemainsUnchanged()
     {
         // Arrange
         const string input = """
@@ -29,28 +28,16 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                  public int this[int index] => _items[index];
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    private readonly int[] _items = [1, 2, 3];
-
-                                    public int this[int index]
-                                    {
-                                        get => _items[index];
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
-    /// Verifies that an explicitly implemented expression-bodied indexer is converted with the
-    /// accessor-list opening brace on its own line
+    /// Verifies that an explicitly implemented expression-bodied indexer is kept
     /// </summary>
     [TestMethod]
-    public void ExplicitInterfaceIndexerConvertsWithBraceOnOwnLine()
+    public void ExplicitInterfaceExpressionBodiedIndexerRemainsUnchanged()
     {
         // Arrange
         const string input = """
@@ -66,33 +53,16 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                  int IValues.this[int index] => _items[index];
                              }
                              """;
-        const string expected = """
-                                interface IValues
-                                {
-                                    int this[int index] { get; }
-                                }
-
-                                class C : IValues
-                                {
-                                    private readonly int[] _items = [1, 2, 3];
-
-                                    int IValues.this[int index]
-                                    {
-                                        get => _items[index];
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer throwing an exception is converted to a get accessor
-    /// that keeps the throw expression, with the accessor-list opening brace on its own line
+    /// Verifies that an indexer with a throw-expression body is kept
     /// </summary>
     [TestMethod]
-    public void ThrowExpressionIndexerConvertsToThrowingGetAccessor()
+    public void ThrowExpressionIndexerRemainsUnchanged()
     {
         // Arrange
         const string input = """
@@ -101,13 +71,33 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                  public int this[int index] => throw new NotSupportedException();
                              }
                              """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an arrow on its own line is joined onto the line of the closing bracket
+    /// </summary>
+    [TestMethod]
+    public void ArrowOnOwnLineJoinsClosingBracketLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private readonly int[] _items = [1, 2, 3];
+
+                                 public int this[int index]
+                                     => _items[index];
+                             }
+                             """;
         const string expected = """
                                 class C
                                 {
-                                    public int this[int index]
-                                    {
-                                        get => throw new NotSupportedException();
-                                    }
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                    public int this[int index] => _items[index];
                                 }
                                 """;
 
@@ -116,11 +106,39 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment between the arrow and the expression stays attached to the moved
-    /// opening brace, matching the expression-bodied method counterpart
+    /// Verifies that an expression on its own line after the arrow is joined onto the line of the closing bracket
     /// </summary>
     [TestMethod]
-    public void InlineCommentAfterArrowTrailsMovedOpenBrace()
+    public void ExpressionOnOwnLineJoinsClosingBracketLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private readonly int[] _items = [1, 2, 3];
+
+                                 public int this[int index] =>
+                                     _items[index];
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                    public int this[int index] => _items[index];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an inline comment between the arrow and the expression stays in place
+    /// </summary>
+    [TestMethod]
+    public void InlineCommentAfterArrowRemainsInPlace()
     {
         // Arrange
         const string input = """
@@ -131,28 +149,17 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                  public int this[int index] => /* inline */ _items[index];
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    private readonly int[] _items = [1, 2, 3];
-
-                                    public int this[int index]
-                                    {/* inline */
-                                        get => _items[index];
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
-    /// Verifies that an arrow already placed on its own line produces exactly one line break before
-    /// the opening brace and keeps the semicolon's trailing comment on the closing brace
+    /// Verifies that a line comment after the closing bracket keeps the arrow on its own line, because joining
+    /// the arrow would move it into the comment, exactly like the expression-bodied property counterpart
     /// </summary>
     [TestMethod]
-    public void ArrowOnOwnLineDoesNotDoubleTheLineBreak()
+    public void LineCommentAfterClosingBracketKeepsArrowOnOwnLine()
     {
         // Arrange
         const string input = """
@@ -170,9 +177,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                     private readonly int[] _items = [1, 2, 3];
 
                                     public int this[int index] // trailing
-                                    {
-                                        get => _items[index];
-                                    } // after
+                                    => _items[index]; // after
                                 }
                                 """;
 
@@ -225,11 +230,11 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an indexer inside an active conditional directive branch is converted with the
-    /// opening brace on its own line while the directives stay in column zero
+    /// Verifies that an expression-bodied indexer inside an active conditional directive branch is kept while the
+    /// directives stay in column zero
     /// </summary>
     [TestMethod]
-    public void IndexerInsideActiveDirectiveBranchConvertsWithBraceOnOwnLine()
+    public void IndexerInsideActiveDirectiveBranchRemainsUnchanged()
     {
         // Arrange
         const string input = """
@@ -242,22 +247,9 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                              #endif
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    private readonly int[] _items = [1, 2, 3];
-
-                                #if true
-                                    public int this[int index]
-                                    {
-                                        get => _items[index];
-                                    }
-                                #endif
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -280,6 +272,72 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between the closing bracket and the arrow keeps the arrow on its own line, exactly like the expression-bodied property counterpart
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBeforeArrowKeepsArrowOnOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private readonly int[] _items = [1, 2, 3];
+
+                                 public int this[int index]
+                             #pragma warning disable CS0618
+                                     => _items[index];
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                    public int this[int index]
+                                #pragma warning disable CS0618
+                                    => _items[index];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between the arrow and the expression keeps the expression on its own line, exactly like the expression-bodied property counterpart
+    /// </summary>
+    [TestMethod]
+    public void DirectiveAfterArrowKeepsExpressionOnOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private readonly int[] _items = [1, 2, 3];
+
+                                 public int this[int index] =>
+                             #pragma warning disable CS0618
+                                     _items[index];
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private readonly int[] _items = [1, 2, 3];
+
+                                    public int this[int index] =>
+                                #pragma warning disable CS0618
+                                    _items[index];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

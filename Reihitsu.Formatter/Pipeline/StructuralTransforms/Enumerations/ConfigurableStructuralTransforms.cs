@@ -15,7 +15,8 @@ internal enum ConfigurableStructuralTransforms
     None = 0,
 
     /// <summary>
-    /// Conversion of single-statement property and indexer accessor blocks to expression bodies
+    /// Normalization of property and indexer body forms: conversion of single-statement accessor blocks to
+    /// expression-bodied accessors, and of get-only accessor lists to expression-bodied members
     /// </summary>
     AccessorExpressionBody = 1
 }

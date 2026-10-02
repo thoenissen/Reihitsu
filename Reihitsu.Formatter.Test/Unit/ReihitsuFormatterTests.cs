@@ -20,7 +20,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     #region Constants
 
     /// <summary>
-    /// Formatted source whose property getter consists of a single return statement in a block body
+    /// Formatted source whose property getter and setter each consist of a single statement in a block body
     /// </summary>
     private const string BlockBodiedAccessorSource = """
                                                      class C
@@ -32,6 +32,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                                              get
                                                              {
                                                                  return _x;
+                                                             }
+                                                             set
+                                                             {
+                                                                 _x = value;
                                                              }
                                                          }
                                                      }
@@ -48,9 +52,49 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                                               public int X
                                                               {
                                                                   get => _x;
+                                                                  set => _x = value;
                                                               }
                                                           }
                                                           """;
+
+    /// <summary>
+    /// Formatted source whose get-only property keeps an accessor list with an expression-bodied getter
+    /// </summary>
+    private const string GetOnlyAccessorListSource = """
+                                                     class C
+                                                     {
+                                                         private int _x;
+
+                                                         public int X
+                                                         {
+                                                             get => _x;
+                                                         }
+                                                     }
+                                                     """;
+
+    /// <summary>
+    /// Document-level formatting result for <see cref="GetOnlyAccessorListSource"/>
+    /// </summary>
+    private const string ExpressionBodiedPropertySource = """
+                                                          class C
+                                                          {
+                                                              private int _x;
+
+                                                              public int X => _x;
+                                                          }
+                                                          """;
+
+    /// <summary>
+    /// Formatted source with an expression-bodied indexer
+    /// </summary>
+    private const string ExpressionBodiedIndexerSource = """
+                                                         class C
+                                                         {
+                                                             public int this[int index] => _items[index];
+
+                                                             private int[] _items;
+                                                         }
+                                                         """;
 
     #endregion // Constants
 
@@ -1478,7 +1522,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var result = ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            var accessor = result.DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            var accessor = result.DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
 
             Assert.IsNotNull(accessor.Body, $"Node-level formatting must keep the accessor block under {DescribeLineEnding(endOfLine)} line endings.");
             Assert.IsNull(accessor.ExpressionBody, $"Node-level formatting must not add an expression body under {DescribeLineEnding(endOfLine)} line endings.");
@@ -1609,59 +1653,110 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> converts an expression-bodied indexer to an
-    /// accessor list whose getter keeps its block, while document-level formatting converts that getter to an expression body
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps an expression-bodied indexer, because
+    /// node-level formatting serves code fixes, which must not rewrite an indexer's body form
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task FormatNodeInDocumentAsyncConvertsExpressionBodiedIndexerToBlockBodiedGetter()
+    public async Task FormatNodeInDocumentAsyncKeepsExpressionBodiedIndexer()
     {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int this[int index] => _items[index];
+        await AssertNodeLevelFormattingKeepsSource(ExpressionBodiedIndexerSource,
+                                                   static root => root.DescendantNodes().OfType<IndexerDeclarationSyntax>().Single(),
+                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+    }
 
-                                 private int[] _items;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    public int this[int index]
-                                    {
-                                        get
-                                        {
-                                            return _items[index];
-                                        }
-                                    }
-
-                                    private int[] _items;
-                                }
-                                """;
-
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatDocumentAsync"/> converts a get-only property to an
+    /// expression-bodied property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatDocumentAsyncConvertsGetOnlyPropertyToExpressionBodiedProperty()
+    {
         foreach (var endOfLine in _lineEndings)
         {
+            // Arrange
+            var input = NormalizeLineEndings(GetOnlyAccessorListSource, endOfLine);
+            var expected = NormalizeLineEndings(ExpressionBodiedPropertySource, endOfLine);
+
             using (var workspace = new AdhocWorkspace())
             {
                 var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-                var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
-                var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
-                var indexer = root?.DescendantNodes().OfType<IndexerDeclarationSyntax>().Single();
-
-                if (indexer == null)
-                {
-                    Assert.Fail("Expected an indexer declaration in the test document.");
-                }
+                var document = project.AddDocument("Test.cs", SourceText.From(input));
 
                 // Act
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, indexer, TestContext.CancellationToken);
+                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 // Assert
-                Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), resultText, $"Node-level formatting must keep the synthesized getter block under {DescribeLineEnding(endOfLine)} line endings.");
+                Assert.AreEqual(expected, resultText, $"Document-level formatting must convert the get-only property under {DescribeLineEnding(endOfLine)} line endings.");
             }
         }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> keeps the accessor list of a get-only property, because
+    /// node-level formatting serves code fixes, which must not rewrite a property's body form
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeKeepsGetOnlyAccessorList()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            // Arrange
+            var input = NormalizeLineEndings(GetOnlyAccessorListSource, endOfLine);
+            var root = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+            var property = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single();
+
+            // Act
+            var result = (PropertyDeclarationSyntax)ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken);
+
+            // Assert
+            Assert.IsNotNull(result.AccessorList, $"Node-level formatting must keep the accessor list under {DescribeLineEnding(endOfLine)} line endings.");
+            Assert.IsNull(result.ExpressionBody, $"Node-level formatting must not add a member expression body under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps the accessor list of a get-only
+    /// property when the target is the property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncKeepsGetOnlyAccessorList()
+    {
+        await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,
+                                                   static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
+                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps the accessor list of a get-only
+    /// property when the target is the document root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncOnRootKeepsGetOnlyAccessorList()
+    {
+        await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,
+                                                   static root => root,
+                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/> keeps the accessor list of a
+    /// get-only property formatted within the context of its containing class
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentWithContextAsyncKeepsGetOnlyAccessorList()
+    {
+        await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,
+                                                   static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
+                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
+                                                                                                                                                          target,
+                                                                                                                                                          target.Ancestors().OfType<ClassDeclarationSyntax>().First(),
+                                                                                                                                                          cancellationToken));
     }
 
     /// <summary>
@@ -1730,7 +1825,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 // Assert
-                Assert.AreEqual(input, resultText, $"Node-level formatting must keep the accessor block under {DescribeLineEnding(endOfLine)} line endings.");
+                Assert.AreEqual(input, resultText, $"Node-level formatting must keep the source unchanged under {DescribeLineEnding(endOfLine)} line endings.");
             }
         }
     }

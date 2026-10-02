@@ -284,10 +284,10 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer is converted to an accessor list with an expression-bodied get accessor
+    /// Verifies that an expression-bodied indexer is kept
     /// </summary>
     [TestMethod]
-    public void ConvertsExpressionBodiedIndexerToExpressionBodiedGetAccessor()
+    public void KeepsExpressionBodiedIndexer()
     {
         // Arrange
         const string input = """
@@ -298,11 +298,63 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                              }
                              """;
 
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a get-only property with an expression-bodied getter is converted to an expression-bodied property
+    /// </summary>
+    [TestMethod]
+    public void ConvertsGetOnlyPropertyToExpressionBodiedProperty()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int _value;
+                                 int Value { get => _value; }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int _value;
+                                    int Value => _value;
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a get-only indexer with a block-bodied getter is converted to an expression-bodied indexer
+    /// </summary>
+    [TestMethod]
+    public void ConvertsGetOnlyIndexerToExpressionBodiedIndexer()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int[] _data;
+                                 int this[int i] { get { return _data[i]; } }
+                             }
+                             """;
+
         const string expected = """
                                 class C
                                 {
                                     int[] _data;
-                                    int this[int i] {get => _data[i];}
+                                    int this[int i] => _data[i];
                                 }
                                 """;
 
@@ -505,10 +557,10 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer throwing an exception is converted to a get accessor that keeps the throw expression (not <c>return throw</c>)
+    /// Verifies that an expression-bodied indexer throwing an exception is kept
     /// </summary>
     [TestMethod]
-    public void ConvertsExpressionBodiedIndexerThrowingException()
+    public void KeepsExpressionBodiedIndexerThrowingException()
     {
         // Arrange
         const string input = """
@@ -518,18 +570,11 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    int this[int i] {get => throw new System.Exception();}
-                                }
-                                """;
-
         // Act
         var actual = ApplyPhase(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(input, actual);
     }
 
     /// <summary>
@@ -822,10 +867,10 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied indexer survives conversion.
+    /// Verifies that an expression-bodied indexer with a comment trailing the arrow token is kept unchanged
     /// </summary>
     [TestMethod]
-    public void PreservesCommentTrailingArrowInIndexer()
+    public void KeepsCommentTrailingArrowInIndexer()
     {
         // Arrange
         const string input = """
@@ -837,27 +882,18 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    int[] _data;
-                                    int this[int i] {// why
-                                get => _data[i];}
-                                }
-                                """;
-
         // Act
         var actual = ApplyPhase(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(input, actual);
     }
 
     /// <summary>
-    /// Verifies that a comment leading the semicolon token of an expression-bodied indexer survives conversion.
+    /// Verifies that an expression-bodied indexer with a comment leading the semicolon token is kept unchanged
     /// </summary>
     [TestMethod]
-    public void PreservesCommentLeadingSemicolonInIndexer()
+    public void KeepsCommentLeadingSemicolonInIndexer()
     {
         // Arrange
         const string input = """
@@ -870,21 +906,11 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    int[] _data;
-                                    int this[int i] {get{return_data[i]
-                                // why
-                                ;}}
-                                }
-                                """;
-
         // Act
         var actual = ApplyPhase(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(input, actual);
     }
 
     /// <summary>
