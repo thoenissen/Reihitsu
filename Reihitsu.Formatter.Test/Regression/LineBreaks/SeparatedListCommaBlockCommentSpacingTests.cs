@@ -5,7 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
-/// A block comment that follows a comma keeps the single space after that comma when the list is split one element per line
+/// The whitespace between a comma and a following block comment is kept as written when the list is split one element per line;
+/// only whitespace that would end the comma's line is removed
 /// </summary>
 [TestClass]
 public class SeparatedListCommaBlockCommentSpacingTests : FormatterTestsBase
@@ -616,6 +617,98 @@ public class SeparatedListCommaBlockCommentSpacingTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the space between a comma and a following block comment is kept when a wrapped parameter list with a directive in a later gap is split
+    /// </summary>
+    [TestMethod]
+    public void CommaFollowedByBlockCommentKeepsSpaceWhenParameterListWithDirectiveIsSplit()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void A(int a, /* c */ int b,
+                             #if DEBUG
+                                                 int c,
+                             #endif
+                                                 int d)
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void A(int a, /* c */
+                                                    int b,
+                                #if DEBUG
+                                                    int c,
+                                #endif
+                                                    int d)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the space between a comma and a following block comment is kept when a wrapped argument list with disabled text in a later gap is split
+    /// </summary>
+    [TestMethod]
+    public void CommaFollowedByBlockCommentKeepsSpaceWhenArgumentListWithDisabledTextIsSplit()
+    {
+        // Arrange
+        const string input = """
+                             namespace Demo;
+
+                             internal class Example
+                             {
+                                 internal void A(int a, int b, int c)
+                                 {
+                                 }
+
+                                 internal void B()
+                                 {
+                                     A(1, /* c */ 2,
+                             #if false
+                                       4,
+                             #endif
+                                       3);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal void A(int a, int b, int c)
+                                    {
+                                    }
+
+                                    internal void B()
+                                    {
+                                        A(1, /* c */
+                                          2,
+                                #if false
+                                          4,
+                                #endif
+                                          3);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
