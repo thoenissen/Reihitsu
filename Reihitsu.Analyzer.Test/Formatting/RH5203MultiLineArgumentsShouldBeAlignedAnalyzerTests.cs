@@ -51,6 +51,77 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     }
 
     /// <summary>
+    /// Verifying that an argument which follows a leading comma does not start its own line and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyArgumentAfterLeadingCommaIsNotReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Console.WriteLine("first" // keep
+                                                          , "second");
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an argument of an object creation which follows a leading comma is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyObjectCreationArgumentAfterLeadingCommaIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    TestClass(int first, int second)
+                                    {
+                                    }
+
+                                    void Method()
+                                    {
+                                        var value = new TestClass(1 // keep
+                                                                  , 2);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an argument which shares a continuation line with a previous argument is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyArgumentSharingAContinuationLineIsNotReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Console.WriteLine("{0} {1}",
+                                                          "second", "third");
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifying that misaligned arguments are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

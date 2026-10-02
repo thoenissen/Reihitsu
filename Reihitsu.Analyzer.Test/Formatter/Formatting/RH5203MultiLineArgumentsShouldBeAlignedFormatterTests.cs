@@ -55,5 +55,28 @@ public class RH5203MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTe
                               ExpectedDiagnostic(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, 9, 17, 9, 24, AnalyzerResources.RH5203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter's layout for a leading comma kept by a comment is stable and not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLeadingCommaLayoutIsStableAndNotReported()
+    {
+        const string source = """
+                              using System;
+
+                              internal class Example
+                              {
+                                  internal void Method()
+                                  {
+                                      Console.WriteLine("first" // keep
+                                                        , "second");
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
     #endregion // Tests
 }

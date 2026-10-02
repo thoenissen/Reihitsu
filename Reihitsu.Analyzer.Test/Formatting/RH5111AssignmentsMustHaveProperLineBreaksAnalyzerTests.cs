@@ -156,6 +156,42 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifying that a parameter default value whose equals sign was wrapped onto the next line is reported and that
+    /// the formatter-backed fix joins it in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForParameterDefaultValueWithEqualsOnNewLine()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        void Method(int {|#0:value
+                                            = 0|})
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         void Method(int value = 0)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying diagnostics for property declaration with equals on new line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
