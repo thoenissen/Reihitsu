@@ -408,6 +408,150 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying unnecessary parentheses in a throw expression of an expression-bodied accessor are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesInThrowExpressionAccessorAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X
+                                    {
+                                        get => throw {|#0:(new System.Exception())|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int X
+                                     {
+                                         get => throw new System.Exception();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses in a throw expression of an expression-bodied accessor are reported and fixed with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesInThrowExpressionAccessorCrlfAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X
+                                    {
+                                        get => throw {|#0:(new System.Exception())|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int X
+                                     {
+                                         get => throw new System.Exception();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode), Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses in a throw expression of an expression-bodied method are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesInThrowExpressionMethodAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run() => throw {|#0:(new System.Exception())|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int Run() => throw new System.Exception();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses in a throw expression on the right side of a coalesce are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesInThrowExpressionCoalesceAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public string Run(string text)
+                                    {
+                                        return text ?? throw {|#0:(new System.Exception())|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public string Run(string text)
+                                     {
+                                         return text ?? throw new System.Exception();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around an object creation in a throw statement are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesInThrowStatementWithObjectCreationAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        throw {|#0:(new System.Exception())|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public void Run()
+                                     {
+                                         throw new System.Exception();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
