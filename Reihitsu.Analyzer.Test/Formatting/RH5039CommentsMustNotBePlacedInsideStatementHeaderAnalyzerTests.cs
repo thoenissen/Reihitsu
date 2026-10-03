@@ -504,5 +504,64 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a comment before the block of a lambda inside an if header is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentBeforeLambdaBlockInHeader()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        if (((Func<bool>)(() =>
+                                            // body
+                                            {
+                                                return a;
+                                            }))())
+                                        {
+                                        }
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before a condition that starts a switch expression is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeConditionStartingWithSwitchExpressionIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        if (
+                                            {|#0:// classify|}
+                                            o switch
+                                            {
+                                                _ => true
+                                            })
+                                        {
+                                        }
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
+    }
+
     #endregion // Tests
 }

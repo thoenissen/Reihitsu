@@ -7,9 +7,10 @@ namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
 /// Base class for analyzers that report comments placed inside a delimited region such as a parameter list, an
-/// argument list, or a statement header. A gap inside a construct nested in the region that owns its own content
-/// (a block, an initializer, a switch expression, …) does not belong to the region, and a comment directly before a
-/// binary operator or before a later call of a fluent chain stays valid
+/// argument list, or a statement header. The innermost region containing the comment decides; a gap inside a
+/// construct nested in the region that lays out its own lines (a block, an initializer, a switch expression, …) does
+/// not belong to the region, and a comment directly before a binary operator or before a later call of a fluent chain
+/// stays valid
 /// </summary>
 public abstract class CommentRegionAnalyzerBase : CommentPositionAnalyzerBase
 {
@@ -72,17 +73,12 @@ public abstract class CommentRegionAnalyzerBase : CommentPositionAnalyzerBase
             return false;
         }
 
-        for (var node = CommentPositionUtilities.GetCommonAncestor(previousToken, nextToken); node != null; node = node.Parent)
+        for (var node = nextToken.Parent; node != null; node = node.Parent)
         {
             if (TryGetRegion(node, out var openToken, out var closeToken)
                 && CommentPositionUtilities.IsGapWithin(previousToken, nextToken, openToken, closeToken))
             {
-                return true;
-            }
-
-            if (CommentPositionUtilities.IsOwnedByConstruct(node, previousToken, nextToken))
-            {
-                return false;
+                return CommentPositionUtilities.IsOwnedByNestedConstruct(node, nextToken) == false;
             }
         }
 

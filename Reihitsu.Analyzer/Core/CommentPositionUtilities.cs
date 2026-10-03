@@ -95,42 +95,71 @@ internal static class CommentPositionUtilities
     }
 
     /// <summary>
-    /// Gets the smallest node that contains both tokens
+    /// Determines whether a gap inside a region belongs to a construct nested in the region rather than to the region
+    /// itself. A gap directly before one of the region's own tokens, or before the first token of one of its
+    /// elements, always belongs to the region. Any other gap belongs to the innermost construct between the token after
+    /// it and the region that lays out its own lines, as decided by <see cref="IsOwningConstruct"/>
     /// </summary>
-    /// <param name="previousToken">Token before the gap</param>
+    /// <param name="region">Region node</param>
     /// <param name="nextToken">Token after the gap</param>
-    /// <returns>The smallest node containing both tokens, or <see langword="null"/></returns>
-    internal static SyntaxNode GetCommonAncestor(SyntaxToken previousToken, SyntaxToken nextToken)
+    /// <returns><see langword="true"/> if a nested construct owns the gap</returns>
+    internal static bool IsOwnedByNestedConstruct(SyntaxNode region, SyntaxToken nextToken)
     {
-        return nextToken.Parent?.AncestorsAndSelf()
-                               .FirstOrDefault(node => node.SpanStart <= previousToken.SpanStart);
+        var element = nextToken.Parent;
+
+        if (element == region)
+        {
+            return false;
+        }
+
+        while (element != null
+               && element.Parent != region)
+        {
+            element = element.Parent;
+        }
+
+        if (element == null
+            || element.GetFirstToken() == nextToken)
+        {
+            return false;
+        }
+
+        for (var node = nextToken.Parent; node != null && node != region; node = node.Parent)
+        {
+            if (IsOwningConstruct(node, nextToken))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
-    /// Determines whether a construct owns the gap, so the gap does not belong to any list or header enclosing the
-    /// construct. Blocks, initializers, collection expressions, switch expressions, patterns, interpolation holes and
-    /// query expressions own every gap inside their own delimiters
+    /// Determines whether a node lays out the line of a token inside it itself - a brace scope, an initializer, an
+    /// anonymous object, a switch expression, the interior of a collection expression, a recursive, list, or
+    /// parenthesized pattern, an interpolation hole, or the clauses of a query. This is the same decision the
+    /// formatter's <c>ListElementInteriorUtilities.IsOwningConstruct</c> makes before it joins a line inside a list
+    /// element, and must stay in step with it
     /// </summary>
-    /// <param name="node">Node to check</param>
-    /// <param name="previousToken">Token before the gap</param>
-    /// <param name="nextToken">Token after the gap</param>
-    /// <returns><see langword="true"/> if the node owns the gap</returns>
-    internal static bool IsOwnedByConstruct(SyntaxNode node, SyntaxToken previousToken, SyntaxToken nextToken)
+    /// <param name="node">Node on the path from the token to the region</param>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> if the node owns the token's line</returns>
+    internal static bool IsOwningConstruct(SyntaxNode node, SyntaxToken token)
     {
         return node switch
                {
-                   BlockSyntax block => IsGapWithin(previousToken, nextToken, block.OpenBraceToken, block.CloseBraceToken),
-                   InitializerExpressionSyntax initializer => IsGapWithin(previousToken, nextToken, initializer.OpenBraceToken, initializer.CloseBraceToken),
-                   AnonymousObjectCreationExpressionSyntax anonymousObject => IsGapWithin(previousToken, nextToken, anonymousObject.OpenBraceToken, anonymousObject.CloseBraceToken),
-                   CollectionExpressionSyntax collection => IsGapWithin(previousToken, nextToken, collection.OpenBracketToken, collection.CloseBracketToken),
-                   SwitchExpressionSyntax switchExpression => IsGapWithin(previousToken, nextToken, switchExpression.OpenBraceToken, switchExpression.CloseBraceToken),
-                   PropertyPatternClauseSyntax propertyPattern => IsGapWithin(previousToken, nextToken, propertyPattern.OpenBraceToken, propertyPattern.CloseBraceToken),
-                   PositionalPatternClauseSyntax positionalPattern => IsGapWithin(previousToken, nextToken, positionalPattern.OpenParenToken, positionalPattern.CloseParenToken),
-                   ListPatternSyntax listPattern => IsGapWithin(previousToken, nextToken, listPattern.OpenBracketToken, listPattern.CloseBracketToken),
-                   ParenthesizedPatternSyntax parenthesizedPattern => IsGapWithin(previousToken, nextToken, parenthesizedPattern.OpenParenToken, parenthesizedPattern.CloseParenToken),
-                   InterpolationSyntax interpolation => IsGapWithin(previousToken, nextToken, interpolation.OpenBraceToken, interpolation.CloseBraceToken),
-                   QueryExpressionSyntax query => IsGapWithin(previousToken, nextToken, query.GetFirstToken(), query.GetLastToken()),
-                   _ => false
+                   CollectionExpressionSyntax collection => token != collection.OpenBracketToken,
+                   InitializerExpressionSyntax
+                   or AnonymousObjectCreationExpressionSyntax
+                   or SwitchExpressionSyntax
+                   or RecursivePatternSyntax
+                   or ListPatternSyntax
+                   or ParenthesizedPatternSyntax
+                   or AccessorListSyntax
+                   or InterpolationSyntax
+                   or QueryBodySyntax => true,
+                   _ => SyntaxIndentationUtilities.IsIndentingScope(node)
                };
     }
 
