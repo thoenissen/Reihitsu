@@ -660,7 +660,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     int Foo(){// why
-                                return        42;}
+                                return42;}
                                 }
                                 """;
 
@@ -823,7 +823,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     public static C operator +(C a, C b) {// why
-                                return        new C();}
+                                returnnew C();}
                                 }
                                 """;
 
@@ -932,7 +932,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 class C
                                 {
                                     public static implicit operator int(C c) {// why
-                                return        0;}
+                                return0;}
                                 }
                                 """;
 

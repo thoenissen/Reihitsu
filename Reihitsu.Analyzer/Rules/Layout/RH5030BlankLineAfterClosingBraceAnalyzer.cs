@@ -49,37 +49,11 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
         for (var statementIndex = 0; statementIndex < statements.Count - 1; statementIndex++)
         {
             var current = statements[statementIndex];
-            var next = statements[statementIndex + 1];
 
-            var lastToken = current.GetLastToken();
-
-            if (lastToken.IsKind(SyntaxKind.CloseBraceToken) == false)
+            if (BlankLineSpacingPolicy.RequiresBlankLineAfterClosingBrace(current, statements[statementIndex + 1]))
             {
-                continue;
+                context.ReportDiagnostic(CreateDiagnostic(current.GetLastToken().GetLocation()));
             }
-
-            if (BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(next))
-            {
-                continue;
-            }
-
-            var nextFirstToken = next.GetFirstToken();
-
-            if (TokenGapAnalysis.Between(lastToken, nextFirstToken).BlankLineCount > 0)
-            {
-                continue;
-            }
-
-            var lastLine = lastToken.GetLocation().GetLineSpan().EndLinePosition.Line;
-            var nextLine = nextFirstToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-            // Skip pairs that are on the same line (e.g. inline blocks like if (x) { } Consume();)
-            if (lastLine >= nextLine)
-            {
-                continue;
-            }
-
-            context.ReportDiagnostic(CreateDiagnostic(lastToken.GetLocation()));
         }
     }
 

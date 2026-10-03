@@ -309,9 +309,8 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment trailing the arrow token is preserved during conversion instead of being
-    /// silently dropped. The expression is intentionally flush left: an indented multi-line
-    /// expression body collapses onto the <c>return</c> keyword with extra whitespace regardless of any
-    /// comment, a separate, pre-existing formatter gap this test does not exercise
+    /// silently dropped. The expression is flush left; an indented expression on the next line is covered by
+    /// <see cref="ExpressionBodyNextLineExpressionTests"/>
     /// </summary>
     [TestMethod]
     public void PreservesCommentAfterArrow()

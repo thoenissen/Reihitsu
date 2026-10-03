@@ -1,0 +1,1247 @@
+﻿using System.Threading.Tasks;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
+using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Analyzer.Test.Base;
+
+namespace Reihitsu.Analyzer.Test.Formatting;
+
+/// <summary>
+/// Test methods for <see cref="RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer"/>
+/// </summary>
+[TestClass]
+public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer, RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider>
+{
+    #region Tests
+
+    /// <summary>
+    /// Verifying that an expression-bodied returning local function is detected and fixed to a return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyReturningLocalFunctionIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        return Double(value);
+
+                                        int Double(int x) {|#0:=> x * 2|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate(int value)
+                                      {
+                                          return Double(value);
+
+                                          int Double(int x)
+                                          {
+                                              return x * 2;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an expression-bodied void local function is fixed to an expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyVoidLocalFunctionIsFixedToExpressionStatement()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public void Run()
+                                    {
+                                        Log("start");
+
+                                        void Log(string message) {|#0:=> System.Console.WriteLine(message)|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public void Run()
+                                      {
+                                          Log("start");
+
+                                          void Log(string message)
+                                          {
+                                              System.Console.WriteLine(message);
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an expression-bodied async Task local function is fixed to an expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncTaskLocalFunctionIsFixedToExpressionStatement()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                internal class RH3208
+                                {
+                                    public Task RunAsync()
+                                    {
+                                        return WaitAsync();
+
+                                        async Task WaitAsync() {|#0:=> await Task.Delay(1)|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System.Threading.Tasks;
+
+                                  internal class RH3208
+                                  {
+                                      public Task RunAsync()
+                                      {
+                                          return WaitAsync();
+
+                                          async Task WaitAsync()
+                                          {
+                                              await Task.Delay(1);
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an expression-bodied async Task of T local function is fixed to a return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncGenericTaskLocalFunctionIsFixedToReturnStatement()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                internal class RH3208
+                                {
+                                    public Task<int> RunAsync()
+                                    {
+                                        return LoadAsync();
+
+                                        async Task<int> LoadAsync() {|#0:=> await Task.FromResult(1)|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System.Threading.Tasks;
+
+                                  internal class RH3208
+                                  {
+                                      public Task<int> RunAsync()
+                                      {
+                                          return LoadAsync();
+
+                                          async Task<int> LoadAsync()
+                                          {
+                                              return await Task.FromResult(1);
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a throw-expression-bodied local function is fixed to a throw statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyThrowExpressionBodiedLocalFunctionIsFixedToThrowStatement()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        return Fail();
+
+                                        int Fail() {|#0:=> throw new System.InvalidOperationException()|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          return Fail();
+
+                                          int Fail()
+                                          {
+                                              throw new System.InvalidOperationException();
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an expression-bodied local function inside a lambda block is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLocalFunctionInsideLambdaIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public System.Func<int, int> Create()
+                                    {
+                                        return value =>
+                                               {
+                                                   return Double(value);
+
+                                                   int Double(int x) {|#0:=> x * 2|};
+                                               };
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public System.Func<int, int> Create()
+                                      {
+                                          return value =>
+                                                 {
+                                                     return Double(value);
+
+                                                     int Double(int x)
+                                                     {
+                                                         return x * 2;
+                                                     }
+                                                 };
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an expression-bodied local function in top-level statements is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLocalFunctionInTopLevelStatementsIsDetectedAndFixed()
+    {
+        const string testData = """
+                                System.Console.WriteLine(Double(2));
+
+                                int Double(int x) {|#0:=> x * 2|};
+                                """;
+
+        const string resultData = """
+                                  System.Console.WriteLine(Double(2));
+
+                                  int Double(int x)
+                                  {
+                                      return x * 2;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     static test =>
+                            {
+                                test.TestState.OutputKind = OutputKind.ConsoleApplication;
+                                test.FixedState.OutputKind = OutputKind.ConsoleApplication;
+                            },
+                     Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a nested expression-bodied local function is converted together with its expression-bodied owner
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNestedLocalFunctionsAreBothFixed()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        return Outer(value);
+
+                                        int Outer(int x) {|#0:=> Apply(y =>
+                                                                {
+                                                                    return Inner(y);
+
+                                                                    int Inner(int z) {|#1:=> z + 1|};
+                                                                }, x)|};
+
+                                        int Apply(System.Func<int, int> function, int argument)
+                                        {
+                                            return function(argument);
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate(int value)
+                                      {
+                                          return Outer(value);
+
+                                          int Outer(int x)
+                                          {
+                                              return Apply(y =>
+                                                           {
+                                                               return Inner(y);
+
+                                                               int Inner(int z)
+                                                               {
+                                                                   return z + 1;
+                                                               }
+                                                           },
+                                                           x);
+                                          }
+
+                                          int Apply(System.Func<int, int> function, int argument)
+                                          {
+                                              return function(argument);
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     static test =>
+                            {
+                                // Fixing the outer function formats its whole body, which converts the inner function too
+                                test.NumberOfIncrementalIterations = 1;
+                                test.NumberOfFixAllIterations = -2;
+                            },
+                     Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that a block-bodied local function is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlockBodiedLocalFunctionIsNotReported()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        return Double(value);
+
+                                        int Double(int x)
+                                        {
+                                            return x * 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an extern local function without a body is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExternLocalFunctionWithoutBodyIsNotReported()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        return GetValue();
+
+                                        [System.Runtime.InteropServices.DllImport("native")]
+                                        static extern int GetValue();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a local function whose expression body carries a directive before the expression is not reported,
+    /// because the formatter refuses to rewrite it and the code fix could therefore not converge
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        return GetValue();
+
+                                        int GetValue() =>
+                                #pragma warning disable CS0618
+                                            1;
+                                #pragma warning restore CS0618
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a local function whose expression body carries a conditional group before the expression is not reported,
+    /// because the formatter refuses to move the group behind the generated return keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExpressionBodyWithConditionalGroupBeforeExpressionIsNotReported()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        return GetValue();
+
+                                        int GetValue() =>
+                                #if DEBUG
+                                            1;
+                                #else
+                                            2;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a local function whose expression body carries a directive after the expression is still reported
+    /// and fixed, because that directive travels into the generated statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        return GetValue();
+
+                                        int GetValue() {|#0:=> 1|}
+                                #pragma warning disable CS0618
+                                            ;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          return GetValue();
+
+                                          int GetValue()
+                                          {
+                                              return 1
+                                  #pragma warning disable CS0618
+                                              ;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a local function whose expression starts on the line after the arrow is fixed to a single-spaced return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExpressionOnNextLineIsFixedToSingleSpacedReturn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        return Double(value);
+
+                                        int Double(int x) {|#0:=>
+                                            x * 2|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate(int value)
+                                      {
+                                          return Double(value);
+
+                                          int Double(int x)
+                                          {
+                                              return x * 2;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix separates the converted local function from a directly following statement by a blank line,
+    /// so the closing brace it creates does not violate the blank-line-after-closing-brace rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStatementDirectlyAfterLocalFunctionIsSeparatedByBlankLine()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        var y = 1;
+                                        int Local() {|#0:=> y|};
+                                        var z = Local();
+
+                                        return z;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          var y = 1;
+                                          int Local()
+                                          {
+                                              return y;
+                                          }
+
+                                          var z = Local();
+
+                                          return z;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix separates the converted local function from a directly following statement in a switch section by a blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStatementDirectlyAfterLocalFunctionInSwitchSectionIsSeparatedByBlankLine()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                int Local() {|#0:=> 1|};
+                                                return Local();
+
+                                            default:
+                                                return 0;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate(int value)
+                                      {
+                                          switch (value)
+                                          {
+                                              case 1:
+                                                  int Local()
+                                                  {
+                                                      return 1;
+                                                  }
+
+                                                  return Local();
+
+                                              default:
+                                                  return 0;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix adds no blank line before a terminal break owned directly by the switch section,
+    /// because that break is exempt from the blank-line-after-closing-brace rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTerminalSwitchSectionBreakAfterLocalFunctionStaysAttached()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public void Run(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                void Log() {|#0:=> System.Console.WriteLine()|};
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public void Run(int value)
+                                      {
+                                          switch (value)
+                                          {
+                                              case 1:
+                                                  void Log()
+                                                  {
+                                                      System.Console.WriteLine();
+                                                  }
+                                                  break;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix keeps an existing single blank line between the converted local function and the following statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyExistingBlankLineAfterLocalFunctionIsKept()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        int Local() {|#0:=> 1|};
+
+                                        return Local();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          return Local();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix adds nothing after a converted local function that ends its block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLocalFunctionEndingItsBlockGetsNoTrailingBlankLine()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        return Local();
+                                        int Local() {|#0:=> 1|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          return Local();
+                                          int Local()
+                                          {
+                                              return 1;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a comment trailing the arrow and a comment trailing the semicolon both survive the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentsAroundExpressionBodySurviveFix()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        return Double(1) + Triple(1);
+
+                                        int Double(int x) {|#0:=> // why
+                                            x * 2|};
+
+                                        int Triple(int x) {|#1:=> x * 3|}; // because
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          return Double(1) + Triple(1);
+
+                                          int Double(int x)
+                                          {// why
+                                              return x * 2;
+                                          }
+
+                                          int Triple(int x)
+                                          {
+                                              return x * 3;
+                                          } // because
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that the fix separates a labeled local function from a directly following statement by a blank line,
+    /// because the label's statement ends with the closing brace the fix creates
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStatementDirectlyAfterLabeledLocalFunctionIsSeparatedByBlankLine()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        L: int Local() {|#0:=> 1|};
+                                        var z = Local();
+
+                                        return z;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          L: int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          var z = Local();
+
+                                          return z;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix separates a local function behind nested labels from a directly following statement by a blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStatementDirectlyAfterNestedLabeledLocalFunctionIsSeparatedByBlankLine()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        A: B: int Local() {|#0:=> 1|};
+                                        var z = Local();
+
+                                        return z;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          A: B: int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          var z = Local();
+
+                                          return z;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the blank line the fix inserts after the local function lands above a comment that leads the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineIsInsertedAboveCommentLeadingNextStatement()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        int Local() {|#0:=> 1|};
+                                        // note
+                                        var z = Local();
+
+                                        return z;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          // note
+                                          var z = Local();
+
+                                          return z;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the blank line the fix inserts after the local function lands behind a directive that leads the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineIsInsertedAfterDirectiveLeadingNextStatement()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        int Local() {|#0:=> 1|};
+                                #pragma warning disable CS0168
+                                        var z = Local();
+                                #pragma warning restore CS0168
+
+                                        return z;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          int Local()
+                                          {
+                                              return 1;
+                                          }
+                                  #pragma warning disable CS0168
+
+                                          var z = Local();
+                                  #pragma warning restore CS0168
+
+                                          return z;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a labeled local function that ends its block is indented from the label's statement column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLabeledLocalFunctionEndingItsBlockIsIndentedFromStatementColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public void Run()
+                                    {
+                                        goto L;
+                                        L: int Local() {|#0:=> 1|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public void Run()
+                                      {
+                                          goto L;
+                                          L: int Local()
+                                          {
+                                              return 1;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a labeled local function in a switch section is indented from the label's statement column and separated from the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLabeledLocalFunctionInSwitchSectionIsIndentedFromStatementColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                L: int Local() {|#0:=> 1|};
+                                                return Local();
+
+                                            default:
+                                                goto case 1;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate(int value)
+                                      {
+                                          switch (value)
+                                          {
+                                              case 1:
+                                                  L: int Local()
+                                                  {
+                                                      return 1;
+                                                  }
+
+                                                  return Local();
+
+                                              default:
+                                                  goto case 1;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a local function on the line below an outdented label is indented from its own column and separated from the next statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLocalFunctionBelowOutdentedLabelIsIndentedFromOwnColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        goto L;
+                                    L:
+                                        int Local() {|#0:=> 1|};
+                                        return Local();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          goto L;
+                                      L:
+                                          int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          return Local();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a local function on the line below an outdented label that ends its block is indented from its own column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLastLocalFunctionBelowOutdentedLabelIsIndentedFromOwnColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public void Run()
+                                    {
+                                        goto L;
+                                    L:
+                                        void Local() {|#0:=> System.Console.WriteLine()|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public void Run()
+                                      {
+                                          goto L;
+                                      L:
+                                          void Local()
+                                          {
+                                              System.Console.WriteLine();
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a local function sharing its line with an inner label below an outdented outer label is indented from that line's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLocalFunctionAfterInnerLabelBelowOutdentedLabelIsIndentedFromLineColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate()
+                                    {
+                                        goto A;
+                                    A:
+                                        B: int Local() {|#0:=> 1|};
+                                        return Local();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate()
+                                      {
+                                          goto A;
+                                      A:
+                                          B: int Local()
+                                          {
+                                              return 1;
+                                          }
+
+                                          return Local();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a local function ending its block on the line of an inner label below an outdented outer label is indented from that line's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLastLocalFunctionAfterInnerLabelBelowOutdentedLabelIsIndentedFromLineColumn()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public void Run()
+                                    {
+                                        goto A;
+                                    A:
+                                        B: void Local() {|#0:=> System.Console.WriteLine()|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public void Run()
+                                      {
+                                          goto A;
+                                      A:
+                                          B: void Local()
+                                          {
+                                              System.Console.WriteLine();
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class RH3208
+                                {
+                                    public int Calculate(int value)
+                                    {
+                                        int Double(int x) {|#0:=> x * 2|};
+                                        int Triple(int x) {|#1:=> x * 3|};
+                                        return Double(value) + Triple(value);
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3208
+                                  {
+                                      public int Calculate(int value)
+                                      {
+                                          int Double(int x)
+                                          {
+                                              return x * 2;
+                                          }
+
+                                          int Triple(int x)
+                                          {
+                                              return x * 3;
+                                          }
+
+                                          return Double(value) + Triple(value);
+                                      }
+                                  }
+                                  """;
+
+        // Verifies two adjacent expression-bodied local functions are fixed and separated from each other and from the
+        // following statement in one Fix All iteration
+        return new FixAllScenario(testData,
+                                  resultData,
+                                  Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat, 2),
+                                  static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    #endregion // BatchCodeFixTestsBase
+}
