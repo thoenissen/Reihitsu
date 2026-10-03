@@ -2,7 +2,7 @@
    <PropertyGroup>
       <LangVersion>latest</LangVersion>
 
-      <VersionPrefix>1.0.0</VersionPrefix>
+      <VersionPrefix>1.1.0</VersionPrefix>
       <!-- Beta counter; leave empty for a stable release -->
       <BetaNumber></BetaNumber>
       <!-- Release candidate counter; leave empty for a stable release -->
