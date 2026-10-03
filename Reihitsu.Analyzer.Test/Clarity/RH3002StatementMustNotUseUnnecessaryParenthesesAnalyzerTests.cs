@@ -2168,6 +2168,589 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
+    /// <summary>
+    /// Verifying parentheses around a null-forgiving conditional access assignment target are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundSuppressedConditionalAccessAssignmentTargetAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (_o?._f!) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a prefix unary assignment target whose operand is a null-forgiving conditional access are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundNegatedSuppressedConditionalAccessAssignmentTargetAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (-_o?._f!) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying only the redundant inner pair is reported when nested parentheses wrap a null-forgiving conditional access assignment target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedParenthesesAroundSuppressedConditionalAccessAssignmentTargetKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        ({|#0:(_o?._f!)|}) = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _o;
+                                     private int _f;
+
+                                     public void Run(bool condition)
+                                     {
+                                         (_o?._f!) = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around a null-forgiving identifier assignment target are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundSuppressedIdentifierAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private string _s;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:(_s!)|} = null;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private string _s;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _s! = null;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around a null-forgiving assignment target whose operand is parenthesized are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundSuppressedParenthesizedConditionalAccessAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:((_o?._f)!)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _o;
+                                     private int _f;
+
+                                     public void Run(bool condition)
+                                     {
+                                         (_o?._f)! = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a relational pattern assignment target whose expression is a conditional access are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundRelationalPatternAssignmentTargetEndingInConditionalAccessAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (_a is > _o?._f) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a combined pattern assignment target whose right pattern ends in a conditional access are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundCombinedPatternAssignmentTargetEndingInConditionalAccessAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (_a is > 1 and < _o?._f) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a negated constant pattern assignment target whose expression is a conditional access are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundNegatedPatternAssignmentTargetEndingInConditionalAccessAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (_a is not _o?._f) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around a relational pattern assignment target ending in a literal are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundRelationalPatternAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:(_a is > 5)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _a;
+                                     private int _b;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _a is > 5 = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around an assignment target ending in a parenthesized pattern are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundParenthesizedPatternAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+                                    private Test _o;
+                                    private int _f;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:(_a is (> _o?._f))|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _a;
+                                     private int _b;
+                                     private Test _o;
+                                     private int _f;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _a is (> _o?._f) = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a conditional access throw operand ending an assignment target are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundConditionalAccessThrowOperandEndingAnAssignmentTargetAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int? _n;
+                                    private System.Exception _e;
+
+                                    public void Run(bool condition)
+                                    {
+                                        _n ?? throw (_o?._e) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying only the throw operand parentheses are reported when an assignment target ends in a parenthesized conditional access throw operand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundCoalesceAssignmentTargetEndingInParenthesizedThrowOperandKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int? _n;
+                                    private System.Exception _e;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (_n ?? throw {|#0:(_o?._e)|}) = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _o;
+                                     private int? _n;
+                                     private System.Exception _e;
+
+                                     public void Run(bool condition)
+                                     {
+                                         (_n ?? throw _o?._e) = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying only the redundant inner pair is reported when nested parentheses wrap a conditional access await operand ending an assignment target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundConditionalAccessAwaitOperandEndingAnAssignmentTargetKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private Test _o;
+                                    private System.Threading.Tasks.Task<int> _t;
+
+                                    public async System.Threading.Tasks.Task Run(bool condition)
+                                    {
+                                        _a + await ({|#0:(_o?._t)|}) = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _a;
+                                     private Test _o;
+                                     private System.Threading.Tasks.Task<int> _t;
+
+                                     public async System.Threading.Tasks.Task Run(bool condition)
+                                     {
+                                         _a + await (_o?._t) = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around an await assignment target are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundAwaitAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private System.Threading.Tasks.Task<int> _t;
+
+                                    public async System.Threading.Tasks.Task Run(bool condition)
+                                    {
+                                        {|#0:(await _t)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private System.Threading.Tasks.Task<int> _t;
+
+                                     public async System.Threading.Tasks.Task Run(bool condition)
+                                     {
+                                         await _t = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around a binary assignment target whose right operand is a cast are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundBinaryAssignmentTargetEndingInCastAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:(_a + (int)_b)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _a;
+                                     private int _b;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _a + (int)_b = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around a coalesce assignment target whose right operand is a throw expression are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundCoalesceAssignmentTargetEndingInThrowAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int? _n;
+                                    private System.Exception _e;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:(_n ?? throw _e)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _o;
+                                     private int? _n;
+                                     private System.Exception _e;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _n ?? throw _e = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around a range assignment target are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundRangeAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:(_a.._b)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _a;
+                                     private int _b;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _a.._b = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around an assignment target that is a range without a right operand are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundOpenRangeAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        {|#0:(_a..)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _a;
+                                     private int _b;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _a.. = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

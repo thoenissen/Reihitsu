@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -77,24 +78,18 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Determine whether the inner expression keeps its meaning as the left operand of an assignment. Without the
-    /// parentheses, the assignment operator that follows would be parsed into the inner expression whenever that
-    /// expression ends, along its rightmost operand, in a conditional's false branch, an assignment's right operand, a
-    /// query's last clause, or a conditional access. The rightmost operand is followed through binary, prefix unary,
-    /// await, cast, throw, and range expressions, and the walk stops at any other node, because such a node closes
-    /// the expression before the assignment operator.
+    /// Determine whether the inner expression keeps its meaning when the parentheses are removed in front of an
+    /// assignment operator. Without the parentheses, the assignment operator would be parsed into the inner expression
+    /// whenever that expression ends, along its rightmost operand, in a conditional's false branch, an assignment's
+    /// right operand, a query's last clause, or a conditional access. The rightmost operand is followed through binary,
+    /// prefix unary, null-forgiving, await, cast, throw, range, and pattern expressions, and through nested parentheses
+    /// that are reported themselves, because those are removed as well. Any other node closes the expression before
+    /// the assignment operator.
     /// </summary>
     /// <param name="expressionSyntax">Expression syntax</param>
     /// <returns><see langword="true"/> if the expression is safe</returns>
     private static bool IsSafeAssignmentTarget(ExpressionSyntax expressionSyntax)
     {
-        // Nested parentheses are looked through, so that a target needing one pair keeps its outer pair unreported
-        // and only the redundant inner pairs are reported. Fix All therefore never removes the last pair
-        while (expressionSyntax is ParenthesizedExpressionSyntax parenthesizedExpression)
-        {
-            expressionSyntax = parenthesizedExpression.Expression;
-        }
-
         while (true)
         {
             switch (expressionSyntax)
@@ -105,12 +100,20 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                 case ConditionalAccessExpressionSyntax:
                     return false;
 
+                case ParenthesizedExpressionSyntax parenthesizedExpression when ShouldReport(parenthesizedExpression):
+                    expressionSyntax = parenthesizedExpression.Expression;
+                    break;
+
                 case BinaryExpressionSyntax binaryExpression:
                     expressionSyntax = binaryExpression.Right;
                     break;
 
                 case PrefixUnaryExpressionSyntax prefixUnaryExpression:
                     expressionSyntax = prefixUnaryExpression.Operand;
+                    break;
+
+                case PostfixUnaryExpressionSyntax postfixUnaryExpression when postfixUnaryExpression.IsKind(SyntaxKind.SuppressNullableWarningExpression):
+                    expressionSyntax = postfixUnaryExpression.Operand;
                     break;
 
                 case AwaitExpressionSyntax awaitExpression:
@@ -129,10 +132,59 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                     expressionSyntax = rightOperand;
                     break;
 
+                case IsPatternExpressionSyntax isPatternExpression when GetTrailingPatternExpression(isPatternExpression.Pattern) is { } patternExpression:
+                    expressionSyntax = patternExpression;
+                    break;
+
                 default:
                     return true;
             }
         }
+    }
+
+    /// <summary>
+    /// Get the expression a pattern ends in, following the rightmost operand of combined and negated patterns
+    /// </summary>
+    /// <param name="patternSyntax">Pattern syntax</param>
+    /// <returns>The trailing expression, or <see langword="null"/> if the pattern ends in a closing token or a type</returns>
+    private static ExpressionSyntax GetTrailingPatternExpression(PatternSyntax patternSyntax)
+    {
+        while (true)
+        {
+            switch (patternSyntax)
+            {
+                case ConstantPatternSyntax constantPattern:
+                    return constantPattern.Expression;
+
+                case RelationalPatternSyntax relationalPattern:
+                    return relationalPattern.Expression;
+
+                case UnaryPatternSyntax unaryPattern:
+                    patternSyntax = unaryPattern.Pattern;
+                    break;
+
+                case BinaryPatternSyntax binaryPattern:
+                    patternSyntax = binaryPattern.Right;
+                    break;
+
+                default:
+                    return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determine whether the parentheses are directly followed by the operator of an assignment, so that they end the
+    /// assignment's left operand
+    /// </summary>
+    /// <param name="parenthesizedExpression">Parenthesized expression</param>
+    /// <returns><see langword="true"/> if an assignment operator follows the parentheses</returns>
+    private static bool IsFollowedByAssignmentOperator(ParenthesizedExpressionSyntax parenthesizedExpression)
+    {
+        var nextToken = parenthesizedExpression.CloseParenToken.GetNextToken();
+
+        return nextToken.Parent is AssignmentExpressionSyntax assignmentExpression
+               && assignmentExpression.OperatorToken == nextToken;
     }
 
     /// <summary>
@@ -152,6 +204,15 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             return false;
         }
 
+        // Parentheses ending an assignment's left operand stay when the assignment operator would otherwise be parsed
+        // into the inner expression. This applies to every parent, because the pair does not have to be the left
+        // operand itself, for example the operand of a throw expression ending a coalesce target
+        if (IsFollowedByAssignmentOperator(parenthesizedExpression)
+            && IsSafeAssignmentTarget(innerExpression) == false)
+        {
+            return false;
+        }
+
         return parenthesizedExpression.Parent switch
                {
                    ParenthesizedExpressionSyntax => true,
@@ -161,7 +222,6 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                    EqualsValueClauseSyntax => true,
                    ArrowExpressionClauseSyntax => true,
                    ArgumentSyntax => true,
-                   AssignmentExpressionSyntax assignmentExpression when assignmentExpression.Left == parenthesizedExpression => IsSafeAssignmentTarget(innerExpression),
                    AssignmentExpressionSyntax => true,
                    MemberAccessExpressionSyntax memberAccessExpression when memberAccessExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression),
                    InvocationExpressionSyntax invocationExpression when invocationExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression),
