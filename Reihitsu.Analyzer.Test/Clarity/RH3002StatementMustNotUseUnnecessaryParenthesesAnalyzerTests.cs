@@ -2751,6 +2751,76 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
+    /// <summary>
+    /// Verifying unnecessary parentheses around an identifier throw operand ending an assignment target are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundThrowOperandEndingAnAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int? _n;
+                                    private System.Exception _e;
+
+                                    public void Run(bool condition)
+                                    {
+                                        _n ?? throw {|#0:(_e)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int? _n;
+                                     private System.Exception _e;
+
+                                     public void Run(bool condition)
+                                     {
+                                         _n ?? throw _e = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses around an identifier await operand ending an assignment target are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundAwaitOperandEndingAnAssignmentTargetAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private System.Threading.Tasks.Task<int> _t;
+
+                                    public async System.Threading.Tasks.Task Run(bool condition)
+                                    {
+                                        await {|#0:(_t)|} = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private System.Threading.Tasks.Task<int> _t;
+
+                                     public async System.Threading.Tasks.Task Run(bool condition)
+                                     {
+                                         await _t = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

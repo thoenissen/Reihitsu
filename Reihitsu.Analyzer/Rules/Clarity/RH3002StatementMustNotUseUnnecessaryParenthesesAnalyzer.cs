@@ -146,7 +146,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// Get the expression a pattern ends in, following the rightmost operand of combined and negated patterns
     /// </summary>
     /// <param name="patternSyntax">Pattern syntax</param>
-    /// <returns>The trailing expression, or <see langword="null"/> if the pattern ends in a closing token or a type</returns>
+    /// <returns>The trailing expression, or <see langword="null"/> if the pattern ends in a closing token, a type, a designation, or a discard</returns>
     private static ExpressionSyntax GetTrailingPatternExpression(PatternSyntax patternSyntax)
     {
         while (true)
