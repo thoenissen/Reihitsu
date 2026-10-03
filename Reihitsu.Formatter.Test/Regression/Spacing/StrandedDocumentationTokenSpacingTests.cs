@@ -248,6 +248,53 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a terminator keeps its indentation when a conditional directive sits between a stray documentation
+    /// comment and the terminator
+    /// </summary>
+    [TestMethod]
+    public void KeepsTerminatorIndentationWhenDirectiveFollowsStrayDocumentationComment()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M()
+                                 {
+                                     return 1 /// stray
+                             #if DEBUG
+                             #endif
+                                     ;
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a terminator keeps its indentation when disabled text sits between a stray documentation comment
+    /// and the terminator
+    /// </summary>
+    [TestMethod]
+    public void KeepsTerminatorIndentationWhenDisabledTextFollowsStrayDocumentationComment()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int M()
+                                 {
+                                     return 1 /// stray
+                             #if NEVER
+                                     + 2
+                             #endif
+                                     ;
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that the gap between a block comment and a terminator on the line below a stray documentation comment is
     /// still removed, because it lies on one line
     /// </summary>
