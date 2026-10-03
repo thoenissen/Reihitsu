@@ -210,6 +210,23 @@
     <Rule Id="RH5030" Action="Error" />
     <Rule Id="RH5031" Action="Error" />
     <Rule Id="RH5032" Action="Error" />
+    <Rule Id="RH5033" Action="Error" />
+    <Rule Id="RH5034" Action="Error" />
+    <Rule Id="RH5035" Action="Error" />
+    <Rule Id="RH5036" Action="Error" />
+    <Rule Id="RH5037" Action="Error" />
+    <Rule Id="RH5038" Action="Error" />
+    <Rule Id="RH5039" Action="Error" />
+    <Rule Id="RH5040" Action="Error" />
+    <Rule Id="RH5041" Action="Error" />
+    <Rule Id="RH5042" Action="Error" />
+    <Rule Id="RH5043" Action="Error" />
+    <Rule Id="RH5044" Action="Error" />
+    <Rule Id="RH5045" Action="Error" />
+    <Rule Id="RH5046" Action="Error" />
+    <Rule Id="RH5047" Action="Error" />
+    <Rule Id="RH5048" Action="Error" />
+    <Rule Id="RH5049" Action="Error" />
     <Rule Id="RH5101" Action="Error" />
     <Rule Id="RH5102" Action="Error" />
     <Rule Id="RH5103" Action="Error" />

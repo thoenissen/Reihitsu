@@ -136,6 +136,23 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5030](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5030.md)| Blank line after closing brace.| ✔| ✔| ✔|
 | [RH5031](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5031.md)| Region directives should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5032](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5032.md)| Region directives should be followed by a blank line.| ✔| ✔| ✔|
+| [RH5033](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5033.md)| Comments must not be placed between attributes and the declaration.| ✔| ❌| ❌|
+| [RH5034](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5034.md)| Comments must not be placed between a documentation comment and its declaration.| ✔| ❌| ❌|
+| [RH5035](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5035.md)| Comments must not be placed inside a parameter list.| ✔| ❌| ❌|
+| [RH5036](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5036.md)| Comments must not be placed between a statement header and its body.| ✔| ❌| ❌|
+| [RH5037](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5037.md)| Comments must not be placed before a continuation clause.| ✔| ❌| ❌|
+| [RH5038](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5038.md)| Comments must not be placed inside an argument list.| ✔| ❌| ❌|
+| [RH5039](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5039.md)| Comments must not be placed inside a statement header.| ✔| ❌| ❌|
+| [RH5040](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5040.md)| Comments must not be placed around the arrow of an expression-bodied member.| ✔| ❌| ❌|
+| [RH5041](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5041.md)| Comments must not be placed inside a declarator list.| ✔| ❌| ❌|
+| [RH5042](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5042.md)| Comments must not be placed around an assignment operator.| ✔| ❌| ❌|
+| [RH5043](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5043.md)| Comments must not be placed inside a base list.| ✔| ❌| ❌|
+| [RH5044](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5044.md)| Comments must not be placed inside an attribute list.| ✔| ❌| ❌|
+| [RH5045](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5045.md)| Comments must not be placed inside a conditional expression.| ✔| ❌| ❌|
+| [RH5046](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5046.md)| Comments must not be placed inside a type parameter, type argument or tuple list.| ✔| ❌| ❌|
+| [RH5047](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5047.md)| Comments must not be placed inside an auto-property accessor list.| ✔| ❌| ❌|
+| [RH5048](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5048.md)| Comments must not be placed before the first call of a wrapped chain.| ✔| ❌| ❌|
+| [RH5049](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5049.md)| Comments must not be placed after a binary operator.| ✔| ❌| ❌|
 | [RH5101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5101.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
 | [RH5102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5102.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
 | [RH5103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5103.md)| Code must not contain multiple statements on one line.| ✔| ✔| ✔|
