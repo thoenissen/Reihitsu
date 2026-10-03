@@ -77,6 +77,65 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
+    /// Determine whether the inner expression keeps its meaning as the left operand of an assignment. Without the
+    /// parentheses, the assignment operator that follows would be parsed into the inner expression whenever that
+    /// expression ends, along its rightmost operand, in a conditional's false branch, an assignment's right operand, a
+    /// query's last clause, or a conditional access. The rightmost operand is followed through binary, prefix unary,
+    /// await, cast, throw, and range expressions, and the walk stops at any other node, because such a node closes
+    /// the expression before the assignment operator.
+    /// </summary>
+    /// <param name="expressionSyntax">Expression syntax</param>
+    /// <returns><see langword="true"/> if the expression is safe</returns>
+    private static bool IsSafeAssignmentTarget(ExpressionSyntax expressionSyntax)
+    {
+        // Nested parentheses are looked through, so that a target needing one pair keeps its outer pair unreported
+        // and only the redundant inner pairs are reported. Fix All therefore never removes the last pair
+        while (expressionSyntax is ParenthesizedExpressionSyntax parenthesizedExpression)
+        {
+            expressionSyntax = parenthesizedExpression.Expression;
+        }
+
+        while (true)
+        {
+            switch (expressionSyntax)
+            {
+                case ConditionalExpressionSyntax:
+                case AssignmentExpressionSyntax:
+                case QueryExpressionSyntax:
+                case ConditionalAccessExpressionSyntax:
+                    return false;
+
+                case BinaryExpressionSyntax binaryExpression:
+                    expressionSyntax = binaryExpression.Right;
+                    break;
+
+                case PrefixUnaryExpressionSyntax prefixUnaryExpression:
+                    expressionSyntax = prefixUnaryExpression.Operand;
+                    break;
+
+                case AwaitExpressionSyntax awaitExpression:
+                    expressionSyntax = awaitExpression.Expression;
+                    break;
+
+                case CastExpressionSyntax castExpression:
+                    expressionSyntax = castExpression.Expression;
+                    break;
+
+                case ThrowExpressionSyntax throwExpression:
+                    expressionSyntax = throwExpression.Expression;
+                    break;
+
+                case RangeExpressionSyntax { RightOperand: { } rightOperand }:
+                    expressionSyntax = rightOperand;
+                    break;
+
+                default:
+                    return true;
+            }
+        }
+    }
+
+    /// <summary>
     /// Determine whether the parentheses are unnecessary
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
@@ -102,6 +161,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                    EqualsValueClauseSyntax => true,
                    ArrowExpressionClauseSyntax => true,
                    ArgumentSyntax => true,
+                   AssignmentExpressionSyntax assignmentExpression when assignmentExpression.Left == parenthesizedExpression => IsSafeAssignmentTarget(innerExpression),
                    AssignmentExpressionSyntax => true,
                    MemberAccessExpressionSyntax memberAccessExpression when memberAccessExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression),
                    InvocationExpressionSyntax invocationExpression when invocationExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression),
