@@ -38,7 +38,7 @@ Implement a new analyzer rule end to end, including tests and all required rule 
 - Follow the existing `AnalyzerTestsBase<TAnalyzer>` or `AnalyzerTestsBase<TAnalyzer, TCodeFix>` patterns.
 - Prefer many small, focused analyzer tests over one large test with many cases.
 - Use Roslyn markup such as `{|#0:...|}` for expected diagnostic locations.
-- If the rule needs user-facing rule documentation, use the `analyzer-rule-md` skill.
+- Write the user-facing rule documentation with the `analyzer-rule-md` skill: short, analyzer and code fix only (never the formatter), general limitations left to `documentation/rules/general-notes.md`, and the general-notes footer at the end.
 - If the rule needs new localized strings, use the `resource-texts` skill.
 - Formatting-aware code fixes should delegate final layout to `ReihitsuFormatter.FormatNodeInDocumentAsync` or `ReihitsuFormatter.FormatNode` instead of manually editing trivia.
 

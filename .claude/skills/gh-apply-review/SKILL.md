@@ -196,7 +196,7 @@ The official preflight is a final quality gate, not a discovery loop, and only t
 - **idempotency** — a second formatter pass over the output is a no-op, on LF and CRLF;
 - **comments and directives** — the relevant trivia shapes survive at sensible positions, or the edit is refused;
 - **comment and documentation consistency** — for **every method whose body changed**, re-read its XML summary and inline comments and confirm they still describe the code they sit next to; a comment left describing the previous behavior is a defect in the same diff that changed it;
-- **documentation** — the rule doc under `documentation/rules/` matches the shipped behavior;
+- **documentation** — the rule doc under `documentation/rules/` matches the shipped behavior and follows `create-rule-doc` — short, analyzer and code fix only (no formatter mention), nothing `documentation/rules/general-notes.md` already covers;
 - **changed-path formatting** — every changed C# path went through `scripts/format.sh`;
 - **focused tests** — the tests for the touched rule/phase pass at the current working tree.
 

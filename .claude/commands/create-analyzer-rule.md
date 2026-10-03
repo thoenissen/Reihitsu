@@ -39,46 +39,12 @@ Implement a new analyzer rule end to end, including tests and all required rule 
 
 ## Rule markdown format
 
-Write user-facing documentation under `documentation/rules/RH####.md`. Goal: help a developer understand what the rule means, why it exists, how to fix a violation, and what correct code looks like.
+Write the user-facing page `documentation/rules/RH####.md` by following [`create-rule-doc`](create-rule-doc.md) — it owns the required structure, the footer, and what must stay out of the page. In short:
 
-```md
-# RH#### — Rule title
-
-| Property | Value |
-|----------|-------|
-| **ID** | RH#### |
-| **Category** | Analyzer/Performance/Design/Clarity/Naming/Layout/Spacing/Organization/Documentation |
-| **Severity** | Warning |
-| **Code Fix** | ✓ or ❌ |
-
-## Description
-
-Short explanation of what the rule enforces.
-
-## Why is this a problem?
-
-Explain the readability, maintainability, correctness, or consistency problem from a user perspective.
-
-## How to fix it
-
-Give direct, practical advice.
-
-## Examples
-
-### Violation
-
-\`\`\`cs
-// violating example
-\`\`\`
-
-### Correction
-
-\`\`\`cs
-// corrected example
-\`\`\`
-```
-
-Keep the tone concise and practical. Write for **users of the analyzer**, not for analyzer maintainers. Do not include Roslyn API choices, syntax kinds, semantic model discussion, or any implementation-internal content.
+- Short and user-facing: what is reported, why, how to fix it, and a violation/correction example.
+- Describe the analyzer and its code fix only. Never mention the formatter or `reihitsu-format`.
+- Do not repeat what `documentation/rules/general-notes.md` already covers, such as comments and preprocessor directives blocking a report or a fix, generated code, or suppressing a rule.
+- End the page with the general-notes footer.
 
 ## Resource text guidance
 
