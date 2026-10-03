@@ -57,6 +57,25 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
+    /// Determine whether the inner expression keeps its meaning as the operand of a throw expression. The operand of a
+    /// throw expression is only parsed down to the null-coalescing level, so a conditional or an assignment would bind
+    /// the throw expression into itself once the parentheses are gone.
+    /// </summary>
+    /// <param name="expressionSyntax">Expression syntax</param>
+    /// <returns><see langword="true"/> if the expression is safe</returns>
+    private static bool IsSafeThrowExpressionOperand(ExpressionSyntax expressionSyntax)
+    {
+        // Nested parentheses are looked through, so that only the innermost redundant pair is reported and Fix All
+        // never removes the pair the operand depends on
+        while (expressionSyntax is ParenthesizedExpressionSyntax parenthesizedExpression)
+        {
+            expressionSyntax = parenthesizedExpression.Expression;
+        }
+
+        return expressionSyntax is not (ConditionalExpressionSyntax or AssignmentExpressionSyntax);
+    }
+
+    /// <summary>
     /// Determine whether the parentheses are unnecessary
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
@@ -78,6 +97,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                    ParenthesizedExpressionSyntax => true,
                    ReturnStatementSyntax => true,
                    ThrowStatementSyntax => true,
+                   ThrowExpressionSyntax => IsSafeThrowExpressionOperand(innerExpression),
                    EqualsValueClauseSyntax => true,
                    ArrowExpressionClauseSyntax => true,
                    ArgumentSyntax => true,

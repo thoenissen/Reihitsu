@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
@@ -38,9 +39,45 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
             return document;
         }
 
-        var updatedRoot = root.ReplaceNode(parenthesizedExpression, parenthesizedExpression.Expression.WithTriviaFrom(parenthesizedExpression));
+        var replacement = parenthesizedExpression.Expression.WithTriviaFrom(parenthesizedExpression);
+
+        if (RequiresSeparatingSpace(parenthesizedExpression, replacement))
+        {
+            replacement = replacement.WithLeadingTrivia(SyntaxFactory.Space);
+        }
+
+        var updatedRoot = root.ReplaceNode(parenthesizedExpression, replacement);
 
         return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Determine whether removing the opening parenthesis would merge the preceding token and the first token of the
+    /// inner expression into one token, as in <c>throw(value)</c> or <c>return(value)</c>. Only a gap without any
+    /// trivia qualifies, so user-authored trivia between the two tokens is never touched.
+    /// </summary>
+    /// <param name="parenthesizedExpression">Parenthesized expression</param>
+    /// <param name="replacement">Expression replacing the parenthesized expression</param>
+    /// <returns><see langword="true"/> if a space has to separate the two tokens</returns>
+    private static bool RequiresSeparatingSpace(ParenthesizedExpressionSyntax parenthesizedExpression, ExpressionSyntax replacement)
+    {
+        if (parenthesizedExpression.OpenParenToken.LeadingTrivia.Count > 0)
+        {
+            return false;
+        }
+
+        var previousToken = parenthesizedExpression.OpenParenToken.GetPreviousToken();
+
+        if (previousToken.RawKind == 0
+            || previousToken.TrailingTrivia.Count > 0)
+        {
+            return false;
+        }
+
+        var firstToken = replacement.GetFirstToken();
+        var mergedToken = SyntaxFactory.ParseToken(previousToken.Text + firstToken.Text);
+
+        return mergedToken.Text.Length > previousToken.Text.Length;
     }
 
     #endregion // Methods

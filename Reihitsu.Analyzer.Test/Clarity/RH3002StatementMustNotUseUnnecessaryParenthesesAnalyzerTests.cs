@@ -552,6 +552,529 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
+    /// <summary>
+    /// Verifying unnecessary parentheses around a coalesce operand of a throw expression are reported and fixed, because the operand binds at the coalesce level
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundCoalesceInThrowExpressionAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private System.Exception _exception;
+
+                                    public int X => throw {|#0:(_exception ?? new System.Exception())|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private System.Exception _exception;
+
+                                     public int X => throw _exception ?? new System.Exception();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a conditional operand of a throw expression are not reported, because removing them would make the throw expression the condition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NecessaryParenthesesAroundConditionalInThrowExpressionAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private bool _condition;
+
+                                    public int X => throw (_condition ? new System.Exception() : new System.InvalidOperationException());
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a conditional operand of a throw expression on the right side of a coalesce are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NecessaryParenthesesAroundConditionalInCoalesceThrowExpressionAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private bool _condition;
+
+                                    public string Run(string text)
+                                    {
+                                        return text ?? throw (_condition ? new System.Exception() : new System.InvalidOperationException());
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an assignment operand of a throw expression are not reported, because removing them would make the throw expression the assignment target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NecessaryParenthesesAroundAssignmentInThrowExpressionAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private System.Exception _exception;
+
+                                    public int X => throw (_exception = new System.Exception());
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a coalesce assignment operand of a throw expression are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NecessaryParenthesesAroundCoalesceAssignmentInThrowExpressionAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private System.Exception _exception;
+
+                                    public int X => throw (_exception ??= new System.Exception());
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a cast operand of a throw expression are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NecessaryParenthesesAroundCastInThrowExpressionAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private object _exception;
+
+                                    public int X => throw ((System.Exception)_exception);
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying nested unnecessary parentheses in a throw expression are both reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedUnnecessaryParenthesesInThrowExpressionAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private System.Exception _exception;
+
+                                    public int X => throw {|#0:({|#1:(_exception)|})|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private System.Exception _exception;
+
+                                     public int X => throw _exception;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 2, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+    }
+
+    /// <summary>
+    /// Verifying only the redundant inner pair is reported when nested parentheses wrap a conditional operand of a throw expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedParenthesesAroundConditionalInThrowExpressionKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private bool _condition;
+
+                                    public int X => throw ({|#0:(_condition ? new System.Exception() : new System.InvalidOperationException())|});
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private bool _condition;
+
+                                     public int X => throw (_condition ? new System.Exception() : new System.InvalidOperationException());
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying a comment inside the parentheses of a throw expression is reported but withholds the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInsideThrowExpressionParenthesesWithholdsTheCodeFix()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X => throw {|#0:(/* note */ new System.Exception())|};
+                                }
+                                """;
+
+        await Verify(testCode, testCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+
+        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ParenthesizedExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying a comment between the throw keyword and the parentheses of a throw expression is kept by the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeThrowExpressionParenthesesIsKept()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X => throw /* note */ {|#0:(new System.Exception())|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int X => throw /* note */ new System.Exception();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying multi-line unnecessary parentheses in a throw expression are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MultiLineUnnecessaryParenthesesInThrowExpressionAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X => throw {|#0:(
+                                        new System.Exception())|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int X => throw new System.Exception();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying unnecessary parentheses in several throw expressions of one document are reported and fixed together
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SeveralThrowExpressionsInOneDocumentAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X => throw {|#0:(new System.Exception())|};
+
+                                    public int Y => throw {|#1:(new System.InvalidOperationException())|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int X => throw new System.Exception();
+
+                                     public int Y => throw new System.InvalidOperationException();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+    }
+
+    /// <summary>
+    /// Verifying the code fix separates the throw keyword of a throw expression from the operand when no whitespace precedes the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ThrowExpressionWithoutSpaceBeforeParenthesesKeepsTheTokensSeparate()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X => throw{|#0:(new System.Exception())|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int X => throw new System.Exception();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix separates the throw keyword of a throw statement from the operand when no whitespace precedes the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ThrowStatementWithoutSpaceBeforeParenthesesKeepsTheTokensSeparate()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        throw{|#0:(new System.Exception())|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public void Run()
+                                     {
+                                         throw new System.Exception();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix separates the return keyword from an identifier operand when no whitespace precedes the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReturnWithoutSpaceBeforeParenthesesKeepsTheTokensSeparate()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run(int value)
+                                    {
+                                        return{|#0:(value)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int Run(int value)
+                                     {
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix separates the return keyword from a parenthesized member access target when no whitespace precedes the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReturnWithoutSpaceBeforeMemberAccessParenthesesKeepsTheTokensSeparate()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public string Run(int value)
+                                    {
+                                        return{|#0:(value)|}.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public string Run(int value)
+                                     {
+                                         return value.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix separates the await keyword from the operand when no whitespace precedes the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task AwaitWithoutSpaceBeforeParenthesesKeepsTheTokensSeparate()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public async System.Threading.Tasks.Task Run(System.Threading.Tasks.Task task)
+                                    {
+                                        await{|#0:(task)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public async System.Threading.Tasks.Task Run(System.Threading.Tasks.Task task)
+                                     {
+                                         await task;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix separates the ref keyword of an argument from the operand when no whitespace precedes the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RefArgumentWithoutSpaceBeforeParenthesesKeepsTheTokensSeparate()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run(int value)
+                                    {
+                                        Increment(ref{|#0:(value)|});
+                                    }
+
+                                    private static void Increment(ref int value)
+                                    {
+                                        value++;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public void Run(int value)
+                                     {
+                                         Increment(ref value);
+                                     }
+
+                                     private static void Increment(ref int value)
+                                     {
+                                         value++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix adds no whitespace when the keyword and the first operand token stay separate tokens without it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReturnWithoutSpaceBeforeUnaryOperandAddsNoSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run(int value)
+                                    {
+                                        return{|#0:(-value)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int Run(int value)
+                                     {
+                                         return-value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying the code fix adds no whitespace when trivia already separates the keyword from the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CommentBetweenKeywordAndParenthesesAddsNoSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int X => throw/* note */{|#0:(new System.Exception())|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     public int X => throw/* note */new System.Exception();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
