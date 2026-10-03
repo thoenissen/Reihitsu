@@ -134,5 +134,29 @@ public class RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzerTests : Ana
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a comment at the start of the file is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentAtStartOfFile()
+    {
+        const string testData = """
+                                // header
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var value = a && b;
+                                        _ = value;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

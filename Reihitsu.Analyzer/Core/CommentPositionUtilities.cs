@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
@@ -41,19 +43,8 @@ internal static class CommentPositionUtilities
     /// <returns><see langword="true"/> if the trivia is a documentation comment</returns>
     internal static bool IsDocumentationComment(SyntaxTrivia trivia)
     {
-        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-            || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-        {
-            return true;
-        }
-
-        if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-        {
-            return DocumentationAnalysisUtilities.IsDocumentationLine(trivia.ToString());
-        }
-
-        return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               && IsMultiLineDocumentationText(trivia.ToString());
+        return SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia)
+               || (SyntaxTriviaUtilities.IsCommentTrivia(trivia) && IsOrdinaryComment(trivia) == false);
     }
 
     /// <summary>
@@ -165,6 +156,47 @@ internal static class CommentPositionUtilities
     {
         return IsBinaryOperator(nextToken)
                || FluentChainAnalysisHelper.IsLaterChainLink(nextToken);
+    }
+
+    /// <summary>
+    /// Gets the header and the body of an <see langword="if"/>, <see langword="while"/>, <see langword="for"/>,
+    /// <see langword="foreach"/>, <see langword="using"/>, <see langword="lock"/>, or <see langword="fixed"/> statement.
+    /// The header runs from the statement keyword, or the <see langword="await"/> keyword when present, to the closing
+    /// parenthesis
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <param name="headerStart">First token of the header</param>
+    /// <param name="closeParenToken">Closing parenthesis of the header</param>
+    /// <param name="body">Embedded statement</param>
+    /// <returns><see langword="true"/> if the node is one of these statements</returns>
+    internal static bool TryGetStatementHeader(SyntaxNode node, out SyntaxToken headerStart, out SyntaxToken closeParenToken, out StatementSyntax body)
+    {
+        (headerStart, closeParenToken, body) = node switch
+                                               {
+                                                   IfStatementSyntax statement => (statement.IfKeyword, statement.CloseParenToken, statement.Statement),
+                                                   WhileStatementSyntax statement => (statement.WhileKeyword, statement.CloseParenToken, statement.Statement),
+                                                   ForStatementSyntax statement => (statement.ForKeyword, statement.CloseParenToken, statement.Statement),
+                                                   CommonForEachStatementSyntax statement => (GetHeaderStart(statement.AwaitKeyword, statement.ForEachKeyword), statement.CloseParenToken, statement.Statement),
+                                                   UsingStatementSyntax statement => (GetHeaderStart(statement.AwaitKeyword, statement.UsingKeyword), statement.CloseParenToken, statement.Statement),
+                                                   LockStatementSyntax statement => (statement.LockKeyword, statement.CloseParenToken, statement.Statement),
+                                                   FixedStatementSyntax statement => (statement.FixedKeyword, statement.CloseParenToken, statement.Statement),
+                                                   _ => (default, default, null)
+                                               };
+
+        return body != null;
+    }
+
+    /// <summary>
+    /// Gets the first token of a statement header, which is the <see langword="await"/> keyword when present
+    /// </summary>
+    /// <param name="awaitKeyword">Optional <see langword="await"/> keyword</param>
+    /// <param name="keyword">Statement keyword</param>
+    /// <returns>The first token of the header</returns>
+    private static SyntaxToken GetHeaderStart(SyntaxToken awaitKeyword, SyntaxToken keyword)
+    {
+        return awaitKeyword.IsKind(SyntaxKind.None)
+                   ? keyword
+                   : awaitKeyword;
     }
 
     /// <summary>

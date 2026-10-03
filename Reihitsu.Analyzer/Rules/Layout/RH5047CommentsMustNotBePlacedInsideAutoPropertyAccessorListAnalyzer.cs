@@ -38,7 +38,9 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     #region Methods
 
     /// <summary>
-    /// Determines whether the accessor list belongs to a property or an indexer whose accessors have no body
+    /// Determines whether the accessor list belongs to a property or an indexer whose accessors have no body. The
+    /// accessor test is the same one the formatter's <c>LineBreakDetection.IsAutoPropertyAccessorList</c> applies
+    /// before it lays out an accessor list, and must stay in step with it
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <returns><see langword="true"/> if the accessor list is an auto-property accessor list</returns>

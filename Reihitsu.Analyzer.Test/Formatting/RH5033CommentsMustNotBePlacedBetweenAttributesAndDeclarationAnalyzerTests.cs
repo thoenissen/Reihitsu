@@ -264,5 +264,52 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a comment at the start of the file is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentAtStartOfFile()
+    {
+        const string testData = """
+                                // header
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    [Obsolete]
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between two attributes of one attribute list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentInsideAttributeList()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    [Obsolete,
+                                        // compliance
+                                        CLSCompliant(false)]
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

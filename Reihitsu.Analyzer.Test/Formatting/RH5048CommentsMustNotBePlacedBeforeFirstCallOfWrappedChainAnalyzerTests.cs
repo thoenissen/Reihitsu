@@ -178,5 +178,94 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a comment inside a preprocessor directive before the first call of a wrapped chain is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentInsideDirectiveBeforeFirstCall()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var query = items
+                                        #if !UNDEFINED_SYMBOL // positive only
+                                        #endif
+                                            .Where(value => value > 0)
+                                            .ToList();
+                                        _ = query;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in disabled code before the first call of a wrapped chain is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentInDisabledCodeBeforeFirstCall()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var query = items
+                                        #if UNDEFINED_SYMBOL
+                                            // only positive
+                                        #endif
+                                            .Where(value => value > 0)
+                                            .ToList();
+                                        _ = query;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in active conditional code before the first call of a wrapped chain is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInActiveConditionalCodeBeforeFirstCallIsReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var query = items
+                                        #if !UNDEFINED_SYMBOL
+                                            {|#0:// only positive|}
+                                        #endif
+                                            .Where(value => value > 0)
+                                            .ToList();
+                                        _ = query;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+    }
+
     #endregion // Tests
 }

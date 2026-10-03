@@ -153,5 +153,65 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a comment at the start of the file is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentAtStartOfFile()
+    {
+        const string testData = """
+                                // header
+                                internal class TestClass
+                                {
+                                    private int _first, _second;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after the comma between enum members is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentAfterEnumMemberComma()
+    {
+        const string testData = """
+                                public enum Kind
+                                {
+                                    First,
+
+                                    // second
+                                    Second
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the semicolon of a return statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentBeforeReturnTerminator()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Method()
+                                    {
+                                        return 1
+                                            // terminator
+                                            ;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

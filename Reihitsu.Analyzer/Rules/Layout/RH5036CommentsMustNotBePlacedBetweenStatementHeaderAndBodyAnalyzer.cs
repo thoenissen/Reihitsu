@@ -40,19 +40,9 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer 
     /// <inheritdoc/>
     protected override bool IsMisplaced(SyntaxTrivia comment, SyntaxToken previousToken, SyntaxToken nextToken)
     {
-        var body = previousToken.Parent switch
-                   {
-                       IfStatementSyntax statement when statement.CloseParenToken == previousToken => statement.Statement,
-                       WhileStatementSyntax statement when statement.CloseParenToken == previousToken => statement.Statement,
-                       ForStatementSyntax statement when statement.CloseParenToken == previousToken => statement.Statement,
-                       CommonForEachStatementSyntax statement when statement.CloseParenToken == previousToken => statement.Statement,
-                       UsingStatementSyntax statement when statement.CloseParenToken == previousToken => statement.Statement,
-                       LockStatementSyntax statement when statement.CloseParenToken == previousToken => statement.Statement,
-                       FixedStatementSyntax statement when statement.CloseParenToken == previousToken => statement.Statement,
-                       _ => null
-                   };
-
-        return body != null
+        return previousToken.Parent != null
+               && CommentPositionUtilities.TryGetStatementHeader(previousToken.Parent, out _, out var closeParenToken, out var body)
+               && closeParenToken == previousToken
                && body.GetFirstToken() == nextToken;
     }
 

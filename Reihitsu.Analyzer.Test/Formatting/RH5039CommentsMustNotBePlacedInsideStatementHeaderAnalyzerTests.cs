@@ -407,5 +407,102 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a comment between await and foreach is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBetweenAwaitAndForeachIsReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Threading.Tasks;
+
+                                internal class TestClass
+                                {
+                                    async Task Method(IAsyncEnumerable<int> values)
+                                    {
+                                        await {|#0:/* each */|} foreach (var value in values)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment between await and using is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBetweenAwaitAndUsingIsReported()
+    {
+        const string testData = """
+                                using System.IO;
+                                using System.Threading.Tasks;
+
+                                internal class TestClass
+                                {
+                                    async Task Method()
+                                    {
+                                        await {|#0:/* dispose */|} using (var stream = new MemoryStream())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a fixed header is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInFixedHeaderIsReported()
+    {
+        const string testData = """
+                                internal unsafe class TestClass
+                                {
+                                    void Method(int[] items)
+                                    {
+                                        fixed ({|#0:/* pinned */|} int* pointer = items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject), Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the header and the body of an if statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentBetweenHeaderAndBody()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        if (a)
+                                            // explanation
+                                        {
+                                        }
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

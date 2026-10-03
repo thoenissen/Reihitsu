@@ -193,5 +193,23 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a comment at the start of the file is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentAtStartOfFile()
+    {
+        const string testData = """
+                                // header
+                                internal class TestClass
+                                {
+                                    public int Value => 42;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

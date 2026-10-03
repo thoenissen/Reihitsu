@@ -323,7 +323,7 @@ public class RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentBeforeNullForgivingOperatorIsReported()
+    public async Task VerifyCommentBetweenNullForgivingOperatorAndCallIsReported()
     {
         const string testData = """
                                 internal class TestClass
@@ -753,6 +753,104 @@ public class RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzerTests : Anal
                                 """;
 
         await Verify(testData, Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a property pattern inside an argument list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPropertyPatternMember()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        Run(o is string
+                                            {
+                                                // single character
+                                                Length: 1
+                                            });
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a positional pattern inside an argument list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForPositionalPatternElement()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        Run(o is (
+                                            // first
+                                            1, 2));
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a list pattern inside an argument list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForListPatternElement()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        Run(items is [
+                                            // first
+                                            1, 2]);
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a parenthesized pattern inside an argument list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForParenthesizedPatternElement()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        Run(o is not (int or
+                                            // wide
+                                            long));
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests
