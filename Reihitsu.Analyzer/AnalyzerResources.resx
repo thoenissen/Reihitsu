@@ -1521,6 +1521,108 @@
   <data name="RH5032MessageFormat" xml:space="preserve">
     <value>Region directives should be followed by a blank line</value>
   </data>
+  <data name="RH5033Title" xml:space="preserve">
+    <value>Comments must not be placed between attributes and the declaration</value>
+  </data>
+  <data name="RH5033MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed between attributes and the declaration</value>
+  </data>
+  <data name="RH5034Title" xml:space="preserve">
+    <value>Comments must not be placed between a documentation comment and its declaration</value>
+  </data>
+  <data name="RH5034MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed between a documentation comment and its declaration</value>
+  </data>
+  <data name="RH5035Title" xml:space="preserve">
+    <value>Comments must not be placed inside a parameter list</value>
+  </data>
+  <data name="RH5035MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside a parameter list</value>
+  </data>
+  <data name="RH5036Title" xml:space="preserve">
+    <value>Comments must not be placed between a statement header and its body</value>
+  </data>
+  <data name="RH5036MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed between a statement header and its body</value>
+  </data>
+  <data name="RH5037Title" xml:space="preserve">
+    <value>Comments must not be placed before a continuation clause</value>
+  </data>
+  <data name="RH5037MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed before a continuation clause</value>
+  </data>
+  <data name="RH5038Title" xml:space="preserve">
+    <value>Comments must not be placed inside an argument list</value>
+  </data>
+  <data name="RH5038MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside an argument list</value>
+  </data>
+  <data name="RH5039Title" xml:space="preserve">
+    <value>Comments must not be placed inside a statement header</value>
+  </data>
+  <data name="RH5039MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside a statement header</value>
+  </data>
+  <data name="RH5040Title" xml:space="preserve">
+    <value>Comments must not be placed around the arrow of an expression-bodied member</value>
+  </data>
+  <data name="RH5040MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed around the arrow of an expression-bodied member</value>
+  </data>
+  <data name="RH5041Title" xml:space="preserve">
+    <value>Comments must not be placed inside a declarator list</value>
+  </data>
+  <data name="RH5041MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside a declarator list</value>
+  </data>
+  <data name="RH5042Title" xml:space="preserve">
+    <value>Comments must not be placed around an assignment operator</value>
+  </data>
+  <data name="RH5042MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed around an assignment operator</value>
+  </data>
+  <data name="RH5043Title" xml:space="preserve">
+    <value>Comments must not be placed inside a base list</value>
+  </data>
+  <data name="RH5043MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside a base list</value>
+  </data>
+  <data name="RH5044Title" xml:space="preserve">
+    <value>Comments must not be placed inside an attribute list</value>
+  </data>
+  <data name="RH5044MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside an attribute list</value>
+  </data>
+  <data name="RH5045Title" xml:space="preserve">
+    <value>Comments must not be placed inside a conditional expression</value>
+  </data>
+  <data name="RH5045MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside a conditional expression</value>
+  </data>
+  <data name="RH5046Title" xml:space="preserve">
+    <value>Comments must not be placed inside a type parameter, type argument or tuple list</value>
+  </data>
+  <data name="RH5046MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside a type parameter, type argument or tuple list</value>
+  </data>
+  <data name="RH5047Title" xml:space="preserve">
+    <value>Comments must not be placed inside an auto-property accessor list</value>
+  </data>
+  <data name="RH5047MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed inside an auto-property accessor list</value>
+  </data>
+  <data name="RH5048Title" xml:space="preserve">
+    <value>Comments must not be placed before the first call of a wrapped chain</value>
+  </data>
+  <data name="RH5048MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed before the first call of a wrapped chain</value>
+  </data>
+  <data name="RH5049Title" xml:space="preserve">
+    <value>Comments must not be placed after a binary operator</value>
+  </data>
+  <data name="RH5049MessageFormat" xml:space="preserve">
+    <value>Comments must not be placed after a binary operator</value>
+  </data>
   <data name="RH7501Title" xml:space="preserve">
     <value>Break statements should not be inside explicit switch case blocks.</value>
   </data>

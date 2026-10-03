@@ -1,24 +1,25 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5112: Wrapped fluent calls should keep the first call on the original line
+/// RH5048: Comments must not be placed before the first call of a wrapped chain
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer : FluentChainAnalyzerBase
+public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer : FluentChainAnalyzerBase
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH5112";
+    public const string DiagnosticId = "RH5048";
 
     #endregion // Constants
 
@@ -27,8 +28,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5112Title), nameof(AnalyzerResources.RH5112MessageFormat))
+    public RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer()
+        : base(DiagnosticId, nameof(AnalyzerResources.RH5048Title), nameof(AnalyzerResources.RH5048MessageFormat))
     {
     }
 
@@ -44,13 +45,10 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
             return;
         }
 
-        if (SyntaxTriviaUtilities.ContainsUnjoinableTrivia(previousToken.TrailingTrivia)
-            || SyntaxTriviaUtilities.ContainsUnjoinableTrivia(firstLink.LeadingTrivia))
+        foreach (var comment in previousToken.TrailingTrivia.Concat(firstLink.LeadingTrivia).Where(CommentPositionUtilities.IsOrdinaryComment))
         {
-            return;
+            context.ReportDiagnostic(CreateDiagnostic(comment.GetLocation()));
         }
-
-        context.ReportDiagnostic(CreateDiagnostic(firstLink.GetLocation()));
     }
 
     #endregion // FluentChainAnalyzerBase

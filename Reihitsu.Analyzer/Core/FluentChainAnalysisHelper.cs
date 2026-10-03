@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
@@ -61,6 +62,94 @@ internal static class FluentChainAnalysisHelper
         links.Reverse();
 
         return links;
+    }
+
+    /// <summary>
+    /// Gets the outermost node of the chain the given member or conditional access belongs to
+    /// </summary>
+    /// <param name="node">A member access or conditional access expression of the chain</param>
+    /// <returns>The outermost member access or conditional access expression of the chain</returns>
+    internal static SyntaxNode GetOutermostChainNode(SyntaxNode node)
+    {
+        var current = node;
+
+        while (IsInnerChainMember(current))
+        {
+            var parent = current.Parent;
+
+            while (parent is InvocationExpressionSyntax or ElementAccessExpressionSyntax or PostfixUnaryExpressionSyntax)
+            {
+                parent = parent.Parent;
+            }
+
+            current = parent;
+        }
+
+        return current;
+    }
+
+    /// <summary>
+    /// Determines whether the token is a link of a fluent chain other than its first link. The first link is the one
+    /// <see cref="CollectChainLinks"/> returns first; every invoked call, null-forgiving operator, or conditional
+    /// access after it is a later link
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> if the token is a later chain link</returns>
+    internal static bool IsLaterChainLink(SyntaxToken token)
+    {
+        SyntaxNode owner = token.Parent switch
+                           {
+                               MemberAccessExpressionSyntax memberAccess when memberAccess.OperatorToken == token => memberAccess,
+                               PostfixUnaryExpressionSyntax postfixUnary when postfixUnary.OperatorToken == token
+                                                                              && postfixUnary.Parent is MemberAccessExpressionSyntax memberAccess
+                                                                              && memberAccess.Expression == postfixUnary => memberAccess,
+                               ConditionalAccessExpressionSyntax conditionalAccess when conditionalAccess.OperatorToken == token => conditionalAccess,
+                               _ => null
+                           };
+
+        if (owner == null)
+        {
+            return false;
+        }
+
+        return CollectChainLinks(GetOutermostChainNode(owner)).IndexOf(token) >= 1;
+    }
+
+    /// <summary>
+    /// Gets the first link of a chain whose first call is wrapped onto a later line than the token before it, unless
+    /// an intermediate member access precedes that call
+    /// </summary>
+    /// <param name="outermostNode">The outermost node of the chain</param>
+    /// <param name="firstLink">The first chain link token</param>
+    /// <param name="previousToken">The token before the first chain link</param>
+    /// <returns><see langword="true"/> if the chain's first call is wrapped</returns>
+    internal static bool TryGetWrappedFirstLink(SyntaxNode outermostNode, out SyntaxToken firstLink, out SyntaxToken previousToken)
+    {
+        firstLink = default;
+        previousToken = default;
+
+        var chainLinks = CollectChainLinks(outermostNode);
+
+        if (chainLinks.Count == 0)
+        {
+            return false;
+        }
+
+        firstLink = chainLinks[0];
+        previousToken = firstLink.GetPreviousToken();
+
+        if (previousToken == default
+            || previousToken.IsKind(SyntaxKind.None))
+        {
+            return false;
+        }
+
+        if (GetLine(firstLink) == GetLine(previousToken))
+        {
+            return false;
+        }
+
+        return HasIntermediateMemberAccess(firstLink) == false;
     }
 
     /// <summary>
