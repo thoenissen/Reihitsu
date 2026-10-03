@@ -49,6 +49,11 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
     /// comment belongs to the previous token's trailing trivia, the part after it to this token's leading trivia.
     /// The spacing rules only ever rewrite the first, so <c>[Obsolete /** why */ ]</c> keeps a space RH6014 reports
     /// however the previous token is normalized. Trimming here is what the exemption above owes the analyzers.
+    /// <para>
+    /// A single-line documentation comment is the exception: its text ends with the line break, so the whitespace
+    /// after it starts a physical line and is the token's indentation rather than a gap. No end-of-line trivia
+    /// separates the two tokens in that case, so no later phase would restore the indentation once it is removed.
+    /// </para>
     /// </remarks>
     private static SyntaxToken TrimGapBeforeToken(SyntaxToken token)
     {
@@ -56,7 +61,8 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
 
         if (leadingTrivia.Count < 2
             || leadingTrivia[leadingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia) == false
-            || ReihitsuFormatterHelpers.IsCommentTrivia(leadingTrivia[leadingTrivia.Count - 2]) == false)
+            || ReihitsuFormatterHelpers.IsCommentTrivia(leadingTrivia[leadingTrivia.Count - 2]) == false
+            || leadingTrivia[leadingTrivia.Count - 2].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
         {
             return token;
         }
