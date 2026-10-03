@@ -32,6 +32,11 @@ public class RuleDocumentationConventionTests
     /// </summary>
     private const string FooterLine = "See [General notes](general-notes.md) for behavior that applies to every rule: comments and preprocessor directives, generated code, and turning a rule off.";
 
+    /// <summary>
+    /// Footer block every rule page ends with, using LF line breaks
+    /// </summary>
+    private const string FooterBlock = "\n\n---\n\n" + FooterLine + "\n";
+
     #endregion // Constants
 
     #region Fields
@@ -54,6 +59,20 @@ public class RuleDocumentationConventionTests
         return Directory.EnumerateFiles(GetRuleDocumentationDirectory(), "RH*.md", SearchOption.TopDirectoryOnly)
                         .OrderBy(path => path, StringComparer.Ordinal)
                         .ToArray();
+    }
+
+    /// <summary>
+    /// Determines whether a rule page ends with <see cref="FooterBlock"/> and contains the footer line only once
+    /// </summary>
+    /// <param name="text">Rule page text</param>
+    /// <returns><see langword="true"/> when the page ends with the uniform footer; otherwise, <see langword="false"/></returns>
+    private static bool HasUniformFooter(string text)
+    {
+        var normalizedText = text.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+        return normalizedText.EndsWith(FooterBlock, StringComparison.Ordinal)
+               && normalizedText.EndsWith("\n" + FooterBlock, StringComparison.Ordinal) == false
+               && normalizedText.IndexOf(FooterLine, StringComparison.Ordinal) == normalizedText.LastIndexOf(FooterLine, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -110,18 +129,27 @@ public class RuleDocumentationConventionTests
     #region Tests
 
     /// <summary>
-    /// Verifies that the general notes page exists and every rule page ends with the footer that links it
+    /// Verifies that the general notes page the footer links to exists
+    /// </summary>
+    [TestMethod]
+    public void GeneralNotesDocumentExists()
+    {
+        Assert.IsTrue(File.Exists(Path.Combine(GetRuleDocumentationDirectory(), GeneralNotesFileName)), $"documentation/rules/{GeneralNotesFileName} is missing.");
+    }
+
+    /// <summary>
+    /// Verifies that every rule page ends with exactly the same footer block - a blank line, a horizontal rule, a blank
+    /// line, the general-notes link, and a single final line break - and carries that link nowhere else, so all pages
+    /// end uniformly
     /// </summary>
     [TestMethod]
     public void EveryRuleDocumentEndsWithGeneralNotesFooter()
     {
-        Assert.IsTrue(File.Exists(Path.Combine(GetRuleDocumentationDirectory(), GeneralNotesFileName)), $"documentation/rules/{GeneralNotesFileName} is missing.");
-
-        var failures = GetRuleDocumentPaths().Where(path => File.ReadLines(path).LastOrDefault(line => string.IsNullOrWhiteSpace(line) == false) != FooterLine)
+        var failures = GetRuleDocumentPaths().Where(path => HasUniformFooter(File.ReadAllText(path)) == false)
                                              .Select(Path.GetFileName)
                                              .ToArray();
 
-        Assert.IsEmpty(failures, $"The following rule documents do not end with the general-notes footer '{FooterLine}':{Environment.NewLine}{string.Join(Environment.NewLine, failures)}");
+        Assert.IsEmpty(failures, $"The following rule documents do not end with the general-notes footer block '{FooterBlock.Replace("\n", "\\n", StringComparison.Ordinal)}':{Environment.NewLine}{string.Join(Environment.NewLine, failures)}");
     }
 
     /// <summary>
