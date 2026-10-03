@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{9181B59D-77D7-4315-96E3-A70028F84346}"
 	ProjectSection(SolutionItems) = preProject
+		documentation\rules\general-notes.md = documentation\rules\general-notes.md
 		documentation\rules\RH0001.md = documentation\rules\RH0001.md
 		documentation\rules\RH0002.md = documentation\rules\RH0002.md
 		documentation\rules\RH1001.md = documentation\rules\RH1001.md

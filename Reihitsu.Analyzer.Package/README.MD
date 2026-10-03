@@ -12,6 +12,8 @@ dotnet add package Reihitsu.Analyzer
 
 ## Rules
 
+Behavior that applies to every rule — comments and preprocessor directives, generated code, and turning a rule off — is described in the [general notes](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/general-notes.md).
+
 The **Formatter** column indicates whether running the Reihitsu formatter can automatically correct the rule without relying on an analyzer code fix.
 
 | ID| Description| Analyzer| Code Fix| Formatter|

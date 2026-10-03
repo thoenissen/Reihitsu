@@ -34,7 +34,7 @@ Reproduce the reported analyzer problem first, then implement the fix without we
 - Keep the fix scoped to the reported analyzer behavior unless tightly coupled logic also requires adjustment.
 - Prefer many small, focused analyzer tests over one large test with many cases.
 - If the bug affects a code fix, prefer the formatter-backed code-fix pattern already used in the repository.
-- If the user-facing rule documentation becomes inaccurate because of the fix, update it as part of the change.
+- If the user-facing rule documentation becomes inaccurate because of the fix, update it as part of the change. Follow the `analyzer-rule-md` skill: keep the page short, never mention the formatter, and do not add limitations that `documentation/rules/general-notes.md` already covers.
 
 ## Validation
 

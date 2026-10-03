@@ -605,7 +605,7 @@ Check, concretely:
 - **idempotency** — a second formatter pass over the output is a no-op, on LF and CRLF;
 - **comments and directives** — the trivia shapes the contract marked relevant survive at sensible positions, or the edit is refused;
 - **comment and documentation consistency** — for **every method whose body changed**, re-read its XML summary and its inline comments and confirm they still describe the code they sit next to. A comment that documents the previous behavior is a defect in the same diff that changed it, and it is the single most common thing an audit returns once everything else is right;
-- **documentation** — `documentation/rules/RH####.md` matches the shipped behavior when a rule changed;
+- **documentation** — `documentation/rules/RH####.md` matches the shipped behavior when a rule changed and follows `create-rule-doc` — short, analyzer and code fix only (no formatter mention), nothing `documentation/rules/general-notes.md` already covers;
 - **changed-path formatting** — every changed C# path went through `scripts/format.ps1 -NoInstall`;
 - **focused tests** — the tests for the changed rule/phase pass at the current working tree.
 - **cancellation unit tests** — every changed cancellation-aware traversal observes cancellation inside its
