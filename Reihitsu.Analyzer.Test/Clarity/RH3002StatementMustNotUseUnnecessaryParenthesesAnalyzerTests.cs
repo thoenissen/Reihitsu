@@ -1315,6 +1315,98 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
+    /// <summary>
+    /// Verifying parentheses around a ref conditional simple assignment target are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundRefConditionalAssignmentTargetAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (condition ? ref _a : ref _b) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a ref conditional compound assignment target are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundRefConditionalCompoundAssignmentTargetAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (condition ? ref _a : ref _b) += 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a ref conditional coalesce assignment target are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundRefConditionalCoalesceAssignmentTargetAreNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int? _a;
+                                    private int? _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (condition ? ref _a : ref _b) ??= 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a ref conditional simple assignment target are not reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundRefConditionalAssignmentTargetAreNotReportedWithCrLf()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _a;
+                                    private int _b;
+
+                                    public void Run(bool condition)
+                                    {
+                                        (condition ? ref _a : ref _b) = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
