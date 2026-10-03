@@ -137,8 +137,10 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
 
     /// <summary>
     /// Determine whether two token texts written without any separation would be lexed differently than as the left
-    /// token followed by the right one. The C# lexer decides this, so the check is exact for every token pair: a longer
-    /// first token covers <c>return</c> + <c>value</c>, and leading trivia covers a comment start such as <c>/</c> + <c>/</c>.
+    /// token followed by the right one. The C# lexer decides this, so the check is exact for every token pair this fix
+    /// can place next to each other: a longer first token covers <c>return</c> + <c>value</c>, and leading trivia covers
+    /// a comment start such as <c>/</c> + <c>/</c>. Pairs the parser rather than the lexer composes, such as <c>&gt;</c>
+    /// + <c>&gt;</c>, are not covered and cannot arise next to a removed parenthesis.
     /// </summary>
     /// <param name="left">Text of the left token</param>
     /// <param name="right">Text of the right token</param>
