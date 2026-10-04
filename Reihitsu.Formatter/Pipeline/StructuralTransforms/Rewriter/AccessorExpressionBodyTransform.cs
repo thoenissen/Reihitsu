@@ -298,7 +298,10 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// null-coalescing level. A bare conditional or assignment would therefore bind the throw expression inside it,
     /// which does not compile, a bare lambda would not parse, and a bare query draws the precedence warning CS8848.
     /// Only the top-level node decides: a looser node nested below a tighter one, or an operand that is already
-    /// parenthesized, re-parses unchanged
+    /// parenthesized, re-parses unchanged. RH3002 rests on the same parse fact but answers the opposite question —
+    /// whether an existing pair around a throw-expression operand may be removed — after unwrapping nested pairs,
+    /// and it leaves lambda pairs to its general exclusion; this predicate only decides whether the conversion must
+    /// add a pair to the operand as written
     /// </remarks>
     private static bool RequiresThrowExpressionParentheses(ExpressionSyntax operand)
     {

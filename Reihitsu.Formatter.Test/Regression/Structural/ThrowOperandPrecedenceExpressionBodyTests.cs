@@ -700,6 +700,41 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a switch expression operand stays bare, because it binds more tightly than a throw expression's
+    /// operand
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionGetterOperandStaysBare()
+    {
+        // Arrange
+        const string input = """
+                             public class Test
+                             {
+                                 private int _value;
+
+                                 public int X
+                                 {
+                                     get { throw _value switch { 0 => new System.Exception(), _ => new System.InvalidOperationException() }; }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class Test
+                                {
+                                    private int _value;
+
+                                    public int X => throw _value switch
+                                                          {
+                                                              0 => new System.Exception(), _ => new System.InvalidOperationException()
+                                                          };
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a nested conditional operand receives exactly one outer pair of parentheses
     /// </summary>
     [TestMethod]
@@ -1033,7 +1068,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
         var expected = Format(authored);
 
         // Act & Assert
-        Assert.Contains("throw (_condition", expected);
+        Assert.Contains("public int X => throw (_condition", expected);
         AssertRuleResult(input, expected);
     }
 
