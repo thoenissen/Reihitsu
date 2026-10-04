@@ -14,7 +14,8 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 /// Converts block-bodied <c>get</c>, <c>set</c>, and <c>init</c> accessors whose body consists of exactly one
 /// convertible statement into expression-bodied accessors. A getter's <c>return e;</c> becomes <c>=> e;</c>, a
 /// setter's or initializer's expression statement <c>e;</c> becomes <c>=> e;</c>, and a <c>throw e;</c> in any of
-/// them becomes the throw expression <c>=> throw e;</c>. The accessor keeps its attributes, modifiers, and position
+/// them becomes the throw expression <c>=> throw e;</c>, with <c>e</c> parenthesized when it binds more loosely than a
+/// throw expression's operand. The accessor keeps its attributes, modifiers, and position
 /// in the accessor list. The block is kept whenever a comment, directive, or disabled text sits in trivia the
 /// rewrite would delete or join onto another line, because moving it would change its position relative to the code.
 /// The one exception is a comment trailing the statement's semicolon or the closing brace: it already ends the
@@ -227,7 +228,9 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
     /// <c>return</c> with a value (never <c>return throw …;</c>, which does not compile) or a <c>throw</c> with an
     /// operand. A setter or initializer produces no value, so it accepts an expression statement or a <c>throw</c>
     /// with an operand. A rethrow without an operand has no throw-expression form, and every other statement kind —
-    /// <c>yield return</c>, declarations, compound statements — has no expression form at all
+    /// <c>yield return</c>, declarations, compound statements — has no expression form at all. A throw operand that
+    /// <see cref="RequiresThrowExpressionParentheses"/> flags is wrapped in parentheses, so the throw expression keeps
+    /// the operand the statement had
     /// </remarks>
     private static bool TryGetConvertibleExpression(AccessorDeclarationSyntax accessor,
                                                     StatementSyntax statement,
@@ -248,7 +251,15 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
         {
             case ThrowStatementSyntax { Expression: not null } throwStatement:
                 {
-                    expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+                    var operand = throwStatement.Expression;
+
+                    if (RequiresThrowExpressionParentheses(operand))
+                    {
+                        operand = SyntaxFactory.ParenthesizedExpression(operand.WithoutTrivia())
+                                               .WithTriviaFrom(operand);
+                    }
+
+                    expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, operand);
                     semicolonToken = throwStatement.SemicolonToken;
                 }
                 break;
@@ -274,6 +285,30 @@ internal sealed class AccessorExpressionBodyTransform : CSharpSyntaxRewriter
         }
 
         return semicolonToken.IsMissing == false;
+    }
+
+    /// <summary>
+    /// Determines whether a throw statement's operand needs parentheses to stay the operand once it moves into a
+    /// throw expression
+    /// </summary>
+    /// <param name="operand">The throw statement's operand, as written</param>
+    /// <returns><see langword="true"/> if the operand's top-level node binds more loosely than a throw expression's operand; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// A throw statement's operand is a full expression, but a throw expression parses its operand only down to the
+    /// null-coalescing level. A bare conditional or assignment would therefore bind the throw expression inside it,
+    /// which does not compile, a bare lambda would not parse, and a bare query draws the precedence warning CS8848.
+    /// Only the top-level node decides: a looser node nested below a tighter one, or an operand that is already
+    /// parenthesized, re-parses unchanged. RH3002 rests on the same parse fact but answers the opposite question —
+    /// whether an existing pair around a throw-expression operand may be removed — after unwrapping nested pairs,
+    /// and it leaves lambda pairs to its general exclusion; this predicate only decides whether the conversion must
+    /// add a pair to the operand as written
+    /// </remarks>
+    private static bool RequiresThrowExpressionParentheses(ExpressionSyntax operand)
+    {
+        return operand is ConditionalExpressionSyntax
+                       or AssignmentExpressionSyntax
+                       or LambdaExpressionSyntax
+                       or QueryExpressionSyntax;
     }
 
     /// <summary>
