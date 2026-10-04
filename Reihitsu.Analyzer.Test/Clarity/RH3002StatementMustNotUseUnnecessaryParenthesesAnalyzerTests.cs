@@ -2821,6 +2821,156 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
+    /// <summary>
+    /// Verifying only the redundant pair is reported when nested parentheses wrap a conditional access used as an invocation receiver
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedParenthesesAroundConditionalAccessInMemberAccessChainKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int _f;
+
+                                    public string Run()
+                                    {
+                                        return {|#0:((_o?._f))|}.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _o;
+                                     private int _f;
+
+                                     public string Run()
+                                     {
+                                         return (_o?._f).ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying only the redundant pair is reported when nested parentheses wrap a conditional access used as an invocation receiver with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedParenthesesAroundConditionalAccessInMemberAccessChainCrlfKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private int _f;
+
+                                    public string Run()
+                                    {
+                                        return {|#0:((_o?._f))|}.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _o;
+                                     private int _f;
+
+                                     public string Run()
+                                     {
+                                         return (_o?._f).ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode), Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying only the redundant pair is reported when nested parentheses wrap a conditional access used as an element access receiver
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedParenthesesAroundConditionalAccessInElementAccessKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int[] _a;
+                                    private Test _o;
+
+                                    public int[] Items => _a;
+
+                                    public int Run()
+                                    {
+                                        return {|#0:((_o?.Items))|}[0];
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int[] _a;
+                                     private Test _o;
+
+                                     public int[] Items => _a;
+
+                                     public int Run()
+                                     {
+                                         return (_o?.Items)[0];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying only the redundant pair is reported when nested parentheses wrap a conditional access used as a member access assignment target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedParenthesesAroundConditionalAccessInMemberAccessAssignmentKeepTheNecessaryPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _o;
+                                    private Test _p;
+                                    public int X;
+
+                                    public void Run()
+                                    {
+                                        {|#0:((_o?._p))|}.X = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _o;
+                                     private Test _p;
+                                     public int X;
+
+                                     public void Run()
+                                     {
+                                         (_o?._p).X = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
