@@ -566,6 +566,59 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment behind the previous member is moved onto its own line with one
+    /// blank line above it and no whitespace left behind the previous member in one node-level pass, the same result
+    /// document-level formatting produces, when no structural transform rewrites the property it documents
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task SeparatesDelimitedDocumentationWithoutTrailingWhitespaceInOnePassForUnchangedProperty()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** Doc */\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /** Doc */\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind the previous member is moved onto its own line with one
+    /// blank line above it and no whitespace left behind the previous member in one node-level pass, the same result
+    /// document-level formatting produces, when a structural transform rewrites the property it documents
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task SeparatesDelimitedDocumentationWithoutTrailingWhitespaceInOnePassForRewrittenProperty()
+    {
+        await AssertFormatsTarget(UnbracedPropertyAfterField("    /** Doc */\n").Replace("private string _d;\n    /** Doc */", "private string _d; /** Doc */"),
+                                  BracedPropertyAfterField("\n    /** Doc */\n"),
+                                  SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that document-level formatting separates a delimited documentation comment behind the previous member
+    /// with one blank line and no trailing whitespace in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task DocumentLevelFormattingSeparatesDelimitedDocumentationWithoutTrailingWhitespace()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** Doc */\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /** Doc */\n    public string Description { get; set; }\n}";
+
+        foreach (var endOfLine in _lineEndings)
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
+                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+
+                Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), (await result.GetTextAsync(TestContext.CancellationToken)).ToString(), $"Unexpected document-level output under {DescribeLineEnding(endOfLine)} line endings.");
+            }
+        }
+    }
+
+    /// <summary>
     /// Verifies that a delimited documentation comment behind a multi-line block comment that trails the previous member
     /// is moved onto its own line with one blank line above it in one pass, whether or not a structural transform
     /// rewrites the property it documents. The whitespace in front of the comment stays behind the block comment, which
