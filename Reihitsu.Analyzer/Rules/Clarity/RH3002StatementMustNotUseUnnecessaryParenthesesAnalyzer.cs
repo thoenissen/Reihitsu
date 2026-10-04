@@ -38,12 +38,26 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Determine whether the inner expression is safe in chaining contexts
+    /// Determine whether the inner expression is safe in chaining contexts. Nested parentheses that are reported
+    /// themselves are looked through, because they are removed as well, and the expression that remains decides. A
+    /// nested pair that is not reported stays in place and therefore keeps the chain safe.
     /// </summary>
     /// <param name="expressionSyntax">Expression syntax</param>
     /// <returns><see langword="true"/> if the expression is safe</returns>
     private static bool IsSafeChainExpression(ExpressionSyntax expressionSyntax)
     {
+        // An expression needing one pair keeps its outer pair unreported and only the redundant inner pairs are
+        // reported. Fix All therefore never removes the last pair
+        while (expressionSyntax is ParenthesizedExpressionSyntax parenthesizedExpression)
+        {
+            if (ShouldReport(parenthesizedExpression) == false)
+            {
+                return true;
+            }
+
+            expressionSyntax = parenthesizedExpression.Expression;
+        }
+
         return expressionSyntax is IdentifierNameSyntax
                                 or GenericNameSyntax
                                 or LiteralExpressionSyntax
@@ -53,8 +67,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                                 or MemberAccessExpressionSyntax
                                 or ElementAccessExpressionSyntax
                                 or ObjectCreationExpressionSyntax
-                                or ImplicitObjectCreationExpressionSyntax
-                                or ParenthesizedExpressionSyntax;
+                                or ImplicitObjectCreationExpressionSyntax;
     }
 
     /// <summary>
