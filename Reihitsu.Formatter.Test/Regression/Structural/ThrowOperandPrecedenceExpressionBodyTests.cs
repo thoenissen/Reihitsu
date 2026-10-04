@@ -342,7 +342,9 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                     public int X
                                     {
                                         get => throw (_condition ? new System.Exception() : new System.InvalidOperationException());
-                                        set { }
+                                        set
+                                        {
+                                        }
                                     }
                                 }
                                 """;
@@ -722,7 +724,11 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                     private bool _first;
                                     private bool _second;
 
-                                    public int X => throw (_first ? new System.Exception() : _second ? new System.ArgumentException() : new System.InvalidOperationException());
+                                    public int X => throw (_first
+                                                               ? new System.Exception()
+                                                               : _second
+                                                                   ? new System.ArgumentException()
+                                                                   : new System.InvalidOperationException());
                                 }
                                 """;
 
