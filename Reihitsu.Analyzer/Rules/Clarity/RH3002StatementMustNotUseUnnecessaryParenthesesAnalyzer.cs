@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -67,13 +68,27 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// <returns>The remaining tokens</returns>
     private static IEnumerable<SyntaxToken> GetTokensWithoutParentheses(SyntaxNode node, bool onlyReported)
     {
+        // Each nested pair is decided once, at its opening parenthesis, so that its closing parenthesis follows that
+        // decision without evaluating the pair again
+        var removedExpressions = new HashSet<ParenthesizedExpressionSyntax>();
+
         foreach (var token in node.DescendantTokens())
         {
-            if (token.Parent is ParenthesizedExpressionSyntax nestedExpression
-                && (token == nestedExpression.OpenParenToken || token == nestedExpression.CloseParenToken)
-                && (onlyReported == false || ShouldReport(nestedExpression)))
+            if (token.Parent is ParenthesizedExpressionSyntax nestedExpression)
             {
-                continue;
+                if (token == nestedExpression.OpenParenToken
+                    && (onlyReported == false || ShouldReport(nestedExpression)))
+                {
+                    removedExpressions.Add(nestedExpression);
+
+                    continue;
+                }
+
+                if (token == nestedExpression.CloseParenToken
+                    && removedExpressions.Contains(nestedExpression))
+                {
+                    continue;
+                }
             }
 
             yield return token;
@@ -81,42 +96,57 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Get the kind of the token at a position of a token list
+    /// Create a reader for the kinds of a token sequence. The sequence is only enumerated as far as the reader is asked,
+    /// so that a scan that decides early does not evaluate the rest of the sequence.
     /// </summary>
     /// <param name="tokens">Tokens</param>
-    /// <param name="index">Position</param>
-    /// <returns>The kind of the token, or <see cref="SyntaxKind.None"/> after the last token</returns>
-    private static SyntaxKind GetKindAt(IReadOnlyList<SyntaxToken> tokens, int index)
+    /// <returns>
+    /// A function returning the kind of the token at a position, or <see cref="SyntaxKind.None"/> after the last
+    /// token
+    /// </returns>
+    private static Func<int, SyntaxKind> CreateKindReader(IEnumerable<SyntaxToken> tokens)
     {
-        return index < tokens.Count
-                   ? tokens[index].Kind()
-                   : SyntaxKind.None;
+        var enumerator = tokens.GetEnumerator();
+        var kinds = new List<SyntaxKind>();
+
+        return index =>
+               {
+                   while (kinds.Count <= index
+                          && enumerator.MoveNext())
+                   {
+                       kinds.Add(enumerator.Current.Kind());
+                   }
+
+                   return index < kinds.Count
+                              ? kinds[index]
+                              : SyntaxKind.None;
+               };
     }
 
     /// <summary>
     /// Scan a type at a position of a token list, the way the parser scans a type when it decides between a type and an
     /// expression: a name, a predefined type, or a tuple of at least two types
     /// </summary>
-    /// <param name="tokens">Tokens</param>
+    /// <param name="kindAt">Reader for the token kinds</param>
     /// <param name="index">Position of the first token of the type</param>
     /// <returns>The position after the type, or <c>-1</c> if the tokens do not start with a type</returns>
-    private static int ScanType(IReadOnlyList<SyntaxToken> tokens, int index)
+    private static int ScanType(Func<int, SyntaxKind> kindAt, int index)
     {
-        if (SyntaxFacts.IsPredefinedType(GetKindAt(tokens, index)))
+        if (SyntaxFacts.IsPredefinedType(kindAt(index)))
         {
             return index + 1;
         }
 
-        if (GetKindAt(tokens, index) != SyntaxKind.OpenParenToken)
+        if (kindAt(index) != SyntaxKind.OpenParenToken)
         {
-            return ScanName(tokens, index);
+            return ScanName(kindAt, index);
         }
 
         var elementCount = 0;
 
         do
         {
-            index = ScanType(tokens, index + 1);
+            index = ScanType(kindAt, index + 1);
 
             if (index < 0)
             {
@@ -125,9 +155,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
             elementCount++;
         }
-        while (GetKindAt(tokens, index) == SyntaxKind.CommaToken);
+        while (kindAt(index) == SyntaxKind.CommaToken);
 
-        return elementCount > 1 && GetKindAt(tokens, index) == SyntaxKind.CloseParenToken
+        return elementCount > 1 && kindAt(index) == SyntaxKind.CloseParenToken
                    ? index + 1
                    : -1;
     }
@@ -136,29 +166,29 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// Scan a name at a position of a token list: an optional alias qualifier such as <c>global::</c>, followed by
     /// identifiers separated by dots, each optionally followed by a type argument list
     /// </summary>
-    /// <param name="tokens">Tokens</param>
+    /// <param name="kindAt">Reader for the token kinds</param>
     /// <param name="index">Position of the first token of the name</param>
     /// <returns>The position after the name, or <c>-1</c> if the tokens do not start with a name</returns>
-    private static int ScanName(IReadOnlyList<SyntaxToken> tokens, int index)
+    private static int ScanName(Func<int, SyntaxKind> kindAt, int index)
     {
-        if (GetKindAt(tokens, index) is SyntaxKind.IdentifierToken or SyntaxKind.GlobalKeyword
-            && GetKindAt(tokens, index + 1) == SyntaxKind.ColonColonToken)
+        if (kindAt(index) is SyntaxKind.IdentifierToken or SyntaxKind.GlobalKeyword
+            && kindAt(index + 1) == SyntaxKind.ColonColonToken)
         {
             index += 2;
         }
 
         while (true)
         {
-            if (GetKindAt(tokens, index) != SyntaxKind.IdentifierToken)
+            if (kindAt(index) != SyntaxKind.IdentifierToken)
             {
                 return -1;
             }
 
             index++;
 
-            if (GetKindAt(tokens, index) == SyntaxKind.LessThanToken)
+            if (kindAt(index) == SyntaxKind.LessThanToken)
             {
-                index = ScanTypeArgumentList(tokens, index);
+                index = ScanTypeArgumentList(kindAt, index);
 
                 if (index < 0)
                 {
@@ -166,7 +196,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                 }
             }
 
-            if (GetKindAt(tokens, index) != SyntaxKind.DotToken)
+            if (kindAt(index) != SyntaxKind.DotToken)
             {
                 return index;
             }
@@ -179,32 +209,32 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// Scan a type argument list at a position of a token list. A type argument may carry nullable, pointer, and array
     /// suffixes.
     /// </summary>
-    /// <param name="tokens">Tokens</param>
+    /// <param name="kindAt">Reader for the token kinds</param>
     /// <param name="index">Position of the <c>&lt;</c> token</param>
     /// <returns>The position after the closing <c>&gt;</c>, or <c>-1</c> if no type argument list starts there</returns>
-    private static int ScanTypeArgumentList(IReadOnlyList<SyntaxToken> tokens, int index)
+    private static int ScanTypeArgumentList(Func<int, SyntaxKind> kindAt, int index)
     {
         do
         {
-            index = ScanType(tokens, index + 1);
+            index = ScanType(kindAt, index + 1);
 
             if (index < 0)
             {
                 return -1;
             }
 
-            while (GetKindAt(tokens, index) is SyntaxKind.QuestionToken or SyntaxKind.AsteriskToken or SyntaxKind.OpenBracketToken)
+            while (kindAt(index) is SyntaxKind.QuestionToken or SyntaxKind.AsteriskToken or SyntaxKind.OpenBracketToken)
             {
-                if (GetKindAt(tokens, index) == SyntaxKind.OpenBracketToken)
+                if (kindAt(index) == SyntaxKind.OpenBracketToken)
                 {
                     index++;
 
-                    while (GetKindAt(tokens, index) == SyntaxKind.CommaToken)
+                    while (kindAt(index) == SyntaxKind.CommaToken)
                     {
                         index++;
                     }
 
-                    if (GetKindAt(tokens, index) != SyntaxKind.CloseBracketToken)
+                    if (kindAt(index) != SyntaxKind.CloseBracketToken)
                     {
                         return -1;
                     }
@@ -213,9 +243,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                 index++;
             }
         }
-        while (GetKindAt(tokens, index) == SyntaxKind.CommaToken);
+        while (kindAt(index) == SyntaxKind.CommaToken);
 
-        return GetKindAt(tokens, index) == SyntaxKind.GreaterThanToken
+        return kindAt(index) == SyntaxKind.GreaterThanToken
                    ? index + 1
                    : -1;
     }
@@ -228,9 +258,11 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// <returns><see langword="true"/> if the node could become a type</returns>
     private static bool IsTypeShaped(SyntaxNode node)
     {
-        var tokens = GetTokensWithoutParentheses(node, false).ToList();
+        var kindAt = CreateKindReader(GetTokensWithoutParentheses(node, false));
+        var index = ScanType(kindAt, 0);
 
-        return ScanType(tokens, 0) == tokens.Count;
+        return index >= 0
+               && kindAt(index) == SyntaxKind.None;
     }
 
     /// <summary>
@@ -371,6 +403,27 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
+    /// Get the tokens following a token, up to and including a last token
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <param name="lastToken">Last token to return</param>
+    /// <returns>The following tokens</returns>
+    private static IEnumerable<SyntaxToken> GetFollowingTokens(SyntaxToken token, SyntaxToken lastToken)
+    {
+        while (token != lastToken)
+        {
+            token = token.GetNextToken();
+
+            if (token.IsKind(SyntaxKind.None))
+            {
+                yield break;
+            }
+
+            yield return token;
+        }
+    }
+
+    /// <summary>
     /// Determine whether removing the parentheses would let the parser read a declaration where an expression stands
     /// today, as in <c>(a * b) = 5;</c>, <c>(a with { }) = a;</c>, or the tuple <c>(d, (a &lt; b &gt; c))</c>. The parser
     /// reads a declaration when a name, optionally followed by pointer asterisks, is directly followed by an identifier.
@@ -386,15 +439,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             return false;
         }
 
-        var tokens = GetTokensWithoutParentheses(parenthesizedExpression.Expression, true).ToList();
-
-        for (var token = parenthesizedExpression.CloseParenToken; token != lastToken && token.IsKind(SyntaxKind.None) == false;)
-        {
-            token = token.GetNextToken();
-            tokens.Add(token);
-        }
-
-        var index = ScanName(tokens, 0);
+        var kindAt = CreateKindReader(GetTokensWithoutParentheses(parenthesizedExpression.Expression, true).Concat(GetFollowingTokens(parenthesizedExpression.CloseParenToken, lastToken)));
+        var index = ScanName(kindAt, 0);
 
         if (index < 0)
         {
@@ -403,18 +449,18 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
         if (isTupleElement)
         {
-            return tokens[index - 1].IsKind(SyntaxKind.GreaterThanToken)
-                   && GetKindAt(tokens, index) == SyntaxKind.IdentifierToken
-                   && GetKindAt(tokens, index + 1) is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
+            return kindAt(index - 1) == SyntaxKind.GreaterThanToken
+                   && kindAt(index) == SyntaxKind.IdentifierToken
+                   && kindAt(index + 1) is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
         }
 
-        while (GetKindAt(tokens, index) == SyntaxKind.AsteriskToken)
+        while (kindAt(index) == SyntaxKind.AsteriskToken)
         {
             index++;
         }
 
-        return GetKindAt(tokens, index) == SyntaxKind.IdentifierToken
-               || SyntaxFacts.IsContextualKeyword(GetKindAt(tokens, index));
+        return kindAt(index) == SyntaxKind.IdentifierToken
+               || SyntaxFacts.IsContextualKeyword(kindAt(index));
     }
 
     /// <summary>
@@ -457,9 +503,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
     /// <summary>
     /// Determine whether removing the parentheses would separate a type argument list from the token that keeps it a
-    /// type argument list. A type argument list without a predefined type argument is only read as one when the token
-    /// after its <c>&gt;</c> is one the parser accepts there, as listed by <see cref="IsTypeArgumentListFollower"/>;
-    /// otherwise the angle brackets are read as relational operators.
+    /// type argument list. A type argument list is only read as one when the token after its <c>&gt;</c> is one the parser
+    /// accepts there, as listed by <see cref="IsTypeArgumentListFollower"/>, or when one of its direct type arguments is
+    /// a predefined, nullable, array, or pointer type; otherwise the angle brackets are read as relational operators.
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
     /// <returns><see langword="true"/> if the type argument list would lose its following token</returns>
@@ -481,7 +527,10 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
         return lastToken.IsKind(SyntaxKind.GreaterThanToken)
                && lastToken.Parent is TypeArgumentListSyntax typeArgumentList
-               && typeArgumentList.DescendantNodes().OfType<PredefinedTypeSyntax>().Any() == false;
+               && typeArgumentList.Arguments.Any(static typeArgument => typeArgument is PredefinedTypeSyntax
+                                                                                     or NullableTypeSyntax
+                                                                                     or ArrayTypeSyntax
+                                                                                     or PointerTypeSyntax) == false;
     }
 
     /// <summary>
@@ -570,21 +619,61 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// type argument list that a following argument closes
     /// </summary>
     /// <param name="argument">Argument</param>
+    /// <param name="opensDeclaration">
+    /// Whether the name stands where the parser also reads a declaration, so that an
+    /// identifier following the type argument list is read as the declared variable
+    /// </param>
     /// <returns><see langword="true"/> if the argument can open a type argument list</returns>
-    private static bool CanOpenTypeArgumentList(ArgumentSyntax argument)
+    private static bool CanOpenTypeArgumentList(ArgumentSyntax argument, out bool opensDeclaration)
     {
-        for (var expression = GetUnparenthesizedExpression(argument.Expression); expression != null; expression = GetTrailingOperand(expression))
+        var unparenthesizedExpression = GetUnparenthesizedExpression(argument.Expression);
+
+        for (var expression = unparenthesizedExpression; expression != null; expression = GetTrailingOperand(expression))
         {
             if (expression is BinaryExpressionSyntax binaryExpression
                 && binaryExpression.IsKind(SyntaxKind.LessThanExpression)
                 && binaryExpression.Left.GetLastToken().IsKind(SyntaxKind.IdentifierToken)
                 && IsTypeShaped(binaryExpression.Right))
             {
+                opensDeclaration = StandsAtDeclarationStart(argument, unparenthesizedExpression, binaryExpression.Left.GetLastToken());
+
                 return true;
             }
         }
 
+        opensDeclaration = false;
+
         return false;
+    }
+
+    /// <summary>
+    /// Determine whether the name ending in the given identifier stands where the parser reads a declaration when a type
+    /// is followed by an identifier: after <see langword="is"/> or a pattern combinator, after <see langword="out"/>, or
+    /// at the start of a tuple element
+    /// </summary>
+    /// <param name="argument">Argument containing the name</param>
+    /// <param name="unparenthesizedExpression">Expression of the argument without its parentheses</param>
+    /// <param name="lastNameToken">Last identifier of the name</param>
+    /// <returns><see langword="true"/> if the name stands at the start of a declaration</returns>
+    private static bool StandsAtDeclarationStart(ArgumentSyntax argument, ExpressionSyntax unparenthesizedExpression, SyntaxToken lastNameToken)
+    {
+        var firstNameToken = lastNameToken;
+        var previousToken = firstNameToken.GetPreviousToken();
+
+        while (previousToken.Kind() is SyntaxKind.DotToken or SyntaxKind.ColonColonToken
+               && previousToken.GetPreviousToken().Kind() is SyntaxKind.IdentifierToken or SyntaxKind.GlobalKeyword)
+        {
+            firstNameToken = previousToken.GetPreviousToken();
+            previousToken = firstNameToken.GetPreviousToken();
+        }
+
+        if (previousToken.Kind() is SyntaxKind.IsKeyword or SyntaxKind.OutKeyword or SyntaxKind.NotKeyword or SyntaxKind.AndKeyword or SyntaxKind.OrKeyword)
+        {
+            return true;
+        }
+
+        return firstNameToken == unparenthesizedExpression.GetFirstToken()
+               && (argument.RefKindKeyword.IsKind(SyntaxKind.OutKeyword) || argument.Parent is TupleExpressionSyntax);
     }
 
     /// <summary>
@@ -603,12 +692,16 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
     /// <summary>
     /// Determine whether the argument, once its parentheses are gone, starts with <c>type &gt;</c> followed by a token
-    /// that both keeps a type argument list and starts an operand, so that it closes a type argument list that a
-    /// preceding argument opened
+    /// that both keeps a type argument list and starts an operand, or by an identifier where the opening argument starts
+    /// a declaration, so that it closes a type argument list that a preceding argument opened
     /// </summary>
     /// <param name="argument">Argument</param>
+    /// <param name="closesDeclaration">
+    /// Whether the opening argument stands where the parser reads a declaration, so that an
+    /// identifier also closes the type argument list
+    /// </param>
     /// <returns><see langword="true"/> if the argument can close a type argument list</returns>
-    private static bool CanCloseTypeArgumentList(ArgumentSyntax argument)
+    private static bool CanCloseTypeArgumentList(ArgumentSyntax argument, bool closesDeclaration)
     {
         if (argument.NameColon != null
             || argument.RefKindKeyword.IsKind(SyntaxKind.None) == false)
@@ -624,9 +717,10 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             {
                 var nextToken = binaryExpression.OperatorToken.GetNextToken();
 
-                if (IsTypeArgumentListFollower(nextToken)
-                    && (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(nextToken.Kind())
-                        || nextToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken))
+                if ((IsTypeArgumentListFollower(nextToken)
+                     && (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(nextToken.Kind())
+                         || nextToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken))
+                    || (closesDeclaration && nextToken.IsKind(SyntaxKind.IdentifierToken)))
                 {
                     return true;
                 }
@@ -671,23 +765,25 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
         var index = arguments.IndexOf(argument);
 
-        if (CanCloseTypeArgumentList(argument))
+        for (var previousIndex = index - 1; previousIndex >= 0; previousIndex--)
         {
-            for (var previousIndex = index - 1; previousIndex >= 0; previousIndex--)
+            if (CanOpenTypeArgumentList(arguments[previousIndex], out var opensPrecedingDeclaration))
             {
-                if (CanOpenTypeArgumentList(arguments[previousIndex]))
+                if (CanCloseTypeArgumentList(argument, opensPrecedingDeclaration))
                 {
                     return true;
                 }
 
-                if (CanContinueTypeArgumentList(arguments[previousIndex]) == false)
-                {
-                    break;
-                }
+                break;
+            }
+
+            if (CanContinueTypeArgumentList(arguments[previousIndex]) == false)
+            {
+                break;
             }
         }
 
-        var isOpening = CanOpenTypeArgumentList(argument);
+        var isOpening = CanOpenTypeArgumentList(argument, out var opensDeclaration);
 
         if (isOpening == false)
         {
@@ -698,7 +794,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
             for (var previousIndex = index - 1; previousIndex >= 0 && isOpening == false; previousIndex--)
             {
-                if (CanOpenTypeArgumentList(arguments[previousIndex]))
+                if (CanOpenTypeArgumentList(arguments[previousIndex], out opensDeclaration))
                 {
                     isOpening = true;
                 }
@@ -716,7 +812,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
         for (var nextIndex = index + 1; nextIndex < arguments.Count; nextIndex++)
         {
-            if (CanCloseTypeArgumentList(arguments[nextIndex]))
+            if (CanCloseTypeArgumentList(arguments[nextIndex], opensDeclaration))
             {
                 return arguments[nextIndex].Expression is not ParenthesizedExpressionSyntax;
             }
