@@ -643,6 +643,56 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
+    /// Verifies that the whitespace after a documentation comment that ends its line is kept, because it indents the
+    /// following token instead of separating it from the comment
+    /// </summary>
+    [TestMethod]
+    public void KeepsIndentationOfTokenFollowingSingleLineDocumentationComment()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     return 1 /// stray
+                                     ;
+                                 }
+                             }
+                             """;
+
+        AssertHorizontalSpacing(input, input);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace between a delimited documentation comment and a following token on the same line is
+    /// removed when no space is allowed in front of that token
+    /// </summary>
+    [TestMethod]
+    public void RemovesGapBetweenDelimitedDocumentationCommentAndFollowingToken()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     return 1 /** a */ ;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        return 1 /** a */;
+                                    }
+                                }
+                                """;
+
+        AssertHorizontalSpacing(input, expected);
+    }
+
+    /// <summary>
     /// Applies horizontal spacing to the given input and asserts that the result matches the expected output
     /// </summary>
     /// <param name="input">The input C# code</param>
