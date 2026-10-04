@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -20,6 +22,15 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : BatchCodeFixTestsBase<RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer, RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider>
 {
+    #region Properties
+
+    /// <summary>
+    /// Test context
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
     #region Methods
 
     /// <summary>
@@ -48,6 +59,33 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                                .Where(static node => node is not ParenthesizedExpressionSyntax)
                                .Select(static node => node.Kind())
                                .ToList();
+    }
+
+    /// <summary>
+    /// Assert that analyzing the code reports the expected number of diagnostics before a generous time bound. The bound
+    /// is two orders of magnitude above the analysis time of the expected behavior and only guards against an analysis
+    /// whose time grows exponentially with the nesting depth, which would not finish at all.
+    /// </summary>
+    /// <param name="code">Code</param>
+    /// <param name="expectedCount">Expected number of diagnostics</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertAnalyzedWithinBoundAsync(string code, int expectedCount)
+    {
+        var cancellationToken = TestContext.CancellationToken;
+        var analysis = Task.Run(async () =>
+                                {
+                                    var compilation = CSharpCompilation.Create("Test", [CSharpSyntaxTree.ParseText(code, cancellationToken: cancellationToken)]);
+                                    var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, [new RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer()], (AnalyzerOptions)null);
+                                    var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken)
+                                                                                    .ConfigureAwait(false);
+
+                                    return diagnostics.Length;
+                                },
+                                cancellationToken);
+        var completed = await Task.WhenAny(analysis, Task.Delay(TimeSpan.FromSeconds(30), cancellationToken)).ConfigureAwait(false);
+
+        Assert.AreSame(analysis, completed, "The analysis did not finish within the bound.");
+        Assert.AreEqual(expectedCount, await analysis.ConfigureAwait(false));
     }
 
     #endregion // Methods
@@ -7121,6 +7159,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                                 config.NumberOfFixAllIterations = 1;
                             },
                      Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 20));
+
+        AssertParseIsPreserved(testCode, fixedCode);
     }
 
     /// <summary>
@@ -7172,6 +7212,240 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                                 config.NumberOfFixAllIterations = 1;
                             },
                      Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 20));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around tuple elements are still reported and fixed when the opening element's name is qualified by this, which keeps the angle brackets relational operators
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundTupleElementsAfterThisQualifiedOpeningElementAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _t;
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+
+                                    private Test Y() => _t;
+
+                                    public void Run()
+                                    {
+                                        var t = (x, {|#0:(this.G < A)|}, {|#1:(B > c)|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _t;
+                                     private bool x;
+                                     private int G;
+                                     private int A;
+                                     private int B;
+                                     private int c;
+
+                                     private Test Y() => _t;
+
+                                     public void Run()
+                                     {
+                                         var t = (x, this.G < A, B > c);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around tuple elements are still reported and fixed when the opening element's name is qualified by an invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundTupleElementsAfterInvocationQualifiedOpeningElementAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _t;
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+
+                                    private Test Y() => _t;
+
+                                    public void Run()
+                                    {
+                                        var t = (x, {|#0:(Y().G < A)|}, {|#1:(B > c)|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _t;
+                                     private bool x;
+                                     private int G;
+                                     private int A;
+                                     private int B;
+                                     private int c;
+
+                                     private Test Y() => _t;
+
+                                     public void Run()
+                                     {
+                                         var t = (x, Y().G < A, B > c);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the closing tuple element keeps its parentheses when the opening element's qualifier becomes a name once its own parentheses are gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundClosingTupleElementAfterParenthesizedQualifierOpeningElementKeepTheClosingPair()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _t;
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+
+                                    private Test Y() => _t;
+
+                                    public void Run()
+                                    {
+                                        var t = (x, {|#0:({|#1:(_t)|}.G < A)|}, (B > c));
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _t;
+                                     private bool x;
+                                     private int G;
+                                     private int A;
+                                     private int B;
+                                     private int c;
+
+                                     private Test Y() => _t;
+
+                                     public void Run()
+                                     {
+                                         var t = (x, _t.G < A, (B > c));
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 1, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying a relational tuple element nest forty levels deep is analyzed within a bound that only an analysis deciding every pair more
+    /// than once per evaluation exceeds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DeeplyNestedRelationalTupleElementsAreAnalyzedWithoutRepeatingDecisions()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private void M(out bool value)
+                                    {
+                                        value = false;
+                                    }
+
+                                    public object Run(int x, int z, int w)
+                                    {
+                                        return (x, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, x)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
+                                    }
+                                }
+                                """;
+
+        await AssertAnalyzedWithinBoundAsync(testCode, 40);
+    }
+
+    /// <summary>
+    /// Verifying a relational out argument nest forty levels deep is analyzed within a bound that only an analysis deciding every pair more
+    /// than once per evaluation exceeds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DeeplyNestedRelationalOutArgumentIsAnalyzedWithoutRepeatingDecisions()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private void M(out bool value)
+                                    {
+                                        value = false;
+                                    }
+
+                                    public object Run(int x, int z, int w)
+                                    {
+                                        M(out (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, x)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
+
+                                        return null;
+                                    }
+                                }
+                                """;
+
+        await AssertAnalyzedWithinBoundAsync(testCode, 40);
+    }
+
+    /// <summary>
+    /// Verifying a relational assignment target nest at the start of a statement forty levels deep is analyzed within a bound that only an analysis deciding every pair more
+    /// than once per evaluation exceeds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DeeplyNestedRelationalAssignmentTargetIsAnalyzedWithoutRepeatingDecisions()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private void M(out bool value)
+                                    {
+                                        value = false;
+                                    }
+
+                                    public object Run(int x, int z, int w)
+                                    {
+                                        (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, (z < (w, x)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))) = 1;
+
+                                        return null;
+                                    }
+                                }
+                                """;
+
+        await AssertAnalyzedWithinBoundAsync(testCode, 40);
     }
 
     #endregion // Tests

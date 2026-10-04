@@ -650,8 +650,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Determine whether the name ending in the given identifier stands where the parser reads a declaration when a type
-    /// is followed by an identifier, and which token has to follow that identifier there: after <see langword="is"/> or
+    /// Determine whether the name ending in the given identifier could be read as a type and stands where the parser
+    /// reads a declaration when a type is followed by an identifier, and which token has to follow that identifier there: after <see langword="is"/> or
     /// a pattern combinator and after <see langword="out"/>, the identifier alone is enough; at the start of a tuple
     /// element, it has to end the element, and the first element of a tuple has to be followed by another one.
     /// </summary>
@@ -673,7 +673,15 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             name = name.Parent;
         }
 
-        var firstNameToken = name?.GetFirstToken() ?? lastNameToken;
+        // Only a name that could be read as a type starts a declaration; a qualifier such as this, an invocation, or an
+        // element access keeps the angle brackets relational operators
+        if (name == null
+            || IsTypeShaped(name) == false)
+        {
+            return null;
+        }
+
+        var firstNameToken = name.GetFirstToken();
 
         if (firstNameToken.GetPreviousToken().Kind() is SyntaxKind.IsKeyword or SyntaxKind.OutKeyword or SyntaxKind.NotKeyword or SyntaxKind.AndKeyword or SyntaxKind.OrKeyword)
         {
