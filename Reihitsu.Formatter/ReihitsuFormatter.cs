@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
@@ -131,7 +132,7 @@ public static class ReihitsuFormatter
 
     /// <summary>
     /// Formats a specific syntax node using document-derived indentation and line-ending context.
-    /// Only the targeted node is rewritten back into the document; callers that intend document-wide
+    /// Only the targeted node is rewritten back into the document, apart from the separator whitespace described in the remarks; callers that intend document-wide
     /// formatting should use <see cref="FormatDocumentAsync(Document, CancellationToken)"/> instead
     /// </summary>
     /// <param name="document">The Roslyn Document containing the target node</param>
@@ -145,7 +146,9 @@ public static class ReihitsuFormatter
     /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
     /// supported version. The blank lines above a target that starts its line are decided from its surroundings as they stand
     /// in the document: the token that precedes it and, for a statement or switch section, the sibling that precedes it in its
-    /// list. That sibling is not formatted, so a decision that document-level formatting would base on a rewritten sibling can differ
+    /// list. That sibling is not formatted, so a decision that document-level formatting would base on a rewritten sibling can differ.
+    /// The one write outside the target is the whitespace that separated the preceding token from a documentation comment the
+    /// target moves onto its own line: it would otherwise end that line, so it is removed as document-level formatting removes it
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default)
     {
@@ -202,6 +205,20 @@ public static class ReihitsuFormatter
         var originalLastToken = targetNode.GetLastToken();
         var formattedLastToken = formattedTarget.GetLastToken();
         formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
+
+        var precedingToken = originalFirstToken.GetPreviousToken();
+
+        if (EndsWithSeparatorBeforeLineBreak(precedingToken, formattedTarget.GetFirstToken()))
+        {
+            var trimmedTrailingTrivia = precedingToken.TrailingTrivia.RemoveAt(precedingToken.TrailingTrivia.Count - 1);
+
+            return document.WithSyntaxRoot(root.ReplaceSyntax([targetNode],
+                                                              (_, _) => formattedTarget,
+                                                              [precedingToken],
+                                                              (_, rewrittenToken) => rewrittenToken.WithTrailingTrivia(trimmedTrailingTrivia),
+                                                              [],
+                                                              (_, rewrittenTrivia) => rewrittenTrivia));
+        }
 
         return document.WithSyntaxRoot(root.ReplaceNode(targetNode, formattedTarget));
     }
@@ -291,6 +308,28 @@ public static class ReihitsuFormatter
         formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
 
         return document.WithSyntaxRoot(root.ReplaceNode(targetNode, formattedTarget));
+    }
+
+    /// <summary>
+    /// Determines whether the token in front of a formatted target ends its line with separator whitespace once the target is
+    /// written back. That is the case when the target's written-back leading trivia starts with a line break, while the preceding
+    /// token's trailing trivia ends with whitespace and holds no line break of its own — the shape a documentation comment
+    /// leaves behind when the target moves it from the preceding token's line onto its own. These are the conditions under
+    /// which document-level cleanup strips trailing whitespace at the end of a line, which never reaches the preceding token
+    /// here because it lies outside the formatted target
+    /// </summary>
+    /// <param name="precedingToken">The document token in front of the target</param>
+    /// <param name="writtenBackFirstToken">The target's first token with the leading trivia that is written back</param>
+    /// <returns><see langword="true"/> when the last trailing trivia of the preceding token would end its line</returns>
+    private static bool EndsWithSeparatorBeforeLineBreak(SyntaxToken precedingToken, SyntaxToken writtenBackFirstToken)
+    {
+        var trailingTrivia = precedingToken.TrailingTrivia;
+
+        return writtenBackFirstToken.LeadingTrivia.Count > 0
+               && writtenBackFirstToken.LeadingTrivia[0].IsKind(SyntaxKind.EndOfLineTrivia)
+               && trailingTrivia.Count > 0
+               && trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia)
+               && trailingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false;
     }
 
     /// <summary>
