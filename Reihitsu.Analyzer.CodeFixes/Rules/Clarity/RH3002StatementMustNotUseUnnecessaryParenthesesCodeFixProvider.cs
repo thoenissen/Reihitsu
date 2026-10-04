@@ -116,7 +116,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
         if (openParenToken.LeadingTrivia.Count == 0
             && previousToken.RawKind != 0
             && previousToken.TrailingTrivia.Count == 0
-            && WouldMergeIntoOneToken(previousToken.Text, replacement.GetFirstToken().Text))
+            && WouldMergeIntoOneToken(previousToken.Text, GetLexicalUnitText(replacement.GetFirstToken())))
         {
             replacement = replacement.WithLeadingTrivia(SyntaxFactory.Space);
         }
@@ -127,7 +127,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
         if (closeParenToken.TrailingTrivia.Count == 0
             && nextToken.RawKind != 0
             && nextToken.LeadingTrivia.Count == 0
-            && WouldMergeIntoOneToken(replacement.GetLastToken().Text, nextToken.Text))
+            && WouldMergeIntoOneToken(GetLexicalUnitText(replacement.GetLastToken()), nextToken.Text))
         {
             replacement = replacement.WithTrailingTrivia(SyntaxFactory.Space);
         }
@@ -136,14 +136,33 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
     }
 
     /// <summary>
-    /// Determine whether two token texts written without any separation would be lexed differently than as the left
-    /// token followed by the right one. The C# lexer decides this, so the check is exact for every token pair this fix
-    /// can place next to each other: a longer first token covers <c>return</c> + <c>value</c>, and leading trivia covers
-    /// a comment start such as <c>/</c> + <c>/</c>. Pairs the parser rather than the lexer composes, such as <c>&gt;</c>
-    /// + <c>&gt;</c>, are not covered and cannot arise next to a removed parenthesis.
+    /// Get the text the lexer reads as one unit for a token at the edge of the replacement. The delimiters of an
+    /// interpolated string are only produced inside the whole string, so the complete interpolated string stands for
+    /// them; every other token is its own unit.
     /// </summary>
-    /// <param name="left">Text of the left token</param>
-    /// <param name="right">Text of the right token</param>
+    /// <param name="token">Token at the edge of the replacement</param>
+    /// <returns>The text of the lexical unit</returns>
+    private static string GetLexicalUnitText(SyntaxToken token)
+    {
+        if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString
+            && (token == interpolatedString.StringStartToken || token == interpolatedString.StringEndToken))
+        {
+            return interpolatedString.ToString();
+        }
+
+        return token.Text;
+    }
+
+    /// <summary>
+    /// Determine whether two texts written without any separation would be lexed differently than as the left text
+    /// followed by the right one. Each text is one lexical unit, as provided by <see cref="GetLexicalUnitText"/>. The C#
+    /// lexer decides this, so the check is exact for every pair of units this fix can place next to each other: a longer
+    /// first token covers <c>return</c> + <c>value</c>, and leading trivia covers a comment start such as <c>/</c> +
+    /// <c>/</c>. Pairs the parser rather than the lexer composes, such as <c>&gt;</c> + <c>&gt;</c>, are not covered and
+    /// cannot arise next to a removed parenthesis.
+    /// </summary>
+    /// <param name="left">Text of the left lexical unit</param>
+    /// <param name="right">Text of the right lexical unit</param>
     /// <returns><see langword="true"/> if the texts need a separating space</returns>
     private static bool WouldMergeIntoOneToken(string left, string right)
     {
