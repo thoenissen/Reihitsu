@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
@@ -138,7 +137,9 @@ public static class ReihitsuFormatter
     /// <param name="document">The Roslyn Document containing the target node</param>
     /// <param name="targetNode">The syntax node to format. Must belong to the document's syntax tree</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A new Document with only the targeted node formatted</returns>
+    /// <returns>
+    /// A new Document with only the targeted node formatted, apart from the separator whitespace in front of it described in the remarks
+    /// </returns>
     /// <remarks>
     /// Single-statement accessor blocks inside the target are kept rather than converted to expression bodies, and
     /// get-only properties and indexers keep their accessor list rather than becoming expression-bodied members,
@@ -172,6 +173,7 @@ public static class ReihitsuFormatter
         }
 
         var originalFirstToken = targetNode.GetFirstToken();
+        var precedingToken = originalFirstToken.GetPreviousToken();
         var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
@@ -180,7 +182,7 @@ public static class ReihitsuFormatter
                                             preserveRootDocumentationBoundary: targetNode != root,
                                             disabledStructuralTransforms: CodeFixDisabledStructuralTransforms,
                                             languageVersion: LanguageVersionResolver.Resolve(document.Project.ParseOptions),
-                                            rootPrecedingToken: PrecedingTokenFacts.From(originalFirstToken.GetPreviousToken()),
+                                            rootPrecedingToken: PrecedingTokenFacts.From(precedingToken),
                                             rootListPosition: RootListPosition.From(targetNode));
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken());
@@ -206,12 +208,10 @@ public static class ReihitsuFormatter
         var formattedLastToken = formattedTarget.GetLastToken();
         formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
 
-        var precedingToken = originalFirstToken.GetPreviousToken();
+        var trimmedTrailingTrivia = EndOfLineWhitespace.StripBeforeFollowingLineBreak(precedingToken.TrailingTrivia, formattedTarget.GetFirstToken().LeadingTrivia);
 
-        if (EndsWithSeparatorBeforeLineBreak(precedingToken, formattedTarget.GetFirstToken()))
+        if (trimmedTrailingTrivia.Count != precedingToken.TrailingTrivia.Count)
         {
-            var trimmedTrailingTrivia = precedingToken.TrailingTrivia.RemoveAt(precedingToken.TrailingTrivia.Count - 1);
-
             return document.WithSyntaxRoot(root.ReplaceSyntax([targetNode],
                                                               (_, _) => formattedTarget,
                                                               [precedingToken],
@@ -237,7 +237,9 @@ public static class ReihitsuFormatter
     /// Single-statement accessor blocks are kept rather than converted to expression bodies, and get-only properties and
     /// indexers keep their accessor list rather than becoming expression-bodied members, because this entry point
     /// serves code fixes. Version-dependent rules follow the effective language version of the document's project, clamped
-    /// to the newest supported version
+    /// to the newest supported version. When the target is the context node, formatting is delegated to
+    /// <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the separator
+    /// whitespace in front of the target
     /// </remarks>
     public static async Task<Document> FormatNodeInDocumentWithContextAsync(Document document,
                                                                             SyntaxNode targetNode,
@@ -308,28 +310,6 @@ public static class ReihitsuFormatter
         formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
 
         return document.WithSyntaxRoot(root.ReplaceNode(targetNode, formattedTarget));
-    }
-
-    /// <summary>
-    /// Determines whether the token in front of a formatted target ends its line with separator whitespace once the target is
-    /// written back. That is the case when the target's written-back leading trivia starts with a line break, while the preceding
-    /// token's trailing trivia ends with whitespace and holds no line break of its own — the shape a documentation comment
-    /// leaves behind when the target moves it from the preceding token's line onto its own. These are the conditions under
-    /// which document-level cleanup strips trailing whitespace at the end of a line, which never reaches the preceding token
-    /// here because it lies outside the formatted target
-    /// </summary>
-    /// <param name="precedingToken">The document token in front of the target</param>
-    /// <param name="writtenBackFirstToken">The target's first token with the leading trivia that is written back</param>
-    /// <returns><see langword="true"/> when the last trailing trivia of the preceding token would end its line</returns>
-    private static bool EndsWithSeparatorBeforeLineBreak(SyntaxToken precedingToken, SyntaxToken writtenBackFirstToken)
-    {
-        var trailingTrivia = precedingToken.TrailingTrivia;
-
-        return writtenBackFirstToken.LeadingTrivia.Count > 0
-               && writtenBackFirstToken.LeadingTrivia[0].IsKind(SyntaxKind.EndOfLineTrivia)
-               && trailingTrivia.Count > 0
-               && trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia)
-               && trailingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false;
     }
 
     /// <summary>

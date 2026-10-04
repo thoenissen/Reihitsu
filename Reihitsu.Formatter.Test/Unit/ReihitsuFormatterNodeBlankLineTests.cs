@@ -670,6 +670,48 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment behind the previous member is separated without trailing whitespace
+    /// when a conditional directive follows the comment, and that the directive stays in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task SeparatesDelimitedDocumentationWithoutTrailingWhitespaceBeforeConditionalDirective()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** Doc */\n#if !RELEASE\n    public string Description { get; set; }\n#endif\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /** Doc */\n#if !RELEASE\n    public string Description { get; set; }\n#endif\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind the previous member is separated without trailing whitespace
+    /// when disabled text follows the comment, and that the disabled text stays unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task SeparatesDelimitedDocumentationWithoutTrailingWhitespaceBeforeDisabledText()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /** Doc */\n#if false\n    int x;\n#endif\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /** Doc */\n#if false\n    int x;\n#endif\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the previous member, which node-level formatting moves above
+    /// the member it documents when a blank line separates them, leaves no whitespace behind the previous member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationFollowedByBlankLineWithoutTrailingWhitespace()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /// Doc\n\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /// Doc\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
     /// Verifies that a single-line documentation comment behind the previous member, which node-level formatting leaves in
     /// place, keeps the whitespace that separates it from the member
     /// </summary>

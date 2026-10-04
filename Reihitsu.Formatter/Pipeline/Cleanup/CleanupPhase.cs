@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
 
@@ -231,36 +232,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     /// <returns>The trailing trivia list with end-of-line trailing whitespace removed</returns>
     private static SyntaxTriviaList StripTrailingWhitespaceAtEndOfLine(SyntaxTriviaList trailing, SyntaxToken originalToken)
     {
-        if (trailing.Count == 0 || trailing[trailing.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            return trailing;
-        }
-
-        if (trailing.Any(SyntaxKind.EndOfLineTrivia))
-        {
-            return trailing;
-        }
-
-        var nextToken = originalToken.GetNextToken();
-
-        if (nextToken.IsKind(SyntaxKind.None))
-        {
-            return trailing;
-        }
-
-        if (nextToken.LeadingTrivia.Count == 0 || nextToken.LeadingTrivia[0].IsKind(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return trailing;
-        }
-
-        var result = new List<SyntaxTrivia>(trailing.Count);
-
-        for (var triviaIndex = 0; triviaIndex < trailing.Count - 1; triviaIndex++)
-        {
-            result.Add(trailing[triviaIndex]);
-        }
-
-        return SyntaxFactory.TriviaList(result);
+        return EndOfLineWhitespace.StripBeforeFollowingLineBreak(trailing, originalToken.GetNextToken().LeadingTrivia);
     }
 
     /// <summary>
