@@ -5535,6 +5535,114 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 1, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
     }
 
+    /// <summary>
+    /// Verifying no space is added after a multi-line raw interpolated string whose parentheses are removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnnecessaryParenthesesAroundMultiLineRawInterpolatedStringAddNoSpace()
+    {
+        const string testCode = """"
+                                public class Test
+                                {
+                                    private int _i;
+
+                                    public string Run()
+                                    {
+                                        return {|#0:($"""
+                                               x{_i}
+                                               """)|};
+                                    }
+                                }
+                                """";
+
+        const string fixedCode = """"
+                                 public class Test
+                                 {
+                                     private int _i;
+
+                                     public string Run()
+                                     {
+                                         return $"""
+                                                x{_i}
+                                                """;
+                                     }
+                                 }
+                                 """";
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying no space is added on either side when parentheses around an interpolated string directly follow a return keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReturnWithoutSpaceBeforeInterpolatedStringParenthesesAddsNoSpace()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private int _i;
+
+                                    public string Run()
+                                    {
+                                        return{|#0:($"x{_i}")|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private int _i;
+
+                                     public string Run()
+                                     {
+                                         return$"x{_i}";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a receiver at the start of a statement are still reported and fixed when the remaining tokens cannot start a declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundReceiverOfMemberAssignmentAtStatementStartAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private Test _t;
+                                    private int _i;
+
+                                    public void Run()
+                                    {
+                                        {|#0:(_t)|}._i = 5;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private Test _t;
+                                     private int _i;
+
+                                     public void Run()
+                                     {
+                                         _t._i = 5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
