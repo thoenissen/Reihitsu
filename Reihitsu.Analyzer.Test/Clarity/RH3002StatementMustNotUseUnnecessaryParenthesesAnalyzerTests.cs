@@ -6645,7 +6645,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifying deeply nested parentheses around tuple elements are reported and fixed, which also keeps the analysis of nested declaration positions from growing exponentially
+    /// Verifying deeply nested parentheses around tuple elements are reported and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -6672,6 +6672,506 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                                  """;
 
         await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 1, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 16));
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a closing tuple element are not reported when the opening element's name is qualified by a generic type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundClosingTupleElementAfterGenericQualifiedOpeningElementAreNotReported()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class H<T>
+                                    {
+                                        public static int G;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+                                    private int y;
+
+                                    private void M(bool first, bool second)
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                        var t = (x, N.H<int>.G < A, (B > c), y);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a closing argument are not reported when removing them would declare a variable of a negated generic type pattern
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundClosingArgumentAfterNegatedPatternOpeningArgumentAreNotReported()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class H<T>
+                                    {
+                                        public static int G;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+                                    private int y;
+
+                                    private void M(bool first, bool second)
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                        M(x is not G < A, (B > c));
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a closing argument are still reported and fixed after a generic qualified opening argument that cannot start a declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundClosingArgumentAfterGenericQualifiedOpeningArgumentAreReportedAndFixed()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class H<T>
+                                    {
+                                        public static int G;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+                                    private int y;
+
+                                    private void M(bool first, bool second)
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                        M(N.H<int>.G < A, {|#0:(B > c)|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public class H<T>
+                                     {
+                                         public static int G;
+                                     }
+                                 }
+
+                                 public class Test
+                                 {
+                                     private bool x;
+                                     private int G;
+                                     private int A;
+                                     private int B;
+                                     private int c;
+                                     private int y;
+
+                                     private void M(bool first, bool second)
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                         M(N.H<int>.G < A, B > c);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around tuple elements are still reported and fixed when the identifier after the greater-than operator is followed by an operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundTupleElementsWithIdentifierFollowedByOperatorAreReportedAndFixed()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class H<T>
+                                    {
+                                        public static int G;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+                                    private int y;
+
+                                    private void M(bool first, bool second)
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                        var t = (x, {|#0:(G < A)|}, {|#1:(B > c + 1)|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public class H<T>
+                                     {
+                                         public static int G;
+                                     }
+                                 }
+
+                                 public class Test
+                                 {
+                                     private bool x;
+                                     private int G;
+                                     private int A;
+                                     private int B;
+                                     private int c;
+                                     private int y;
+
+                                     private void M(bool first, bool second)
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                         var t = (x, G < A, B > c + 1);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a first and a last tuple element are still reported and fixed, because the first element of a tuple is only read as a declaration when another element follows the declared variable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundFirstAndLastTupleElementsAreReportedAndFixed()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class H<T>
+                                    {
+                                        public static int G;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    private bool x;
+                                    private int G;
+                                    private int A;
+                                    private int B;
+                                    private int c;
+                                    private int y;
+
+                                    private void M(bool first, bool second)
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                        var t = ({|#0:(G < A)|}, {|#1:(B > c)|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     public class H<T>
+                                     {
+                                         public static int G;
+                                     }
+                                 }
+
+                                 public class Test
+                                 {
+                                     private bool x;
+                                     private int G;
+                                     private int A;
+                                     private int B;
+                                     private int c;
+                                     private int y;
+
+                                     private void M(bool first, bool second)
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                         var t = (G < A, B > c);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an awaited generic name with a pointer type argument are not reported before an arithmetic operator, because a pointer to a name does not make the type argument list definite
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundAwaitedGenericNameWithPointerTypeArgumentAreNotReported()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                public class Test
+                                {
+                                    private int B;
+
+                                    private static T Gen<T>(T value) => value;
+
+                                    public async Task<object> Run()
+                                    {
+                                        return await (Gen<B*>) - 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an awaited generic name with a nullable type argument are still reported and fixed before an arithmetic operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundAwaitedGenericNameWithNullableTypeArgumentAreReportedAndFixed()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                public class Test
+                                {
+                                    private int B;
+
+                                    private static T Gen<T>(T value) => value;
+
+                                    public async Task<object> Run()
+                                    {
+                                        return await {|#0:(Gen<B?>)|} - 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Threading.Tasks;
+
+                                 public class Test
+                                 {
+                                     private int B;
+
+                                     private static T Gen<T>(T value) => value;
+
+                                     public async Task<object> Run()
+                                     {
+                                         return await Gen<B?> - 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an awaited generic name with an array type argument are still reported and fixed before an arithmetic operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ParenthesesAroundAwaitedGenericNameWithArrayTypeArgumentAreReportedAndFixed()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                public class Test
+                                {
+                                    private int B;
+
+                                    private static T Gen<T>(T value) => value;
+
+                                    public async Task<object> Run()
+                                    {
+                                        return await {|#0:(Gen<B[]>)|} - 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Threading.Tasks;
+
+                                 public class Test
+                                 {
+                                     private int B;
+
+                                     private static T Gen<T>(T value) => value;
+
+                                     public async Task<object> Run()
+                                     {
+                                         return await Gen<B[]> - 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+
+        AssertParseIsPreserved(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying deeply nested parentheses around relational tuple elements are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DeeplyNestedParenthesesAroundRelationalTupleElementsAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private void M(out bool value)
+                                    {
+                                        value = false;
+                                    }
+
+                                    public object Run(int x, int z, int w)
+                                    {
+                                        return (x, {|#19:(z < (w, {|#18:(z < (w, {|#17:(z < (w, {|#16:(z < (w, {|#15:(z < (w, {|#14:(z < (w, {|#13:(z < (w, {|#12:(z < (w, {|#11:(z < (w, {|#10:(z < (w, {|#9:(z < (w, {|#8:(z < (w, {|#7:(z < (w, {|#6:(z < (w, {|#5:(z < (w, {|#4:(z < (w, {|#3:(z < (w, {|#2:(z < (w, {|#1:(z < (w, {|#0:(z < (w, x))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private void M(out bool value)
+                                     {
+                                         value = false;
+                                     }
+
+                                     public object Run(int x, int z, int w)
+                                     {
+                                         return (x, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, x)))))))))))))))))))));
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config =>
+                            {
+                                config.CompilerDiagnostics = CompilerDiagnostics.None;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 20));
+    }
+
+    /// <summary>
+    /// Verifying deeply nested parentheses around a relational out argument and its tuple elements are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DeeplyNestedParenthesesAroundRelationalOutArgumentAreReportedAndFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private void M(out bool value)
+                                    {
+                                        value = false;
+                                    }
+
+                                    public object Run(int x, int z, int w)
+                                    {
+                                        M(out {|#19:(z < (w, {|#18:(z < (w, {|#17:(z < (w, {|#16:(z < (w, {|#15:(z < (w, {|#14:(z < (w, {|#13:(z < (w, {|#12:(z < (w, {|#11:(z < (w, {|#10:(z < (w, {|#9:(z < (w, {|#8:(z < (w, {|#7:(z < (w, {|#6:(z < (w, {|#5:(z < (w, {|#4:(z < (w, {|#3:(z < (w, {|#2:(z < (w, {|#1:(z < (w, {|#0:(z < (w, x))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|}))|});
+
+                                        return null;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private void M(out bool value)
+                                     {
+                                         value = false;
+                                     }
+
+                                     public object Run(int x, int z, int w)
+                                     {
+                                         M(out z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, z < (w, x)))))))))))))))))))));
+
+                                         return null;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config =>
+                            {
+                                config.CompilerDiagnostics = CompilerDiagnostics.None;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 20));
     }
 
     #endregion // Tests

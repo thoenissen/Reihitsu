@@ -60,13 +60,13 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// Get the tokens of a node without the parentheses of the parenthesized expressions it contains
     /// </summary>
     /// <param name="node">Node</param>
-    /// <param name="onlyReported">
-    /// Whether only the parentheses that are reported themselves are left out, as a Fix All
-    /// removes them, instead of the parentheses of every parenthesized expression, as the most a sequence of fixes can
-    /// remove
+    /// <param name="decisions">
+    /// Decisions already taken during the current evaluation, to leave out only the parentheses that are reported
+    /// themselves, as a Fix All removes them; or <see langword="null"/> to leave out the parentheses of every
+    /// parenthesized expression, as the most a sequence of fixes can remove
     /// </param>
     /// <returns>The remaining tokens</returns>
-    private static IEnumerable<SyntaxToken> GetTokensWithoutParentheses(SyntaxNode node, bool onlyReported)
+    private static IEnumerable<SyntaxToken> GetTokensWithoutParentheses(SyntaxNode node, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
     {
         // Each nested pair is decided once, at its opening parenthesis, so that its closing parenthesis follows that
         // decision without evaluating the pair again
@@ -77,7 +77,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             if (token.Parent is ParenthesizedExpressionSyntax nestedExpression)
             {
                 if (token == nestedExpression.OpenParenToken
-                    && (onlyReported == false || ShouldReport(nestedExpression)))
+                    && (decisions == null || ShouldReport(nestedExpression, decisions)))
                 {
                     removedExpressions.Add(nestedExpression);
 
@@ -258,7 +258,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// <returns><see langword="true"/> if the node could become a type</returns>
     private static bool IsTypeShaped(SyntaxNode node)
     {
-        var kindAt = CreateKindReader(GetTokensWithoutParentheses(node, false));
+        var kindAt = CreateKindReader(GetTokensWithoutParentheses(node, null));
         var index = ScanType(kindAt, 0);
 
         return index >= 0
@@ -285,7 +285,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
             case SyntaxKind.OpenBracketToken:
                 {
-                    var tokens = GetTokensWithoutParentheses(parenthesizedExpression.Expression, false).ToList();
+                    var tokens = GetTokensWithoutParentheses(parenthesizedExpression.Expression, null).ToList();
 
                     return tokens.Count > 0
                            && (tokens[0].IsKind(SyntaxKind.OpenParenToken) || tokens[tokens.Count - 1].IsKind(SyntaxKind.GreaterThanToken));
@@ -431,15 +431,16 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// multiplication there.
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
+    /// <param name="decisions">Decisions already taken for parenthesized expressions during the current evaluation</param>
     /// <returns><see langword="true"/> if a declaration would be read</returns>
-    private static bool WouldStartDeclaration(ParenthesizedExpressionSyntax parenthesizedExpression)
+    private static bool WouldStartDeclaration(ParenthesizedExpressionSyntax parenthesizedExpression, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
     {
         if (OpensDeclarationPosition(parenthesizedExpression, out var isTupleElement, out var lastToken) == false)
         {
             return false;
         }
 
-        var kindAt = CreateKindReader(GetTokensWithoutParentheses(parenthesizedExpression.Expression, true).Concat(GetFollowingTokens(parenthesizedExpression.CloseParenToken, lastToken)));
+        var kindAt = CreateKindReader(GetTokensWithoutParentheses(parenthesizedExpression.Expression, decisions).Concat(GetFollowingTokens(parenthesizedExpression.CloseParenToken, lastToken)));
         var index = ScanName(kindAt, 0);
 
         if (index < 0)
@@ -470,8 +471,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// anonymous object creation.
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
+    /// <param name="decisions">Decisions already taken for parenthesized expressions during the current evaluation</param>
     /// <returns><see langword="true"/> if a member initializer would be read</returns>
-    private static bool WouldStartMemberInitializer(ParenthesizedExpressionSyntax parenthesizedExpression)
+    private static bool WouldStartMemberInitializer(ParenthesizedExpressionSyntax parenthesizedExpression, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
     {
         if (parenthesizedExpression.Parent is not AssignmentExpressionSyntax assignmentExpression
             || assignmentExpression.Left != parenthesizedExpression
@@ -494,7 +496,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             return false;
         }
 
-        var remainingTokens = GetTokensWithoutParentheses(parenthesizedExpression.Expression, true).Take(2).ToList();
+        var remainingTokens = GetTokensWithoutParentheses(parenthesizedExpression.Expression, decisions).Take(2).ToList();
 
         return remainingTokens.Count > 0
                && (remainingTokens[0].IsKind(SyntaxKind.OpenBracketToken)
@@ -505,11 +507,12 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// Determine whether removing the parentheses would separate a type argument list from the token that keeps it a
     /// type argument list. A type argument list is only read as one when the token after its <c>&gt;</c> is one the parser
     /// accepts there, as listed by <see cref="IsTypeArgumentListFollower"/>, or when one of its direct type arguments is
-    /// a predefined, nullable, array, or pointer type; otherwise the angle brackets are read as relational operators.
+    /// a predefined, nullable, or array type; otherwise the angle brackets are read as relational operators.
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
+    /// <param name="decisions">Decisions already taken for parenthesized expressions during the current evaluation</param>
     /// <returns><see langword="true"/> if the type argument list would lose its following token</returns>
-    private static bool WouldDetachTypeArgumentList(ParenthesizedExpressionSyntax parenthesizedExpression)
+    private static bool WouldDetachTypeArgumentList(ParenthesizedExpressionSyntax parenthesizedExpression, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
     {
         if (IsTypeArgumentListFollower(parenthesizedExpression.CloseParenToken.GetNextToken()))
         {
@@ -520,7 +523,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
         while (lastToken.Parent is ParenthesizedExpressionSyntax nestedExpression
                && lastToken == nestedExpression.CloseParenToken
-               && ShouldReport(nestedExpression))
+               && ShouldReport(nestedExpression, decisions))
         {
             lastToken = lastToken.GetPreviousToken();
         }
@@ -529,8 +532,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                && lastToken.Parent is TypeArgumentListSyntax typeArgumentList
                && typeArgumentList.Arguments.Any(static typeArgument => typeArgument is PredefinedTypeSyntax
                                                                                      or NullableTypeSyntax
-                                                                                     or ArrayTypeSyntax
-                                                                                     or PointerTypeSyntax) == false;
+                                                                                     or ArrayTypeSyntax) == false;
     }
 
     /// <summary>
@@ -619,12 +621,13 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// type argument list that a following argument closes
     /// </summary>
     /// <param name="argument">Argument</param>
-    /// <param name="opensDeclaration">
-    /// Whether the name stands where the parser also reads a declaration, so that an
-    /// identifier following the type argument list is read as the declared variable
+    /// <param name="declarationEnd">
+    /// When the name stands where the parser also reads a declaration, a predicate for the token kind that may follow an
+    /// identifier after the type argument list so that the identifier is read as the declared variable; otherwise
+    /// <see langword="null"/>
     /// </param>
     /// <returns><see langword="true"/> if the argument can open a type argument list</returns>
-    private static bool CanOpenTypeArgumentList(ArgumentSyntax argument, out bool opensDeclaration)
+    private static bool CanOpenTypeArgumentList(ArgumentSyntax argument, out Func<SyntaxKind, bool> declarationEnd)
     {
         var unparenthesizedExpression = GetUnparenthesizedExpression(argument.Expression);
 
@@ -635,45 +638,66 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                 && binaryExpression.Left.GetLastToken().IsKind(SyntaxKind.IdentifierToken)
                 && IsTypeShaped(binaryExpression.Right))
             {
-                opensDeclaration = StandsAtDeclarationStart(argument, unparenthesizedExpression, binaryExpression.Left.GetLastToken());
+                declarationEnd = GetDeclarationEnd(argument, unparenthesizedExpression, binaryExpression.Left.GetLastToken());
 
                 return true;
             }
         }
 
-        opensDeclaration = false;
+        declarationEnd = null;
 
         return false;
     }
 
     /// <summary>
     /// Determine whether the name ending in the given identifier stands where the parser reads a declaration when a type
-    /// is followed by an identifier: after <see langword="is"/> or a pattern combinator, after <see langword="out"/>, or
-    /// at the start of a tuple element
+    /// is followed by an identifier, and which token has to follow that identifier there: after <see langword="is"/> or
+    /// a pattern combinator and after <see langword="out"/>, the identifier alone is enough; at the start of a tuple
+    /// element, it has to end the element, and the first element of a tuple has to be followed by another one.
     /// </summary>
     /// <param name="argument">Argument containing the name</param>
     /// <param name="unparenthesizedExpression">Expression of the argument without its parentheses</param>
     /// <param name="lastNameToken">Last identifier of the name</param>
-    /// <returns><see langword="true"/> if the name stands at the start of a declaration</returns>
-    private static bool StandsAtDeclarationStart(ArgumentSyntax argument, ExpressionSyntax unparenthesizedExpression, SyntaxToken lastNameToken)
+    /// <returns>
+    /// A predicate for the token kind that may follow the declared identifier, or <see langword="null"/> if the
+    /// name does not stand at the start of a declaration
+    /// </returns>
+    private static Func<SyntaxKind, bool> GetDeclarationEnd(ArgumentSyntax argument, ExpressionSyntax unparenthesizedExpression, SyntaxToken lastNameToken)
     {
-        var firstNameToken = lastNameToken;
-        var previousToken = firstNameToken.GetPreviousToken();
+        var name = lastNameToken.Parent;
 
-        while (previousToken.Kind() is SyntaxKind.DotToken or SyntaxKind.ColonColonToken
-               && previousToken.GetPreviousToken().Kind() is SyntaxKind.IdentifierToken or SyntaxKind.GlobalKeyword)
+        while ((name?.Parent is MemberAccessExpressionSyntax memberAccessExpression && memberAccessExpression.Name == name)
+               || (name?.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == name)
+               || (name?.Parent is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name == name))
         {
-            firstNameToken = previousToken.GetPreviousToken();
-            previousToken = firstNameToken.GetPreviousToken();
+            name = name.Parent;
         }
 
-        if (previousToken.Kind() is SyntaxKind.IsKeyword or SyntaxKind.OutKeyword or SyntaxKind.NotKeyword or SyntaxKind.AndKeyword or SyntaxKind.OrKeyword)
+        var firstNameToken = name?.GetFirstToken() ?? lastNameToken;
+
+        if (firstNameToken.GetPreviousToken().Kind() is SyntaxKind.IsKeyword or SyntaxKind.OutKeyword or SyntaxKind.NotKeyword or SyntaxKind.AndKeyword or SyntaxKind.OrKeyword)
         {
-            return true;
+            return static _ => true;
         }
 
-        return firstNameToken == unparenthesizedExpression.GetFirstToken()
-               && (argument.RefKindKeyword.IsKind(SyntaxKind.OutKeyword) || argument.Parent is TupleExpressionSyntax);
+        if (firstNameToken != unparenthesizedExpression.GetFirstToken())
+        {
+            return null;
+        }
+
+        if (argument.RefKindKeyword.IsKind(SyntaxKind.OutKeyword))
+        {
+            return static _ => true;
+        }
+
+        if (argument.Parent is TupleExpressionSyntax tupleExpression)
+        {
+            return tupleExpression.Arguments[0] == argument
+                       ? static kind => kind == SyntaxKind.CommaToken
+                       : static kind => kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -691,17 +715,35 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
+    /// Get the token following a token once the parentheses ending right after it are gone
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns>The first following token that is not the closing parenthesis of a parenthesized expression</returns>
+    private static SyntaxToken GetTokenAfterParentheses(SyntaxToken token)
+    {
+        var nextToken = token.GetNextToken();
+
+        while (nextToken.IsKind(SyntaxKind.CloseParenToken)
+               && nextToken.Parent is ParenthesizedExpressionSyntax)
+        {
+            nextToken = nextToken.GetNextToken();
+        }
+
+        return nextToken;
+    }
+
+    /// <summary>
     /// Determine whether the argument, once its parentheses are gone, starts with <c>type &gt;</c> followed by a token
-    /// that both keeps a type argument list and starts an operand, or by an identifier where the opening argument starts
-    /// a declaration, so that it closes a type argument list that a preceding argument opened
+    /// that both keeps a type argument list and starts an operand, or by an identifier that ends a declaration the
+    /// opening argument starts, so that it closes a type argument list that a preceding argument opened
     /// </summary>
     /// <param name="argument">Argument</param>
-    /// <param name="closesDeclaration">
-    /// Whether the opening argument stands where the parser reads a declaration, so that an
-    /// identifier also closes the type argument list
+    /// <param name="declarationEnd">
+    /// The predicate the opening argument provides when it stands where the parser reads a declaration, so that an
+    /// identifier followed by an accepted token also closes the type argument list; otherwise <see langword="null"/>
     /// </param>
     /// <returns><see langword="true"/> if the argument can close a type argument list</returns>
-    private static bool CanCloseTypeArgumentList(ArgumentSyntax argument, bool closesDeclaration)
+    private static bool CanCloseTypeArgumentList(ArgumentSyntax argument, Func<SyntaxKind, bool> declarationEnd)
     {
         if (argument.NameColon != null
             || argument.RefKindKeyword.IsKind(SyntaxKind.None) == false)
@@ -720,7 +762,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                 if ((IsTypeArgumentListFollower(nextToken)
                      && (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(nextToken.Kind())
                          || nextToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken))
-                    || (closesDeclaration && nextToken.IsKind(SyntaxKind.IdentifierToken)))
+                    || (declarationEnd != null
+                        && nextToken.IsKind(SyntaxKind.IdentifierToken)
+                        && declarationEnd(GetTokenAfterParentheses(nextToken).Kind())))
                 {
                     return true;
                 }
@@ -767,9 +811,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
         for (var previousIndex = index - 1; previousIndex >= 0; previousIndex--)
         {
-            if (CanOpenTypeArgumentList(arguments[previousIndex], out var opensPrecedingDeclaration))
+            if (CanOpenTypeArgumentList(arguments[previousIndex], out var precedingDeclarationEnd))
             {
-                if (CanCloseTypeArgumentList(argument, opensPrecedingDeclaration))
+                if (CanCloseTypeArgumentList(argument, precedingDeclarationEnd))
                 {
                     return true;
                 }
@@ -783,7 +827,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             }
         }
 
-        var isOpening = CanOpenTypeArgumentList(argument, out var opensDeclaration);
+        var isOpening = CanOpenTypeArgumentList(argument, out var declarationEnd);
 
         if (isOpening == false)
         {
@@ -794,7 +838,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
             for (var previousIndex = index - 1; previousIndex >= 0 && isOpening == false; previousIndex--)
             {
-                if (CanOpenTypeArgumentList(arguments[previousIndex], out opensDeclaration))
+                if (CanOpenTypeArgumentList(arguments[previousIndex], out declarationEnd))
                 {
                     isOpening = true;
                 }
@@ -812,7 +856,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
 
         for (var nextIndex = index + 1; nextIndex < arguments.Count; nextIndex++)
         {
-            if (CanCloseTypeArgumentList(arguments[nextIndex], opensDeclaration))
+            if (CanCloseTypeArgumentList(arguments[nextIndex], declarationEnd))
             {
                 return arguments[nextIndex].Expression is not ParenthesizedExpressionSyntax;
             }
@@ -833,14 +877,15 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// would be read as a cast is kept by <see cref="WouldLeaveCast"/> before this check is reached.
     /// </summary>
     /// <param name="expressionSyntax">Expression syntax</param>
+    /// <param name="decisions">Decisions already taken for parenthesized expressions during the current evaluation</param>
     /// <returns><see langword="true"/> if the expression is safe</returns>
-    private static bool IsSafeChainExpression(ExpressionSyntax expressionSyntax)
+    private static bool IsSafeChainExpression(ExpressionSyntax expressionSyntax, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
     {
         // An expression needing one pair keeps its outer pair unreported and only the redundant inner pairs are
         // reported. Fix All therefore never removes the last pair
         while (expressionSyntax is ParenthesizedExpressionSyntax parenthesizedExpression)
         {
-            if (ShouldReport(parenthesizedExpression) == false)
+            if (ShouldReport(parenthesizedExpression, decisions) == false)
             {
                 return true;
             }
@@ -885,8 +930,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// the assignment operator.
     /// </summary>
     /// <param name="expressionSyntax">Expression syntax</param>
+    /// <param name="decisions">Decisions already taken for parenthesized expressions during the current evaluation</param>
     /// <returns><see langword="true"/> if the expression is safe</returns>
-    private static bool IsSafeAssignmentTarget(ExpressionSyntax expressionSyntax)
+    private static bool IsSafeAssignmentTarget(ExpressionSyntax expressionSyntax, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
     {
         while (true)
         {
@@ -898,7 +944,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                 case ConditionalAccessExpressionSyntax:
                     return false;
 
-                case ParenthesizedExpressionSyntax parenthesizedExpression when ShouldReport(parenthesizedExpression):
+                case ParenthesizedExpressionSyntax parenthesizedExpression when ShouldReport(parenthesizedExpression, decisions):
                     expressionSyntax = parenthesizedExpression.Expression;
                     break;
 
@@ -986,11 +1032,31 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
+    /// Determine whether the parentheses are reported, taking every decision at most once per evaluation. The guards
+    /// look at nested parentheses from several enclosing pairs, so without the shared decisions the same nested pair
+    /// would be decided again for each of them.
+    /// </summary>
+    /// <param name="parenthesizedExpression">Parenthesized expression</param>
+    /// <param name="decisions">Decisions already taken for parenthesized expressions during the current evaluation</param>
+    /// <returns><see langword="true"/> if the parentheses are unnecessary</returns>
+    private static bool ShouldReport(ParenthesizedExpressionSyntax parenthesizedExpression, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
+    {
+        if (decisions.TryGetValue(parenthesizedExpression, out var isUnnecessary) == false)
+        {
+            isUnnecessary = IsUnnecessary(parenthesizedExpression, decisions);
+            decisions[parenthesizedExpression] = isUnnecessary;
+        }
+
+        return isUnnecessary;
+    }
+
+    /// <summary>
     /// Determine whether the parentheses are unnecessary
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
+    /// <param name="decisions">Decisions already taken for parenthesized expressions during the current evaluation</param>
     /// <returns><see langword="true"/> if the parentheses are unnecessary</returns>
-    private static bool ShouldReport(ParenthesizedExpressionSyntax parenthesizedExpression)
+    private static bool IsUnnecessary(ParenthesizedExpressionSyntax parenthesizedExpression, Dictionary<ParenthesizedExpressionSyntax, bool> decisions)
     {
         var innerExpression = parenthesizedExpression.Expression;
 
@@ -1006,9 +1072,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
         // as a local declaration, as a member initializer, or as a generic name. These checks apply to every parent,
         // because the reading depends on the tokens before and after the parentheses rather than on the parent alone
         if (WouldLeaveCast(parenthesizedExpression)
-            || WouldStartDeclaration(parenthesizedExpression)
-            || WouldStartMemberInitializer(parenthesizedExpression)
-            || WouldDetachTypeArgumentList(parenthesizedExpression)
+            || WouldStartDeclaration(parenthesizedExpression, decisions)
+            || WouldStartMemberInitializer(parenthesizedExpression, decisions)
+            || WouldDetachTypeArgumentList(parenthesizedExpression, decisions)
             || WouldJoinTypeArgumentListAcrossArguments(parenthesizedExpression))
         {
             return false;
@@ -1018,7 +1084,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
         // into the inner expression. This applies to every parent, because the pair does not have to be the left
         // operand itself, for example the operand of a throw expression ending a coalesce target
         if (IsFollowedByAssignmentOperator(parenthesizedExpression)
-            && IsSafeAssignmentTarget(innerExpression) == false)
+            && IsSafeAssignmentTarget(innerExpression, decisions) == false)
         {
             return false;
         }
@@ -1033,10 +1099,10 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
                    ArrowExpressionClauseSyntax => true,
                    ArgumentSyntax => true,
                    AssignmentExpressionSyntax => true,
-                   MemberAccessExpressionSyntax memberAccessExpression when memberAccessExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression),
-                   InvocationExpressionSyntax invocationExpression when invocationExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression),
-                   ElementAccessExpressionSyntax elementAccessExpression when elementAccessExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression),
-                   AwaitExpressionSyntax => IsSafeChainExpression(innerExpression),
+                   MemberAccessExpressionSyntax memberAccessExpression when memberAccessExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression, decisions),
+                   InvocationExpressionSyntax invocationExpression when invocationExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression, decisions),
+                   ElementAccessExpressionSyntax elementAccessExpression when elementAccessExpression.Expression == parenthesizedExpression => IsSafeChainExpression(innerExpression, decisions),
+                   AwaitExpressionSyntax => IsSafeChainExpression(innerExpression, decisions),
                    _ => false
                };
     }
@@ -1048,7 +1114,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     private void OnParenthesizedExpression(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is ParenthesizedExpressionSyntax parenthesizedExpression
-            && ShouldReport(parenthesizedExpression))
+            && ShouldReport(parenthesizedExpression, new Dictionary<ParenthesizedExpressionSyntax, bool>()))
         {
             context.ReportDiagnostic(CreateDiagnostic(parenthesizedExpression.GetLocation()));
         }
