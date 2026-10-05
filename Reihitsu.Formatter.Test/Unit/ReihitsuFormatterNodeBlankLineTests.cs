@@ -2701,6 +2701,32 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment written behind the opening brace of a type stays exactly where it is
+    /// and that a second node-level pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindOpeningBraceStable()
+    {
+        const string input = "public class TestClass\n{ /** Doc */\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment written behind a switch label stays exactly where it is and that a
+    /// second node-level pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindCaseLabelStable()
+    {
+        const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1: /** Doc */\n                M(2);\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectStatement("M(2)"));
+    }
+
+    /// <summary>
     /// Selects the first node of the given type below the root
     /// </summary>
     /// <typeparam name="TNode">The node type</typeparam>
