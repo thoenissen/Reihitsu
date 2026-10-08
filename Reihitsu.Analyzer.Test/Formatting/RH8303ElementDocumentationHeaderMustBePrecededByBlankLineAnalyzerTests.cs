@@ -419,6 +419,130 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
         await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a documentation header directly after an opening brace with a trailing block comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { /* a */
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header directly after an opening brace with a trailing block comment does not produce diagnostics under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnosticsWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                public class C
+                                { /* a */
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header directly after an opening brace with a trailing line comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterOpeningBraceWithTrailingLineCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { // a
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header directly after an opening brace with a multi-line trailing block comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { /* a
+                                    b */
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header after an opening brace with a multi-line trailing block comment does not produce diagnostics under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnosticsWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                public class C
+                                { /* a
+                                    b */
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header on a nested block-bodied scope after an opening brace with a trailing block comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterNamespaceOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                namespace N
+                                { /* a */
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

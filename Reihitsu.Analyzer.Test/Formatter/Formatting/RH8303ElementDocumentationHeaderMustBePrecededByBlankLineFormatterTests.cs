@@ -165,5 +165,46 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
                               Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter leaves a documentation header directly after an opening brace with a trailing block comment unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsDocumentationAfterOpeningBraceWithTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a */
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves a documentation header directly after an opening brace with a multi-line trailing block comment unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsDocumentationAfterOpeningBraceWithMultiLineTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a
+                                 b */
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }
