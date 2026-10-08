@@ -473,5 +473,75 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind a property name is separated from the accessor list in one pass
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationBeforeAccessorListInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public int P /** Doc */
+                                 {
+                                     get => 1;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public int P
+
+                                    /** Doc */
+                                    {
+                                        get => 1;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind an object creation is separated from its initializer in one pass
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationBeforeObjectInitializerInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public int A { get; set; }
+
+                                 public void M()
+                                 {
+                                     var c = new TestClass /** Doc */
+                                             {
+                                                 A = 1
+                                             };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public int A { get; set; }
+
+                                    public void M()
+                                    {
+                                        var c = new TestClass
+
+                                                /** Doc */
+                                                {
+                                                    A = 1
+                                                };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
