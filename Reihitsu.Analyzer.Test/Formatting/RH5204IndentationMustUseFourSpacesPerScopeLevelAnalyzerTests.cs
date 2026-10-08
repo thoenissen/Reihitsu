@@ -327,6 +327,237 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
+    /// Verifies that a misindented delimited documentation comment on its own line is fixed under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationCommentOnOwnLineIsDetectedAndFixedWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                /**{|#0: Doc */|}
+                                    internal bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /** Doc */
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an over-indented delimited documentation comment on its own line is moved left to the column of
+    /// the member it documents
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOverIndentedDelimitedDocumentationCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                            /**{|#0: Doc */|}
+                                    internal bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /** Doc */
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented single-line documentation comment on its own line is indented to the column of the
+    /// member it documents
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleLineDocumentationCommentOnOwnLineIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                ///{|#0: Doc
+                                |}    internal bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /// Doc
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that every line of a misindented multi-line single-line documentation comment is indented to the column
+    /// of the member it documents, not only the reported first line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineSingleLineDocumentationCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                ///{|#0: <summary>
+                                /// Gets a value.
+                                /// </summary>
+                                |}    internal bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /// <summary>
+                                     /// Gets a value.
+                                     /// </summary>
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented documentation comment before a statement is indented to the statement's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationCommentBeforeStatementIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal bool Method()
+                                    {
+                                    /**{|#0: Doc */|}
+                                        return true;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal bool Method()
+                                     {
+                                         /** Doc */
+                                         return true;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing a misindented documentation comment formats only the documented member and leaves an
+    /// unrelated method untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentCodeFixDoesNotFormatIndependentMethod()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                /**{|#0: Doc */|}
+                                    internal bool First()
+                                    {
+                                        return true;
+                                    }
+
+                                    internal bool Second()
+                                    {
+                                        var value=false;return value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /** Doc */
+                                     internal bool First()
+                                     {
+                                         return true;
+                                     }
+
+                                     internal bool Second()
+                                     {
+                                         var value=false;return value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that misindented delimited, single-line documentation and block comments in one document are all fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedMisindentedCommentKindsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                /**{|#0: First */|}
+                                    internal bool First { get; }
+
+                                ///{|#1: Second
+                                |}    internal bool Second { get; }
+
+                                {|#2:/* Third */|}
+                                    internal bool Third { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /** First */
+                                     internal bool First { get; }
+
+                                     /// Second
+                                     internal bool Second { get; }
+
+                                     /* Third */
+                                     internal bool Third { get; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 3));
+    }
+
+    /// <summary>
     /// Verifies that fixing one scope does not reformat an unrelated method
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

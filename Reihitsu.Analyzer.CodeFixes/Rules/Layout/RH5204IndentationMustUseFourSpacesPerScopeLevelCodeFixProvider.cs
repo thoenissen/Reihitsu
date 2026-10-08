@@ -140,7 +140,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     }
 
     /// <summary>
-    /// Finds the smallest formatting scope whose anchor line differs from the reported line
+    /// Finds the smallest formatting scope whose anchor line differs from the reported line. The reported position is
+    /// resolved in the main syntax tree, so a documentation comment resolves to the token whose leading trivia holds it
+    /// and is classified as a comment, exactly like an ordinary comment in the same place
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="diagnostic">Diagnostic</param>
@@ -148,8 +150,8 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     /// <returns><see langword="true"/> if a scope was found</returns>
     private static bool TryGetFormattingScope(SyntaxNode root, Diagnostic diagnostic, out SyntaxNode scope)
     {
-        var diagnosticTrivia = root.FindTrivia(diagnostic.Location.SourceSpan.Start, findInsideTrivia: true);
-        var token = root.FindToken(diagnostic.Location.SourceSpan.Start, findInsideTrivia: true);
+        var diagnosticTrivia = root.FindTrivia(diagnostic.Location.SourceSpan.Start);
+        var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
         var diagnosticNode = token.Parent;
 
         if (diagnosticNode == null)
