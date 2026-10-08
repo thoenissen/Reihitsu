@@ -305,5 +305,28 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
                               Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter moves an opening brace glued behind a documentation comment behind a type name onto its
+    /// own line, and that the result is analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterMovesOpeningBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class C /** Doc */ {
+                                 private int _a;
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C /** Doc */
+                                 {
+                                     private int _a;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
     #endregion // Tests
 }

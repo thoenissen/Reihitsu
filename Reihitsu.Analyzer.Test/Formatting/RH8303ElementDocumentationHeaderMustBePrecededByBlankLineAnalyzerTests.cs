@@ -595,6 +595,25 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
                                 }
                                 """;
 
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation header after an opening brace with a multi-line trailing block comment does not produce diagnostics under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnosticsWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                public class C
+                                { /* a
+                                    b */
+                                    /** <summary>Doc.</summary> */
+                                    public int P { get; set; }
+                                }
+                                """;
+
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 

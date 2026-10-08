@@ -543,5 +543,217 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the opening brace of a type glued behind a delimited documentation comment behind the type name is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesTypeOpeningBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class TestClass /** Doc */ {
+                                 private int _a;
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass /** Doc */
+                                {
+                                    private int _a;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the opening brace of a namespace glued behind a delimited documentation comment behind the namespace name is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesNamespaceOpeningBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             namespace N /** Doc */ {
+                                 public class TestClass
+                                 {
+                                     private int _a;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace N /** Doc */
+                                {
+                                    public class TestClass
+                                    {
+                                        private int _a;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the opening brace of an enum glued behind a delimited documentation comment behind the enum name is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesEnumOpeningBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public enum E /** Doc */ {
+                                 A
+                             }
+                             """;
+        const string expected = """
+                                public enum E /** Doc */
+                                {
+                                    A
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the opening brace of a switch statement glued behind a delimited documentation comment behind its header is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesSwitchOpeningBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(int v)
+                                 {
+                                     switch (v) /** Doc */ {
+                                         case 1:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M(int v)
+                                    {
+                                        switch (v) /** Doc */
+                                        {
+                                            case 1:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the closing brace of a block glued behind a delimited documentation comment behind its last statement is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesBlockClosingBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M()
+                                 {
+                                     M(); /** Doc */ }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M()
+                                    {
+                                        M(); /** Doc */
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the closing brace of a type glued behind a delimited documentation comment behind its last member is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesTypeClosingBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 private int _a; /** Doc */ }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    private int _a; /** Doc */
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the opening brace of an anonymous object glued behind a delimited documentation comment behind its new keyword is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesAnonymousObjectOpeningBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public object M()
+                                 {
+                                     return new /** Doc */ {
+                                         A = 1
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public object M()
+                                    {
+                                        return new /** Doc */
+                                               {
+                                                   A = 1
+                                               };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the closing bracket of a multi-line collection expression glued behind a delimited documentation comment behind its last element is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesCollectionClosingBracketBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 private int[] _a = [
+                                     1,
+                                     2 /** d */ ];
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    private int[] _a = [
+                                                           1,
+                                                           2 /** d */
+                                                       ];
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

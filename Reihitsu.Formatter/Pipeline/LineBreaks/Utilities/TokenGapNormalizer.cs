@@ -428,8 +428,9 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Finds the last structured trivia (a documentation comment or a directive) in a leading trivia list, which is the
-    /// trivia whose last token <see cref="TokenLocator.TryGetPreviousToken"/> treats as the token's predecessor
+    /// Finds the last structured trivia (a documentation comment or a directive) in a leading trivia list. The search is
+    /// confined to the list itself, so it does not depend on whether the preceding code lies inside the node being
+    /// rewritten
     /// </summary>
     /// <param name="leadingTrivia">The leading trivia to search</param>
     /// <returns>The index of the last structured trivia; <c>-1</c> when the list carries none</returns>
@@ -451,8 +452,9 @@ internal sealed class TokenGapNormalizer
     /// followed by nothing but line breaks and indentation. The gap the token owns only starts behind that structured
     /// trivia, so the run in front of it — including a blank line the blank-line phase placed above a documentation
     /// comment written behind code — is not part of it and stays untouched. Behind a documentation comment, only the run
-    /// up to the token is normalized, and only when no blank line may separate the two; a comment glued to the token
-    /// stays glued. Behind a region directive that follows a documentation comment, the gap is left alone, because region
+    /// up to the token is normalized, and only when no blank line may separate the two; a comment that starts its own
+    /// line and is glued to the token stays glued, while the token behind a comment glued to it behind other code is moved
+    /// onto its own line. Behind a region directive that follows a documentation comment, the gap is left alone, because region
     /// blank lines have a dedicated owner and the regular normalization would delete the blank line above that comment.
     /// Every other gap — another directive, a region directive with no documentation comment in front of it, or structured
     /// trivia followed by an ordinary comment — is left to the regular gap normalization
@@ -513,9 +515,17 @@ internal sealed class TokenGapNormalizer
         var documentationEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(structuredTrivia);
 
         // A requested blank-line count of one or more is a statement-separation budget, not an adjacency requirement,
-        // exactly as for an own-line comment, and a comment glued to the token forms one line with it
-        if (blankLineCount != 0
-            || (documentationEndsWithLineBreak == false && trailingRunHasLineBreak == false))
+        // exactly as for an own-line comment
+        if (blankLineCount != 0)
+        {
+            return true;
+        }
+
+        // A comment that starts its own line and is glued to the token forms one line with it. A comment glued to the token
+        // behind other code does not start a line, so the token is moved onto its own line behind it
+        if (documentationEndsWithLineBreak == false
+            && trailingRunHasLineBreak == false
+            && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, structuredTriviaIndex))
         {
             return true;
         }
