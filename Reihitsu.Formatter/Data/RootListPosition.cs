@@ -67,7 +67,7 @@ internal readonly struct RootListPosition
     /// <returns>The position of the root</returns>
     public static RootListPosition From(SyntaxNode root)
     {
-        if (ReihitsuFormatterHelpers.StartsOnNewLine(root.GetFirstToken()) == false)
+        if (ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(root.GetFirstToken()) == false)
         {
             return default;
         }

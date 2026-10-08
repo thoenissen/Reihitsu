@@ -117,6 +117,59 @@ public readonly struct TokenGapAnalysis
     }
 
     /// <summary>
+    /// Determines whether the trivia at the specified index of a token's leading trivia starts its line, so that nothing but
+    /// whitespace precedes it on that line. The preceding token is resolved from the token's own tree; use
+    /// <see cref="StartsLineAtLeadingTriviaIndex(SyntaxToken, int, bool, SyntaxTriviaList)"/> for a token whose preceding
+    /// token lies outside its tree
+    /// </summary>
+    /// <param name="token">The token whose leading trivia holds the trivia</param>
+    /// <param name="leadingTriviaIndex">The index of the trivia in the leading trivia</param>
+    /// <returns><see langword="true"/> if the trivia starts its line; otherwise, <see langword="false"/></returns>
+    public static bool StartsLineAtLeadingTriviaIndex(SyntaxToken token, int leadingTriviaIndex)
+    {
+        var previousToken = token.GetPreviousToken();
+        var hasPreviousToken = previousToken.IsKind(SyntaxKind.None) == false;
+
+        return StartsLineAtLeadingTriviaIndex(token, leadingTriviaIndex, hasPreviousToken, hasPreviousToken ? previousToken.TrailingTrivia : default);
+    }
+
+    /// <summary>
+    /// Determines whether the trivia at the specified index of a token's leading trivia starts its line, so that nothing but
+    /// whitespace precedes it on that line. The gap in front of the trivia — the preceding token's trailing trivia and the
+    /// leading trivia before the index — must end with a line break after its last content. Line breaks inside comment text
+    /// do not count, so a trivia behind a multi-line comment that ends on its line does not start that line, whereas a
+    /// single-line documentation comment or a directive in front of it ends the previous line. Without a preceding token
+    /// the gap opens the file or a detached formatting root, so the trivia also starts its line when nothing but whitespace
+    /// precedes it there
+    /// </summary>
+    /// <param name="token">The token whose leading trivia holds the trivia</param>
+    /// <param name="leadingTriviaIndex">The index of the trivia in the leading trivia</param>
+    /// <param name="hasPreviousToken">Whether a token precedes <paramref name="token"/></param>
+    /// <param name="previousTokenTrailingTrivia">The trailing trivia of the preceding token; ignored when there is none</param>
+    /// <returns><see langword="true"/> if the trivia starts its line; otherwise, <see langword="false"/></returns>
+    public static bool StartsLineAtLeadingTriviaIndex(SyntaxToken token, int leadingTriviaIndex, bool hasPreviousToken, SyntaxTriviaList previousTokenTrailingTrivia)
+    {
+        var sawLineBreak = false;
+        var lineHasContent = false;
+        var blankLineCount = 0;
+
+        if (hasPreviousToken)
+        {
+            AnalyzeTriviaList(previousTokenTrailingTrivia, 0, previousTokenTrailingTrivia.Count, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        }
+
+        AnalyzeTriviaList(token.LeadingTrivia, 0, leadingTriviaIndex, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+
+        if (hasPreviousToken == false
+            && sawLineBreak == false)
+        {
+            return lineHasContent == false;
+        }
+
+        return sawLineBreak && lineHasContent == false;
+    }
+
+    /// <summary>
     /// Determines whether the specified list of trivia constitutes a blank line
     /// </summary>
     /// <param name="triviaLine">The trivia items that form a single logical line</param>

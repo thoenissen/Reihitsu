@@ -143,6 +143,41 @@ public class CommentIndentationContributorTests
     }
 
     /// <summary>
+    /// Verifies that a documentation comment filed as leading trivia of a token but written behind the preceding token
+    /// does not set a layout for the preceding token's line
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAlignDocumentationCommentBehindPrecedingToken()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             { /** Doc */
+                                 int X { get; set; }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+
+        var property = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().First();
+        var propertyLine = LayoutComputer.GetLine(property.GetFirstToken());
+
+        model.Set(propertyLine, new TokenLayout(4, "Block"));
+
+        var contributor = new CommentIndentationContributor(TestContext.CancellationToken);
+
+        // Act
+        contributor.Contribute(root, model, context);
+
+        // Assert — the brace line keeps no layout, so the brace is not re-indented
+        Assert.IsFalse(model.TryGetLayout(propertyLine - 1, out _), "A comment that does not start its line must not set that line's layout");
+    }
+
+    /// <summary>
     /// Verifies that multiple comments before a token are all aligned to the token's layout
     /// </summary>
     [TestMethod]

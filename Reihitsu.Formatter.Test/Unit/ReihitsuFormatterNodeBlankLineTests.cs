@@ -712,16 +712,141 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line documentation comment behind the previous member, which node-level formatting leaves in
-    /// place, keeps the whitespace that separates it from the member
+    /// Verifies that a single-line documentation comment behind the previous member is moved onto its own line above the
+    /// member it documents, with one blank line above it and no whitespace left behind the previous member, as document-level
+    /// formatting does
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task KeepsWhitespaceInFrontOfSingleLineDocumentationBehindPreviousMember()
+    public async Task MovesSingleLineDocumentationBehindPreviousMemberWithoutTrailingWhitespace()
     {
         const string input = "public class TestClass\n{\n    private string _d; /// Doc\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d;\n\n    /// Doc\n    public string Description { get; set; }\n}";
 
-        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the previous statement is moved onto its own line above the
+    /// statement it precedes, with one blank line above it, as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindPreviousStatement()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0;\n        a = 1; /// Doc\n        a = 2;\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0;\n        a = 1;\n\n        /// Doc\n        a = 2;\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectStatement("a = 2"));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a switch label is moved onto its own line above the first
+    /// statement of the section without a blank line, as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindCaseLabel()
+    {
+        const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1: /// Doc\n                M(2);\n                break;\n        }\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1:\n                /// Doc\n                M(2);\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectStatement("M(2)"));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a block comment that trails the previous member is moved
+    /// onto its own line and leaves the block comment behind the previous member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindBlockCommentOfPreviousMember()
+    {
+        const string input = "public class TestClass\n{\n    private string _d; /* c */ /// Doc\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    private string _d; /* c */\n\n    /// Doc\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the opening brace of a type is moved onto its own line above
+    /// the first member without a blank line, and that a second pass leaves it there
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindOpeningBraceOfType()
+    {
+        const string input = "public class TestClass\n{ /// Doc\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    /// Doc\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the opening brace of a method body is moved onto its own
+    /// line above the first statement without a blank line, and that a second pass leaves it there
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindOpeningBraceOfMethodBody()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    { /// Doc\n        M();\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n    {\n        /// Doc\n        M();\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectStatement("M()"));
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the previous statement stays in place when the following
+    /// block statement is formatted, because the leading trivia of a target that starts with an opening brace is kept as
+    /// written, and that a second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsSingleLineDocumentationBehindPreviousStatementOfBlockTarget()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0; /// Doc\n        {\n            a = 2;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a statement of a switch section stays in place when the
+    /// following block statement of that section is formatted, and that a second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsSingleLineDocumentationBehindPreviousStatementOfBlockTargetInSwitchSection()
+    {
+        const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1:\n                M(2); /// Doc\n                {\n                    M(3);\n                }\n\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a method signature stays in place when the method body is
+    /// formatted, and that a second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsSingleLineDocumentationBehindMethodSignatureOfBodyTarget()
+    {
+        const string input = "public class TestClass\n{\n    public void M() /// Doc\n    {\n        M();\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind the previous top-level type stays in place, because the
+    /// leading trivia of a top-level target is kept as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsSingleLineDocumentationBehindPreviousTopLevelType()
+    {
+        const string input = "public class First\n{\n    private int _a;\n} /// Doc\npublic class Second\n{\n    private int _b;\n}";
+
+        await AssertFormatsTarget(input, input, root => root.DescendantNodes().OfType<ClassDeclarationSyntax>().Last());
     }
 
     /// <summary>
@@ -2698,6 +2823,72 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                 """;
 
         await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment written behind the opening brace of a type stays exactly where it is
+    /// and that a second node-level pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindOpeningBraceStable()
+    {
+        const string input = "public class TestClass\n{ /** Doc */\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<PropertyDeclarationSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment written behind a switch label stays exactly where it is and that a
+    /// second node-level pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindCaseLabelStable()
+    {
+        const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1: /** Doc */\n                M(2);\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectStatement("M(2)"));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment written behind the opening brace of a method body stays exactly where
+    /// it is and that a second node-level pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindOpeningBraceOfMethodBodyStable()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    { /** Doc */\n        M();\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectStatement("M()"));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment written behind a default label stays exactly where it is and that a
+    /// second node-level pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsDelimitedDocumentationBehindDefaultLabelStable()
+    {
+        const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            default: /** Doc */\n                M(2);\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectStatement("M(2)"));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment on its own line below an opening brace is still indented to the
+    /// column of the member it documents
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task IndentsDelimitedDocumentationOnOwnLineBelowOpeningBrace()
+    {
+        const string input = "public class TestClass\n{\n/** Doc */\n    public string Description { get; set; }\n}";
+        const string expected = "public class TestClass\n{\n    /** Doc */\n    public string Description { get; set; }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
     }
 
     /// <summary>

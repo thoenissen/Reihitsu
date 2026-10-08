@@ -193,7 +193,7 @@ public static class ReihitsuFormatter
             formattedTarget = ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedTarget, columnOffset);
         }
 
-        if (targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLine(originalFirstToken) == false)
+        if (targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLineIncludingDocumentation(originalFirstToken) == false)
         {
             var formattedFirstToken = formattedTarget.GetFirstToken();
             formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia));

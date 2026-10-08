@@ -190,6 +190,23 @@ internal static class ReihitsuFormatterHelpers
                || IsAfterEndOfLine(token);
     }
 
+    /// <summary>
+    /// Determines whether a formatting target's first token starts its line once its own leading trivia is taken into
+    /// account. In addition to <see cref="StartsOnNewLine"/>, a single-line documentation comment in the leading trivia counts,
+    /// because it carries its line break inside its structure rather than as separate end-of-line trivia: a token behind
+    /// such a comment starts its line even when the comment itself is written behind the preceding code. An opening brace
+    /// is the exception, because the line-break phase measures the gap in front of a brace that starts the target from the
+    /// whole leading trivia, including the part before the comment, and so cannot place such a comment in one pass
+    /// </summary>
+    /// <param name="token">The first token of the formatting target</param>
+    /// <returns><see langword="true"/> if the token starts its line; otherwise, <see langword="false"/></returns>
+    internal static bool StartsOnNewLineIncludingDocumentation(SyntaxToken token)
+    {
+        return StartsOnNewLine(token)
+               || (token.IsKind(SyntaxKind.OpenBraceToken) == false
+                   && token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)));
+    }
+
     #endregion // Methods
 
     #region Private methods
