@@ -133,6 +133,15 @@ internal sealed class TokenGapNormalizer
         }
 
         var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
+
+        if (hasPreviousToken
+            && TryNormalizeGapAfterLeadingStructuredTrivia(token, blankLineCount, out var gapToken))
+        {
+            return gapToken == token
+                       ? node
+                       : withToken(node, gapToken);
+        }
+
         var hasLineBreak = hasPreviousToken && TokenGapUtilities.HasLineBreakBetween(previousToken, token);
         var currentBlankLineCount = hasPreviousToken
                                         ? TokenGapUtilities.CountBlankLinesBetween(previousToken,
@@ -202,6 +211,14 @@ internal sealed class TokenGapNormalizer
         }
 
         var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
+
+        if (hasPreviousToken
+            && TryNormalizeGapAfterLeadingStructuredTrivia(token, blankLineCount, out var gapToken))
+        {
+            return gapToken == token
+                       ? node
+                       : withToken(node, gapToken);
+        }
 
         if (hasPreviousToken && TokenLocator.ContainsToken(node, previousToken))
         {
@@ -275,6 +292,13 @@ internal sealed class TokenGapNormalizer
         if (TokenLocator.ContainsToken(node, token) == false)
         {
             return node;
+        }
+
+        if (TryNormalizeGapAfterLeadingStructuredTrivia(token, blankLineCount, out var gapToken))
+        {
+            return gapToken == token
+                       ? node
+                       : node.ReplaceToken(token, gapToken);
         }
 
         var previousInsideNode = TokenLocator.ContainsToken(node, previousToken);
@@ -382,6 +406,139 @@ internal sealed class TokenGapNormalizer
     private static bool IsOrdinaryComment(SyntaxTrivia trivia)
     {
         return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment precedes the specified index in a leading trivia list
+    /// </summary>
+    /// <param name="leadingTrivia">The leading trivia to inspect</param>
+    /// <param name="endIndex">The exclusive end index of the inspected range</param>
+    /// <returns><see langword="true"/> if a documentation comment precedes the index; otherwise, <see langword="false"/></returns>
+    private static bool HasLeadingDocumentationComment(SyntaxTriviaList leadingTrivia, int endIndex)
+    {
+        for (var triviaIndex = 0; triviaIndex < endIndex; triviaIndex++)
+        {
+            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(leadingTrivia[triviaIndex]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Finds the last structured trivia (a documentation comment or a directive) in a leading trivia list, which is the
+    /// trivia whose last token <see cref="TokenLocator.TryGetPreviousToken"/> treats as the token's predecessor
+    /// </summary>
+    /// <param name="leadingTrivia">The leading trivia to search</param>
+    /// <returns>The index of the last structured trivia; <c>-1</c> when the list carries none</returns>
+    private static int FindLastStructuredTriviaIndex(SyntaxTriviaList leadingTrivia)
+    {
+        for (var triviaIndex = leadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            if (leadingTrivia[triviaIndex].HasStructure)
+            {
+                return triviaIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Normalizes the gap before a token whose leading trivia ends with a documentation comment or a region directive,
+    /// followed by nothing but line breaks and indentation. The gap the token owns only starts behind that structured
+    /// trivia, so the run in front of it — including a blank line the blank-line phase placed above a documentation
+    /// comment written behind code — is not part of it and stays untouched. Behind a documentation comment, only the run
+    /// up to the token is normalized, and only when no blank line may separate the two; a comment glued to the token
+    /// stays glued. Behind a region directive that follows a documentation comment, the gap is left alone, because region
+    /// blank lines have a dedicated owner and the regular normalization would delete the blank line above that comment.
+    /// Every other gap — another directive, a region directive with no documentation comment in front of it, or structured
+    /// trivia followed by an ordinary comment — is left to the regular gap normalization
+    /// </summary>
+    /// <param name="token">The token whose preceding gap should be normalized</param>
+    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
+    /// <param name="normalizedToken">The normalized token, or <paramref name="token"/> when the gap stays unchanged</param>
+    /// <returns><see langword="true"/> if the gap was decided here; <see langword="false"/> if the regular gap normalization applies</returns>
+    private bool TryNormalizeGapAfterLeadingStructuredTrivia(SyntaxToken token,
+                                                             int blankLineCount,
+                                                             out SyntaxToken normalizedToken)
+    {
+        normalizedToken = token;
+
+        var structuredTriviaIndex = FindLastStructuredTriviaIndex(token.LeadingTrivia);
+
+        if (structuredTriviaIndex < 0)
+        {
+            return false;
+        }
+
+        var structuredTrivia = token.LeadingTrivia[structuredTriviaIndex];
+        var isRegionDirective = SyntaxTriviaUtilities.IsRegionDirective(structuredTrivia);
+
+        if (isRegionDirective == false
+            && SyntaxTriviaUtilities.IsDocumentationCommentTrivia(structuredTrivia) == false)
+        {
+            return false;
+        }
+
+        var trailingRun = new List<SyntaxTrivia>(token.LeadingTrivia.Count - structuredTriviaIndex - 1);
+        var trailingRunHasLineBreak = false;
+
+        for (var triviaIndex = structuredTriviaIndex + 1; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
+        {
+            var trivia = token.LeadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                trailingRunHasLineBreak = true;
+            }
+            else if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                return false;
+            }
+
+            trailingRun.Add(trivia);
+        }
+
+        if (isRegionDirective)
+        {
+            // Region blank lines have a dedicated owner. Only a documentation comment in front of the region needs this
+            // guard, because the regular normalization rewrites the run in front of the first content of the gap and
+            // would delete the blank line above that comment; every other region gap keeps the regular normalization
+            return HasLeadingDocumentationComment(token.LeadingTrivia, structuredTriviaIndex);
+        }
+
+        var documentationEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(structuredTrivia);
+
+        // A requested blank-line count of one or more is a statement-separation budget, not an adjacency requirement,
+        // exactly as for an own-line comment, and a comment glued to the token forms one line with it
+        if (blankLineCount != 0
+            || (documentationEndsWithLineBreak == false && trailingRunHasLineBreak == false))
+        {
+            return true;
+        }
+
+        var normalizedTrailingRun = NormalizeTrailingRun(trailingRun, documentationEndsWithLineBreak);
+
+        if (SyntaxFactory.TriviaList(normalizedTrailingRun).ToFullString() == SyntaxFactory.TriviaList(trailingRun).ToFullString())
+        {
+            return true;
+        }
+
+        var newLeadingTrivia = new List<SyntaxTrivia>(structuredTriviaIndex + 1 + normalizedTrailingRun.Count);
+
+        for (var triviaIndex = 0; triviaIndex <= structuredTriviaIndex; triviaIndex++)
+        {
+            newLeadingTrivia.Add(token.LeadingTrivia[triviaIndex]);
+        }
+
+        newLeadingTrivia.AddRange(normalizedTrailingRun);
+
+        normalizedToken = token.WithLeadingTrivia(SyntaxFactory.TriviaList(newLeadingTrivia));
+
+        return true;
     }
 
     /// <summary>

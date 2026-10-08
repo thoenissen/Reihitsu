@@ -111,7 +111,7 @@ internal readonly struct RootListPosition
     /// up to that content. The list-level rules insert their blank line at the start of the gap or right after its last
     /// directive, so under such an owner the blank line survives exactly when the owner is an own-line comment rather than a
     /// directive. Every other gap is left without a position on purpose: when its last content is glued to the brace, a
-    /// documentation comment, or a region directive, the line-break phase rewrites the gap itself in document-level
+    /// documentation comment, or a region directive, the line-break phase decides the gap itself in document-level
     /// formatting, which a position for the list-level rules cannot reproduce
     /// </summary>
     /// <param name="block">The block statement</param>

@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -137,10 +137,11 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that the layout the issue reports as the first-pass result is already stable
+    /// Verifies that an own-line delimited documentation comment directly below a statement and above a block statement
+    /// gets the blank line above it in one pass
     /// </summary>
     [TestMethod]
-    public void KeepsSecondPassLayoutOfDelimitedDocumentationBeforeBlockStatement()
+    public void SeparatesOwnLineDelimitedDocumentationBeforeBlockStatementInOnePass()
     {
         const string input = """
                              public class TestClass
@@ -155,8 +156,22 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
                                  }
                              }
                              """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M()
+                                    {
+                                        var a = 0;
 
-        AssertRuleResult(input);
+                                        /** Doc */
+                                        {
+                                            a = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -195,6 +210,267 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
                                 """;
 
         AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind an if header is separated from the contained block in one pass
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationBeforeContainedBlockInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(bool b)
+                                 {
+                                     var a = 0;
+
+                                     if (b) /** Doc */
+                                     {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M(bool b)
+                                    {
+                                        var a = 0;
+
+                                        if (b)
+
+                                        /** Doc */
+                                        {
+                                            a = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind a method signature is separated from the method body in one pass
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationBeforeMethodBodyInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M() /** Doc */
+                                 {
+                                     M();
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M()
+
+                                    /** Doc */
+                                    {
+                                        M();
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line delimited documentation comment behind a statement is separated from the following block statement in one pass
+    /// </summary>
+    [TestMethod]
+    public void SeparatesMultiLineDelimitedDocumentationBeforeBlockStatementInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(bool b)
+                                 {
+                                     var a = 0; /** Doc
+                                      * More
+                                      */
+                                     {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M(bool b)
+                                    {
+                                        var a = 0;
+
+                                        /** Doc
+                                         * More
+                                         */
+                                        {
+                                            a = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment glued to the opening brace of a block statement behind a statement gets the blank line above it in one pass while the brace stays on the comment's line
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationGluedToBlockStatementInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(bool b)
+                                 {
+                                     var a = 0; /** Doc */ {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M(bool b)
+                                    {
+                                        var a = 0;
+
+                                        /** Doc */ {
+                                            a = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind a statement keeps the blank line above it in one pass when a region directive sits between it and a block statement
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationBeforeRegionAndBlockStatementInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(bool b)
+                                 {
+                                     var a = 0; /** Doc */
+                                     #region R
+                                     {
+                                         a = 2;
+                                     }
+                                     #endregion // R
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M(bool b)
+                                    {
+                                        var a = 0;
+
+                                        /** Doc */
+
+                                        #region R
+
+                                        {
+                                            a = 2;
+                                        }
+
+                                        #endregion // R
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region directive directly before a block statement keeps its layout
+    /// </summary>
+    [TestMethod]
+    public void KeepsRegionDirectiveBeforeBlockStatement()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(bool b)
+                                 {
+                                     var a = 0;
+
+                                     #region R
+
+                                     {
+                                         a = 2;
+                                     }
+
+                                     #endregion // R
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an own-line delimited documentation comment glued to the opening brace of a block statement keeps its layout
+    /// </summary>
+    [TestMethod]
+    public void KeepsOwnLineDelimitedDocumentationGluedToBlockStatement()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(bool b)
+                                 {
+                                     var a = 0;
+
+                                     /** Doc */ {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an own-line ordinary block comment above a block statement keeps its layout
+    /// </summary>
+    [TestMethod]
+    public void KeepsOwnLineBlockCommentBeforeBlockStatement()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M(bool b)
+                                 {
+                                     var a = 0;
+
+                                     /* c */
+                                     {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
     }
 
     #endregion // Methods

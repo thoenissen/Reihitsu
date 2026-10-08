@@ -797,43 +797,78 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line documentation comment behind the previous statement stays in place when the following
-    /// block statement is formatted, because the leading trivia of a target that starts with an opening brace is kept as
-    /// written, and that a second pass does not change the result
+    /// Verifies that a single-line documentation comment behind the previous statement is moved onto its own line above
+    /// the following block statement with a blank line above it when that block is formatted, as document-level
+    /// formatting does, and that a second pass does not change the result
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task KeepsSingleLineDocumentationBehindPreviousStatementOfBlockTarget()
+    public async Task MovesSingleLineDocumentationBehindPreviousStatementOfBlockTarget()
     {
         const string input = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0; /// Doc\n        {\n            a = 2;\n        }\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0;\n\n        /// Doc\n        {\n            a = 2;\n        }\n    }\n}";
 
-        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
     }
 
     /// <summary>
-    /// Verifies that a single-line documentation comment behind a statement of a switch section stays in place when the
-    /// following block statement of that section is formatted, and that a second pass does not change the result
+    /// Verifies that a delimited documentation comment behind the previous statement is moved onto its own line above
+    /// the following block statement with a blank line above it when that block is formatted, as document-level
+    /// formatting does, and that a second pass does not change the result
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task KeepsSingleLineDocumentationBehindPreviousStatementOfBlockTargetInSwitchSection()
+    public async Task MovesDelimitedDocumentationBehindPreviousStatementOfBlockTarget()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0; /** Doc */\n        {\n            a = 2;\n        }\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0;\n\n        /** Doc */\n        {\n            a = 2;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a statement of a switch section is moved onto its own
+    /// line above the following block statement with a blank line above it when that block is formatted, as
+    /// document-level formatting does, and that a second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesSingleLineDocumentationBehindPreviousStatementOfBlockTargetInSwitchSection()
     {
         const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1:\n                M(2); /// Doc\n                {\n                    M(3);\n                }\n\n                break;\n        }\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1:\n                M(2);\n\n                /// Doc\n                {\n                    M(3);\n                }\n\n                break;\n        }\n    }\n}";
 
-        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+        await AssertFormatsTarget(input, expected, SelectLast<BlockSyntax>);
     }
 
     /// <summary>
-    /// Verifies that a single-line documentation comment behind a method signature stays in place when the method body is
-    /// formatted, and that a second pass does not change the result
+    /// Verifies that a single-line documentation comment behind a method signature is moved onto its own line above the
+    /// method body with a blank line above it when the body is formatted, as document-level formatting does, and that a
+    /// second pass does not change the result
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task KeepsSingleLineDocumentationBehindMethodSignatureOfBodyTarget()
+    public async Task MovesSingleLineDocumentationBehindMethodSignatureOfBodyTarget()
     {
         const string input = "public class TestClass\n{\n    public void M() /// Doc\n    {\n        M();\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n\n    /// Doc\n    {\n        M();\n    }\n}";
 
-        await AssertFormatsTarget(input, input, SelectSingle<BlockSyntax>);
+        await AssertFormatsTarget(input, expected, SelectSingle<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment behind a method signature is moved onto its own line above the
+    /// method body with a blank line above it when the body is formatted, as document-level formatting does, and that a
+    /// second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task MovesDelimitedDocumentationBehindMethodSignatureOfBodyTarget()
+    {
+        const string input = "public class TestClass\n{\n    public void M() /** Doc */\n    {\n        M();\n    }\n}";
+        const string expected = "public class TestClass\n{\n    public void M()\n\n    /** Doc */\n    {\n        M();\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<BlockSyntax>);
     }
 
     /// <summary>
