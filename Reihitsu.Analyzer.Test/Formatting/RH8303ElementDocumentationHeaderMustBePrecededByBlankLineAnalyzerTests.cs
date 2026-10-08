@@ -543,6 +543,259 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a delimited documentation header directly after an opening brace with a trailing block comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { /* a */
+                                    /** <summary>Doc.</summary> */
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation header directly after an opening brace with a trailing line comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithTrailingLineCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { // a
+                                    /** <summary>Doc.</summary> */
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation header after an opening brace with a multi-line trailing block comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationAfterOpeningBraceWithMultiLineTrailingBlockCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { /* a
+                                    b */
+                                    /** <summary>Doc.</summary> */
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the continuation lines of a documentation header that starts behind an opening brace do not produce
+    /// diagnostics, so the documentation is not split by an inserted blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationStartingBehindOpeningBraceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header on an enum member after an opening brace with a trailing block comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterEnumOpeningBraceWithTrailingBlockCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public enum E
+                                { /* a */
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    A,
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header after an opening brace whose trailing line comment also ends with a brace does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterOpeningBraceWithTrailingCommentEndingInBraceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                { // {
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header after a member whose trailing comment ends with a brace is flagged and fixed,
+    /// because only an opening brace token, not text that looks like one, opens a block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterMemberWithTrailingCommentEndingInBraceProducesDiagnostic()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public int A; // {
+                                    {|#0:///|} <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public int A; // {
+
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation header after a member whose trailing comment ends with a brace is flagged and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationAfterMemberWithTrailingCommentEndingInBraceProducesDiagnostic()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public int A; // {
+                                    {|#0:/**|} <summary>Doc.</summary> */
+                                    public int P { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public int A; // {
+
+                                     /** <summary>Doc.</summary> */
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header after a closing brace whose trailing comment ends with an opening brace is flagged and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterClosingBraceWithTrailingCommentEndingInBraceProducesDiagnostic()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public void M()
+                                    {
+                                    } // {
+                                    {|#0:///|} <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    public int P { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public void M()
+                                     {
+                                     } // {
+
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header directly after a switch label is still flagged and fixed, because only an
+    /// opening brace exempts the first documentation header of a block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAfterSwitchLabelProducesDiagnostic()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public void M(int v)
+                                    {
+                                        switch (v)
+                                        {
+                                            case 1:
+                                                {|#0:///|} <summary>Doc.</summary>
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public void M(int v)
+                                     {
+                                         switch (v)
+                                         {
+                                             case 1:
+
+                                                 /// <summary>Doc.</summary>
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

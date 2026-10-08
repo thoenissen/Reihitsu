@@ -206,5 +206,104 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
         await VerifyFormatter(input);
     }
 
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an opening brace with a multi-line trailing block
+    /// comment and the documentation header below it, and that the result is analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterRemovesBlankLineAfterOpeningBraceWithMultiLineTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a
+                                 b */
+
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C
+                                 { /* a
+                                     b */
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an opening brace with a trailing block comment and the
+    /// documentation header below it, and that the result is analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterRemovesBlankLineAfterOpeningBraceWithTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a */
+
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C
+                                 { /* a */
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts the blank line above a documentation header after a member whose trailing
+    /// comment ends with a brace, matching the analyzer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterSeparatesDocumentationAfterMemberWithTrailingCommentEndingInBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int A; // {
+                                 {|#0:///|} <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public int A; // {
+
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
     #endregion // Tests
 }

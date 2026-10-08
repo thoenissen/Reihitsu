@@ -103,6 +103,18 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     }
 
     /// <summary>
+    /// Determines whether a documentation trivia is the first element of a block, which is the case when the token
+    /// preceding its owning token is an opening brace. Comments behind that brace do not change the decision, and a
+    /// comment that merely ends with a brace character behind another token does not open a block
+    /// </summary>
+    /// <param name="documentationTrivia">Documentation trivia to inspect</param>
+    /// <returns><see langword="true"/> when the documentation directly follows an opening brace; otherwise, <see langword="false"/></returns>
+    private static bool IsFirstInBlock(SyntaxTrivia documentationTrivia)
+    {
+        return documentationTrivia.Token.GetPreviousToken().IsKind(SyntaxKind.OpenBraceToken);
+    }
+
+    /// <summary>
     /// Reports delimited XML documentation headers that are missing a preceding blank line
     /// </summary>
     /// <param name="context">Context</param>
@@ -139,9 +151,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
                 continue;
             }
 
-            var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).Trim();
-
-            if (previousLineText.EndsWith("{", StringComparison.Ordinal)
+            if (IsFirstInBlock(trivia)
                 || IsPrecededByCommentOrDirective(trivia))
             {
                 continue;
@@ -192,16 +202,18 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
                 continue;
             }
 
-            var previousNonBlankLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).Trim();
-
-            if (previousNonBlankLineText.EndsWith("{", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
             var lineTextWithIndentation = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
             var documentationStart = lineTextWithIndentation.IndexOf("///", StringComparison.Ordinal);
             var diagnosticStart = sourceText.Lines[lineIndex].Start + documentationStart;
+
+            // The first documentation header of a block is exempt. The decision is read from the token preceding the
+            // documentation rather than from line text, so a comment behind the opening brace does not hide it and a
+            // comment ending with a brace character behind another token does not imitate it. Continuation lines of
+            // documentation that starts behind the brace resolve to the same documentation trivia
+            if (IsFirstInBlock(root.FindTrivia(diagnosticStart)))
+            {
+                continue;
+            }
 
             // A documentation header that directly abuts an ordinary comment or a preprocessor directive is exempt,
             // mirroring RH5020: the formatter treats adjacent comment blocks as a unit and never inserts a blank line
