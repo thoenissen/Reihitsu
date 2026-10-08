@@ -755,5 +755,96 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a delimited documentation comment and a block comment behind a statement and glued to a block statement get the blank line above them in one pass
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationAndGluedCommentBeforeBlockStatementInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M()
+                                 {
+                                     var a = 0; /** Doc */ /* c */ {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M()
+                                    {
+                                        var a = 0;
+
+                                        /** Doc */ /* c */ {
+                                            a = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the opening brace of a type glued behind a delimited documentation comment and a block comment behind the type name is moved onto its own line in one pass
+    /// </summary>
+    [TestMethod]
+    public void MovesTypeOpeningBraceBehindGluedDocumentationAndCommentOntoOwnLine()
+    {
+        const string input = """
+                             public class TestClass /** Doc */ /* c */ {
+                                 private int _a;
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass /** Doc */ /* c */
+                                {
+                                    private int _a;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment and a line comment behind a statement get the blank line above them in one pass while the block statement stays below them
+    /// </summary>
+    [TestMethod]
+    public void SeparatesDelimitedDocumentationAndLineCommentBeforeBlockStatementInOnePass()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M()
+                                 {
+                                     var a = 0; /** Doc */ // c
+                                     {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+                                {
+                                    public void M()
+                                    {
+                                        var a = 0;
+
+                                        /** Doc */ // c
+                                        {
+                                            a = 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

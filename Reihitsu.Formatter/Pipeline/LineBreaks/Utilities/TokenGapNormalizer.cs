@@ -428,6 +428,37 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
+    /// Finds the first content trivia on the line of the trivia at the specified index of a leading trivia list. The line
+    /// starts behind the nearest preceding line break, whether that is end-of-line trivia or the line break a
+    /// documentation comment or a directive carries inside its structure
+    /// </summary>
+    /// <param name="leadingTrivia">The leading trivia to inspect</param>
+    /// <param name="index">The index of a content trivia</param>
+    /// <returns>The index of the first content trivia on the same line</returns>
+    private static int FindLineStartIndex(SyntaxTriviaList leadingTrivia, int index)
+    {
+        var lineStartIndex = index;
+
+        for (var triviaIndex = index - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = leadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                || BlankLineTriviaUtilities.EndsWithLineBreak(trivia))
+            {
+                break;
+            }
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                lineStartIndex = triviaIndex;
+            }
+        }
+
+        return lineStartIndex;
+    }
+
+    /// <summary>
     /// Finds the last structured trivia (a documentation comment or a directive) in a leading trivia list. The search is
     /// confined to the list itself, so it does not depend on whether the preceding code lies inside the node being
     /// rewritten
@@ -448,16 +479,17 @@ internal sealed class TokenGapNormalizer
     }
 
     /// <summary>
-    /// Normalizes the gap before a token whose leading trivia ends with a documentation comment or a region directive,
-    /// followed by nothing but line breaks and indentation. The gap the token owns only starts behind that structured
-    /// trivia, so the run in front of it — including a blank line the blank-line phase placed above a documentation
-    /// comment written behind code — is not part of it and stays untouched. Behind a documentation comment, only the run
-    /// up to the token is normalized, and only when no blank line may separate the two; a comment that starts its own
-    /// line and is glued to the token stays glued, while the token behind a comment glued to it behind other code is moved
-    /// onto its own line. Behind a region directive that follows a documentation comment, the gap is left alone, because region
+    /// Normalizes the gap before a token whose leading trivia ends with a documentation comment — optionally followed by
+    /// ordinary comments — or with a region directive, followed by nothing but line breaks and indentation. The gap the
+    /// token owns only starts behind that content, so the run in front of it — including a blank line the blank-line phase
+    /// placed above a documentation comment written behind code — is not part of it and stays untouched. Behind a
+    /// documentation comment and its comments, only the run up to the token is normalized, and only when no blank line may
+    /// separate the two; comments that start their own line and are glued to the token stay glued, while the token behind
+    /// comments glued to it behind other code is moved onto its own line. Behind a region directive that follows a documentation comment, the gap is left alone, because region
     /// blank lines have a dedicated owner and the regular normalization would delete the blank line above that comment.
-    /// Every other gap — another directive, a region directive with no documentation comment in front of it, or structured
-    /// trivia followed by an ordinary comment — is left to the regular gap normalization
+    /// Every other gap — another directive, a region directive with no documentation comment in front of it or with a
+    /// comment behind it, or a documentation comment followed by anything but ordinary comments — is left to the regular
+    /// gap normalization
     /// </summary>
     /// <param name="token">The token whose preceding gap should be normalized</param>
     /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
@@ -485,23 +517,25 @@ internal sealed class TokenGapNormalizer
             return false;
         }
 
-        var trailingRun = new List<SyntaxTrivia>(token.LeadingTrivia.Count - structuredTriviaIndex - 1);
-        var trailingRunHasLineBreak = false;
+        var lastContentIndex = structuredTriviaIndex;
 
         for (var triviaIndex = structuredTriviaIndex + 1; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
         {
             var trivia = token.LeadingTrivia[triviaIndex];
 
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                || trivia.IsKind(SyntaxKind.WhitespaceTrivia))
             {
-                trailingRunHasLineBreak = true;
+                continue;
             }
-            else if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+
+            if (isRegionDirective
+                || IsOrdinaryComment(trivia) == false)
             {
                 return false;
             }
 
-            trailingRun.Add(trivia);
+            lastContentIndex = triviaIndex;
         }
 
         if (isRegionDirective)
@@ -512,8 +546,6 @@ internal sealed class TokenGapNormalizer
             return HasLeadingDocumentationComment(token.LeadingTrivia, structuredTriviaIndex);
         }
 
-        var documentationEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(structuredTrivia);
-
         // A requested blank-line count of one or more is a statement-separation budget, not an adjacency requirement,
         // exactly as for an own-line comment
         if (blankLineCount != 0)
@@ -521,25 +553,36 @@ internal sealed class TokenGapNormalizer
             return true;
         }
 
-        // A comment that starts its own line and is glued to the token forms one line with it. A comment glued to the token
-        // behind other code does not start a line, so the token is moved onto its own line behind it
-        if (documentationEndsWithLineBreak == false
+        var trailingRun = new List<SyntaxTrivia>(token.LeadingTrivia.Count - lastContentIndex - 1);
+        var trailingRunHasLineBreak = false;
+
+        for (var triviaIndex = lastContentIndex + 1; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
+        {
+            trailingRunHasLineBreak |= token.LeadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia);
+            trailingRun.Add(token.LeadingTrivia[triviaIndex]);
+        }
+
+        var lastContentEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(token.LeadingTrivia[lastContentIndex]);
+
+        // Comments that start their own line and are glued to the token form one line with it. Comments glued to the token
+        // behind other code do not start a line, so the token is moved onto its own line behind them
+        if (lastContentEndsWithLineBreak == false
             && trailingRunHasLineBreak == false
-            && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, structuredTriviaIndex))
+            && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, FindLineStartIndex(token.LeadingTrivia, lastContentIndex)))
         {
             return true;
         }
 
-        var normalizedTrailingRun = NormalizeTrailingRun(trailingRun, documentationEndsWithLineBreak);
+        var normalizedTrailingRun = NormalizeTrailingRun(trailingRun, lastContentEndsWithLineBreak);
 
         if (SyntaxFactory.TriviaList(normalizedTrailingRun).ToFullString() == SyntaxFactory.TriviaList(trailingRun).ToFullString())
         {
             return true;
         }
 
-        var newLeadingTrivia = new List<SyntaxTrivia>(structuredTriviaIndex + 1 + normalizedTrailingRun.Count);
+        var newLeadingTrivia = new List<SyntaxTrivia>(lastContentIndex + 1 + normalizedTrailingRun.Count);
 
-        for (var triviaIndex = 0; triviaIndex <= structuredTriviaIndex; triviaIndex++)
+        for (var triviaIndex = 0; triviaIndex <= lastContentIndex; triviaIndex++)
         {
             newLeadingTrivia.Add(token.LeadingTrivia[triviaIndex]);
         }
