@@ -300,6 +300,33 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
+    /// Verifies that a misindented delimited documentation comment on its own line below an opening brace is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDelimitedDocumentationCommentOnOwnLineBelowOpeningBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                /**{|#0: Doc */|}
+                                    internal bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /** Doc */
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that fixing one scope does not reformat an unrelated method
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
