@@ -41,6 +41,51 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
     }
 
     /// <summary>
+    /// Verifies that an opening brace followed by a delimited documentation comment on the same line is analyzer-clean and
+    /// formatter-stable, because the comment does not start its line and so does not decide that line's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOpeningBraceWithDelimitedDocumentationBehindItIsStable()
+    {
+        const string source = """
+                              internal class Example
+                              { /** Doc */
+                                  internal bool Value { get; }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
+    /// <summary>
+    /// Verifies that a switch label followed by a delimited documentation comment on the same line is analyzer-clean and
+    /// formatter-stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCaseLabelWithDelimitedDocumentationBehindItIsStable()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                                  internal int Method(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1: /** Doc */
+                                              return 2;
+                                      }
+
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
+    /// <summary>
     /// Verifies that the formatter leaves region directives inside a branch the compiler excluded exactly where the
     /// author wrote them. Together with the analyzer's matching carve-out this pins the parity that was missing while
     /// the analyzer re-indented what the formatter declined to touch

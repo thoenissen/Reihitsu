@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -7,7 +7,8 @@ using Reihitsu.Formatter.Utilities;
 namespace Reihitsu.Formatter.Data;
 
 /// <summary>
-/// The position-free facts about the token that precedes another token, which the blank-line decisions read.
+/// The position-free facts about the token that precedes another token, which the blank-line decisions and the comment
+/// alignment of the indentation phase read.
 /// A phase that replaces the formatting root detaches it, so the root's first token no longer reaches its preceding
 /// token through <see cref="SyntaxToken.GetPreviousToken"/>. These facts are captured before the pipeline runs and carry
 /// no position, so they stay valid across trees, whereas line or span arithmetic against the original token would not

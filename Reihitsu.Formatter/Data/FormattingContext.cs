@@ -95,7 +95,7 @@ internal record FormattingContext
     /// The facts about the token that precedes the formatting root in its document. A phase that replaces the root detaches
     /// it, so the root's first token no longer reaches this token through
     /// <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; the facts are captured before the pipeline runs so
-    /// that detachment does not change the blank-line decisions for that token. Only
+    /// that detachment does not change the blank-line decisions or the comment alignment for that token. Only
     /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
     /// <see langword="default"/>, which means no preceding token is known — not that the root starts its file
     /// </summary>

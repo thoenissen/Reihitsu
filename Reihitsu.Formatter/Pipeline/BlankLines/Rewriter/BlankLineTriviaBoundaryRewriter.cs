@@ -112,11 +112,13 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// <remarks>
     /// Line breaks inside comment text do not count: a multi-line comment that ends on the line of the index leaves
     /// that index on the comment's last line. No position is read, so the result is valid for the first token of a
-    /// detached formatting root, whose facts still carry the preceding token's trailing trivia
+    /// detached formatting root, whose facts still carry the preceding token's trailing trivia. The indentation phase
+    /// decides which comments it aligns through the same predicate,
+    /// <see cref="TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(SyntaxToken, int, bool, SyntaxTriviaList)"/>
     /// </remarks>
     private static bool StartsOwnLine(SyntaxToken token, int leadingTriviaEndExclusive, PrecedingTokenFacts previousTokenFacts)
     {
-        return BlankLineEditor.AnalyzeGapBeforeLeadingTriviaIndex(token, leadingTriviaEndExclusive, previousTokenFacts).HasTerminalLineBreak;
+        return TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, leadingTriviaEndExclusive, previousTokenFacts.Exists, previousTokenFacts.TrailingTrivia);
     }
 
     /// <summary>

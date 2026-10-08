@@ -62,7 +62,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Aligns comments to the indentation of the token they precede
+    /// Aligns comments that start their line to the indentation of the token they precede. A documentation comment that
+    /// Roslyn files as leading trivia of the token but that is written behind the preceding code shares that code's line,
+    /// whose indentation belongs to the code; the formatter's comment alignment uses the same predicate
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="expectedIndentationByLine">Expected indentation by line</param>
@@ -84,8 +86,12 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                 alignColumn += IndentSize;
             }
 
-            foreach (var trivia in token.LeadingTrivia)
+            var leadingTrivia = token.LeadingTrivia;
+
+            for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
             {
+                var trivia = leadingTrivia[triviaIndex];
+
                 if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
                 {
                     continue;
@@ -93,7 +99,8 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
 
                 var commentLine = trivia.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-                if (commentLine != tokenLine)
+                if (commentLine != tokenLine
+                    && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, triviaIndex))
                 {
                     expectedIndentationByLine[commentLine] = (alignColumn, trivia.GetLocation());
                 }

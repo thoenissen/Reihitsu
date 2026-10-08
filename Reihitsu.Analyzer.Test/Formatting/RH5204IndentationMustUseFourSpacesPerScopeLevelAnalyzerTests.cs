@@ -255,6 +255,51 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment written behind an opening brace reports no diagnostic, because a
+    /// comment that does not start its line does not decide that line's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForDelimitedDocumentationBehindOpeningBrace()
+    {
+        const string testData = """
+                                internal class Example
+                                { /** Doc */
+                                    internal bool Value { get; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a misindented block comment on its own line below an opening brace is still detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlockCommentOnOwnLineBelowOpeningBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                {|#0:/* Comment */|}
+                                    internal bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /* Comment */
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that fixing one scope does not reformat an unrelated method
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

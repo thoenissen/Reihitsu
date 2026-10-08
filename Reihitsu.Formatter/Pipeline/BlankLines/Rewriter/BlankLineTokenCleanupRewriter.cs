@@ -465,9 +465,10 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         if (previousToken.Kind == SyntaxKind.OpenBraceToken)
         {
-            // A leading line break is a blank line only when the brace already ended its line. When it did not, which
-            // happens once a documentation comment written behind the brace was moved onto its own line, the first line
-            // break ends the brace's line and is kept
+            // A leading line break is a blank line only when the brace already ended its line. When it did not, the
+            // first line break is the one that ends the brace's line and is kept: an earlier phase moved content off the
+            // brace's line, such as a documentation comment written behind the brace, or created the brace without a
+            // trailing line break, as the conversion of an expression body into a block does
             token = previousToken.EndsLine
                         ? RemoveLeadingBlankLines(token)
                         : CollapseLeadingBlankLines(token, keepSingleLineBreak: true);

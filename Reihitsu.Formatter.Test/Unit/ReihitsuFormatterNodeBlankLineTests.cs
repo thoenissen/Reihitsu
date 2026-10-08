@@ -797,6 +797,46 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a single-line documentation comment behind the previous statement stays in place when the following
+    /// block statement is formatted, because the leading trivia of a target that starts with an opening brace is kept as
+    /// written, and that a second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsSingleLineDocumentationBehindPreviousStatementOfBlockTarget()
+    {
+        const string input = "public class TestClass\n{\n    public void M()\n    {\n        var a = 0; /// Doc\n        {\n            a = 2;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a statement of a switch section stays in place when the
+    /// following block statement of that section is formatted, and that a second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsSingleLineDocumentationBehindPreviousStatementOfBlockTargetInSwitchSection()
+    {
+        const string input = "public class TestClass\n{\n    public void M(int v)\n    {\n        switch (v)\n        {\n            case 1:\n                M(2); /// Doc\n                {\n                    M(3);\n                }\n\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectLast<BlockSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment behind a method signature stays in place when the method body is
+    /// formatted, and that a second pass does not change the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task KeepsSingleLineDocumentationBehindMethodSignatureOfBodyTarget()
+    {
+        const string input = "public class TestClass\n{\n    public void M() /// Doc\n    {\n        M();\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<BlockSyntax>);
+    }
+
+    /// <summary>
     /// Verifies that a single-line documentation comment behind the previous top-level type stays in place, because the
     /// leading trivia of a top-level target is kept as written
     /// </summary>

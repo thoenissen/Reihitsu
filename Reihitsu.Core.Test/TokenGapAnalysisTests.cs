@@ -494,6 +494,132 @@ public class TokenGapAnalysisTests
 
     #endregion // Embedded comment line breaks
 
+    #region StartsLineAtLeadingTriviaIndex
+
+    /// <summary>
+    /// Verifies that a comment on its own line below the preceding token starts its line
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexReturnsTrueForCommentOnOwnLine()
+    {
+        // Arrange
+        var (token, commentIndex) = GetFirstCommentOfProperty("class C\n{\n    /** Doc */\n    int X { get; set; }\n}", TestContext.CancellationToken);
+
+        // Act & Assert
+        Assert.IsTrue(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, commentIndex));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment written behind the preceding token does not start its line
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexReturnsFalseForCommentBehindPrecedingToken()
+    {
+        // Arrange
+        var (token, commentIndex) = GetFirstCommentOfProperty("class C\n{ /** Doc */\n    int X { get; set; }\n}", TestContext.CancellationToken);
+
+        // Act & Assert
+        Assert.IsFalse(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, commentIndex));
+    }
+
+    /// <summary>
+    /// Verifies that a comment written directly behind a multi-line comment that ends on its line does not start its line,
+    /// although the multi-line comment contains a line break
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexReturnsFalseForCommentBehindMultiLineComment()
+    {
+        // Arrange
+        var (token, _) = GetFirstCommentOfProperty("class C\n{\n    /* a\n    b */ /** Doc */\n    int X { get; set; }\n}", TestContext.CancellationToken);
+
+        var commentIndex = IndexOfKind(token.LeadingTrivia, SyntaxKind.MultiLineDocumentationCommentTrivia);
+
+        // Act & Assert
+        Assert.IsFalse(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, commentIndex));
+    }
+
+    /// <summary>
+    /// Verifies that a comment below a single-line documentation comment starts its line, because the documentation comment
+    /// carries its line break inside its structure
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexReturnsTrueForCommentBelowSingleLineDocumentation()
+    {
+        // Arrange
+        var (token, _) = GetFirstCommentOfProperty("class C\n{\n    /// Doc\n    // c\n    int X { get; set; }\n}", TestContext.CancellationToken);
+
+        var commentIndex = IndexOfKind(token.LeadingTrivia, SyntaxKind.SingleLineCommentTrivia);
+
+        // Act & Assert
+        Assert.IsTrue(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, commentIndex));
+    }
+
+    /// <summary>
+    /// Verifies that a comment below a directive starts its line, because the directive carries its line break
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexReturnsTrueForCommentBelowDirective()
+    {
+        // Arrange
+        var (token, _) = GetFirstCommentOfProperty("class C\n{\n#pragma warning disable CS0169\n    // c\n    int X { get; set; }\n}", TestContext.CancellationToken);
+
+        var commentIndex = IndexOfKind(token.LeadingTrivia, SyntaxKind.SingleLineCommentTrivia);
+
+        // Act & Assert
+        Assert.IsTrue(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, commentIndex));
+    }
+
+    /// <summary>
+    /// Verifies that a comment at the start of the file, with no preceding token and nothing in front of it, starts its line
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexReturnsTrueAtStartOfFile()
+    {
+        // Arrange
+        var token = GetFirstClassToken("// c\nclass C { }", TestContext.CancellationToken);
+        var commentIndex = IndexOfKind(token.LeadingTrivia, SyntaxKind.SingleLineCommentTrivia);
+
+        // Act & Assert
+        Assert.IsTrue(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, commentIndex));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind another comment on the first line of the file, with no preceding token, does not start
+    /// its line
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexReturnsFalseBehindCommentAtStartOfFile()
+    {
+        // Arrange
+        var token = GetFirstClassToken("/* a */ // c\nclass C { }", TestContext.CancellationToken);
+        var commentIndex = IndexOfKind(token.LeadingTrivia, SyntaxKind.SingleLineCommentTrivia);
+
+        // Act & Assert
+        Assert.IsFalse(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, commentIndex));
+    }
+
+    /// <summary>
+    /// Verifies that the overload taking the preceding token's facts decides from the supplied trailing trivia, so a
+    /// detached token can be measured against the token that preceded it in its document
+    /// </summary>
+    [TestMethod]
+    public void StartsLineAtLeadingTriviaIndexUsesSuppliedPrecedingTrailingTrivia()
+    {
+        // Arrange
+        var (token, commentIndex) = GetFirstCommentOfProperty("class C\n{\n    /** Doc */\n    int X { get; set; }\n}", TestContext.CancellationToken);
+
+        var detachedToken = token.WithLeadingTrivia(token.LeadingTrivia.Skip(commentIndex));
+        var sameLine = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(" "));
+        var endsLine = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine("\n"));
+
+        // Act & Assert
+        Assert.IsFalse(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(detachedToken, 0, true, sameLine));
+        Assert.IsTrue(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(detachedToken, 0, true, endsLine));
+        Assert.IsTrue(TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(detachedToken, 0, false, default));
+    }
+
+    #endregion // StartsLineAtLeadingTriviaIndex
+
     #region IsBlankLine
 
     /// <summary>
@@ -621,6 +747,50 @@ public class TokenGapAnalysisTests
         var root = tree.GetRoot(cancellationToken);
 
         return root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single().Keyword;
+    }
+
+    /// <summary>
+    /// Gets the first token of the single property in the parsed source and the index of the first comment in its leading
+    /// trivia
+    /// </summary>
+    /// <param name="input">The source text to parse</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The property's first token and the index of its first comment trivia</returns>
+    private static (SyntaxToken Token, int CommentIndex) GetFirstCommentOfProperty(string input, CancellationToken cancellationToken)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
+        var root = tree.GetRoot(cancellationToken);
+        var token = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single().GetFirstToken();
+        var leadingTrivia = token.LeadingTrivia;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        {
+            if (SyntaxTriviaUtilities.IsCommentTrivia(leadingTrivia[triviaIndex]))
+            {
+                return (token, triviaIndex);
+            }
+        }
+
+        return (token, -1);
+    }
+
+    /// <summary>
+    /// Gets the index of the first trivia of the specified kind
+    /// </summary>
+    /// <param name="trivia">The trivia list to search</param>
+    /// <param name="kind">The trivia kind</param>
+    /// <returns>The index of the first matching trivia, or <c>-1</c> when there is none</returns>
+    private static int IndexOfKind(SyntaxTriviaList trivia, SyntaxKind kind)
+    {
+        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(kind))
+            {
+                return triviaIndex;
+            }
+        }
+
+        return -1;
     }
 
     #endregion // Helpers
