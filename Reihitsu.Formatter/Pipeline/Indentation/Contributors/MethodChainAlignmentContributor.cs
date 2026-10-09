@@ -155,6 +155,19 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
             return;
         }
 
+        AlignChainLinks(node, dots, model);
+        AlignSeparatedConditionalBindings(dots, model);
+    }
+
+    /// <summary>
+    /// Aligns the chain's continuation links to the chain anchor, or — when unjoinable trivia keeps the first
+    /// wrapped link on its continuation line — to the chain root and then to the first invoked link
+    /// </summary>
+    /// <param name="node">The chain node being laid out</param>
+    /// <param name="dots">The collected chain dots</param>
+    /// <param name="model">The layout model</param>
+    private static void AlignChainLinks(SyntaxNode node, List<SyntaxToken> dots, LayoutModel model)
+    {
         if (ShouldKeepFirstWrappedCallOnContinuationLine(dots[0]))
         {
             var continuationColumn = GetCommentExemptContinuationColumn(node, model);
@@ -189,6 +202,32 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         for (var dotIndex = 1; dotIndex < dots.Count; dotIndex++)
         {
             LayoutComputer.SetIfFirstOnLine(dots[dotIndex], firstDotColumn, "MethodChain", model);
+        }
+    }
+
+    /// <summary>
+    /// Aligns a conditional access's binding token — the <c>.</c> or <c>[</c> after its <c>?</c> — under that
+    /// <c>?</c> when it starts its own line. The line-break phase joins <c>?.</c> and <c>?[</c> whenever the gap
+    /// between them holds only whitespace, so a binding token starts a line only when a comment, a
+    /// preprocessor directive, or disabled text keeps it apart from its <c>?</c>. The <c>?</c> is aligned before
+    /// this runs, so its adjusted column is final; a binding is never itself a collected chain dot, so this
+    /// changes no column the chain alignment decides
+    /// </summary>
+    /// <param name="dots">The collected chain dots</param>
+    /// <param name="model">The layout model</param>
+    private static void AlignSeparatedConditionalBindings(List<SyntaxToken> dots, LayoutModel model)
+    {
+        foreach (var dot in dots)
+        {
+            if (dot.Parent is not ConditionalAccessExpressionSyntax conditionalAccess
+                || conditionalAccess.OperatorToken != dot)
+            {
+                continue;
+            }
+
+            var bindingToken = conditionalAccess.WhenNotNull.GetFirstToken();
+
+            LayoutComputer.SetIfFirstOnLine(bindingToken, LayoutComputer.GetAdjustedColumn(dot, model), "ConditionalAccessBinding", model);
         }
     }
 

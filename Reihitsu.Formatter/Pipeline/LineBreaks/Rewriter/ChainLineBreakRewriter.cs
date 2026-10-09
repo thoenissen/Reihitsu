@@ -48,33 +48,6 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Collapses the first <see cref="MemberBindingExpressionSyntax"/> in the
-    /// <see cref="ConditionalAccessExpressionSyntax.WhenNotNull"/> subtree onto the
-    /// same line as the <c>?</c> operator token, so that <c>?\n.Member()</c> becomes <c>?.Member()</c>
-    /// </summary>
-    /// <param name="node">The conditional access expression to process</param>
-    /// <returns>The modified node with the member binding collapsed</returns>
-    private static ConditionalAccessExpressionSyntax CollapseMemberBindingToQuestionToken(ConditionalAccessExpressionSyntax node)
-    {
-        var memberBinding = node.WhenNotNull
-                                .DescendantNodesAndSelf()
-                                .OfType<MemberBindingExpressionSyntax>()
-                                .FirstOrDefault();
-
-        if (memberBinding == null)
-        {
-            return node;
-        }
-
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(memberBinding.OperatorToken) == false)
-        {
-            return node;
-        }
-
-        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, memberBinding.OperatorToken);
-    }
-
-    /// <summary>
     /// Collapses an invoked member-access dot onto the same line as a preceding null-forgiving operator,
     /// so that <c>!\n.Member()</c> becomes <c>!.Member()</c>
     /// </summary>
@@ -397,6 +370,88 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Moves a line break that the source placed inside a conditional-access operator — between the
+    /// <c>?</c> and the <c>.</c> or <c>[</c> that starts its <see cref="ConditionalAccessExpressionSyntax.WhenNotNull"/> —
+    /// in front of the <c>?</c>, so <c>?</c> ⏎ <c>.Member()</c> is laid out exactly like the same link wrapped
+    /// before the <c>?</c>, and through that like a plain wrapped <c>.</c> link. Every conditional access on the
+    /// chain spine is handled here, nested ones included, because only the outermost conditional access of a
+    /// chain is normalized.
+    /// <para>
+    /// A gap that holds only whitespace and line breaks is closed, so <c>?.</c> and <c>?[</c> stay together.
+    /// A gap that holds a comment, a preprocessor directive, or disabled text is never closed, because that
+    /// would move or absorb the trivia. When <paramref name="includeBlockedGaps"/> is set, such a link still
+    /// counts as wrapped: only the line break in front of the <c>?</c> is inserted, and the binding token stays
+    /// on its own line for the indentation phase to align under the <c>?</c>. A short chain that is about to be
+    /// rejoined onto one line passes <see langword="false"/>, so the refused rejoin does not leave a <c>?</c> on
+    /// a line of its own that the source never wrapped
+    /// </para>
+    /// </summary>
+    /// <param name="node">The outermost conditional access expression of the chain</param>
+    /// <param name="includeBlockedGaps">Whether a gap blocked by a comment, directive, or disabled text still moves the line break in front of its <c>?</c></param>
+    /// <returns>The node with the line breaks moved in front of the conditional-access operators</returns>
+    private ConditionalAccessExpressionSyntax MoveConditionalAccessBreaksBeforeQuestionToken(ConditionalAccessExpressionSyntax node,
+                                                                                             bool includeBlockedGaps)
+    {
+        var operatorTokens = new List<SyntaxToken>();
+        var otherTokens = new List<SyntaxToken>();
+
+        ChainWalker.CollectSpineTokens(node, operatorTokens, otherTokens);
+
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var questionToken in operatorTokens)
+        {
+            if (questionToken.Parent is not ConditionalAccessExpressionSyntax conditionalAccess
+                || conditionalAccess.OperatorToken != questionToken)
+            {
+                continue;
+            }
+
+            var bindingToken = conditionalAccess.WhenNotNull.GetFirstToken();
+
+            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(questionToken) == false
+                && bindingToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
+            {
+                continue;
+            }
+
+            var isBlocked = LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(questionToken, bindingToken);
+
+            if (isBlocked
+                && includeBlockedGaps == false)
+            {
+                continue;
+            }
+
+            if (isBlocked == false)
+            {
+                var pendingQuestionToken = GetPendingToken(questionToken, replacements);
+
+                replacements[questionToken] = pendingQuestionToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(pendingQuestionToken.TrailingTrivia)));
+                replacements[bindingToken] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetPendingToken(bindingToken, replacements));
+            }
+
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(questionToken))
+            {
+                continue;
+            }
+
+            var previousToken = questionToken.GetPreviousToken();
+            var pendingPreviousToken = GetPendingToken(previousToken, replacements);
+            var previousTrailingTrivia = LineBreakTriviaUtilities.RemoveTrailingWhitespace(pendingPreviousToken.TrailingTrivia);
+
+            replacements[previousToken] = pendingPreviousToken.WithTrailingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(previousTrailingTrivia, _context.EndOfLine));
+        }
+
+        if (replacements.Count == 0)
+        {
+            return node;
+        }
+
+        return node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
     /// Normalizes a method chain or conditional access chain.
     /// <para>
     /// Three decisions are made against three different token sets, and keeping them apart is what
@@ -547,17 +602,18 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (IsCollapsibleChain(node))
+        var isCollapsible = IsCollapsibleChain(node);
+
+        node = MoveConditionalAccessBreaksBeforeQuestionToken(node, isCollapsible == false);
+
+        if (isCollapsible)
         {
             return CollapseChainToSingleLine(node);
         }
 
         if (ChainWalker.ContainsInvocation(node.WhenNotNull))
         {
-            node = (ConditionalAccessExpressionSyntax)NormalizeChain(node);
-            node = CollapseMemberBindingToQuestionToken(node);
-
-            return node;
+            return NormalizeChain(node);
         }
 
         return RejoinSplitMemberNames(node);

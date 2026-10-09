@@ -190,6 +190,78 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
+    /// Verifies that a mixed chain wrapped inside the operator of its conditional link and wrapped normally at a
+    /// later link lays out like the plain chain, with <c>?.</c> leading its continuation line
+    /// </summary>
+    [TestMethod]
+    public void MixedChainWithLaterPlainWrapKeepsEveryLinkOnItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a.B()?
+                                             .C()
+                                             .D();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic a, dynamic list, dynamic obj)
+                                    {
+                                        return a.B()
+                                                ?.C()
+                                                .D();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertConditionalAndPlainFormsMatch(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>?</c> standing alone on its continuation line is joined with the following <c>.</c>
+    /// </summary>
+    [TestMethod]
+    public void QuestionMarkAloneOnItsLineJoinsWithFollowingDot()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a.B()
+                                             ?
+                                             .C()
+                                             .D();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic a, dynamic list, dynamic obj)
+                                    {
+                                        return a.B()
+                                                ?.C()
+                                                .D();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an unwrapped mixed chain is left on its single line
     /// </summary>
     [TestMethod]
