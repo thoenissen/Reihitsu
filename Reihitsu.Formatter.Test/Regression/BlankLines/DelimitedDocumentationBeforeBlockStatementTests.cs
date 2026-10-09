@@ -846,5 +846,51 @@ public class DelimitedDocumentationBeforeBlockStatementTests : FormatterTestsBas
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that an own-line block comment followed by a delimited documentation comment glued to the opening brace of a block statement keeps its layout, like an own-line comment run glued to the brace
+    /// </summary>
+    [TestMethod]
+    public void KeepsOwnLineCommentAndDelimitedDocumentationGluedToBlockStatement()
+    {
+        const string input = """
+                             public class TestClass
+                             {
+                                 public void M()
+                                 {
+                                     var a = 0;
+
+                                     /* x */ /** Doc */ {
+                                         a = 2;
+                                     }
+                                 }
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the opening brace of a type stays glued behind an own-line block comment followed by a delimited documentation comment
+    /// </summary>
+    [TestMethod]
+    public void KeepsOwnLineCommentAndDelimitedDocumentationGluedToTypeOpeningBrace()
+    {
+        const string input = """
+                             public class TestClass
+                             /* x */ /** Doc */ {
+                                 private int _a;
+                             }
+                             """;
+        const string expected = """
+                                public class TestClass
+
+                                /* x */ /** Doc */ {
+                                    private int _a;
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
