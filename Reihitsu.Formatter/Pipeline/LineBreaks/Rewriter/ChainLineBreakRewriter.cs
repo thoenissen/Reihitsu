@@ -85,6 +85,38 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Returns the chain's own first link operator: the first token of the alignment set — the same set
+    /// <c>MethodChainAlignmentContributor</c> aligns against — after skipping any leading null-forgiving
+    /// operator that is attached to the root rather than wrapped onto its own line. This is the only link the
+    /// first-link collapse may rejoin onto the root line, and the link the fluent-chain analyzers measure
+    /// against the token before it
+    /// </summary>
+    /// <param name="node">The outermost chain node</param>
+    /// <returns>The first link operator, or <see langword="default"/> when the chain has none</returns>
+    private static SyntaxToken FindFirstChainLinkOperator(SyntaxNode node)
+    {
+        if (node is not ExpressionSyntax expression)
+        {
+            return default;
+        }
+
+        var spineDots = new List<SyntaxToken>();
+
+        ChainWalker.CollectAlignmentDots(expression, spineDots);
+
+        var candidateIndex = 0;
+
+        while (candidateIndex < spineDots.Count
+               && spineDots[candidateIndex].Parent is PostfixUnaryExpressionSyntax
+               && LineBreakTriviaUtilities.HasLeadingEndOfLine(spineDots[candidateIndex]) == false)
+        {
+            candidateIndex++;
+        }
+
+        return candidateIndex < spineDots.Count ? spineDots[candidateIndex] : default;
+    }
+
+    /// <summary>
     /// Chooses the dot the first-link collapse should consider: the chain's own first dot when the
     /// chain wraps at that dot, and otherwise the first invoked link, exactly as before.
     /// <para>
@@ -124,25 +156,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     private static SyntaxToken FindFirstWrappedChainOperator(SyntaxNode node,
                                                              SyntaxToken firstInvokedDot)
     {
-        if (node is not ExpressionSyntax expression)
-        {
-            return firstInvokedDot;
-        }
-
-        var spineDots = new List<SyntaxToken>();
-
-        ChainWalker.CollectAlignmentDots(expression, spineDots);
-
-        var candidateIndex = 0;
-
-        while (candidateIndex < spineDots.Count
-               && spineDots[candidateIndex].Parent is PostfixUnaryExpressionSyntax
-               && LineBreakTriviaUtilities.HasLeadingEndOfLine(spineDots[candidateIndex]) == false)
-        {
-            candidateIndex++;
-        }
-
-        var firstChainDot = candidateIndex < spineDots.Count ? spineDots[candidateIndex] : default;
+        var firstChainDot = FindFirstChainLinkOperator(node);
 
         if (firstChainDot.IsKind(SyntaxKind.None) == false
             && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstChainDot)
@@ -373,17 +387,23 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// Moves a line break that the source placed inside a conditional-access operator — between the
     /// <c>?</c> and the <c>.</c> or <c>[</c> that starts its <see cref="ConditionalAccessExpressionSyntax.WhenNotNull"/> —
     /// in front of the <c>?</c>, so <c>?</c> ⏎ <c>.Member()</c> is laid out exactly like the same link wrapped
-    /// before the <c>?</c>, and through that like a plain wrapped <c>.</c> link. Every conditional access on the
-    /// chain spine is handled here, nested ones included, because only the outermost conditional access of a
-    /// chain is normalized.
+    /// before the <c>?</c>. Every conditional access on the chain spine is handled here, nested ones included,
+    /// because only the outermost conditional access of a chain is normalized.
     /// <para>
     /// A gap that holds only whitespace and line breaks is closed, so <c>?.</c> and <c>?[</c> stay together.
     /// A gap that holds a comment, a preprocessor directive, or disabled text is never closed, because that
-    /// would move or absorb the trivia. When <paramref name="includeBlockedGaps"/> is set, such a link still
-    /// counts as wrapped: only the line break in front of the <c>?</c> is inserted, and the binding token stays
-    /// on its own line for the indentation phase to align under the <c>?</c>. A short chain that is about to be
-    /// rejoined onto one line passes <see langword="false"/>, so the refused rejoin does not leave a <c>?</c> on
-    /// a line of its own that the source never wrapped
+    /// would move or absorb the trivia; the binding token then stays on its own line for the indentation phase
+    /// to align under the <c>?</c>.
+    /// </para>
+    /// <para>
+    /// No line break is ever inserted in front of the chain's first link (see
+    /// <see cref="FindFirstChainLinkOperator"/>): a break there could only be removed again by the first-link
+    /// collapse, which refuses some roots and gaps, so the link would end up wrapped although the source never
+    /// wrapped the chain at that point. That <c>?</c> stays on the root line, and only its gap is closed. In front
+    /// of every later <c>?</c> the break is inserted when the gap is clean, and for a blocked gap only when
+    /// <paramref name="includeBlockedGaps"/> is set — a short chain that is collapsed onto one line passes
+    /// <see langword="false"/>, because its clean form puts the <c>?</c> on the line before it, not on a
+    /// line of its own
     /// </para>
     /// </summary>
     /// <param name="node">The outermost conditional access expression of the chain</param>
@@ -397,6 +417,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         ChainWalker.CollectSpineTokens(node, operatorTokens, otherTokens);
 
+        var firstLinkOperator = FindFirstChainLinkOperator(node);
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         foreach (var questionToken in operatorTokens)
@@ -427,11 +448,12 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             {
                 var pendingQuestionToken = GetPendingToken(questionToken, replacements);
 
-                replacements[questionToken] = pendingQuestionToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(pendingQuestionToken.TrailingTrivia)));
+                replacements[questionToken] = pendingQuestionToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(pendingQuestionToken.TrailingTrivia));
                 replacements[bindingToken] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetPendingToken(bindingToken, replacements));
             }
 
-            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(questionToken))
+            if (questionToken == firstLinkOperator
+                || LineBreakTriviaUtilities.HasLeadingEndOfLine(questionToken))
             {
                 continue;
             }

@@ -209,9 +209,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// Aligns a conditional access's binding token — the <c>.</c> or <c>[</c> after its <c>?</c> — under that
     /// <c>?</c> when it starts its own line. The line-break phase joins <c>?.</c> and <c>?[</c> whenever the gap
     /// between them holds only whitespace, so a binding token starts a line only when a comment, a
-    /// preprocessor directive, or disabled text keeps it apart from its <c>?</c>. The <c>?</c> is aligned before
-    /// this runs, so its adjusted column is final; a binding is never itself a collected chain dot, so this
-    /// changes no column the chain alignment decides
+    /// preprocessor directive, or disabled text keeps it apart from its <c>?</c>. The binding follows the
+    /// <c>?</c>'s adjusted column as the model holds it at this point; when a later contributor still moves the
+    /// <c>?</c>'s line, the repeated alignment sweeps carry the binding along until the layout is stable. A
+    /// binding is never itself a collected chain dot, so this changes no column the chain alignment decides
     /// </summary>
     /// <param name="dots">The collected chain dots</param>
     /// <param name="model">The layout model</param>
