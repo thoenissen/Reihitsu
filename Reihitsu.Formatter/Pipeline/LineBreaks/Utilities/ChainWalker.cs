@@ -259,7 +259,8 @@ internal static class ChainWalker
     /// Determines whether a single chain dot token has an intermediate member access between
     /// the dot and the chain root. A postfix null-forgiving operator is checked the same way, through
     /// its own operand, since <c>a.Prop!.Foo()</c> belongs to the same fluent chain the plain-dot check
-    /// keeps wrapped for <c>a.Prop.Foo()</c>
+    /// keeps wrapped for <c>a.Prop.Foo()</c>. A conditional-access <c>?</c> is checked through its receiver
+    /// for the same reason: <c>a.Prop?.Foo()</c> is laid out like <c>a.Prop.Foo()</c>
     /// </summary>
     /// <param name="dotToken">The dot or null-forgiving operator token from a chain link</param>
     /// <returns><see langword="true"/> if there is an intermediate member access; otherwise, <see langword="false"/></returns>
@@ -277,13 +278,21 @@ internal static class ChainWalker
                    || postfixUnary.Operand is ConditionalAccessExpressionSyntax;
         }
 
+        if (dotToken.Parent is ConditionalAccessExpressionSyntax conditionalAccess
+            && conditionalAccess.OperatorToken == dotToken)
+        {
+            return conditionalAccess.Expression is MemberAccessExpressionSyntax
+                   || conditionalAccess.Expression is ConditionalAccessExpressionSyntax;
+        }
+
         return false;
     }
 
     /// <summary>
-    /// Determines whether the chain contains a member access whose own expression is another member
-    /// or conditional access. Such fluent chains (for example <c>x.Prop.Select(...)</c>) are kept
-    /// wrapped and aligned rather than rejoined
+    /// Determines whether the chain contains a member access or conditional access whose own receiver is
+    /// another member or conditional access. Such fluent chains (for example <c>x.Prop.Select(...)</c>, or
+    /// <c>x.Prop?.Select(...)</c>, which is laid out the same way) are kept wrapped and aligned rather than
+    /// rejoined
     /// </summary>
     /// <param name="expression">The chain expression to inspect</param>
     /// <returns><see langword="true"/> if the chain has an intermediate member access; otherwise, <see langword="false"/></returns>
@@ -297,7 +306,9 @@ internal static class ChainWalker
                        || ChainHasIntermediateMemberAccess(memberAccess.Expression);
 
             case ConditionalAccessExpressionSyntax conditionalAccess:
-                return ChainHasIntermediateMemberAccess(conditionalAccess.Expression)
+                return conditionalAccess.Expression is MemberAccessExpressionSyntax
+                       || conditionalAccess.Expression is ConditionalAccessExpressionSyntax
+                       || ChainHasIntermediateMemberAccess(conditionalAccess.Expression)
                        || ChainHasIntermediateMemberAccess(conditionalAccess.WhenNotNull);
 
             case InvocationExpressionSyntax invocation:

@@ -1775,12 +1775,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the other side of the collapse boundary: when the chain's own first dot already sits
-    /// on the root line, the wrapped link behind it still collapses exactly as it does today. A
-    /// substitution that simply took the first chain dot instead of the first invoked link would stop
-    /// collapsing this <c>?</c>
+    /// on the root line, the first-link collapse never reaches past it to the wrapped link behind it.
+    /// That link follows a member access, so it keeps its own line and aligns under the first dot,
+    /// exactly like the same chain written with a plain <c>.</c>
     /// </summary>
     [TestMethod]
-    public void UnwrappedFirstChainDotStillCollapsesTheWrappedLinkBehindIt()
+    public void UnwrappedFirstChainDotKeepsTheWrappedConditionalLinkBehindItLikePlainChain()
     {
         // Arrange
         const string input = """
@@ -1800,8 +1800,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = a.Prop?.ToString()
-                                                      .Trim();
+                                        var x = a.Prop
+                                                 ?.ToString()
+                                                 .Trim();
                                     }
                                 }
                                 """;

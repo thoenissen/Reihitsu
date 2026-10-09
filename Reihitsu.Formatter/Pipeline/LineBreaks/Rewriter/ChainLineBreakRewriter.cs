@@ -86,14 +86,16 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Returns the chain's own first link operator: the first token of the alignment set — the same set
-    /// <c>MethodChainAlignmentContributor</c> aligns against — after skipping any leading null-forgiving
-    /// operator that is attached to the root rather than wrapped onto its own line. This is the only link the
-    /// first-link collapse may rejoin onto the root line, and the link the fluent-chain analyzers measure
-    /// against the token before it
+    /// <c>MethodChainAlignmentContributor</c> aligns against — after skipping leading null-forgiving
+    /// operators. The first-link collapse skips only a null-forgiving operator that is attached to the root;
+    /// the move of a conditional-access line break skips a wrapped one too, because the collapse attaches
+    /// that operator to the root in the same pass, which makes the link after it the chain's first link
     /// </summary>
     /// <param name="node">The outermost chain node</param>
+    /// <param name="skipWrappedNullForgivingOperators">Whether a leading null-forgiving operator that starts its own line is skipped as well</param>
     /// <returns>The first link operator, or <see langword="default"/> when the chain has none</returns>
-    private static SyntaxToken FindFirstChainLinkOperator(SyntaxNode node)
+    private static SyntaxToken FindFirstChainLinkOperator(SyntaxNode node,
+                                                          bool skipWrappedNullForgivingOperators)
     {
         if (node is not ExpressionSyntax expression)
         {
@@ -108,7 +110,8 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         while (candidateIndex < spineDots.Count
                && spineDots[candidateIndex].Parent is PostfixUnaryExpressionSyntax
-               && LineBreakTriviaUtilities.HasLeadingEndOfLine(spineDots[candidateIndex]) == false)
+               && (skipWrappedNullForgivingOperators
+                   || LineBreakTriviaUtilities.HasLeadingEndOfLine(spineDots[candidateIndex]) == false))
         {
             candidateIndex++;
         }
@@ -156,7 +159,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     private static SyntaxToken FindFirstWrappedChainOperator(SyntaxNode node,
                                                              SyntaxToken firstInvokedDot)
     {
-        var firstChainDot = FindFirstChainLinkOperator(node);
+        var firstChainDot = FindFirstChainLinkOperator(node, false);
 
         if (firstChainDot.IsKind(SyntaxKind.None) == false
             && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstChainDot)
@@ -417,7 +420,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         ChainWalker.CollectSpineTokens(node, operatorTokens, otherTokens);
 
-        var firstLinkOperator = FindFirstChainLinkOperator(node);
+        var firstLinkOperator = FindFirstChainLinkOperator(node, true);
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         foreach (var questionToken in operatorTokens)

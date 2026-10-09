@@ -569,6 +569,205 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
+    /// Verifies that a conditional link wrapped inside its operator after a wrapped, non-invoked prefix member
+    /// access keeps its own line like the plain chain, and stays there on a second pass
+    /// </summary>
+    [TestMethod]
+    public void LinkAfterWrappedPrefixMemberAccessStaysWrappedLikePlainChain()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a
+                                         .B?
+                                         .C()
+                                         .D();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic a, dynamic list, dynamic obj)
+                                    {
+                                        return a.B
+                                                ?.C()
+                                                .D();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertConditionalAndPlainFormsMatch(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain already wrapped before a conditional link that follows a wrapped prefix member
+    /// access reaches its final layout in one pass, like the plain chain
+    /// </summary>
+    [TestMethod]
+    public void ConditionalLinkAfterWrappedPrefixMemberAccessConvergesInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a
+                                         .B
+                                         ?.C()
+                                         .D();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic a, dynamic list, dynamic obj)
+                                    {
+                                        return a.B
+                                                ?.C()
+                                                .D();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertConditionalAndPlainFormsMatch(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a two-link chain whose conditional link follows a member access keeps the wrap, like the
+    /// plain chain whose link follows the same member access
+    /// </summary>
+    [TestMethod]
+    public void ConditionalLinkAfterMemberAccessReceiverKeepsWrapLikePlainChain()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a.B?
+                                             .C();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic a, dynamic list, dynamic obj)
+                                    {
+                                        return a.B
+                                                ?.C();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertConditionalAndPlainFormsMatch(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a non-invoked conditional link after a member access, wrapped inside its operator, starts
+    /// its own aligned line with <c>?.</c>
+    /// </summary>
+    [TestMethod]
+    public void NonInvokedConditionalLinkAfterMemberAccessReceiverStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a.B?
+                                         .C;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic a, dynamic list, dynamic obj)
+                                    {
+                                        return a.B
+                                                ?.C;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an unwrapped conditional link after a member access stays on its single line
+    /// </summary>
+    [TestMethod]
+    public void SingleLineConditionalLinkAfterMemberAccessReceiverStaysUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a.B?.C.D;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional link after a wrapped null-forgiving operator reaches its final layout in one
+    /// pass: the operator is joined onto the root, and the conditional link stays beside it
+    /// </summary>
+    [TestMethod]
+    public void FirstLinkAfterWrappedNullForgivingOperatorJoinsOntoRootInOnePass()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic a, dynamic list, dynamic obj)
+                                 {
+                                     return a
+                                         !?
+                                         .B()
+                                         .C();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic a, dynamic list, dynamic obj)
+                                    {
+                                        return a!?.B()
+                                                 .C();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an unwrapped mixed chain is left on its single line
     /// </summary>
     [TestMethod]
