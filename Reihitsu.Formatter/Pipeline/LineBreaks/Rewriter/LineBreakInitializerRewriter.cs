@@ -61,8 +61,8 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Removes trailing whitespace from the token immediately before a brace or bracket
-    /// when that token has been moved to a new line
+    /// Removes trailing whitespace from the token immediately before a brace or bracket when the line of that token
+    /// ends directly behind it, before any comment in the brace or bracket's leading trivia
     /// </summary>
     /// <typeparam name="TNode">The owning syntax node type</typeparam>
     /// <param name="node">The node that owns the token before <paramref name="token"/></param>
@@ -72,7 +72,11 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
                                                                      SyntaxToken token)
         where TNode : SyntaxNode
     {
-        if (token.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
+        // Only a line break in front of any other leading content ends the previous token's line. Behind a comment
+        // in the leading trivia, the whitespace in front of that comment separates it from the previous token
+        var firstContent = token.LeadingTrivia.FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false);
+
+        if (firstContent.IsKind(SyntaxKind.EndOfLineTrivia) == false)
         {
             return node;
         }

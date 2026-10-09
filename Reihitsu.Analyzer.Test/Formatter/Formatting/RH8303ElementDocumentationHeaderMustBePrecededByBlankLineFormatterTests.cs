@@ -165,5 +165,168 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
                               Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter leaves a documentation header directly after an opening brace with a trailing block comment unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsDocumentationAfterOpeningBraceWithTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a */
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves a documentation header directly after an opening brace with a multi-line trailing block comment unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsDocumentationAfterOpeningBraceWithMultiLineTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a
+                                 b */
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an opening brace with a multi-line trailing block
+    /// comment and the documentation header below it, and that the result is analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterRemovesBlankLineAfterOpeningBraceWithMultiLineTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a
+                                 b */
+
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C
+                                 { /* a
+                                     b */
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an opening brace with a trailing block comment and the
+    /// documentation header below it, and that the result is analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterRemovesBlankLineAfterOpeningBraceWithTrailingBlockComment()
+    {
+        const string input = """
+                             public class C
+                             { /* a */
+
+                                 /// <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C
+                                 { /* a */
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts the blank line above a documentation header after a member whose trailing
+    /// comment ends with a brace, matching the analyzer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterSeparatesDocumentationAfterMemberWithTrailingCommentEndingInBrace()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 public int A; // {
+                                 {|#0:///|} <summary>
+                                 /// Doc.
+                                 /// </summary>
+                                 public int P { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public int A; // {
+
+                                     /// <summary>
+                                     /// Doc.
+                                     /// </summary>
+                                     public int P { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter moves an opening brace glued behind a documentation comment behind a type name onto its
+    /// own line, and that the result is analyzer-clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterMovesOpeningBraceBehindGluedDocumentationOntoOwnLine()
+    {
+        const string input = """
+                             public class C /** Doc */ {
+                                 private int _a;
+                             }
+                             """;
+        const string fixedData = """
+                                 public class C /** Doc */
+                                 {
+                                     private int _a;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
     #endregion // Tests
 }
