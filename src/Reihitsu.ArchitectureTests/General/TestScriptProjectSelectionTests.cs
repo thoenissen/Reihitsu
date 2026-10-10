@@ -147,7 +147,7 @@ public sealed class TestScriptProjectSelectionTests
     private static string[] ProjectPaths(string text)
     {
         return text.Split(['\'', '"'], StringSplitOptions.RemoveEmptyEntries)
-                   .Where(segment => segment.StartsWith("Reihitsu.", StringComparison.Ordinal)
+                   .Where(segment => segment.StartsWith("src/Reihitsu.", StringComparison.Ordinal)
                                      && segment.EndsWith(".csproj", StringComparison.Ordinal))
                    .ToArray();
     }
