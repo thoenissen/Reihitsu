@@ -9,7 +9,7 @@
 
 ## What
 
-The agent workflow is rebuilt around a squad: the maintainer talks only to a **lead**, and the lead delegates every stage to a role agent with a narrow job. The role definitions are agent-neutral; agent-specific files only link to them. Codex support is removed. The review flows (`gh-review`, `gh-rereview`, `gh-apply-review`) are retired: a PR the squad publishes is finished and needs no further review round.
+The agent workflow is rebuilt around a squad: the maintainer talks only to a **lead**, and the lead delegates every stage to a role agent with a narrow job. The role definitions are agent-neutral; agent-specific files only link to them. Codex and GitHub Copilot support are removed. The review flows (`gh-review`, `gh-rereview`, `gh-apply-review`) are retired: a PR the squad publishes is finished and needs no further review round.
 
 ## Why
 
@@ -33,7 +33,7 @@ squad/
 .claude/agents/<role>.md  thin wrapper: model, effort, tools, link to squad/roles/<role>.md
 ```
 
-Claude Code reads `CLAUDE.md`, not `AGENTS.md`; the `@AGENTS.md` import makes `AGENTS.md` the single source. `.codex/` and the Codex-specific content of `AGENTS.md` are removed. Model tier and effort stay in the agent-specific wrapper files, because they are agent-specific.
+Claude Code reads `CLAUDE.md`, not `AGENTS.md`; the `@AGENTS.md` import makes `AGENTS.md` the single source. `.codex/`, the Copilot files under `.github/` (`copilot-instructions.md`, `agents/`, `skills/`), and the Codex-specific content of `AGENTS.md` are removed. Model tier and effort stay in the agent-specific wrapper files, because they are agent-specific.
 
 ### Roles
 
