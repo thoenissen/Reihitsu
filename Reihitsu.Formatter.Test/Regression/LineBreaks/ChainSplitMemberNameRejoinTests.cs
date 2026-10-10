@@ -155,9 +155,8 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a conditional-access chain rejoins the name onto its binding dot. The break
-    /// before <c>.Call()</c> is not the split being repaired: it is the wrap RH5201 requires once the
-    /// chain wraps at all, so the invoked links end up on their own lines at one column
+    /// Verifies that a conditional-access chain rejoins the name onto its binding dot. The split is no wrap, so the first
+    /// call stays on the root line and only the wrapped <c>.Then()</c> starts a continuation line under it
     /// </summary>
     [TestMethod]
     public void SplitMemberNameAfterConditionalAccessRejoins()
@@ -180,9 +179,8 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = a?.Prop
-                                                 .Call()
-                                                 .Then();
+                                        var x = a?.Prop.Call()
+                                                       .Then();
                                     }
                                 }
                                 """;

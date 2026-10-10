@@ -85,14 +85,14 @@ public sealed class FluentChain
     public bool HasPrefix => FirstInvokedLinkIndex > 0;
 
     /// <summary>
-    /// The chain's first link
+    /// The chain's first link, or <see langword="null"/> for a chain without links
     /// </summary>
-    public FluentChainLink FirstLink => Links[0];
+    public FluentChainLink FirstLink => Links.Count > 0 ? Links[0] : null;
 
     /// <summary>
     /// The last token of the root, directly in front of the first link's operator
     /// </summary>
-    public SyntaxToken RootLastToken => FirstLink.OperatorToken.GetPreviousToken();
+    public SyntaxToken RootLastToken => Links[0].OperatorToken.GetPreviousToken();
 
     #endregion // Properties
 
@@ -105,6 +105,17 @@ public sealed class FluentChain
     /// <returns>The chain, or <see langword="null"/> when the node is not the outermost node of a chain with at least one link</returns>
     public static FluentChain Create(SyntaxNode node)
     {
+        return Create(node, true);
+    }
+
+    /// <summary>
+    /// Creates the chain model for an outermost chain node
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <param name="requireLink">Whether a chain without any link (only attached parts, such as <c>a?[0]</c>) yields <see langword="null"/></param>
+    /// <returns>The chain, or <see langword="null"/> when the node is not an outermost chain node or has no link although one is required</returns>
+    public static FluentChain Create(SyntaxNode node, bool requireLink)
+    {
         if (node is not ExpressionSyntax expression
             || IsOutermostChainNode(expression) == false)
         {
@@ -116,7 +127,8 @@ public sealed class FluentChain
 
         Collect(expression, null, links, attachedParts);
 
-        if (links.Count == 0)
+        if (requireLink
+            && links.Count == 0)
         {
             return null;
         }

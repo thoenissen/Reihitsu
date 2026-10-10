@@ -1041,7 +1041,8 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var originalSecondRawString = methods[1].DescendantNodes()
                                                     .OfType<LiteralExpressionSyntax>()
                                                     .Single()
-                                                    .Token.Text;
+                                                    .Token
+                                                    .Text;
 
             // Act
             var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methods[0], TestContext.CancellationToken);
@@ -1060,7 +1061,8 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var formattedSecondRawString = resultMethods[1].DescendantNodes()
                                                            .OfType<LiteralExpressionSyntax>()
                                                            .Single()
-                                                           .Token.Text;
+                                                           .Token
+                                                           .Text;
             var rawStringLines = formattedFirstRawString.Text.Split('\n');
             var openingColumn = formattedFirstRawString.GetLocation().GetLineSpan().StartLinePosition.Character;
             var contentColumn = rawStringLines[1].TakeWhile(ch => ch == ' ').Count();

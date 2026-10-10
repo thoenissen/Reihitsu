@@ -396,11 +396,11 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a short chain whose conditional links are all wrapped inside their operators is rejoined
-    /// onto one line
+    /// Verifies that a call-less chain wrapped inside its operators joins its first link and keeps the later wrap with
+    /// <c>?.</c> leading the line
     /// </summary>
     [TestMethod]
-    public void ShortChainWithEveryLinkWrappedInsideOperatorJoinsOntoRoot()
+    public void ShortChainWithEveryLinkWrappedInsideOperatorKeepsLaterWrap()
     {
         // Arrange
         const string input = """
@@ -420,7 +420,8 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                                 {
                                     public object M(dynamic a, dynamic list, dynamic obj)
                                     {
-                                        return Get()?.Bar?.Baz;
+                                        return Get()?.Bar
+                                                    ?.Baz;
                                     }
                                 }
                                 """;
@@ -500,8 +501,8 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a chain's first conditional link after a null-forgiving operator attached to the root stays
-    /// on the root line, and the following link aligns under its <c>?</c>
+    /// Verifies that a chain's first link after a null-forgiving operator stays on the root line as one <c>!?.</c>
+    /// operator, and the following link aligns under its <c>!</c>
     /// </summary>
     [TestMethod]
     public void FirstLinkAfterAttachedNullForgivingOperatorStaysOnRootLine()
@@ -525,7 +526,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                                     public object M(dynamic a, dynamic list, dynamic obj)
                                     {
                                         return a!?.B()
-                                                 .C();
+                                                .C();
                                     }
                                 }
                                 """;
@@ -732,8 +733,8 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a conditional link after a wrapped null-forgiving operator reaches its final layout in one
-    /// pass: the operator is joined onto the root, and the conditional link stays beside it
+    /// Verifies that a wrapped <c>!</c> in front of the chain's first link joins the root in one pass, together with the
+    /// <c>?.</c> behind it, and the following link aligns under the <c>!</c>
     /// </summary>
     [TestMethod]
     public void FirstLinkAfterWrappedNullForgivingOperatorJoinsOntoRootInOnePass()
@@ -758,7 +759,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                                     public object M(dynamic a, dynamic list, dynamic obj)
                                     {
                                         return a!?.B()
-                                                 .C();
+                                                .C();
                                     }
                                 }
                                 """;
@@ -844,11 +845,11 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a conditional element access wrapped between <c>?</c> and <c>[</c> starts its own aligned
-    /// line with <c>?[</c>, the same way a conditional member access does
+    /// Verifies that a conditional element access wrapped between <c>?</c> and <c>[</c> is no link: it joins the element
+    /// in front of it, and only the conditional member access behind it starts its own line
     /// </summary>
     [TestMethod]
-    public void ElementBindingInInvokedChainStartsItsOwnLineWithConditionalElementAccess()
+    public void ConditionalElementAccessInInvokedChainJoinsItsElement()
     {
         // Arrange
         const string input = """
@@ -868,8 +869,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                                 {
                                     public object M(dynamic a, dynamic list, dynamic obj)
                                     {
-                                        return a.B()
-                                                ?[0]
+                                        return a.B()?[0]
                                                 ?.C();
                                     }
                                 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,39 +12,49 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Aligns dots in method chains so that continuation dots align to the first chain link's column.
-/// Conditional access operators (<c>?.</c>) and null-forgiving operators introducing an invoked
-/// link (<c>!.</c>) are treated as chain links, matching the RH5201 analyzer's definition
+/// Aligns the continuation lines of member-access chains, based on the shared <see cref="FluentChain"/> model. Every
+/// link operator that starts a line (<c>.</c>, <c>?.</c>, <c>!.</c> or <c>!?.</c>) is aligned to the chain's anchor;
+/// the rest of an operator that blocking trivia keeps on the next line goes under the operator's first token; an
+/// attached part that blocking trivia keeps on its own line goes to the anchor, or to the root when it precedes the
+/// first link
 /// </summary>
 internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 {
     #region Methods
 
     /// <summary>
-    /// Determines the anchor column for a method chain. The anchor is the first collected dot that
-    /// is itself an invoked chain link — a plain dot on an invoked member access, a conditional-access
-    /// operator, or a null-forgiving operator introducing an invoked link. If no such link precedes
-    /// the first wrapped dot, the anchor falls back to the first collected dot
+    /// Determines the anchor column of a chain. When blocking trivia in front of the chain's first link keeps it wrapped,
+    /// every link aligns to the root. Otherwise the anchor is the first invoked link in front of the first link that
+    /// starts a line, or the chain's first link when there is no such invoked link
     /// </summary>
-    /// <param name="dots">The collected chain dots</param>
+    /// <param name="chain">The chain</param>
     /// <param name="model">The layout model</param>
-    /// <returns>The column to which continuation-line dots should be aligned</returns>
-    private static int FindChainAnchorColumn(List<SyntaxToken> dots, LayoutModel model)
+    /// <param name="rootColumn">The column of the chain's root</param>
+    /// <returns>The anchor column</returns>
+    private static int GetAnchorColumn(FluentChain chain, LayoutModel model, int rootColumn)
     {
-        foreach (var dot in dots)
+        var firstOperator = chain.FirstLink.OperatorToken;
+
+        if (LayoutComputer.IsFirstOnLine(firstOperator)
+            && LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(firstOperator.GetPreviousToken(), firstOperator))
         {
-            if (LayoutComputer.IsFirstOnLine(dot))
+            return rootColumn;
+        }
+
+        foreach (var link in chain.Links)
+        {
+            if (LayoutComputer.IsFirstOnLine(link.OperatorToken))
             {
                 break;
             }
 
-            if (ChainWalker.IsInvokedLinkDot(dot))
+            if (link.IsInvoked)
             {
-                return GetChainAnchorColumn(dot, dots[0], model);
+                return GetChainAnchorColumn(link.OperatorToken, firstOperator, model);
             }
         }
 
-        return GetChainAnchorColumn(dots[0], dots[0], model);
+        return GetChainAnchorColumn(firstOperator, firstOperator, model);
     }
 
     /// <summary>
@@ -122,23 +132,20 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Computes the starting continuation column for a chain that a preceding comment keeps wrapped.
-    /// The chain's collected dots that precede the first invoked link have no anchor to their left, so
-    /// they line up with the chain root token itself; the first invoked link takes this same root
-    /// column only when it starts its own line — when it instead shares a line with an earlier,
-    /// non-invoked prefix dot, it is never itself moved and simply renders wherever that prefix left
-    /// it. Measuring from the root rather than from the continuation line's block indentation keeps
-    /// the chain under its root even when the root sits far into the line, for example inside an
-    /// argument or a lambda body. Once the first invoked link's own line is final, it does have an
-    /// anchor — itself — so every collected dot after it aligns to that link's own rendered column
-    /// instead, matching the column <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires.
+    /// Aligns every token after the first one in a token run (the rest of an operator, or the rest of an attached part)
+    /// under the run's first token when blocking trivia keeps it on its own line
     /// </summary>
-    /// <param name="node">The chain node being laid out</param>
+    /// <param name="tokens">The token run in source order</param>
     /// <param name="model">The layout model</param>
-    /// <returns>The column for the chain's leading continuation lines, up to the first invoked link</returns>
-    private static int GetCommentExemptContinuationColumn(SyntaxNode node, LayoutModel model)
+    private static void AlignRestOfRun(IReadOnlyList<SyntaxToken> tokens, LayoutModel model)
     {
-        return LayoutComputer.GetAdjustedColumn(node.GetFirstToken(), model);
+        for (var tokenIndex = 1; tokenIndex < tokens.Count; tokenIndex++)
+        {
+            if (LayoutComputer.IsFirstOnLine(tokens[tokenIndex]))
+            {
+                LayoutComputer.SetIfFirstOnLine(tokens[tokenIndex], LayoutComputer.GetAdjustedColumn(tokens[0], model), "MethodChainOperator", model);
+            }
+        }
     }
 
     #endregion // Methods
@@ -148,209 +155,45 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// <inheritdoc/>
     public void Contribute(SyntaxNode node, LayoutModel model, FormattingContext context)
     {
-        var dots = CreateDotsForNode(node);
+        var chain = FluentChain.Create(node, false);
 
-        if (dots.Count == 0)
+        if (chain == null)
         {
             return;
         }
 
-        AlignChainLinks(node, dots, model);
-        AlignSeparatedConditionalBindings(dots, model);
-    }
+        var rootColumn = LayoutComputer.GetAdjustedColumn(node.GetFirstToken(), model);
 
-    /// <summary>
-    /// Aligns the chain's continuation links to the chain anchor, or — when unjoinable trivia keeps the first
-    /// wrapped link on its continuation line — to the chain root and then to the first invoked link
-    /// </summary>
-    /// <param name="node">The chain node being laid out</param>
-    /// <param name="dots">The collected chain dots</param>
-    /// <param name="model">The layout model</param>
-    private static void AlignChainLinks(SyntaxNode node, List<SyntaxToken> dots, LayoutModel model)
-    {
-        if (ShouldKeepFirstWrappedCallOnContinuationLine(dots[0]))
+        if (chain.Links.Count == 0)
         {
-            var continuationColumn = GetCommentExemptContinuationColumn(node, model);
-            var passedFirstInvokedLink = false;
-
-            foreach (var dot in dots)
+            foreach (var attachedPart in chain.AttachedParts)
             {
-                LayoutComputer.SetIfFirstOnLine(dot, continuationColumn, "MethodChainCommentExempt", model);
-
-                // Once the first invoked link is set (or, if it already shared a line with an
-                // earlier collected dot, resolved through that dot's now-final line), it becomes the
-                // anchor for every dot after it — the same "first invoked link" column RH5201 measures,
-                // rather than the chain-root column used up to this point.
-                if (passedFirstInvokedLink == false
-                    && ChainWalker.IsInvokedLinkDot(dot))
-                {
-                    passedFirstInvokedLink = true;
-                    continuationColumn = LayoutComputer.GetAdjustedColumn(dot, model);
-                }
+                AlignRestOfRun(attachedPart.Tokens, model);
             }
 
             return;
         }
 
-        if (dots.Count < 2)
+        var anchorColumn = GetAnchorColumn(chain, model, rootColumn);
+        var firstOperatorStart = chain.FirstLink.OperatorToken.SpanStart;
+
+        foreach (var link in chain.Links)
         {
-            return;
+            LayoutComputer.SetIfFirstOnLine(link.OperatorToken, anchorColumn, "MethodChain", model);
+
+            AlignRestOfRun(link.OperatorTokens, model);
         }
 
-        var firstDotColumn = FindChainAnchorColumn(dots, model);
-
-        for (var dotIndex = 1; dotIndex < dots.Count; dotIndex++)
+        foreach (var attachedPart in chain.AttachedParts)
         {
-            LayoutComputer.SetIfFirstOnLine(dots[dotIndex], firstDotColumn, "MethodChain", model);
+            var column = attachedPart.FirstToken.SpanStart < firstOperatorStart
+                             ? rootColumn
+                             : anchorColumn;
+
+            LayoutComputer.SetIfFirstOnLine(attachedPart.FirstToken, column, "MethodChainAttachedPart", model);
+
+            AlignRestOfRun(attachedPart.Tokens, model);
         }
-    }
-
-    /// <summary>
-    /// Aligns a conditional access's binding token — the <c>.</c> or <c>[</c> after its <c>?</c> — under that
-    /// <c>?</c> when it starts its own line. The line-break phase joins <c>?.</c> and <c>?[</c> whenever the gap
-    /// between them holds only whitespace, so a binding token starts a line only when a comment, a
-    /// preprocessor directive, or disabled text keeps it apart from its <c>?</c>. The binding follows the
-    /// <c>?</c>'s adjusted column as the model holds it at this point; when a later contributor still moves the
-    /// <c>?</c>'s line, the repeated alignment sweeps carry the binding along until the layout is stable. A
-    /// binding is never itself a collected chain dot, so this changes no column the chain alignment decides
-    /// </summary>
-    /// <param name="dots">The collected chain dots</param>
-    /// <param name="model">The layout model</param>
-    private static void AlignSeparatedConditionalBindings(List<SyntaxToken> dots, LayoutModel model)
-    {
-        foreach (var dot in dots)
-        {
-            if (dot.Parent is not ConditionalAccessExpressionSyntax conditionalAccess
-                || conditionalAccess.OperatorToken != dot)
-            {
-                continue;
-            }
-
-            var bindingToken = conditionalAccess.WhenNotNull.GetFirstToken();
-
-            LayoutComputer.SetIfFirstOnLine(bindingToken, LayoutComputer.GetAdjustedColumn(dot, model), "ConditionalAccessBinding", model);
-        }
-    }
-
-    /// <summary>
-    /// Creates chain dot tokens for supported node types
-    /// </summary>
-    /// <param name="node">The syntax node to inspect</param>
-    /// <returns>The collected dot tokens; empty when the node is not handled</returns>
-    private static List<SyntaxToken> CreateDotsForNode(SyntaxNode node)
-    {
-        switch (node)
-        {
-            case ConditionalAccessExpressionSyntax conditionalAccess:
-                {
-                    if (conditionalAccess.Parent is ConditionalAccessExpressionSyntax)
-                    {
-                        return [];
-                    }
-
-                    List<SyntaxToken> dots = [];
-
-                    ChainWalker.CollectAlignmentDots(conditionalAccess, dots);
-
-                    return dots;
-                }
-
-            case InvocationExpressionSyntax invocation:
-                {
-                    if (ShouldSkipInvocation(invocation))
-                    {
-                        return [];
-                    }
-
-                    var chainRoot = GetChainRoot(invocation);
-                    List<SyntaxToken> dots = [];
-
-                    ChainWalker.CollectAlignmentDots(chainRoot, dots);
-
-                    return dots;
-                }
-
-            default:
-                {
-                    return [];
-                }
-        }
-    }
-
-    /// <summary>
-    /// Determines whether an invocation should be skipped for chain alignment
-    /// </summary>
-    /// <param name="invocation">The invocation node to evaluate</param>
-    /// <returns><see langword="true"/> if the invocation should be skipped; otherwise, <see langword="false"/></returns>
-    private static bool ShouldSkipInvocation(InvocationExpressionSyntax invocation)
-    {
-        if (invocation.Expression is not MemberAccessExpressionSyntax
-            && invocation.Expression is not MemberBindingExpressionSyntax)
-        {
-            return true;
-        }
-
-        // Skip if this invocation is inside a chain that has an outer invocation
-        var ancestor = invocation.Parent;
-
-        while (ancestor is MemberAccessExpressionSyntax)
-        {
-            ancestor = ancestor.Parent;
-        }
-
-        if (ancestor is InvocationExpressionSyntax)
-        {
-            return true;
-        }
-
-        return ChainWalker.IsInsideConditionalAccess(invocation);
-    }
-
-    /// <summary>
-    /// Determines whether an entire chain should be skipped. The first dot stays on its continuation
-    /// line whenever the line-break phase refused to join it onto the root line, which happens for
-    /// every kind of unjoinable trivia — a comment, a preprocessor directive, or disabled text. This
-    /// mirrors <see cref="LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia"/> so the alignment
-    /// phase stays in lock-step with the refusal instead of recognizing comments only.
-    /// </summary>
-    /// <param name="firstDot">The first chain link token</param>
-    /// <returns><see langword="true"/> if the chain should be skipped; otherwise, <see langword="false"/></returns>
-    private static bool ShouldKeepFirstWrappedCallOnContinuationLine(SyntaxToken firstDot)
-    {
-        if (LayoutComputer.IsFirstOnLine(firstDot) == false)
-        {
-            return false;
-        }
-
-        var previousToken = firstDot.GetPreviousToken();
-
-        if (previousToken == default
-            || previousToken.IsKind(SyntaxKind.None))
-        {
-            return SyntaxTriviaUtilities.ContainsUnjoinableTrivia(firstDot.LeadingTrivia);
-        }
-
-        return LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, firstDot);
-    }
-
-    /// <summary>
-    /// Gets the outer chain root for an invocation, including trailing member-access properties
-    /// </summary>
-    /// <param name="invocation">The invocation expression</param>
-    /// <returns>The chain root expression</returns>
-    private static ExpressionSyntax GetChainRoot(InvocationExpressionSyntax invocation)
-    {
-        // Walk up to include trailing member accesses after the last invocation
-        // (e.g., .GetLineSpan().StartLinePosition where .StartLinePosition is a property)
-        ExpressionSyntax chainRoot = invocation;
-
-        while (chainRoot.Parent is MemberAccessExpressionSyntax trailingAccess
-               && trailingAccess.Parent is not InvocationExpressionSyntax)
-        {
-            chainRoot = trailingAccess;
-        }
-
-        return chainRoot;
     }
 
     #endregion // ILayoutContributor

@@ -84,7 +84,8 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            var fieldDeclaration = syntaxRoot.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+            var fieldDeclaration = syntaxRoot.FindToken(diagnostic.Location.SourceSpan.Start)
+                                             .Parent
                                              ?.AncestorsAndSelf()
                                              .OfType<FieldDeclarationSyntax>()
                                              .FirstOrDefault();
