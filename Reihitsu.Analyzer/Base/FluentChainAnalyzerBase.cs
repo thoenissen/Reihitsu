@@ -1,10 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Base;
 
@@ -31,40 +30,26 @@ public abstract class FluentChainAnalyzerBase : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes a fluent chain starting from its outermost node
+    /// Analyzes a fluent chain that has at least one link
     /// </summary>
     /// <param name="context">Context</param>
-    /// <param name="outermostNode">The outermost node of the chain</param>
-    protected abstract void AnalyzeChain(SyntaxNodeAnalysisContext context, SyntaxNode outermostNode);
+    /// <param name="chain">The chain, built from its outermost node</param>
+    protected abstract void AnalyzeChain(SyntaxNodeAnalysisContext context, FluentChain chain);
 
     /// <summary>
-    /// Analyzes member access expressions at the outer edge of a fluent chain
+    /// Analyzes the outermost node of a fluent chain
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnMemberAccessExpression(SyntaxNodeAnalysisContext context)
+    private void OnChainNode(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is not MemberAccessExpressionSyntax memberAccess
-            || FluentChainAnalysisHelper.IsInnerChainMember(memberAccess))
+        var chain = FluentChain.Create(context.Node);
+
+        if (chain == null)
         {
             return;
         }
 
-        AnalyzeChain(context, memberAccess);
-    }
-
-    /// <summary>
-    /// Analyzes conditional access expressions at the outer edge of a fluent chain
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnConditionalAccessExpression(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not ConditionalAccessExpressionSyntax conditionalAccess
-            || FluentChainAnalysisHelper.IsInnerChainMember(conditionalAccess))
-        {
-            return;
-        }
-
-        AnalyzeChain(context, conditionalAccess);
+        AnalyzeChain(context, chain);
     }
 
     #endregion // Methods
@@ -76,8 +61,12 @@ public abstract class FluentChainAnalyzerBase : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnMemberAccessExpression, SyntaxKind.SimpleMemberAccessExpression);
-        context.RegisterSyntaxNodeAction(OnConditionalAccessExpression, SyntaxKind.ConditionalAccessExpression);
+        context.RegisterSyntaxNodeAction(OnChainNode,
+                                         SyntaxKind.SimpleMemberAccessExpression,
+                                         SyntaxKind.ConditionalAccessExpression,
+                                         SyntaxKind.InvocationExpression,
+                                         SyntaxKind.ElementAccessExpression,
+                                         SyntaxKind.SuppressNullableWarningExpression);
     }
 
     #endregion // DiagnosticAnalyzer

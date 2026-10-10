@@ -115,7 +115,8 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            var usingDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+            var usingDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
+                                       .Parent
                                        ?.AncestorsAndSelf()
                                        .OfType<LocalDeclarationStatementSyntax>()
                                        .FirstOrDefault();

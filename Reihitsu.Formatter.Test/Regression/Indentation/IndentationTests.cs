@@ -1854,7 +1854,8 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested ternary continuation is formatted correctly if the connection is malformatted
+    /// Verifies that a nested ternary continuation is formatted correctly when its condition is malformatted, and that a
+    /// break inside the condition's first <c>?.</c> operator counts as a wrap of the chain
     /// </summary>
     [TestMethod]
     public void NestedTernaryWithMalformattedCondition()
@@ -1882,7 +1883,8 @@ public class IndentationTests : FormatterTestsBase
                                         var outer = "123";
                                         var inner = 1;
 
-                                        var title = outer?.Substring(0, 0).Length == 0
+                                        var title = outer?.Substring(0, 0)
+                                                         .Length == 0
                                                         ? "A"
                                                         : inner == 1
                                                             ? "B"

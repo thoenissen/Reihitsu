@@ -492,7 +492,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that reindenting a conditional link preserves a directive in the token gap
+    /// Verifies that reindenting a conditional link preserves a directive in the token gap. The directive keeps the first
+    /// link on its own line, so every link is aligned with the chain's root
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -526,9 +527,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                       {
                                           return values
                                   #if FEATURE
-                                              ?.Where(value => value > 0)
+                                                 ?.Where(value => value > 0)
                                   #endif
-                                              ?.ToArray();
+                                                 ?.ToArray();
                                       }
                                   }
                                   """;
@@ -540,24 +541,35 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that a wrapped member-access dot remains part of the preceding null-forgiving chain link
+    /// Verifies that a line break between a null-forgiving operator and the dot behind it is reported like a line break
+    /// inside <c>?.</c>, and that the fix moves the break in front of the operator so that <c>!.</c> stays together
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyWrappedMemberAccessAfterNullForgivingOperatorMatchesConditionalAccessPolicy()
+    public async Task VerifyLineBreakInsideNullForgivingLinkIsReportedAndMovedInFrontOfOperator()
     {
         const string testData = """
                                 internal sealed class Example
                                 {
                                     private static string Convert(string value)
                                     {
-                                        return value?.Trim()!
+                                        return value?.Trim(){|#0:!|}
                                 .ToString();
                                     }
                                 }
                                 """;
+        const string resultData = """
+                                  internal sealed class Example
+                                  {
+                                      private static string Convert(string value)
+                                      {
+                                          return value?.Trim()
+                                                      !.ToString();
+                                      }
+                                  }
+                                  """;
 
-        await Verify(testData);
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
     /// <summary>
@@ -673,6 +685,646 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         var formatted = FormatWithLineFeed(rawInput);
 
         await Verify(formatted, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that links wrapped between <c>?</c> and <c>.</c> are reported and that the fix keeps every <c>?.</c> together
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalLinksWrappedAfterQuestionMarkAreFixedWithoutSplittingOperator()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static IEnumerable<string> Run(List<string> list)
+                                    {
+                                        return list.Select(o => o){|#0:?|}
+                                                   .Select(o => o){|#1:?|}
+                                                   .Select(o => o);
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static IEnumerable<string> Run(List<string> list)
+                                      {
+                                          return list.Select(o => o)
+                                                     ?.Select(o => o)
+                                                     ?.Select(o => o);
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix moves the call in front of a conditional element access onto its own line and keeps <c>?[</c> attached to it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalElementAccessStaysWithItsCallWhenFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static string Run(int[] values)
+                                    {
+                                        return values.Where(value => value > 0){|#0:.|}ToArray()?[0]
+                                            {|#1:.|}ToString();
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static string Run(int[] values)
+                                      {
+                                          return values.Where(value => value > 0)
+                                                       .ToArray()?[0]
+                                                       .ToString();
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns a wrapped link with the exclamation mark of a <c>!?.</c> first link
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLinkBehindNullForgivingConditionalFirstLinkIsAlignedWithExclamationMark()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static string Run(string value)
+                                    {
+                                        return value!?.Trim()
+                                              {|#0:.|}ToString();
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static string Run(string value)
+                                      {
+                                          return value!?.Trim()
+                                                      .ToString();
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that diagnostics of two chains in one document are all fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLinksOfTwoChainsAreFixedTogether()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] values)
+                                    {
+                                        var first = values.Where(value => value > 0)
+                                            {|#0:.|}ToArray();
+                                        var second = values.Select(value => value){|#1:.|}Distinct()
+                                                           .ToArray();
+
+                                        return Use(first) ?? second;
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(int[] values)
+                                      {
+                                          var first = values.Where(value => value > 0)
+                                                            .ToArray();
+                                          var second = values.Select(value => value)
+                                                             .Distinct()
+                                                             .ToArray();
+
+                                          return Use(first) ?? second;
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that fixing a chain rooted in a multi-line raw string literal keeps the literal's content and closing delimiter in their columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixKeepsRawStringRootInPlace()
+    {
+        const string testData = """"
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static string Run()
+                                    {
+                                        return """
+                                               text
+                                               """.Trim()
+                                            {|#0:.|}Trim();
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static string Run()
+                                      {
+                                          return """
+                                                 text
+                                                 """.Trim()
+                                                    .Trim();
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing a chain inside an argument aligns it the same way as formatting the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAlignsChainInsideArgument()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] values)
+                                    {
+                                        return Use(values.Where(value => value > 0)
+                                            {|#0:.|}ToArray());
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(int[] values)
+                                      {
+                                          return Use(values.Where(value => value > 0)
+                                                           .ToArray());
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns a chain the same way formatting the statement does when the statement in front of the chain is not formatted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAlignsChainBehindMisspacedDeclaration()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                    {
+                                        var r=a.B()
+                                            {|#0:.|}C();
+
+                                        return r;
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+
+                                    private sealed class Node
+                                    {
+                                        public List<Node> Children { get; } = new List<Node>();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                      {
+                                          var r = a.B()
+                                                   .C();
+
+                                          return r;
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+
+                                      private sealed class Node
+                                      {
+                                          public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns a chain inside an argument list whose opening parenthesis is followed by a space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAlignsChainBehindMisspacedArgumentList()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                    {
+                                        return Use( a.B()
+                                            {|#0:.|}C());
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+
+                                    private sealed class Node
+                                    {
+                                        public List<Node> Children { get; } = new List<Node>();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                      {
+                                          return Use(a.B()
+                                                      .C());
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+
+                                      private sealed class Node
+                                      {
+                                          public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the moved operator aligned with the chain when the chain sits in a conditional expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixMovesBreakInsideOperatorOfChainInConditionalExpression()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                    {
+                                        var r = flag ? a.B(){|#0:?|}
+                                            .C() : d;
+
+                                        return r;
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+
+                                    private sealed class Node
+                                    {
+                                        public List<Node> Children { get; } = new List<Node>();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                      {
+                                          var r = flag
+                                                      ? a.B()
+                                                         ?.C()
+                                                      : d;
+
+                                          return r;
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+
+                                      private sealed class Node
+                                      {
+                                          public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns a chain inside a lambda argument of another wrapped chain the same way formatting the statement does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAlignsInnerChainInsideWrappedOuterChain()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                    {
+                                        return source
+                                            .Where(node => node.Children
+                                                {|#0:.|}Any())
+                                            .ToList();
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+
+                                    private sealed class Node
+                                    {
+                                        public List<Node> Children { get; } = new List<Node>();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                      {
+                                          return source.Where(node => node.Children
+                                                                          .Any())
+                                                       .ToList();
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+
+                                      private sealed class Node
+                                      {
+                                          public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns a chain whose multi-line raw string root is not aligned under its opening quotes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAlignsChainOnRawStringRootNotAlignedUnderItsQuotes()
+    {
+        const string testData = """"
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                    {
+                                        var t = """
+                                            text
+                                            """.Trim()
+                                                {|#0:.|}Trim();
+
+                                        return t;
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+
+                                    private sealed class Node
+                                    {
+                                        public List<Node> Children { get; } = new List<Node>();
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                      {
+                                          var t = """
+                                                  text
+                                                  """.Trim()
+                                                     .Trim();
+
+                                          return t;
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+
+                                      private sealed class Node
+                                      {
+                                          public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes back only the chain when that already gives the chain the layout formatting the
+    /// statement gives it, so code behind the chain in the same statement stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixLeavesCodeBehindTheChainUntouched()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, int d)
+                                    {
+                                        var r = a.B()
+                                            {|#0:.|}C() + d+1;
+
+                                        return r;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, int d)
+                                      {
+                                          var r = a.B()
+                                                   .C() + d+1;
+
+                                          return r;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
     /// <summary>

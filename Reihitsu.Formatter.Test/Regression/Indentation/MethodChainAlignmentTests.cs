@@ -97,10 +97,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a conditional invocation following an invoked member and property access remains a continuation
+    /// Verifies that in a wrapped chain a property between calls is a link of its own: <c>.Parent</c> after the first
+    /// call starts its own line, and the conditional invocation behind it stays a continuation
     /// </summary>
     [TestMethod]
-    public void ConditionalAccessAfterInvokedPropertyChainRemainsWrapped()
+    public void PropertyAfterFirstCallStartsItsOwnLineBeforeConditionalContinuation()
     {
         // Arrange
         const string input = """
@@ -110,15 +111,24 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                          .FirstOrDefault();
                              """;
 
+        const string expected = """
+                                var x = root.FindToken(0)
+                                            .Parent
+                                            ?.AncestorsAndSelf()
+                                            .OfType<object>()
+                                            .FirstOrDefault();
+                                """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that a member-access operator wrapped after a null-forgiving operator is collapsed beside it
+    /// Verifies that a line break between a null-forgiving operator and the following dot moves in front of the
+    /// <c>!</c>, so <c>!.</c> stays together and starts the continuation line under the first link
     /// </summary>
     [TestMethod]
-    public void WrappedMemberAccessAfterNullForgivingOperatorIsCollapsedBesideIt()
+    public void WrappedMemberAccessAfterNullForgivingOperatorMovesBreakInFrontOfIt()
     {
         // Arrange
         const string input = """
@@ -126,7 +136,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                              .C();
                              """;
         const string expected = """
-                                var result = value?.B()!.C();
+                                var result = value?.B()
+                                                  !.C();
                                 """;
 
         // Act & Assert
@@ -1705,12 +1716,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a chain whose only wrapped dot is its own first dot collapses onto one line. No
-    /// invoked link wraps here, so the chain must not gain continuation breaks it never had — the
-    /// boundary that the invoked-link-only early-out used to decide
+    /// Verifies that a chain whose only user wrap is in front of its first link counts as wrapped: the first link joins
+    /// the root, the first call stays on the root line, and the later call starts its own line under the first call
     /// </summary>
     [TestMethod]
-    public void WrappedFirstChainDotWithNoWrappedLinkCollapsesOntoOneLine()
+    public void WrappedFirstChainDotCountsAsWrapForLaterCall()
     {
         // Arrange
         const string input = """
@@ -1729,7 +1739,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = a.Prop?.ToString().Trim();
+                                        var x = a.Prop?.ToString()
+                                                      .Trim();
                                     }
                                 }
                                 """;
@@ -1775,12 +1786,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the other side of the collapse boundary: when the chain's own first dot already sits
-    /// on the root line, the wrapped link behind it still collapses exactly as it does today. A
-    /// substitution that simply took the first chain dot instead of the first invoked link would stop
-    /// collapsing this <c>?</c>
+    /// on the root line, the first-link collapse never reaches past it to the wrapped link behind it.
+    /// That link follows a member access, so it keeps its own line and aligns under the first dot,
+    /// exactly like the same chain written with a plain <c>.</c>
     /// </summary>
     [TestMethod]
-    public void UnwrappedFirstChainDotStillCollapsesTheWrappedLinkBehindIt()
+    public void UnwrappedFirstChainDotKeepsTheWrappedConditionalLinkBehindItLikePlainChain()
     {
         // Arrange
         const string input = """
@@ -1800,8 +1811,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = a.Prop?.ToString()
-                                                      .Trim();
+                                        var x = a.Prop
+                                                 ?.ToString()
+                                                 .Trim();
                                     }
                                 }
                                 """;
@@ -1811,9 +1823,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a fluent chain whose first dot is already on the root line stays wrapped, so the
-    /// widened collapse does not defeat <c>ChainWalker.ChainHasIntermediateMemberAccess</c>'s
-    /// deliberate keep-wrapped rule
+    /// Verifies that a chain whose first link already sits on the root line keeps the user's wrap in front of its first
+    /// call: the root ends in a property access, so only the first link is joined and the wrapped call stays on its own line
     /// </summary>
     [TestMethod]
     public void FluentChainWithUnwrappedFirstDotStaysWrapped()
@@ -1877,10 +1888,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a null-forgiving operator on the chain <b>root</b> is treated as part of that
-    /// root rather than as the chain's first dot, so the wrapped <c>.Prop</c> behind it is still the
-    /// collapse candidate. Every other null-forgiving fixture places the <c>!</c> after an
-    /// invocation, which never reaches this decision
+    /// Verifies that a null-forgiving operator in front of the wrapped first dot belongs to that link (<c>!.Prop</c>), so
+    /// the link is joined onto the root line as a whole and the later links align under its <c>!</c>
     /// </summary>
     [TestMethod]
     public void WrappedFirstChainDotAfterNullForgivingRootCollapsesOntoChainRoot()
@@ -1916,13 +1925,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment above the collapse candidate refuses only that join: the chain stays
-    /// wrapped at the commented dot, but the continuation links still each start their own line, so
-    /// the output remains RH5201-clean. Aborting the whole normalization here would leave a trailing
-    /// link sharing its predecessor's line
+    /// Verifies that a comment above the chain's first link refuses only that join: the chain stays wrapped at the
+    /// commented link, and every later link still starts its own line in the root's column, so the output remains
+    /// RH5201-clean
     /// </summary>
     [TestMethod]
-    public void CommentAboveCollapseCandidateStillBreaksContinuationLinks()
+    public void CommentAboveFirstLinkStillBreaksContinuationLinks()
     {
         // Arrange
         const string input = """
@@ -2445,11 +2453,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment above the chain's own first dot keeps the chain wrapped, and every
-    /// remaining invoked link still starts its own line — the arrangement
-    /// <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires. Today the trailing <c>.Bar().Baz()</c>
-    /// stays merged on one line because the same whole-chain bail that keeps the comment's chain
-    /// wrapped also suppresses the continuation-dot line breaks
+    /// Verifies that a comment above the chain's own first dot keeps the chain wrapped, and every remaining invoked link
+    /// still starts its own line — the arrangement <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c> requires
     /// </summary>
     [TestMethod]
     public void CommentAboveChainRootKeepsEveryInvokedLinkOnItsOwnLine()
@@ -2488,13 +2493,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that a comment-exempt chain whose first collected dot is a non-invoked prefix sharing
-    /// its line with the first invoked link aligns every later continuation dot to that invoked
-    /// link's own rendered column instead of the chain-root column, matching
-    /// <c>RH5201MethodChainsShouldBeAlignedAnalyzer</c>'s reference column
+    /// Verifies that a chain whose first link a comment keeps wrapped puts every link on its own line at the root column,
+    /// also the first invoked link that shared its line with the prefix
     /// </summary>
     [TestMethod]
-    public void CommentExemptChainWithPrefixSharingFirstInvokedLinkLineAlignsToInvokedLink()
+    public void CommentExemptChainWithPrefixSharingFirstInvokedLinkLineStartsEveryLinkAtRootColumn()
     {
         // Arrange
         const string input = """
@@ -2518,9 +2521,10 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                         var x = a
 
                                                 // keep wrapped
-                                                .Prop.Foo()
-                                                     .Bar()
-                                                     .Baz();
+                                                .Prop
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
                                     }
                                 }
                                 """;
@@ -2530,13 +2534,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that the exempt-chain fix in <see cref="CommentExemptChainWithPrefixSharingFirstInvokedLinkLineAlignsToInvokedLink"/>
-    /// also applies to a trailing non-invoked property after the first invoked link — parity with
-    /// <see cref="TrailingPropertyAfterConditionalAccessChainAlignsToInvokedLink"/>, even though
-    /// RH5201 itself stays silent for a single invoked link
+    /// Verifies that a chain whose first link a comment keeps wrapped puts every link on its own line at the root column,
+    /// including a trailing non-invoked property
     /// </summary>
     [TestMethod]
-    public void CommentExemptChainWithTrailingNonInvokedPropertyAlignsToInvokedLink()
+    public void CommentExemptChainWithTrailingNonInvokedPropertyStartsEveryLinkAtRootColumn()
     {
         // Arrange
         const string input = """
@@ -2560,8 +2562,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                         var x = a
 
                                                 // keep wrapped
-                                                .Prop.Foo()
-                                                     .Result;
+                                                .Prop
+                                                .Foo()
+                                                .Result;
                                     }
                                 }
                                 """;
@@ -2571,12 +2574,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that the exempt-chain anchor fix applies regardless of which unjoinable-trivia kind
-    /// keeps the chain's first dot wrapped — a <c>#region</c> directive here rather than a comment,
-    /// mirroring the earlier trivia-kind-agnostic exemption
+    /// Verifies that a <c>#region</c> directive in front of the first link has the same effect as a comment: every link
+    /// starts its own line at the root column
     /// </summary>
     [TestMethod]
-    public void RegionAboveCommentExemptChainWithSharedInvokedLinkLineAlignsToInvokedLink()
+    public void RegionAboveCommentExemptChainWithSharedInvokedLinkLineStartsEveryLinkAtRootColumn()
     {
         // Arrange
         const string input = """
@@ -2602,9 +2604,10 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
                                         #region Chain
 
-                                                .Prop.Foo()
-                                                     .Bar()
-                                                     .Baz();
+                                                .Prop
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
 
                                         #endregion // Chain
                                     }
@@ -2616,12 +2619,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that the exempt-chain anchor fix applies above disabled text (an <c>#if false</c>
-    /// body), which also counts as unjoinable trivia for the exemption, mirroring the earlier
-    /// trivia-kind-agnostic exemption
+    /// Verifies that disabled text (an <c>#if false</c> body) in front of the first link has the same effect as a comment:
+    /// every link starts its own line at the root column
     /// </summary>
     [TestMethod]
-    public void DisabledTextAboveCommentExemptChainWithSharedInvokedLinkLineAlignsToInvokedLink()
+    public void DisabledTextAboveCommentExemptChainWithSharedInvokedLinkLineStartsEveryLinkAtRootColumn()
     {
         // Arrange
         const string input = """
@@ -2648,9 +2650,10 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 #if false
                                             .Disabled()
                                 #endif
-                                                .Prop.Foo()
-                                                     .Bar()
-                                                     .Baz();
+                                                .Prop
+                                                .Foo()
+                                                .Bar()
+                                                .Baz();
                                     }
                                 }
                                 """;
@@ -2660,11 +2663,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that the exempt-chain anchor fix applies when the first invoked link sharing the
-    /// commented line is a conditional-access operator rather than a plain dot
+    /// Verifies that a comment-kept chain puts a conditional first invoked link on its own line with <c>?.</c> at the
+    /// root column
     /// </summary>
     [TestMethod]
-    public void CommentExemptChainWithConditionalAccessSharingFirstInvokedLinkLineAlignsToInvokedLink()
+    public void CommentExemptChainWithConditionalAccessSharingFirstInvokedLinkLineStartsEveryLinkAtRootColumn()
     {
         // Arrange
         const string input = """
@@ -2688,9 +2691,10 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                         var x = a
 
                                                 // keep wrapped
-                                                .Prop?.Foo()
-                                                     .Bar()
-                                                     .Baz();
+                                                .Prop
+                                                ?.Foo()
+                                                .Bar()
+                                                .Baz();
                                     }
                                 }
                                 """;
@@ -2700,11 +2704,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that the exempt-chain anchor fix applies when the first invoked link sharing the
-    /// commented line is a null-forgiving link rather than a plain dot
+    /// Verifies that a comment-kept chain puts a null-forgiving first invoked link on its own line with <c>!.</c> at the
+    /// root column
     /// </summary>
     [TestMethod]
-    public void CommentExemptChainWithNullForgivingLinkSharingFirstInvokedLinkLineAlignsToInvokedLink()
+    public void CommentExemptChainWithNullForgivingLinkSharingFirstInvokedLinkLineStartsEveryLinkAtRootColumn()
     {
         // Arrange
         const string input = """
@@ -2728,9 +2732,10 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                         var x = a
 
                                                 // keep wrapped
-                                                .Prop!.Foo()
-                                                     .Bar()
-                                                     .Baz();
+                                                .Prop
+                                                !.Foo()
+                                                .Bar()
+                                                .Baz();
                                     }
                                 }
                                 """;
@@ -3133,9 +3138,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that a comment above the first invoked link no longer suppresses the collapse of an
-    /// uncommented, separately wrapped non-invoked prefix dot. The bail now inspects
-    /// the trivia above the collapse candidate itself, matching the directive arm below
+    /// Verify that a comment above the first invoked link does not stop the join of an uncommented, separately wrapped
+    /// first link in front of it: only the trivia in front of the chain's first link decides that join, matching the
+    /// directive arm below
     /// </summary>
     [TestMethod]
     public void CommentAboveFirstInvokedLinkStillCollapsesWrappedPrefixDot()
@@ -3217,10 +3222,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that a comment above a wrapped null-forgiving operator on the chain root refuses the
-    /// collapse and leaves every invoked link on its own line, the same way a comment above any other
-    /// collapse candidate does. Regression for the collapse-candidate search returning a link past
-    /// the wrapped null-forgiving operator, which never terminates (repair)
+    /// Verify that a comment above a wrapped null-forgiving operator in front of the chain's first dot refuses the join
+    /// of that link and keeps <c>!.</c> together, and that every later link starts its own line in the root's column
     /// </summary>
     [TestMethod]
     public void CommentAboveWrappedNullForgivingRootRefusesCollapseWithTwoLinks()
@@ -3259,9 +3262,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Same as <see cref="CommentAboveWrappedNullForgivingRootRefusesCollapseWithTwoLinks"/> with a
-    /// third invoked link, so the search has more than one later link to (incorrectly) return before
-    /// the fix (repair)
+    /// Same as <see cref="CommentAboveWrappedNullForgivingRootRefusesCollapseWithTwoLinks"/> with a third invoked link
     /// </summary>
     [TestMethod]
     public void CommentAboveWrappedNullForgivingRootRefusesCollapseWithThreeLinks()
@@ -3565,9 +3566,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment above the chain's first invoked link pins the chain at block
-    /// indentation unless the earlier, uncommented, wrapped
-    /// null-forgiving prefix (<c>!.Prop</c>) is recognized as the collapse candidate — mirroring
+    /// Verifies that a comment above the chain's first invoked link does not stop the join of an earlier, uncommented,
+    /// wrapped null-forgiving first link (<c>!.Prop</c>) — mirroring
     /// <see cref="CommentAboveFirstInvokedLinkStillCollapsesWrappedPrefixDot"/> for a plain prefix dot
     /// </summary>
     [TestMethod]
@@ -3651,16 +3651,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a wrapped null-forgiving operator introducing a non-invoked prefix is refused as
-    /// a collapse candidate when its own receiver is another member access: <c>a.Prop1!.Prop2.Foo()</c>
-    /// is a fluent chain with an intermediate member access the same way <c>a.Prop1.Prop2.Foo()</c> is,
-    /// and both must stay wrapped rather than joining across the link. The candidate search never
-    /// reaches this <c>!</c> — it falls back to <c>.Foo</c>'s own dot, whose receiver <c>.Prop2</c> is
-    /// directly a member access — so this pins the plain <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax"/> arm
-    /// of <see cref="Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.ChainWalker.DotHasIntermediateMemberAccess"/>
-    /// staying correct once a null-forgiving link sits in the receiver chain; see
-    /// <see cref="WrappedNullForgivingInvokedLinkWithIntermediateMemberAccessStaysWrapped"/> for the
-    /// shape that pins the method's own <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.PostfixUnaryExpressionSyntax"/> arm (retry)
+    /// Verifies that a wrapped null-forgiving link in front of the first call stays wrapped when a property access comes
+    /// before it: <c>a.Prop1!.Prop2.Foo()</c> keeps the user's wrap at <c>!.Prop2</c> the same way
+    /// <c>a.Prop1.Prop2.Foo()</c> keeps it at <c>.Prop2</c>, because only the chain's first link is joined; see
+    /// <see cref="WrappedNullForgivingInvokedLinkWithIntermediateMemberAccessStaysWrapped"/> for the same shape with the
+    /// first call written as <c>!.Foo()</c>
     /// </summary>
     [TestMethod]
     public void NullForgivingPrefixWithIntermediateMemberAccessStaysWrapped()
@@ -3697,14 +3692,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a wrapped null-forgiving operator standing in for a directly-invoked link is
-    /// refused as a collapse candidate when its own operand is another member access: this is the one
-    /// shape the confined candidate search still hands to
-    /// <see cref="Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.ChainWalker.DotHasIntermediateMemberAccess"/>'s
-    /// <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.PostfixUnaryExpressionSyntax"/> arm — the fallback to the chain's first invoked link
-    /// resolves to <c>!</c> itself here, because <c>!.Foo()</c> is the directly-invoked link — so it
-    /// pins that arm staying reachable and correct after the search was narrowed to fix a preflight
-    /// finding
+    /// Verifies that a wrapped first call written as <c>!.Foo()</c> stays wrapped when the root ends in a property access:
+    /// the call follows a prefix, so it may keep the user's wrap, and <c>!.</c> stays together under the prefix link
     /// </summary>
     [TestMethod]
     public void WrappedNullForgivingInvokedLinkWithIntermediateMemberAccessStaysWrapped()
@@ -3739,15 +3728,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a wrapped, non-invoked prefix dot behind an attached (unwrapped) null-forgiving
-    /// operator is refused as a collapse candidate on a second formatter pass the same way it is on
-    /// the first: the candidate search stays confined to the chain's own first spine token and never
-    /// advances past it to a later dot, so <c>a.Prop1!</c> collapsing onto <c>a</c> in one pass does
-    /// not newly expose <c>.Prop2</c> to a wrongful collapse across the intermediate <c>.Prop1</c>
-    /// access in the next (preflight finding)
+    /// Verifies that a break between a prefix's null-forgiving operator and the following dot moves in front of the
+    /// <c>!</c>, so the user's wrap is kept as <c>!.Prop2</c>, and that the layout is stable on a second pass
     /// </summary>
     [TestMethod]
-    public void WrappedDotBehindAttachedNullForgivingPrefixStaysStableAcrossPasses()
+    public void WrappedDotBehindNullForgivingPrefixKeepsOperatorTogetherAcrossPasses()
     {
         // Arrange
         const string input = """
@@ -3769,8 +3754,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = a.Prop1!
-                                                 .Prop2
+                                        var x = a.Prop1
+                                                 !.Prop2
                                                  .Foo()
                                                  .Bar();
                                     }
@@ -3784,8 +3769,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verify that a <c>#pragma</c> directive directly above a wrapped null-forgiving prefix leaves
     /// every invoked link on its own line, mirroring
-    /// <see cref="PragmaAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
-    /// null-forgiving-prefix candidate class
+    /// <see cref="PragmaAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for a
+    /// null-forgiving prefix link
     /// </summary>
     [TestMethod]
     public void PragmaAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()
@@ -3825,8 +3810,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verify that disabled text directly above a wrapped null-forgiving prefix leaves every invoked
     /// link on its own line, mirroring
-    /// <see cref="DisabledTextAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for the new
-    /// null-forgiving-prefix candidate class
+    /// <see cref="DisabledTextAboveFirstInvokedLinkKeepsEveryInvokedLinkOnItsOwnLine"/> for a
+    /// null-forgiving prefix link
     /// </summary>
     [TestMethod]
     public void DisabledTextAboveWrappedNullForgivingPrefixKeepsEveryInvokedLinkOnItsOwnLine()

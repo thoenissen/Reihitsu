@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -37,20 +36,15 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
     #region FluentChainAnalyzerBase
 
     /// <inheritdoc/>
-    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, SyntaxNode outermostNode)
+    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, FluentChain chain)
     {
-        if (FluentChainAnalysisHelper.TryGetWrappedFirstLink(outermostNode, out var firstLink, out var previousToken) == false)
+        if (chain.FirstLink.StartsLine == false
+            || chain.IsFirstLinkBlocked)
         {
             return;
         }
 
-        if (SyntaxTriviaUtilities.ContainsUnjoinableTrivia(previousToken.TrailingTrivia)
-            || SyntaxTriviaUtilities.ContainsUnjoinableTrivia(firstLink.LeadingTrivia))
-        {
-            return;
-        }
-
-        context.ReportDiagnostic(CreateDiagnostic(firstLink.GetLocation()));
+        context.ReportDiagnostic(CreateDiagnostic(chain.FirstLink.OperatorToken.GetLocation()));
     }
 
     #endregion // FluentChainAnalyzerBase

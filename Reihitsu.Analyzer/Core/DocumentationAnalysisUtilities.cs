@@ -540,7 +540,9 @@ internal static class DocumentationAnalysisUtilities
     {
         return attributes.OfType<XmlNameAttributeSyntax>()
                          .FirstOrDefault(obj => string.Equals(obj.Name.LocalName.ValueText, "name", StringComparison.OrdinalIgnoreCase))
-                         ?.Identifier.Identifier.ValueText;
+                         ?.Identifier
+                         .Identifier
+                         .ValueText;
     }
 
     /// <summary>
