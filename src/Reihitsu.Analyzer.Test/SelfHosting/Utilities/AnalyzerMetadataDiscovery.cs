@@ -154,7 +154,7 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>Parsed rule metadata</returns>
     internal static IReadOnlyList<PackageReadmeRuleMetadata> ParsePackageReadmeRules()
     {
-        var packageReadmePath = Path.Combine(FindRepositoryRoot(), "Reihitsu.Analyzer.Package", "README.MD");
+        var packageReadmePath = Path.Combine(FindRepositoryRoot(), "src", "Reihitsu.Analyzer.Package", "README.MD");
 
         return File.ReadLines(packageReadmePath)
                    .Select(line => _packageRuleRowRegex.Match(line))

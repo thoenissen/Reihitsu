@@ -4,7 +4,7 @@
     {
       "name": "reihitsu-playground",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "Reihitsu.Playground/Reihitsu.Playground.csproj", "--launch-profile", "http"],
+      "runtimeArgs": ["run", "--project", "src/Reihitsu.Playground/Reihitsu.Playground.csproj", "--launch-profile", "http"],
       "port": 5110
     }
   ]

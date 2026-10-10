@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
     <None Include="README.MD" Pack="true" PackagePath="" />
     <None Include="buildTransitive\Reihitsu.Analyzer.targets" Pack="true" PackagePath="buildTransitive" />
   </ItemGroup>

@@ -7,10 +7,10 @@ dotnet build Reihitsu.sln -c Release --verbosity minimal
 
 ## Test
 ```powershell
-dotnet test Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --verbosity minimal
 ```
 
 ## Full Solution Build

@@ -36,12 +36,12 @@ Reproduce the reported analyzer problem first, then implement the fix without we
 Run the relevant validation commands after formatting the changed files:
 
 ```shell
-dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
+dotnet test src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
 dotnet build Reihitsu.sln -c Release --verbosity minimal
 ```
 
 If the fix touches formatter-coupled code-fix behavior, also run:
 
 ```shell
-dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
+dotnet test src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
 ```

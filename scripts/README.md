@@ -27,7 +27,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 scripts/prepare.sh
 scripts/build.sh
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
-scripts/format.sh Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
+scripts/format.sh src/Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/apply-fix.sh RH7101 /tmp/sweep
 scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
@@ -37,7 +37,7 @@ scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 .\scripts\prepare.ps1
 .\scripts\build.ps1
 .\scripts\test.ps1 -Project analyzer -Filter "FullyQualifiedName~RH3204"
-.\scripts\format.ps1 Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs
+.\scripts\format.ps1 src\Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs
 .\scripts\trace.ps1 samples\Example.cs -Passes 3 -NoInstall
 .\scripts\apply-fix.ps1 RH7101 C:\Temp\sweep
 .\scripts\verify-text-only.ps1 -Base a1b2c3d -Head worktree
