@@ -185,6 +185,38 @@ public sealed class FluentChain
     }
 
     /// <summary>
+    /// Gets the link whose operator the wrapped links of the chain align to: the first invoked link in front of the first
+    /// link that starts a line, or the chain's first link when no invoked link comes first. When a comment, a preprocessor
+    /// directive or disabled text keeps the chain's first link on its own line, the chain aligns to its root instead
+    /// </summary>
+    /// <returns>The anchor link, or <see langword="null"/> when the chain aligns to its root</returns>
+    public FluentChainLink GetAnchorLink()
+    {
+        var firstOperator = FirstLink.OperatorToken;
+
+        if (SyntaxTokenPositionUtilities.IsFirstOnLine(firstOperator)
+            && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(firstOperator.GetPreviousToken(), firstOperator))
+        {
+            return null;
+        }
+
+        foreach (var link in Links)
+        {
+            if (SyntaxTokenPositionUtilities.IsFirstOnLine(link.OperatorToken))
+            {
+                break;
+            }
+
+            if (link.IsInvoked)
+            {
+                return link;
+            }
+        }
+
+        return FirstLink;
+    }
+
+    /// <summary>
     /// Determines whether the link at the given index belongs to the prefix
     /// </summary>
     /// <param name="linkIndex">The link index</param>

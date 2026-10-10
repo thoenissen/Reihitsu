@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
@@ -23,9 +22,8 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     #region Methods
 
     /// <summary>
-    /// Determines the anchor column of a chain. When blocking trivia in front of the chain's first link keeps it wrapped,
-    /// every link aligns to the root. Otherwise the anchor is the first invoked link in front of the first link that
-    /// starts a line, or the chain's first link when there is no such invoked link
+    /// Determines the anchor column of a chain from its <see cref="FluentChain.GetAnchorLink"/>, or the root column when
+    /// the chain aligns to its root
     /// </summary>
     /// <param name="chain">The chain</param>
     /// <param name="model">The layout model</param>
@@ -33,28 +31,11 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// <returns>The anchor column</returns>
     private static int GetAnchorColumn(FluentChain chain, LayoutModel model, int rootColumn)
     {
-        var firstOperator = chain.FirstLink.OperatorToken;
+        var anchorLink = chain.GetAnchorLink();
 
-        if (LayoutComputer.IsFirstOnLine(firstOperator)
-            && LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(firstOperator.GetPreviousToken(), firstOperator))
-        {
-            return rootColumn;
-        }
-
-        foreach (var link in chain.Links)
-        {
-            if (LayoutComputer.IsFirstOnLine(link.OperatorToken))
-            {
-                break;
-            }
-
-            if (link.IsInvoked)
-            {
-                return GetChainAnchorColumn(link.OperatorToken, firstOperator, model);
-            }
-        }
-
-        return GetChainAnchorColumn(firstOperator, firstOperator, model);
+        return anchorLink == null
+                   ? rootColumn
+                   : GetChainAnchorColumn(anchorLink.OperatorToken, chain.FirstLink.OperatorToken, model);
     }
 
     /// <summary>

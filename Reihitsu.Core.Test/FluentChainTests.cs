@@ -151,6 +151,45 @@ public class FluentChainTests
         Assert.AreSame(expression, FluentChain.GetOutermostChainNode(inner));
     }
 
+    /// <summary>
+    /// Verifies that the anchor is the first invoked link in front of the first link that starts a line, or the first
+    /// link when no invoked link comes first
+    /// </summary>
+    /// <param name="source">The expression source</param>
+    /// <param name="expectedName">The member name of the expected anchor link</param>
+    [TestMethod]
+    [DataRow("a.B().C()\n.D()", "B")]
+    [DataRow("a.Prop.Foo()\n.Bar()", "Foo")]
+    [DataRow("a?.B.C()\n.D()", "C")]
+    [DataRow("x.Items.Count\n.ToString()", "Items")]
+    [DataRow("a\n.B()\n.C()", "B")]
+    [DataRow("a\n.Prop.Foo()", "Prop")]
+    public void GetAnchorLinkReturnsFirstInvokedLinkBeforeFirstWrappedLink(string source, string expectedName)
+    {
+        Assert.AreEqual(expectedName, CreateChain(source).GetAnchorLink().Name.Identifier.Text);
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose first link is kept on its own line by a comment or a directive aligns to its root
+    /// </summary>
+    /// <param name="source">The expression source</param>
+    [TestMethod]
+    [DataRow("a // c\n.B()\n.C()")]
+    [DataRow("a\n#if DEBUG\n#endif\n.B()")]
+    public void GetAnchorLinkReturnsNullWhenFirstLinkIsBlocked(string source)
+    {
+        Assert.IsNull(CreateChain(source).GetAnchorLink());
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a later link does not make the chain align to its root
+    /// </summary>
+    [TestMethod]
+    public void GetAnchorLinkIgnoresCommentInFrontOfLaterLink()
+    {
+        Assert.AreEqual("B", CreateChain("a.B() // c\n.C()").GetAnchorLink().Name.Identifier.Text);
+    }
+
     #endregion // Tests
 
     #region Methods

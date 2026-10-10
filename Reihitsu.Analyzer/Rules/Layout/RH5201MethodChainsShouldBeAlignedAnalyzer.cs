@@ -37,35 +37,18 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Gets the column every link that starts a line is aligned to. A first link kept on its own line by a comment, a
-    /// preprocessor directive or disabled text aligns the chain to the column the chain starts in. Otherwise the anchor
-    /// is the first invoked link in front of the first link that starts a line, or the chain's first link when no
-    /// invoked link comes first
+    /// Gets the column every link that starts a line is aligned to: the column of the chain's
+    /// <see cref="FluentChain.GetAnchorLink"/>, or the column the chain starts in when it aligns to its root
     /// </summary>
     /// <param name="chain">The chain</param>
     /// <returns>The anchor column</returns>
     private static int GetAnchorColumn(FluentChain chain)
     {
-        if (FluentChainAnalysisHelper.IsFirstLinkWrapped(chain)
-            && FluentChainAnalysisHelper.IsFirstLinkBlocked(chain))
-        {
-            return SyntaxTokenPositionUtilities.GetColumn(chain.Node.GetFirstToken());
-        }
+        var anchorLink = chain.GetAnchorLink();
 
-        foreach (var link in chain.Links)
-        {
-            if (FluentChainAnalysisHelper.StartsLine(link))
-            {
-                break;
-            }
-
-            if (link.IsInvoked)
-            {
-                return SyntaxTokenPositionUtilities.GetColumn(link.OperatorToken);
-            }
-        }
-
-        return SyntaxTokenPositionUtilities.GetColumn(chain.FirstLink.OperatorToken);
+        return SyntaxTokenPositionUtilities.GetColumn(anchorLink == null
+                                                          ? chain.Node.GetFirstToken()
+                                                          : anchorLink.OperatorToken);
     }
 
     /// <summary>

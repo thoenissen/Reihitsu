@@ -20,7 +20,12 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// </para>
 /// <list type="bullet">
 /// <item><description>A member name split from its dot is rejoined; such a split is no wrap.</description></item>
-/// <item><description>An attached part joins the element in front of it.</description></item>
+/// <item>
+/// <description>
+/// In a chain with at least one link, an attached part joins the element in front of it; a chain without links only
+/// joins its conditional element accesses.
+/// </description>
+/// </item>
 /// <item><description>A link operator is never split: a line break inside it moves in front of its first token.</description></item>
 /// <item>
 /// <description>

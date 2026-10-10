@@ -116,9 +116,9 @@ internal static class FluentChainAnalysisHelper
     }
 
     /// <summary>
-    /// Determines whether the operator of a chain link starts a line. The line break is looked for behind the token in
-    /// front of the operator, so a link directly behind the closing delimiter of a multi-line raw string literal does
-    /// not start a line
+    /// Determines whether the operator of a chain link starts a line, that is, whether a line break separates it from the
+    /// end of the token in front of it. A link directly behind the closing delimiter of a multi-line raw string literal
+    /// therefore does not start a line
     /// </summary>
     /// <param name="link">The chain link</param>
     /// <returns><see langword="true"/> if the link's operator starts a line</returns>
