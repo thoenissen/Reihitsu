@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -52,8 +51,29 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     }
 
     /// <summary>
+    /// Gets the column the line of a token starts in. A block comment in front of a link that starts a line is aligned
+    /// together with the link, so the line start is what is aligned to the anchor
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns>The column of the first character on the token's line that is not whitespace</returns>
+    private static int GetLineStartColumn(SyntaxToken token)
+    {
+        var text = token.SyntaxTree.GetText();
+        var line = text.Lines.GetLineFromPosition(token.SpanStart);
+        var position = line.Start;
+
+        while (position < token.SpanStart
+               && char.IsWhiteSpace(text[position]))
+        {
+            position++;
+        }
+
+        return position - line.Start;
+    }
+
+    /// <summary>
     /// Determines whether a link is misplaced in a wrapped chain: a link of the chain part after its first link that
-    /// does not start a line, a link that starts a line outside the anchor column, or a link whose operator holds a line
+    /// does not start a line, a link whose line does not start in the anchor column, or a link whose operator holds a line
     /// break between its own tokens
     /// </summary>
     /// <param name="chain">The chain</param>
@@ -64,14 +84,14 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     {
         var link = chain.Links[linkIndex];
 
-        if (FluentChainAnalysisHelper.HasInnerLineBreak(link, true))
+        if (link.HasInnerLineBreak(true))
         {
             return true;
         }
 
-        if (FluentChainAnalysisHelper.StartsLine(link))
+        if (link.StartsLine)
         {
-            return SyntaxTokenPositionUtilities.GetColumn(link.OperatorToken) != anchorColumn;
+            return GetLineStartColumn(link.OperatorToken) != anchorColumn;
         }
 
         return chain.IsCallLess == false
@@ -85,7 +105,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     /// <inheritdoc/>
     protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, FluentChain chain)
     {
-        if (FluentChainAnalysisHelper.IsWrapped(chain) == false)
+        if (chain.IsWrapped == false)
         {
             return;
         }

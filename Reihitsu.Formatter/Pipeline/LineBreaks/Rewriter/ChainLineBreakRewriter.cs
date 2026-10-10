@@ -153,24 +153,6 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a line break sits between consecutive tokens of an operator
-    /// </summary>
-    /// <param name="tokens">The operator tokens in source order</param>
-    /// <returns><see langword="true"/> if any inner gap holds a line break</returns>
-    private static bool HasInnerLineBreak(IReadOnlyList<SyntaxToken> tokens)
-    {
-        for (var tokenIndex = 1; tokenIndex < tokens.Count; tokenIndex++)
-        {
-            if (HasLineBreak(tokens[tokenIndex - 1], tokens[tokenIndex]))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Joins the conditional element accesses of a chain without links (<c>a</c> ⏎ <c>?[0]</c>). Other attached parts of
     /// such a chain keep the user's layout
     /// </summary>
@@ -270,20 +252,18 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         // Link operators are never split. A line break in front of or inside an operator is the user's wrap.
         var wrappedLinks = new bool[chain.Links.Count];
-        var isWrapped = false;
 
         for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
         {
             var link = chain.Links[linkIndex];
 
-            wrappedLinks[linkIndex] = HasLineBreak(link.OperatorToken.GetPreviousToken(), link.OperatorToken)
-                                      || HasInnerLineBreak(link.OperatorTokens);
-            isWrapped |= wrappedLinks[linkIndex];
+            wrappedLinks[linkIndex] = link.StartsLine
+                                      || link.HasInnerLineBreak(false);
 
             CloseInnerGaps(link.OperatorTokens, replacements);
         }
 
-        if (isWrapped)
+        if (chain.IsWrapped)
         {
             ApplyWrappedLayout(chain, wrappedLinks, replacements);
         }

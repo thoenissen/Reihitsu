@@ -613,6 +613,132 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix aligns the remaining links the same way formatting the statement does when the statement in front of the chain is not formatted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixJoinsFirstCallBehindMisspacedDeclaration()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                    {
+                                        var r=a
+                                            {|#0:.|}B()
+                                            .C();
+
+                                        return r;
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+
+                                    private sealed class Node
+                                    {
+                                        public List<Node> Children { get; } = new List<Node>();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                      {
+                                          var r = a.B()
+                                                   .C();
+
+                                          return r;
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+
+                                      private sealed class Node
+                                      {
+                                          public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns the remaining links of a chain in a conditional expression the same way formatting the statement does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixJoinsFirstCallOfChainInConditionalExpression()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                    {
+                                        var r = flag ? a
+                                            {|#0:.|}B()
+                                            .C() : d;
+
+                                        return r;
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+
+                                    private sealed class Node
+                                    {
+                                        public List<Node> Children { get; } = new List<Node>();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
+                                      {
+                                          var r = flag
+                                                      ? a.B()
+                                                         .C()
+                                                      : d;
+
+                                          return r;
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+
+                                      private sealed class Node
+                                      {
+                                          public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -65,5 +65,40 @@ public sealed class FluentChainLink
     /// </summary>
     public bool IsInvoked { get; }
 
+    /// <summary>
+    /// Whether the operator starts a line, that is, whether a line break separates it from the end of the token in front
+    /// of it. A link directly behind the closing delimiter of a multi-line raw string literal therefore does not start a
+    /// line
+    /// </summary>
+    public bool StartsLine => SyntaxTokenPositionUtilities.IsFirstOnLine(OperatorToken);
+
     #endregion // Properties
+
+    #region Methods
+
+    /// <summary>
+    /// Determines whether the operator holds a line break between its own tokens (<c>?</c> ⏎ <c>.</c>, <c>!</c> ⏎
+    /// <c>.</c>, <c>!</c> ⏎ <c>?.</c>)
+    /// </summary>
+    /// <param name="isJoinableOnly">Whether a line break that a comment, a preprocessor directive or disabled text keeps in place is ignored</param>
+    /// <returns><see langword="true"/> if the operator holds a line break</returns>
+    public bool HasInnerLineBreak(bool isJoinableOnly)
+    {
+        for (var tokenIndex = 1; tokenIndex < OperatorTokens.Count; tokenIndex++)
+        {
+            var previousToken = OperatorTokens[tokenIndex - 1];
+            var token = OperatorTokens[tokenIndex];
+
+            if (SyntaxTokenPositionUtilities.IsFirstOnLine(token)
+                && (isJoinableOnly == false
+                    || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, token) == false))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    #endregion // Methods
 }

@@ -930,5 +930,71 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
         await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a wrapped member access on the left side of a null-conditional assignment is not reported when a conditional property access comes first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedLinkOfNullConditionalAssignmentAfterConditionalPrefixIsNotReported()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic a, dynamic x, dynamic order)
+                                  {
+                                      a?.B
+                                       .C = 5;
+
+                                      return a;
+                                  }
+
+                                  private static dynamic Get()
+                                  {
+                                      return null;
+                                  }
+
+                                  private static object Use(object value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped member access on the left side of a compound null-conditional assignment is not reported when the chain starts with a property access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedLinkOfCompoundNullConditionalAssignmentAfterPrefixIsNotReported()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic a, dynamic x, dynamic order)
+                                  {
+                                      x.Y?.B
+                                       .C += 1;
+
+                                      return x;
+                                  }
+
+                                  private static dynamic Get()
+                                  {
+                                      return null;
+                                  }
+
+                                  private static object Use(object value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
     #endregion // Tests
 }

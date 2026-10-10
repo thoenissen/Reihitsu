@@ -2689,5 +2689,83 @@ public class ChainLinkLayoutTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a wrapped <c>?.</c> link on the left side of a null-conditional assignment stays aligned with the first call, the same way its <c>.</c> twin does
+    /// </summary>
+    [TestMethod]
+    public void WrappedConditionalLinkOfNullConditionalAssignmentStaysAlignedWithCall()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public void M(dynamic a)
+                                 {
+                                     a.B()
+                                      ?.C = 5;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a line break between <c>?</c> and <c>.</c> on the left side of a null-conditional assignment moves in front of the <c>?</c>
+    /// </summary>
+    [TestMethod]
+    public void BreakInsideOperatorOfNullConditionalAssignmentMovesInFrontOfQuestionMark()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public void M(dynamic a)
+                                 {
+                                     a.B()?
+                                         .C = 5;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public void M(dynamic a)
+                                    {
+                                        a.B()
+                                         ?.C = 5;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that every wrapped link on the left side of a null-conditional assignment keeps its own line, the same way its <c>.</c> twin does
+    /// </summary>
+    [TestMethod]
+    public void WrappedLinksOfNullConditionalAssignmentKeepTheirOwnLines()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public void M(dynamic a)
+                                 {
+                                     a.B()
+                                      ?.C()
+                                      .D = 5;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }

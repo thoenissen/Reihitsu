@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,7 +19,11 @@ namespace Reihitsu.Core;
 /// </para>
 /// <para>
 /// The links in front of the first invoked link form the prefix; every link from the first invoked link on forms the
-/// chain part. A chain without an invoked link consists of its prefix only
+/// chain part. A chain without an invoked link consists of its prefix only.
+/// </para>
+/// <para>
+/// The target of a null-conditional assignment (<c>a?.B.C = value</c>) continues the chain of its conditional access;
+/// the assigned value is no part of the chain
 /// </para>
 /// </summary>
 public sealed class FluentChain
@@ -90,9 +95,24 @@ public sealed class FluentChain
     public FluentChainLink FirstLink => Links.Count > 0 ? Links[0] : null;
 
     /// <summary>
-    /// The last token of the root, directly in front of the first link's operator
+    /// The last token of the root, directly in front of the first link's operator; <see langword="default"/> for a chain
+    /// without links
     /// </summary>
-    public SyntaxToken RootLastToken => Links[0].OperatorToken.GetPreviousToken();
+    public SyntaxToken RootLastToken => Links.Count > 0 ? Links[0].OperatorToken.GetPreviousToken() : default;
+
+    /// <summary>
+    /// Whether the chain is wrapped: one of its link operators starts a line or holds a line break. The formatter only
+    /// lays out a chain as wrapped when the user wrapped it
+    /// </summary>
+    public bool IsWrapped => Links.Any(static link => link.StartsLine
+                                                      || link.HasInnerLineBreak(false));
+
+    /// <summary>
+    /// Whether a comment, a preprocessor directive or disabled text in front of the chain's first link keeps that link
+    /// from joining the root's line; <see langword="false"/> for a chain without links
+    /// </summary>
+    public bool IsFirstLinkBlocked => Links.Count > 0
+                                      && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(RootLastToken, FirstLink.OperatorToken);
 
     #endregion // Properties
 
@@ -189,20 +209,18 @@ public sealed class FluentChain
     /// link that starts a line, or the chain's first link when no invoked link comes first. When a comment, a preprocessor
     /// directive or disabled text keeps the chain's first link on its own line, the chain aligns to its root instead
     /// </summary>
-    /// <returns>The anchor link, or <see langword="null"/> when the chain aligns to its root</returns>
+    /// <returns>The anchor link, or <see langword="null"/> when the chain aligns to its root or has no links</returns>
     public FluentChainLink GetAnchorLink()
     {
-        var firstOperator = FirstLink.OperatorToken;
-
-        if (SyntaxTokenPositionUtilities.IsFirstOnLine(firstOperator)
-            && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(firstOperator.GetPreviousToken(), firstOperator))
+        if (Links.Count == 0
+            || (FirstLink.StartsLine && IsFirstLinkBlocked))
         {
             return null;
         }
 
         foreach (var link in Links)
         {
-            if (SyntaxTokenPositionUtilities.IsFirstOnLine(link.OperatorToken))
+            if (link.StartsLine)
             {
                 break;
             }
@@ -241,6 +259,9 @@ public sealed class FluentChain
                    ElementAccessExpressionSyntax elementAccess => elementAccess.Expression == child,
                    PostfixUnaryExpressionSyntax postfixUnary => postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression),
                    ConditionalAccessExpressionSyntax => true,
+                   AssignmentExpressionSyntax assignment => assignment.Left == child
+                                                            && assignment.Parent is ConditionalAccessExpressionSyntax conditionalAccess
+                                                            && conditionalAccess.WhenNotNull == assignment,
                    _ => false
                };
     }
@@ -362,6 +383,12 @@ public sealed class FluentChain
             case MemberBindingExpressionSyntax memberBinding when pendingConditional != null:
                 {
                     links.Add(new FluentChainLink(memberBinding, GetConditionalTokens(pendingConditional, memberBinding.OperatorToken), memberBinding.Name, IsInvoked(memberBinding)));
+                }
+                break;
+
+            case AssignmentExpressionSyntax assignment when pendingConditional != null:
+                {
+                    Collect(assignment.Left, pendingConditional, links, attachedParts);
                 }
                 break;
 

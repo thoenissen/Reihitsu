@@ -41,7 +41,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer 
     /// <inheritdoc/>
     protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, FluentChain chain)
     {
-        if (FluentChainAnalysisHelper.IsFirstLinkWrapped(chain) == false)
+        if (chain.FirstLink.StartsLine == false)
         {
             return;
         }

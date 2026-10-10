@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Core.Enumerations;
@@ -188,6 +189,45 @@ public class FluentChainTests
     public void GetAnchorLinkIgnoresCommentInFrontOfLaterLink()
     {
         Assert.AreEqual("B", CreateChain("a.B() // c\n.C()").GetAnchorLink().Name.Identifier.Text);
+    }
+
+    /// <summary>
+    /// Verifies that the left side of a null-conditional assignment continues the chain of its conditional access, so
+    /// its member bindings and member accesses are links of that chain
+    /// </summary>
+    [TestMethod]
+    public void CreateCollectsLinksOfNullConditionalAssignmentTarget()
+    {
+        var chain = CreateChain("a.B()?.C().D = 5");
+
+        Assert.AreSequenceEqual(new[] { "B", "C", "D" }, chain.Links.Select(link => link.Name.Identifier.ValueText).ToArray());
+        Assert.AreSequenceEqual(new[] { ".", "?.", "." }, chain.Links.Select(link => string.Concat(link.OperatorTokens.Select(token => token.Text))).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that the left side of a null-conditional assignment is not the outermost node of a chain of its own
+    /// </summary>
+    [TestMethod]
+    public void LeftSideOfNullConditionalAssignmentIsNoOutermostChainNode()
+    {
+        var expression = (ConditionalAccessExpressionSyntax)SyntaxFactory.ParseExpression("a?.B.C += 1");
+        var left = ((AssignmentExpressionSyntax)expression.WhenNotNull).Left;
+
+        Assert.IsFalse(FluentChain.IsOutermostChainNode(left));
+        Assert.IsNull(FluentChain.Create(left));
+        Assert.AreSame(expression, FluentChain.GetOutermostChainNode(left));
+    }
+
+    /// <summary>
+    /// Verifies that the right side of a null-conditional assignment is no part of the chain
+    /// </summary>
+    [TestMethod]
+    public void RightSideOfNullConditionalAssignmentIsNoPartOfTheChain()
+    {
+        var chain = CreateChain("a?.B = x.Y()");
+
+        Assert.AreSequenceEqual(new[] { "B" }, chain.Links.Select(link => link.Name.Identifier.ValueText).ToArray());
+        Assert.IsEmpty(chain.AttachedParts);
     }
 
     #endregion // Tests

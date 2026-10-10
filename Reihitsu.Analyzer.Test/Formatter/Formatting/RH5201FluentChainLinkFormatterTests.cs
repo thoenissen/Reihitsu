@@ -1141,5 +1141,180 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
         await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a wrapped conditional link on the left side of a null-conditional assignment is not reported when it is aligned with the first call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalLinkOfNullConditionalAssignmentAlignedWithCallIsClean()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic a, dynamic x, dynamic order)
+                                  {
+                                      a.B()
+                                       ?.C = 5;
+
+                                      return a;
+                                  }
+
+                                  private static dynamic Get()
+                                  {
+                                      return null;
+                                  }
+
+                                  private static object Use(object value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
+    /// <summary>
+    /// Verifies that wrapped links on the left side of a null-conditional assignment are not reported when each starts its own line aligned with the first call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLinksOfNullConditionalAssignmentAlignedWithCallAreClean()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic a, dynamic x, dynamic order)
+                                  {
+                                      a.B()
+                                       ?.C()
+                                       .D = 5;
+
+                                      return a;
+                                  }
+
+                                  private static dynamic Get()
+                                  {
+                                      return null;
+                                  }
+
+                                  private static object Use(object value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
+    /// <summary>
+    /// Verifies that a link whose line starts with a block comment is measured from the start of its line, so the formatted output is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlockCommentInFrontOfWrappedFirstLinkAlignsTheLineStart()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic a, dynamic x, dynamic order)
+                                  {
+                                      return a
+                                          /* block */ {|#0:.|}B()
+                                          {|#1:.|}C();
+                                  }
+
+                                  private static dynamic Get()
+                                  {
+                                      return null;
+                                  }
+
+                                  private static object Use(object value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal sealed class Example
+                                   {
+                                       private static object Run(dynamic a, dynamic x, dynamic order)
+                                       {
+                                           return a
+
+                                                  /* block */ .B()
+                                                  .C();
+                                       }
+
+                                       private static dynamic Get()
+                                       {
+                                           return null;
+                                       }
+
+                                       private static object Use(object value)
+                                       {
+                                           return value;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a later link whose line starts with a block comment is measured from the start of its line, so the formatted output is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlockCommentInFrontOfWrappedLaterLinkAlignsTheLineStart()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic a, dynamic x, dynamic order)
+                                  {
+                                      return a.B() /* first */
+                                          /* second */ {|#0:?|}.C()
+                                          {|#1:.|}D();
+                                  }
+
+                                  private static dynamic Get()
+                                  {
+                                      return null;
+                                  }
+
+                                  private static object Use(object value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal sealed class Example
+                                   {
+                                       private static object Run(dynamic a, dynamic x, dynamic order)
+                                       {
+                                           return a.B() /* first */
+
+                                                   /* second */ ?.C()
+                                                   .D();
+                                       }
+
+                                       private static dynamic Get()
+                                       {
+                                           return null;
+                                       }
+
+                                       private static object Use(object value)
+                                       {
+                                           return value;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
     #endregion // Tests
 }
