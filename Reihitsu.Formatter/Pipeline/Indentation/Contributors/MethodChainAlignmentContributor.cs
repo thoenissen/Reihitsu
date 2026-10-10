@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -101,7 +101,77 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
             }
         }
 
-        return LayoutComputer.GetAdjustedColumn(anchorDot, model);
+        return GetAdjustedColumn(anchorDot, model);
+    }
+
+    /// <summary>
+    /// Gets the column a token has after formatting. A token on the closing-delimiter line of a multi-line raw string
+    /// literal is not on a line the layout model indents: the raw-string alignment that runs after indentation moves that
+    /// line until the closing delimiter is under the opening quotes, so the token's column is predicted with the same shift
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column of the token after formatting</returns>
+    private static int GetAdjustedColumn(SyntaxToken token, LayoutModel model)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        while (previousToken.IsKind(SyntaxKind.None) == false
+               && LayoutComputer.GetLine(previousToken) == LayoutComputer.GetLine(token)
+               && IsMultiLineRawStringEnd(previousToken) == false)
+        {
+            previousToken = previousToken.GetPreviousToken();
+        }
+
+        if (IsMultiLineRawStringEnd(previousToken) == false
+            || previousToken.GetLocation().GetLineSpan().EndLinePosition.Line != LayoutComputer.GetLine(token))
+        {
+            return LayoutComputer.GetAdjustedColumn(token, model);
+        }
+
+        int openingColumn;
+        int closingColumn;
+
+        if (previousToken.Parent is InterpolatedStringExpressionSyntax interpolatedString)
+        {
+            var startToken = interpolatedString.StringStartToken;
+
+            openingColumn = LayoutComputer.GetAdjustedColumn(startToken, model) + RawStringLiteralUtilities.GetQuoteOffset(startToken.Text);
+            closingColumn = GetLeadingSpaceCountOfLastLine(previousToken.Text);
+        }
+        else
+        {
+            openingColumn = LayoutComputer.GetAdjustedColumn(previousToken, model);
+            closingColumn = GetLeadingSpaceCountOfLastLine(previousToken.Text);
+        }
+
+        return LayoutComputer.GetColumn(token) + (openingColumn - closingColumn);
+    }
+
+    /// <summary>
+    /// Determines whether a token ends a multi-line raw string literal, interpolated or not
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns><see langword="true"/> if the token ends a multi-line raw string literal</returns>
+    private static bool IsMultiLineRawStringEnd(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+               || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+               || (token.IsKind(SyntaxKind.InterpolatedRawStringEndToken)
+                   && token.Parent is InterpolatedStringExpressionSyntax interpolatedString
+                   && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken));
+    }
+
+    /// <summary>
+    /// Gets the number of spaces in front of the closing delimiter on the last line of a raw string token's text
+    /// </summary>
+    /// <param name="tokenText">The token text</param>
+    /// <returns>The number of leading spaces of the last line</returns>
+    private static int GetLeadingSpaceCountOfLastLine(string tokenText)
+    {
+        var lastLine = tokenText.Substring(tokenText.LastIndexOf('\n') + 1);
+
+        return lastLine.Length - lastLine.TrimStart(' ').Length;
     }
 
     /// <summary>
@@ -143,7 +213,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         {
             if (LayoutComputer.IsFirstOnLine(tokens[tokenIndex]))
             {
-                LayoutComputer.SetIfFirstOnLine(tokens[tokenIndex], LayoutComputer.GetAdjustedColumn(tokens[0], model), "MethodChainOperator", model);
+                LayoutComputer.SetIfFirstOnLine(tokens[tokenIndex], GetAdjustedColumn(tokens[0], model), "MethodChainOperator", model);
             }
         }
     }

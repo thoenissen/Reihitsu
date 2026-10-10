@@ -1,4 +1,4 @@
-namespace Reihitsu.Core.Enumerations;
+﻿namespace Reihitsu.Core.Enumerations;
 
 /// <summary>
 /// Kinds of chain parts that belong to the element in front of them and are never a chain link

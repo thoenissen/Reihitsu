@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

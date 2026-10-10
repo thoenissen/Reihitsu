@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -2573,6 +2573,120 @@ public class ChainLinkLayoutTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a chain whose first link follows the closing delimiter of a multi-line raw string literal aligns its wrapped link to the column the first link has once the literal is re-indented, so the layout converges in one pass
+    /// </summary>
+    [TestMethod]
+    public void ChainOnMisindentedRawStringRootAlignsInOnePass()
+    {
+        // Arrange
+        const string input = """"
+                             public class Sample
+                             {
+                                 public string M()
+                                 {
+                                     return """
+                                         x
+                                         """?
+                                         .Trim()
+                                         .Trim();
+                                 }
+                             }
+                             """";
+
+        const string expected = """"
+                                public class Sample
+                                {
+                                    public string M()
+                                    {
+                                        return """
+                                               x
+                                               """?.Trim()
+                                                  .Trim();
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the plain-dot twin of <see cref="ChainOnMisindentedRawStringRootAlignsInOnePass"/>: the wrapped first link is joined onto the closing delimiter, and the wrapped link behind it aligns to the joined link's column after the literal is re-indented
+    /// </summary>
+    [TestMethod]
+    public void PlainChainOnMisindentedRawStringRootAlignsInOnePass()
+    {
+        // Arrange
+        const string input = """"
+                             public class Sample
+                             {
+                                 public string M()
+                                 {
+                                     return """
+                                         x
+                                         """
+                                         .Trim()
+                                         .Trim();
+                                 }
+                             }
+                             """";
+
+        const string expected = """"
+                                public class Sample
+                                {
+                                    public string M()
+                                    {
+                                        return """
+                                               x
+                                               """.Trim()
+                                                  .Trim();
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the one-pass alignment behind a re-indented raw string literal also holds for an interpolated raw string literal
+    /// </summary>
+    [TestMethod]
+    public void ChainOnMisindentedInterpolatedRawStringRootAlignsInOnePass()
+    {
+        // Arrange
+        const string input = """"
+                             public class Sample
+                             {
+                                 public string M()
+                                 {
+                                     return $"""
+                                         {1}
+                                         """
+                                         .Trim()
+                                         .Trim();
+                                 }
+                             }
+                             """";
+
+        const string expected = """"
+                                public class Sample
+                                {
+                                    public string M()
+                                    {
+                                        return $"""
+                                                {1}
+                                                """.Trim()
+                                                   .Trim();
+                                    }
+                                }
+                                """";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
