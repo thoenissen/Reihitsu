@@ -1159,5 +1159,113 @@ public class RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzerTests : Anal
         await Verify(testData, Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a comment in front of a conditional element access that follows a call inside an argument is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentBeforeConditionalElementAccessInArgument()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    object Method(dynamic a)
+                                    {
+                                        return Use(a.B()
+                                                   // Comment
+                                                   ?[0]);
+                                    }
+
+                                    static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a property access that follows a call inside an argument is reported, since the property access is not one of the links the chain rules exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforePropertyAfterCallInArgumentIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    object Method(dynamic a)
+                                    {
+                                        return Use(a.B()
+                                                   {|#0:// Comment|}
+                                                   .Name);
+                                    }
+
+                                    static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a later link written as <c>!?.</c> inside an argument is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeNullForgivingConditionalLinkInArgumentIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    object Method(dynamic a)
+                                    {
+                                        return Use(a.B()
+                                                   {|#0:// Comment|}
+                                                   !?.C());
+                                    }
+
+                                    static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a second property access ahead of the first call inside an argument is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeSecondPrefixLinkInArgumentIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    object Method(dynamic a)
+                                    {
+                                        return Use(a.P
+                                                   {|#0:// Comment|}
+                                                   .Q.C());
+                                    }
+
+                                    static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+    }
+
     #endregion // Tests
 }

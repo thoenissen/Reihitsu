@@ -10,10 +10,9 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
 /// <summary>
-/// Verifies that a comment-exempt chain aligns its continuation dots to the
-/// chain root token, while <see cref="RH5201MethodChainsShouldBeAlignedAnalyzer"/> measures its
-/// reference column from the first invoked link. For a chain that carries a non-invoked prefix dot
-/// on the commented line, the two columns can differ
+/// Verifies that a chain whose first link is kept on its own line by a comment aligns every wrapped link to the
+/// chain root token, and that <see cref="RH5201MethodChainsShouldBeAlignedAnalyzer"/> measures links against the
+/// same column, also when a non-invoked prefix link shares the line below the comment with the first call
 /// </summary>
 [TestClass]
 public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTestsBase<RH5201MethodChainsShouldBeAlignedAnalyzer>
@@ -81,10 +80,9 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
 
     /// <summary>
     /// Verifies the full round trip: the raw, as-typed source reports <c>RH5201</c> on the two
-    /// invoked links that do not match the first invoked link's column, the formatter's fixed
-    /// output clears the diagnostic by aligning every continuation dot to that first invoked
-    /// link's own rendered column (not the chain-root column), and a second formatter pass is a
-    /// no-op under both LF and CRLF
+    /// wrapped links that are not in the chain root's column and on the link that shares a line with
+    /// a later call, the formatter's fixed output clears the diagnostics by starting every link on its
+    /// own line in the chain root's column, and a second formatter pass is a no-op under both LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -114,8 +112,8 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
                                   {
                                       var x = a
                                           // keep wrapped
-                                          .Prop.Foo()
-                                          {|#0:.|}Bar(){|#1:.|}Baz();
+                                          {|#0:.|}Prop.Foo()
+                                          {|#1:.|}Bar(){|#2:.|}Baz();
 
                                       return x;
                                   }
@@ -147,16 +145,17 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
                                            var x = a
 
                                                    // keep wrapped
-                                                   .Prop.Foo()
-                                                        .Bar()
-                                                        .Baz();
+                                                   .Prop
+                                                   .Foo()
+                                                   .Bar()
+                                                   .Baz();
 
                                            return x;
                                        }
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Method chains should be aligned.", 2));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Method chains should be aligned.", 3));
     }
 
     #endregion // Tests

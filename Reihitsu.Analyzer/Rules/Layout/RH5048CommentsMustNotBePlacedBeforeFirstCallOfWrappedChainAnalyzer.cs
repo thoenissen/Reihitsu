@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -38,14 +39,14 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer 
     #region FluentChainAnalyzerBase
 
     /// <inheritdoc/>
-    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, SyntaxNode outermostNode)
+    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, FluentChain chain)
     {
-        if (FluentChainAnalysisHelper.TryGetWrappedFirstLink(outermostNode, out var firstLink, out var previousToken) == false)
+        if (FluentChainAnalysisHelper.IsFirstLinkWrapped(chain) == false)
         {
             return;
         }
 
-        foreach (var comment in previousToken.TrailingTrivia.Concat(firstLink.LeadingTrivia).Where(CommentPositionUtilities.IsOrdinaryComment))
+        foreach (var comment in chain.RootLastToken.TrailingTrivia.Concat(chain.FirstLink.OperatorToken.LeadingTrivia).Where(CommentPositionUtilities.IsOrdinaryComment))
         {
             context.ReportDiagnostic(CreateDiagnostic(comment.GetLocation()));
         }

@@ -116,71 +116,73 @@ internal static class FluentChainAnalysisHelper
     }
 
     /// <summary>
-    /// Gets the first link of a chain whose first call is wrapped onto a later line than the token before it, unless
-    /// an intermediate member access precedes that call
+    /// Determines whether the operator of a chain link starts a line. The line break is looked for behind the token in
+    /// front of the operator, so a link directly behind the closing delimiter of a multi-line raw string literal does
+    /// not start a line
     /// </summary>
-    /// <param name="outermostNode">The outermost node of the chain</param>
-    /// <param name="firstLink">The first chain link token</param>
-    /// <param name="previousToken">The token before the first chain link</param>
-    /// <returns><see langword="true"/> if the chain's first call is wrapped</returns>
-    internal static bool TryGetWrappedFirstLink(SyntaxNode outermostNode, out SyntaxToken firstLink, out SyntaxToken previousToken)
+    /// <param name="link">The chain link</param>
+    /// <returns><see langword="true"/> if the link's operator starts a line</returns>
+    internal static bool StartsLine(FluentChainLink link)
     {
-        firstLink = default;
-        previousToken = default;
-
-        var chainLinks = CollectChainLinks(outermostNode);
-
-        if (chainLinks.Count == 0)
-        {
-            return false;
-        }
-
-        firstLink = chainLinks[0];
-        previousToken = firstLink.GetPreviousToken();
-
-        if (previousToken == default
-            || previousToken.IsKind(SyntaxKind.None))
-        {
-            return false;
-        }
-
-        if (GetLine(firstLink) == GetLine(previousToken))
-        {
-            return false;
-        }
-
-        return HasIntermediateMemberAccess(firstLink) == false;
+        return SyntaxTokenPositionUtilities.IsFirstOnLine(link.OperatorToken);
     }
 
     /// <summary>
-    /// Gets the line number of a token
+    /// Determines whether the operator of a chain link holds a line break between its own tokens (<c>?</c> ⏎ <c>.</c>,
+    /// <c>!</c> ⏎ <c>.</c>, <c>!</c> ⏎ <c>?.</c>)
     /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>Line number</returns>
-    internal static int GetLine(SyntaxToken token)
+    /// <param name="link">The chain link</param>
+    /// <param name="isJoinableOnly">Whether a line break behind a comment, a preprocessor directive or disabled text is ignored</param>
+    /// <returns><see langword="true"/> if the operator holds a line break</returns>
+    internal static bool HasInnerLineBreak(FluentChainLink link, bool isJoinableOnly)
     {
-        return SyntaxTokenPositionUtilities.GetLine(token);
+        for (var tokenIndex = 1; tokenIndex < link.OperatorTokens.Count; tokenIndex++)
+        {
+            var previousToken = link.OperatorTokens[tokenIndex - 1];
+            var token = link.OperatorTokens[tokenIndex];
+
+            if (SyntaxTokenPositionUtilities.IsFirstOnLine(token)
+                && (isJoinableOnly == false
+                    || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, token) == false))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
-    /// Determines whether the first invoked chain link is preceded by intermediate member access. A
-    /// null-forgiving operator is checked through its own operand the same way, since <c>a.Prop!.Foo()</c>
-    /// is the same intermediate-access shape as <c>a.Prop.Foo()</c>
+    /// Determines whether a chain is wrapped: one of its link operators starts a line or holds a line break
     /// </summary>
-    /// <param name="token">The chain link token</param>
-    /// <returns><c>true</c> if intermediate member access precedes the invocation; otherwise <c>false</c></returns>
-    internal static bool HasIntermediateMemberAccess(SyntaxToken token)
+    /// <param name="chain">The chain</param>
+    /// <returns><see langword="true"/> if the chain is wrapped</returns>
+    internal static bool IsWrapped(FluentChain chain)
     {
-        return token.Parent switch
-               {
-                   MemberAccessExpressionSyntax memberAccess => memberAccess.Expression is MemberAccessExpressionSyntax
-                                                                                        or ConditionalAccessExpressionSyntax,
-                   ConditionalAccessExpressionSyntax conditionalAccess => conditionalAccess.Expression is MemberAccessExpressionSyntax
-                                                                                                       or ConditionalAccessExpressionSyntax,
-                   PostfixUnaryExpressionSyntax postfixUnary => postfixUnary.Operand is MemberAccessExpressionSyntax
-                                                                                     or ConditionalAccessExpressionSyntax,
-                   _ => false,
-               };
+        return chain.Links.Any(static link => StartsLine(link)
+                                              || HasInnerLineBreak(link, false));
+    }
+
+    /// <summary>
+    /// Determines whether the first link of a chain starts a line, so the chain's first member access is not on the
+    /// line its root ends on
+    /// </summary>
+    /// <param name="chain">The chain</param>
+    /// <returns><see langword="true"/> if the first link is wrapped</returns>
+    internal static bool IsFirstLinkWrapped(FluentChain chain)
+    {
+        return StartsLine(chain.FirstLink);
+    }
+
+    /// <summary>
+    /// Determines whether the first link of a chain is kept on its own line by a comment, a preprocessor directive or
+    /// disabled text in front of it
+    /// </summary>
+    /// <param name="chain">The chain</param>
+    /// <returns><see langword="true"/> if the first link cannot be joined onto the root</returns>
+    internal static bool IsFirstLinkBlocked(FluentChain chain)
+    {
+        return SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(chain.RootLastToken, chain.FirstLink.OperatorToken);
     }
 
     /// <summary>

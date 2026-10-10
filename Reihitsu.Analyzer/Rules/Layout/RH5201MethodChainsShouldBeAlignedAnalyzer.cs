@@ -37,23 +37,62 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Gets the line number of a token
+    /// Gets the column every link that starts a line is aligned to. A first link kept on its own line by a comment, a
+    /// preprocessor directive or disabled text aligns the chain to the column the chain starts in. Otherwise the anchor
+    /// is the first invoked link in front of the first link that starts a line, or the chain's first link when no
+    /// invoked link comes first
     /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>Line number</returns>
-    private static int GetLine(SyntaxToken token)
+    /// <param name="chain">The chain</param>
+    /// <returns>The anchor column</returns>
+    private static int GetAnchorColumn(FluentChain chain)
     {
-        return FluentChainAnalysisHelper.GetLine(token);
+        if (FluentChainAnalysisHelper.IsFirstLinkWrapped(chain)
+            && FluentChainAnalysisHelper.IsFirstLinkBlocked(chain))
+        {
+            return SyntaxTokenPositionUtilities.GetColumn(chain.Node.GetFirstToken());
+        }
+
+        foreach (var link in chain.Links)
+        {
+            if (FluentChainAnalysisHelper.StartsLine(link))
+            {
+                break;
+            }
+
+            if (link.IsInvoked)
+            {
+                return SyntaxTokenPositionUtilities.GetColumn(link.OperatorToken);
+            }
+        }
+
+        return SyntaxTokenPositionUtilities.GetColumn(chain.FirstLink.OperatorToken);
     }
 
     /// <summary>
-    /// Gets the column of a token
+    /// Determines whether a link is misplaced in a wrapped chain: a link of the chain part after its first link that
+    /// does not start a line, a link that starts a line outside the anchor column, or a link whose operator holds a line
+    /// break between its own tokens
     /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>Column</returns>
-    private static int GetColumn(SyntaxToken token)
+    /// <param name="chain">The chain</param>
+    /// <param name="linkIndex">The index of the link</param>
+    /// <param name="anchorColumn">The anchor column</param>
+    /// <returns><see langword="true"/> if the link is misplaced</returns>
+    private static bool IsMisplaced(FluentChain chain, int linkIndex, int anchorColumn)
     {
-        return SyntaxTokenPositionUtilities.GetColumn(token);
+        var link = chain.Links[linkIndex];
+
+        if (FluentChainAnalysisHelper.HasInnerLineBreak(link, true))
+        {
+            return true;
+        }
+
+        if (FluentChainAnalysisHelper.StartsLine(link))
+        {
+            return SyntaxTokenPositionUtilities.GetColumn(link.OperatorToken) != anchorColumn;
+        }
+
+        return chain.IsCallLess == false
+               && linkIndex > chain.FirstInvokedLinkIndex;
     }
 
     #endregion // Methods
@@ -61,42 +100,20 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     #region FluentChainAnalyzerBase
 
     /// <inheritdoc/>
-    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, SyntaxNode outermostNode)
+    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, FluentChain chain)
     {
-        var chainLinks = FluentChainAnalysisHelper.CollectChainLinks(outermostNode);
-
-        if (chainLinks.Count < 2)
+        if (FluentChainAnalysisHelper.IsWrapped(chain) == false)
         {
             return;
         }
 
-        var firstLine = GetLine(chainLinks[0]);
+        var anchorColumn = GetAnchorColumn(chain);
 
-        if (chainLinks.TrueForAll(link => GetLine(link) == firstLine))
+        for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
         {
-            return;
-        }
-
-        var referenceColumn = GetColumn(chainLinks[0]);
-
-        for (var linkIndex = 1; linkIndex < chainLinks.Count; linkIndex++)
-        {
-            var linkLine = GetLine(chainLinks[linkIndex]);
-            var linkColumn = GetColumn(chainLinks[linkIndex]);
-
-            if (linkLine == firstLine)
+            if (IsMisplaced(chain, linkIndex, anchorColumn))
             {
-                if (chainLinks.Skip(linkIndex + 1).Any(subsequentLink => GetLine(subsequentLink) != firstLine))
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
-                }
-            }
-            else
-            {
-                if (linkColumn != referenceColumn)
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
-                }
+                context.ReportDiagnostic(CreateDiagnostic(chain.Links[linkIndex].OperatorToken.GetLocation()));
             }
         }
     }

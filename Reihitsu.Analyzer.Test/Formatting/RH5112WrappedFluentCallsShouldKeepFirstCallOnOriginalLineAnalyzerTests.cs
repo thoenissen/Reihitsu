@@ -419,6 +419,200 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                      Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a wrapped property access that is the chain's first link is reported and joined onto the root line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedPropertyFirstLinkIsFixedInOneApplication()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a)
+                                    {
+                                        return a
+                                            {|#0:.|}Prop
+                                            .Foo();
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a)
+                                      {
+                                          return a.Prop
+                                                  .Foo();
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the wrapped first link of a chain without calls is reported and joined onto the root line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedFirstLinkOfCallLessChainIsFixedInOneApplication()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic order)
+                                    {
+                                        return order
+                                            {|#0:.|}Customer
+                                            .Address;
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic order)
+                                      {
+                                          return order.Customer
+                                                      .Address;
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped first link written as <c>!.</c> is reported on its exclamation mark and joined onto the root line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedNullForgivingFirstLinkIsFixedInOneApplication()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(dynamic a)
+                                    {
+                                        return a
+                                            {|#0:!|}.B?.C();
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(dynamic a)
+                                      {
+                                          return a!.B?.C();
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a call wrapped behind a multi-line raw string literal and keeps the literal's content and closing delimiter in their columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedCallBehindRawStringRootIsFixedInOneApplication()
+    {
+        const string testData = """"
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static string Run()
+                                    {
+                                        return """
+                                               text
+                                               """
+                                            {|#0:.|}Trim()
+                                            .Trim();
+                                    }
+
+                                    private static object Use(object value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static string Run()
+                                      {
+                                          return """
+                                                 text
+                                                 """.Trim()
+                                                    .Trim();
+                                      }
+
+                                      private static object Use(object value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
