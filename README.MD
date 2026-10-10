@@ -28,6 +28,10 @@ dotnet tool install -g Reihitsu.Cli
 reihitsu-format src/
 ```
 
+## Specifications
+
+The intended behavior of the analyzer, formatter, CLI, and Playground is specified under [`sdd/`](sdd/README.md), following the repository's Spec Driven Development rules.
+
 ## Showcase
 The following is a code snippet that complies with the rules of the analyzer and formatter.
 
