@@ -25,21 +25,21 @@
    
    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
       <DocumentationFile>bin\Debug\$(MSBuildProjectName).xml</DocumentationFile>
-      <CodeAnalysisRuleSet>..\Debug.ruleset</CodeAnalysisRuleSet>
+      <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Debug.ruleset</CodeAnalysisRuleSet>
    </PropertyGroup>
 
    <PropertyGroup Condition="'$(Configuration)'=='Release'">
       <DocumentationFile>bin\Release\$(MSBuildProjectName).xml</DocumentationFile>
-      <CodeAnalysisRuleSet>..\Release.ruleset</CodeAnalysisRuleSet>
+      <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Release.ruleset</CodeAnalysisRuleSet>
       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
       <MSTestAnalysisMode>Recommended</MSTestAnalysisMode>
    </PropertyGroup>
 
    <ItemGroup>
-     <Analyzer Include="..\binaries\Reihitsu.Core.dll" />
-     <Analyzer Include="..\binaries\Reihitsu.Analyzer.dll" />
-     <Analyzer Include="..\binaries\Reihitsu.Analyzer.CodeFixes.dll" />
-     <Analyzer Include="..\binaries\Reihitsu.Formatter.dll" />
+     <Analyzer Include="$(MSBuildThisFileDirectory)binaries\Reihitsu.Core.dll" />
+     <Analyzer Include="$(MSBuildThisFileDirectory)binaries\Reihitsu.Analyzer.dll" />
+     <Analyzer Include="$(MSBuildThisFileDirectory)binaries\Reihitsu.Analyzer.CodeFixes.dll" />
+     <Analyzer Include="$(MSBuildThisFileDirectory)binaries\Reihitsu.Formatter.dll" />
    </ItemGroup>
 
    <ItemGroup>

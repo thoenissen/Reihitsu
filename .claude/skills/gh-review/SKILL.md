@@ -179,8 +179,8 @@ Comment body rules:
 ## Findings
 | # | Severity | Location | Posted | Summary |
 |---|----------|----------|--------|---------|
-| 1 | high   | Reihitsu.Formatter/Pipeline/Foo.cs:42 | yes | Line join deletes `#endif` between parameters — output does not compile (CS1027) |
-| 2 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | yes | Method parses input and writes diagnostic; split parsing into helper |
+| 1 | high   | src/Reihitsu.Formatter/Pipeline/Foo.cs:42 | yes | Line join deletes `#endif` between parameters — output does not compile (CS1027) |
+| 2 | medium | src/Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | yes | Method parses input and writes diagnostic; split parsing into helper |
 
 ## Verification
 - Static tracing only for the RH3204 convergence question — CI runs the full suite; no targeted execution needed.
@@ -192,7 +192,7 @@ Comment body rules:
 ### Copy block
 ```text
 Hints from gh-review (not posted to GitHub):
-- Reihitsu.Cli/Program.cs:120 — Possible SRP: ProcessData reads JSON and writes a file; consider splitting IO from processing.
+- src/Reihitsu.Cli/Program.cs:120 — Possible SRP: ProcessData reads JSON and writes a file; consider splitting IO from processing.
 ```
 ````
 

@@ -356,8 +356,8 @@ Both gates default to **on**. The escape below exists for work that is genuinely
 
 **Mechanical veto first.** Look at the file set before judging anything. If the diff touches any of these, the run is **behavioral** — no further judgment needed:
 
-- `Reihitsu.Analyzer/**`, `Reihitsu.Analyzer.CodeFixes/**`, `Reihitsu.Formatter/**`, `Reihitsu.Core/**`, `Reihitsu.Cli/**`;
-- any test project (`Reihitsu.*.Test/**`, `Reihitsu.ArchitectureTests/**`);
+- `src/Reihitsu.Analyzer/**`, `src/Reihitsu.Analyzer.CodeFixes/**`, `src/Reihitsu.Formatter/**`, `src/Reihitsu.Core/**`, `src/Reihitsu.Cli/**`;
+- any test project (`Reihitsu.*.Test/**`, `src/Reihitsu.ArchitectureTests/**`);
 - `*.csproj`, `Reihitsu.sln`, `Directory.Build.props`, `*.ruleset`, `.editorconfig`;
 - `scripts/**` and CI workflow files — these are not compiled, but they are executable behavior;
 - a mixed diff that contains any of the above next to documentation.

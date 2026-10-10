@@ -379,7 +379,7 @@ For findings, set the gate to `BLOCKED — findings` — or to `PASS — non-blo
 ```markdown
 | # | Severity | Location | Defect class | Scope relation | Required change |
 |---|----------|----------|--------------|----------------|-----------------|
-| 1 | high | Reihitsu.Formatter/Pipeline/Foo.cs:42 | Cross-scope label relocation | same mechanism/requirement | Model executable scopes and add the nested-scope regression |
+| 1 | high | src/Reihitsu.Formatter/Pipeline/Foo.cs:42 | Cross-scope label relocation | same mechanism/requirement | Model executable scopes and add the nested-scope regression |
 ```
 
 Keep every confirmed finding in the table exactly once. Provide a concrete counterexample for each high finding. Do not add a preamble or closing text.

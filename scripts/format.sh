@@ -49,4 +49,4 @@ fi
 
 reihitsu_ensure_dotnet "${install_arguments[@]+"${install_arguments[@]}"}" --quiet
 
-dotnet run --project "$(reihitsu_repo_root)/Reihitsu.Cli" -- "${formatter_arguments[@]}"
+dotnet run --project "$(reihitsu_repo_root)/src/Reihitsu.Cli" -- "${formatter_arguments[@]}"

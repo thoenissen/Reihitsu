@@ -277,13 +277,13 @@ For each **fixed** item on an inline thread, post one concise reply with `mcp__g
 ## Applied
 | # | Source | Location | Commit | Change |
 |---|--------|----------|--------|--------|
-| 1 | reviewer | Reihitsu.Formatter/Pipeline/Foo.cs:42 | a1b2c3d | Preserve `#endif` when joining parameters; regression test added |
-| 2 | user hint | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | e4f5a6b | Split parsing out of the diagnostic method |
+| 1 | reviewer | src/Reihitsu.Formatter/Pipeline/Foo.cs:42 | a1b2c3d | Preserve `#endif` when joining parameters; regression test added |
+| 2 | user hint | src/Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | e4f5a6b | Split parsing out of the diagnostic method |
 
 ## Follow-up drafts
 | ID | Source | Location | Mechanism | Scope reason | Status | Cache |
 |----|--------|----------|-----------|--------------|--------|-------|
-| F1 | reviewer | Reihitsu.Formatter/Pipeline/Foo.cs:42 | Accessor-list layout policy | New formatter behavior | awaiting approval | `plans/issues/pr-123/F1-accessor-list-layout.md` |
+| F1 | reviewer | src/Reihitsu.Formatter/Pipeline/Foo.cs:42 | Accessor-list layout policy | New formatter behavior | awaiting approval | `plans/issues/pr-123/F1-accessor-list-layout.md` |
 
 ### F1 — Copy-ready issue draft
 
@@ -300,7 +300,7 @@ labels: enhancement, formatter
 ## Dismissed
 | # | Source | Location | Reason and evidence |
 |---|--------|----------|---------------------|
-| 1 | reviewer | Reihitsu.Cli/Program.cs:120 | Already fixed at the current head; the requested guard is present at line 118 |
+| 1 | reviewer | src/Reihitsu.Cli/Program.cs:120 | Already fixed at the current head; the requested guard is present at line 118 |
 
 ## Needs decision
 _None._

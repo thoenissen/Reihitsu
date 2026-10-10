@@ -22,9 +22,9 @@ public sealed class DocumentationCommentNormalizationDeterminismTests
     /// Production files that must normalize documentation prefixes without a regular expression
     /// </summary>
     private static readonly string[] _guardedPaths = [
-                                                         Path.Combine("Reihitsu.Core", "DocumentationCommentUtilities.cs"),
-                                                         Path.Combine("Reihitsu.Formatter", "Pipeline", "DocumentationComments", "DocumentationCommentFormattingPhase.cs"),
-                                                         Path.Combine("Reihitsu.Analyzer.CodeFixes", "Rules", "Documentation", "RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider.cs")
+                                                         Path.Combine("src", "Reihitsu.Core", "DocumentationCommentUtilities.cs"),
+                                                         Path.Combine("src", "Reihitsu.Formatter", "Pipeline", "DocumentationComments", "DocumentationCommentFormattingPhase.cs"),
+                                                         Path.Combine("src", "Reihitsu.Analyzer.CodeFixes", "Rules", "Documentation", "RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider.cs")
                                                      ];
 
     #endregion // Constants

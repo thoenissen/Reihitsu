@@ -7,19 +7,19 @@ dotnet build Reihitsu.sln -c Release --verbosity minimal
 ```
 
 ```powershell
-dotnet test Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --verbosity minimal
-dotnet test Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --verbosity minimal
+dotnet test src\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --verbosity minimal
 ```
 
 Single-test examples:
 
 ```powershell
-dotnet test Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Analyzer.Test.Formatting.RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests.VerifyExpressionBodiedMethodsAreDetectedAndFixed"
-dotnet test Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.Indentation.LayoutComputerTests.ComputeReturnsNonEmptyModelForSimpleClass"
-dotnet test Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Core.Test.CasingUtilitiesTests.ToCamelCaseTest"
-dotnet test Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
+dotnet test src\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Analyzer.Test.Formatting.RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests.VerifyExpressionBodiedMethodsAreDetectedAndFixed"
+dotnet test src\Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.Indentation.LayoutComputerTests.ComputeReturnsNonEmptyModelForSimpleClass"
+dotnet test src\Reihitsu.Core.Test\Reihitsu.Core.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Core.Test.CasingUtilitiesTests.ToCamelCaseTest"
+dotnet test src\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
 ```
 
 ## Workflow expectations
@@ -96,7 +96,7 @@ Formatter transformations are non-destructive: they may rewrite syntax and trivi
 - Rule pages under `documentation/rules/RH####.md` are end-user documentation, opened from the diagnostic's help link: what is reported, why, how to fix it, and an example — short, with no implementation details and no catalog of corner cases. They describe the analyzer and its code fix only and never mention the formatter or `reihitsu-format`, because a user can run the analyzer without the formatter. Behavior shared by every rule (comments and preprocessor directives blocking a report or a fix, inactive `#if` code, generated code, diagnostics without a fix, suppression) lives once in `documentation/rules/general-notes.md`, and every rule page ends with the footer that links it. The `analyzer-rule-md` skill owns the page format; `RuleDocumentationConventionTests` enforces the footer and the formatter ban.
 - Formatting-aware code fixes should delegate final layout to `ReihitsuFormatter.FormatNodeInDocumentAsync` (or `FormatNode` for detached nodes) instead of editing trivia manually.
 - Analyzer tests follow the `AnalyzerTestsBase<TAnalyzer>` / `AnalyzerTestsBase<TAnalyzer, TCodeFix>` pattern and use Roslyn markup like `{|#0:...|}` for expected diagnostic locations.
-- CLI end-to-end tests call `Program.Main()` directly, use the console/temp-directory helpers in `Reihitsu.Cli.Test\Helpers`, and are marked `[DoNotParallelize]`.
+- CLI end-to-end tests call `Program.Main()` directly, use the console/temp-directory helpers in `src\Reihitsu.Cli.Test\Helpers`, and are marked `[DoNotParallelize]`.
 - The formatter and CLI intentionally leave syntax-invalid or generated code alone. Preserve that behavior when changing formatting flows: the formatter returns the original tree/document for syntax errors or auto-generated source, and the CLI skips generated files such as `.Designer.cs`, `.g.cs`, and `.g.i.cs`.
 - Source comments, documentation comments, and declared type/member/file names must not reference this repository's own GitHub tracker numbers (`issue #123`, `PR #123`, or a bare `#123`) — state the durable behavior, invariant, or constraint the code protects instead; a tracker number can be renumbered, closed, or deleted, and it carries no information a reader can act on without leaving the editor. A link to another project's tracker, written as a full `https://github.com/<owner>/<repo>/issues/<n>` URL, stays legitimate. This does not restrict a pull-request description's `Closes #123` link, or the `gh-implement`/`gh-rubber-duck` skill and command files that document passing an issue URL as workflow input — both name a tracker reference in a context outside source. `Reihitsu.ArchitectureTests` enforces the source-comment and declared-name rule and fails, naming file and line, when it is violated.
 

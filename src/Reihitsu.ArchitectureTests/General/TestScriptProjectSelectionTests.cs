@@ -19,13 +19,13 @@ public sealed class TestScriptProjectSelectionTests
     /// Test projects in the order used by a full repository test run
     /// </summary>
     private static readonly string[] _expectedTestProjects = [
-                                                                 "Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj",
-                                                                 "Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj",
-                                                                 "Reihitsu.Core.Test/Reihitsu.Core.Test.csproj",
-                                                                 "Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj",
-                                                                 "Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj",
-                                                                 "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj",
-                                                                 "Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj"
+                                                                 "src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj",
+                                                                 "src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj",
+                                                                 "src/Reihitsu.Core.Test/Reihitsu.Core.Test.csproj",
+                                                                 "src/Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj",
+                                                                 "src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj",
+                                                                 "src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj",
+                                                                 "src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj"
                                                              ];
 
     #endregion // Fields
@@ -78,16 +78,16 @@ public sealed class TestScriptProjectSelectionTests
         // Act and assert
         AssertNamedPowerShellSelection(powerShell,
                                        "architecture",
-                                       "Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj");
+                                       "src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj");
         AssertNamedPowerShellSelection(powerShell,
                                        "tooling",
-                                       "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj");
+                                       "src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj");
         AssertNamedShellSelection(shell,
                                   "architecture",
-                                  "Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj");
+                                  "src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj");
         AssertNamedShellSelection(shell,
                                   "tooling",
-                                  "Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj");
+                                  "src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj");
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ public sealed class TestScriptProjectSelectionTests
     private static string[] ProjectPaths(string text)
     {
         return text.Split(['\'', '"'], StringSplitOptions.RemoveEmptyEntries)
-                   .Where(segment => segment.StartsWith("Reihitsu.", StringComparison.Ordinal)
+                   .Where(segment => segment.StartsWith("src/Reihitsu.", StringComparison.Ordinal)
                                      && segment.EndsWith(".csproj", StringComparison.Ordinal))
                    .ToArray();
     }
