@@ -1,6 +1,6 @@
 # Installs or updates the latest Reihitsu.Cli nupkg
 $PackageId = 'Reihitsu.Cli'
-$relativePath = '..\Reihitsu.Cli\bin\Release'
+$relativePath = '..\src\Reihitsu.Cli\bin\Release'
 $pkgFolderResolved = Resolve-Path -Path (Join-Path $PSScriptRoot $relativePath) -ErrorAction SilentlyContinue
 if (-not $pkgFolderResolved) {
     Write-Error "Package folder not found at relative path '$relativePath' (from script folder '$PSScriptRoot')."

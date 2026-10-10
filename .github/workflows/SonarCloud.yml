@@ -47,7 +47,7 @@ jobs:
       - name: Test
         run: |
           for project in Reihitsu.Analyzer.Test Reihitsu.Formatter.Test Reihitsu.Core.Test Reihitsu.Cli.Test Reihitsu.Tooling.Test Reihitsu.Playground.Test; do
-            dotnet-coverage collect "dotnet test $project/$project.csproj --no-build --configuration Release -m" -f xml -o "coverage-$project.xml"
+            dotnet-coverage collect "dotnet test src/$project/$project.csproj --no-build --configuration Release -m" -f xml -o "coverage-$project.xml"
           done
           dotnet-coverage merge coverage-*.xml -f xml -o coverage.xml --remove-input-files
 

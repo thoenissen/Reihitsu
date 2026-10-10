@@ -24,7 +24,7 @@ public class SelfHostingTests : FormatterTestsBase
     /// <summary>
     /// Directories to scan for C# files (relative to the solution root)
     /// </summary>
-    private static readonly string[] _sourceDirectories = ["Reihitsu.Core", "Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Analyzer.Test", "Reihitsu.Cli", "Reihitsu.Cli.Test", "Reihitsu.Formatter", "Reihitsu.Formatter.Test"];
+    private static readonly string[] _sourceDirectories = ["src/Reihitsu.Core", "src/Reihitsu.Analyzer", "src/Reihitsu.Analyzer.CodeFixes", "src/Reihitsu.Analyzer.Test", "src/Reihitsu.Cli", "src/Reihitsu.Cli.Test", "src/Reihitsu.Formatter", "src/Reihitsu.Formatter.Test"];
 
     #endregion // Constants
 

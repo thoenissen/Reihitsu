@@ -39,6 +39,6 @@ Implement a new formatter behavior or formatting rule while preserving the exist
 Run the relevant validation commands after formatting the changed files:
 
 ```shell
-dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
+dotnet test src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
 dotnet build Reihitsu.sln -c Release --verbosity minimal
 ```

@@ -30,7 +30,7 @@ Implement a new analyzer rule end to end, including tests and all required rule 
 - Negative tests for the new rule
 - Code-fix tests when a code fix is implemented
 - Rule markdown created under `documentation/rules/RH####.md`
-- Rule markdown added to `Reihitsu.Analyzer.Package/README.MD`
+- Rule markdown added to `src/Reihitsu.Analyzer.Package/README.MD`
 - Rule markdown added to `Reihitsu.sln`
 
 ## Repository-specific guidance
@@ -47,12 +47,12 @@ Implement a new analyzer rule end to end, including tests and all required rule 
 Run the relevant validation commands after formatting the changed files:
 
 ```shell
-dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
+dotnet test src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
 dotnet build Reihitsu.sln -c Release --verbosity minimal
 ```
 
 If the change touches formatter-coupled code-fix behavior, also run:
 
 ```shell
-dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
+dotnet test src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
 ```

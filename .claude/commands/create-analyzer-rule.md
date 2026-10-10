@@ -25,7 +25,7 @@ Implement a new analyzer rule end to end, including tests and all required rule 
 - Negative tests for the new rule
 - Code-fix tests when a code fix is implemented
 - Rule markdown created under `documentation/rules/RH####.md` (see rule doc format below)
-- Rule markdown added to `Reihitsu.Analyzer.Package/README.MD`
+- Rule markdown added to `src/Reihitsu.Analyzer.Package/README.MD`
 - Rule markdown added to `Reihitsu.sln`
 - New localized strings added to `AnalyzerResources.resx` and `AnalyzerResources.cs` (see resource text guidance below)
 - Code-fix strings added to `CodeFixResources.resx` and `CodeFixResources.cs` when a code fix is implemented
@@ -50,15 +50,15 @@ Write the user-facing page `documentation/rules/RH####.md` by following [`create
 
 When adding new strings:
 
-1. Add `RH####Title` and `RH####MessageFormat` to `Reihitsu.Analyzer\AnalyzerResources.resx`.
-2. Add matching properties to `Reihitsu.Analyzer\AnalyzerResources.cs`:
+1. Add `RH####Title` and `RH####MessageFormat` to `src\Reihitsu.Analyzer\AnalyzerResources.resx`.
+2. Add matching properties to `src\Reihitsu.Analyzer\AnalyzerResources.cs`:
 
    ```cs
    internal static string RH####Title => GetString(nameof(RH####Title));
    internal static string RH####MessageFormat => GetString(nameof(RH####MessageFormat));
    ```
 
-3. If a code fix is included, add `RH####Title` to `Reihitsu.Analyzer.CodeFixes\CodeFixResources.resx` and a matching property to `CodeFixResources.cs`.
+3. If a code fix is included, add `RH####Title` to `src\Reihitsu.Analyzer.CodeFixes\CodeFixResources.resx` and a matching property to `CodeFixResources.cs`.
 4. Do **not** create or restore `.Designer.cs` files — wrapper classes are handwritten.
 
 ## Validation
@@ -66,12 +66,12 @@ When adding new strings:
 Run the relevant validation commands after formatting the changed files:
 
 ```shell
-dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
+dotnet test src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
 dotnet build Reihitsu.sln -c Release --verbosity minimal
 ```
 
 If the change touches formatter-coupled code-fix behavior, also run:
 
 ```shell
-dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
+dotnet test src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
 ```

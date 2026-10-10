@@ -114,14 +114,14 @@ Same discipline as gh-review: static tracing by default; CI already runs the ful
 ## Prior findings
 | # | Severity | Location | Status | GitHub | Notes |
 |---|----------|----------|--------|--------|-------|
-| 1 | high   | Reihitsu.Formatter/Pipeline/Foo.cs:42 | resolved | thread resolved | `#endif` now preserved; double-run clean |
-| 2 | medium | Reihitsu.Formatter/Pipeline/Bar.cs:88 | follow-up #612 | thread resolved | New formatter behavior captured with the same acceptance boundary |
-| 3 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | open | replied | Parsing still inline in the diagnostic method — not split |
+| 1 | high   | src/Reihitsu.Formatter/Pipeline/Foo.cs:42 | resolved | thread resolved | `#endif` now preserved; double-run clean |
+| 2 | medium | src/Reihitsu.Formatter/Pipeline/Bar.cs:88 | follow-up #612 | thread resolved | New formatter behavior captured with the same acceptance boundary |
+| 3 | medium | src/Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | open | replied | Parsing still inline in the diagnostic method — not split |
 
 ## New findings
 | # | Severity | Location | Posted | Summary |
 |---|----------|----------|--------|---------|
-| 1 | high | Reihitsu.Analyzer.CodeFixes/RH3204Fix.cs:57 | yes | The new guard raises RH6001 in the edited span — fix no longer converges |
+| 1 | high | src/Reihitsu.Analyzer.CodeFixes/RH3204Fix.cs:57 | yes | The new guard raises RH6001 in the edited span — fix no longer converges |
 
 ## Verification
 - Static tracing for the RH3204 split question — CI runs the full suite.

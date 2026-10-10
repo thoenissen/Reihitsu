@@ -28,7 +28,7 @@ jobs:
         uses: actions/configure-pages@v6
 
       - name: Publish
-        run: dotnet publish Reihitsu.Playground/Reihitsu.Playground.csproj -c Release -o publish-output
+        run: dotnet publish src/Reihitsu.Playground/Reihitsu.Playground.csproj -c Release -o publish-output
 
       - name: Set base href for the project-pages subpath
         run: sed -i 's|<base href="/" />|<base href="/${{ github.event.repository.name }}/" />|' publish-output/wwwroot/index.html

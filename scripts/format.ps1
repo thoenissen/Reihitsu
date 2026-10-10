@@ -12,7 +12,7 @@
 .PARAMETER NoInstall
     Fail instead of installing when the SDK is missing.
 .EXAMPLE
-    .\scripts\format.ps1 Reihitsu.Formatter\Pipeline\FormattingPipeline.cs
+    .\scripts\format.ps1 src\Reihitsu.Formatter\Pipeline\FormattingPipeline.cs
 #>
 param(
     [Parameter(Mandatory = $true, Position = 0, ValueFromRemainingArguments = $true)]
@@ -45,7 +45,7 @@ foreach ($path in $Paths)
 
 Initialize-ReihitsuDotnet -NoInstall:$NoInstall -Quiet
 
-$cli = Join-Path (Get-ReihitsuRepositoryRoot) 'Reihitsu.Cli'
+$cli = Join-Path (Get-ReihitsuRepositoryRoot) 'src\Reihitsu.Cli'
 
 & dotnet run --project $cli -- @arguments
 

@@ -37,22 +37,22 @@ $ErrorActionPreference = 'Stop'
 
 $projects = switch ($Project)
 {
-    'analyzer' { @('Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj') }
-    'formatter' { @('Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj') }
-    'core' { @('Reihitsu.Core.Test/Reihitsu.Core.Test.csproj') }
-    'cli' { @('Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj') }
-    'architecture' { @('Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj') }
-    'tooling' { @('Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj') }
-    'playground' { @('Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj') }
+    'analyzer' { @('src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj') }
+    'formatter' { @('src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj') }
+    'core' { @('src/Reihitsu.Core.Test/Reihitsu.Core.Test.csproj') }
+    'cli' { @('src/Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj') }
+    'architecture' { @('src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj') }
+    'tooling' { @('src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj') }
+    'playground' { @('src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj') }
     'all'
     {
-        @('Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj',
-          'Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj',
-          'Reihitsu.Core.Test/Reihitsu.Core.Test.csproj',
-          'Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj',
-          'Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj',
-          'Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj',
-          'Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj')
+        @('src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj',
+          'src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj',
+          'src/Reihitsu.Core.Test/Reihitsu.Core.Test.csproj',
+          'src/Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj',
+          'src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj',
+          'src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj',
+          'src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj')
     }
 }
 
