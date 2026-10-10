@@ -143,7 +143,7 @@ Step by step, each step its own PR, tracked as one parent issue with sub-issues:
 7. Script that checks the code owners named in specs.
 8. Test enforcement of requirement IDs.
 
-Steps 5 and 6 are specified in a separate change doc once the squad concept is settled.
+Steps 5 and 6 are specified in [Establish the squad](establish-squad.md).
 
 ## Alternatives considered
 
