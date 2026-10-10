@@ -134,6 +134,10 @@ Review-repair scope rule: `gh-apply-review` records the PR's decidable defect me
 
 For GitHub issue implementation, check the issue for an existing claim or open draft PR before editing. If unclaimed, create `codex/issue-<N>-<short-slug>` from the current `origin/main`, add an empty `Claim issue #<N>` commit, push it, and immediately open a draft PR whose initial body describes the planned work and includes `Closes #<N>`. The linked draft PR is the source of truth for ownership; do not post claim or PR-link comments on the issue. After the first focused implementation commit is pushed, update the PR body to describe the actual changes. Keep the PR draft through the required validation; the human reviewer marks it ready.
 
+## Spec Driven Development
+
+The intended behavior of every shipped surface is specified under `sdd/specs/`, and decisions that change it are recorded as change docs under `sdd/changes/`. [`sdd/README.md`](sdd/README.md) is the rulebook: layout, spec format, requirement IDs, when a change doc is required, and temporary working docs under `sdd/work/`. Read it before changing behavior a spec covers.
+
 ## High-level architecture
 
 - `Reihitsu.Formatter` is the shared formatting engine. `ReihitsuFormatter` is the public entry point, and `Pipeline/FormattingPipeline` applies phases in this order: structural transforms, region formatting, documentation comments, using directives, blank lines, line breaks, switch-case braces, horizontal spacing, indentation/alignment, raw-string alignment, cleanup, line-ending normalization.

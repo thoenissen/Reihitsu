@@ -105,6 +105,10 @@ Scope-ledger rule: both author-side workflows freeze scope. `gh-implement` recor
 
 Review-repair scope rule: `gh-apply-review` records the PR's decidable defect mechanism or accepted requirement boundary and freezes it after the complete worklist is classified. A confirmed item stays in the PR only when it is the same mechanism/requirement or PR-introduced, is a bug fix rather than new behavior, and changes no shipped diagnostic, public API, or dependency. Every other confirmed item becomes an English copy-ready follow-up draft in the final author-chat response plus an ignored local recovery cache. The user approves its exact content before the GitHub MCP server creates the issue; `/gh-*` workflows never invoke `scripts/upload-issues.ps1`.
 
+## Spec Driven Development
+
+The intended behavior of every shipped surface is specified under `sdd/specs/`, and decisions that change it are recorded as change docs under `sdd/changes/`. [`sdd/README.md`](sdd/README.md) is the rulebook: layout, spec format, requirement IDs, when a change doc is required, and temporary working docs under `sdd/work/`. Read it before changing behavior a spec covers.
+
 ## High-level architecture
 
 - `Reihitsu.Formatter` is the shared formatting engine. `ReihitsuFormatter` is the public entry point, and `Pipeline\FormattingPipeline` applies phases in this order: structural transforms, region formatting, documentation comments, using directives, blank lines, line breaks, switch-case braces, horizontal spacing, indentation/alignment, raw-string alignment, cleanup, line-ending normalization.
