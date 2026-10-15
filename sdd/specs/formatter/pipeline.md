@@ -29,13 +29,13 @@ The formatter MUST apply its phases in this order, each phase receiving the outp
 | 3 | `DocumentationCommentFormattingPhase` | [documentation-comments.md](documentation-comments.md) (FMT-DOC) |
 | 4 | `UsingDirectiveOrderingPhase` | [using-directives.md](using-directives.md) (FMT-USING) |
 | 5 | `BlankLinePhase` | [blank-lines.md](blank-lines.md) (FMT-BLANK) |
-| 6 | `LineBreakPhase` | `line-breaks.md` (FMT-BREAK, not yet written) |
-| 7 | `SwitchCaseBracePhase` | `switch-case-braces.md` (FMT-SWITCH, not yet written) |
-| 8 | `HorizontalSpacingPhase` | `horizontal-spacing.md` (FMT-SPACE, not yet written) |
-| 9 | `IndentationPhase` | `indentation.md` (FMT-INDENT, not yet written) |
+| 6 | `LineBreakPhase` | [line-breaks.md](line-breaks.md) (FMT-BREAK) |
+| 7 | `SwitchCaseBracePhase` | [switch-case-braces.md](switch-case-braces.md) (FMT-SWITCH) |
+| 8 | `HorizontalSpacingPhase` | [horizontal-spacing.md](horizontal-spacing.md) (FMT-SPACE) |
+| 9 | `IndentationPhase` | [indentation.md](indentation.md) (FMT-INDENT) |
 | 10 | `RawStringAlignmentPhase` | [raw-string-alignment.md](raw-string-alignment.md) (FMT-RAW) |
-| 11 | `CleanupPhase` | `cleanup.md` (FMT-CLEAN, not yet written) |
-| 12 | `LineEndingNormalizationPhase` | `line-endings.md` (FMT-EOL, not yet written) |
+| 11 | `CleanupPhase` | [cleanup.md](cleanup.md) (FMT-CLEAN) |
+| 12 | `LineEndingNormalizationPhase` | [line-endings.md](line-endings.md) (FMT-EOL) |
 
 Why: Later phases rely on the shape earlier phases produce — line breaks are decided before spacing and indentation measure columns, raw strings are aligned to the indentation that was just computed, and line endings are normalized last so every inserted line break is covered. A phase may assume the phases before it ran; it must not assume anything about the phases after it.
 
