@@ -144,3 +144,32 @@ public class User
 Output of the RH2005 fix: `private int Value;`, and the project no longer compiles: CS0122 at `s.Value`.
 Why it looks wrong: CLAUDE.md "Code-fix coverage" prefers no fix over an unsafe one. The fix is offered regardless of references outside the type (in the same project or, for a public type, in consumers). Options: withhold the fix when a reference outside the containing type exists (needs a symbol search), or accept that the fix is a deliberate API break and say so on the rule page.
 Touches: RH2005-003.
+
+## sdd/specs/analyzer/RH1003.md
+
+### Q9 — Numeric additions inside a chain are counted as string parts
+Input:
+```csharp
+class C
+{
+    void M(int x, int y)
+    {
+        var e = x + y + "a";
+        var f = "a" + (x + y);
+    }
+}
+```
+Output: both reported by RH1003 (harness run).
+Why it looks wrong: each is a two-part concatenation — `(x + y)` is an `int` addition that runs before the string concatenation — and RH1003 ignores two-part concatenations. `EnumerateChainSegments` flattens every `AddExpression` regardless of its type, so the numeric operands count as parts. Rewriting `"a" + (x + y)` as `$"a{x}{y}"` would also change the result, so the diagnostic suggests an incorrect rewrite.
+Touches: RH1003-001.
+
+## sdd/specs/analyzer/RH0001.md
+
+### Q10 — Content after the root object is accepted
+Input `reihitsu.json`:
+```json
+{ } junk
+```
+Output: no RH0001 diagnostic (harness run).
+Why it looks wrong: the file is not valid JSON, and RH0001 reports invalid JSON syntax everywhere else. `ParseConfiguration` stops reading at the root object's `EndObject`, so the trailing text is never seen by `Utf8JsonReader`.
+Touches: RH0001-003.
