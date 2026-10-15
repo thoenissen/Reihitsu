@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-012, SHARED-BLANK-002, FMT-DOC-012, FMT-RAW-001, FMT-SWITCH-001 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-012, SHARED-BLANK-002, SHARED-CHAIN-007, FMT-DOC-012, FMT-RAW-001, FMT-SWITCH-001 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line.
 
@@ -1266,9 +1266,9 @@ class C
 
 ### FMT-INDENT-029 — Method chains align to their anchor link
 
-The formatter MUST indent every link operator of a member-access chain (`.`, `?.`, `!.`) that starts a line to the column of the chain's anchor link operator: the first invoked link in front of the first link that starts a line, or the chain's first link when no invoked link comes first. When a comment, a directive, or disabled text keeps the chain's first link on its own line, the link operators MUST be indented to the column of the chain root's first token instead.
+The formatter MUST indent every link operator of a member-access chain (`.`, `?.`, `!.`) that starts a line to the column of the chain's anchor as SHARED-CHAIN-007 defines it, measured at the anchor's final column (FMT-INDENT-030).
 
-Why: Aligned dots make a fluent chain read as a list of steps. Leading property accesses (`this.Items`) are not steps of their own, so the alignment starts at the first call. When the first link itself had to wrap, there is no link on the root's line to align with, and the root is the natural anchor.
+Why: The anchor rule is shared with RH5201, so analyzer and formatter cannot disagree about where a wrapped link belongs; this phase only applies it.
 
 Example:
 
