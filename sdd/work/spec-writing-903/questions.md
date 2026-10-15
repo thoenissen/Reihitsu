@@ -63,3 +63,36 @@ public class C
 Output: RH7103 reported, no fix. Asserted by `MoveRangeContainsDirectivesReturnsTrueWhenCrossedMemberBodyContainsDirective`.
 Why it looks wrong: the pair is closed inside `Reset`'s body; `Create` is outside it before and after the move, so the move changes nothing it covers. Conditional and region pairs in the same position are allowed (SHARED-ORDER-006). Guard scope gives away safe ground.
 Touches: SHARED-ORDER-005, SHARED-ORDER-006.
+
+## sdd/specs/analyzer/RH4106.md
+
+### Q4 — An acronym at the start of a PascalCase name becomes `_hTTPClient`
+Input:
+```csharp
+public class C
+{
+    private int HTTPClient;
+    private int XMLParser;
+}
+```
+Output of the RH4106 fix: `_hTTPClient`, `_xMLParser` (harness run; `ToUnderlineCamelCase` lowercases only words that are entirely uppercase, and `HTTPClient` is one word).
+Why it looks wrong: the result is itself not what a person would write and reads worse than the original; `URL` → `_url` and `FIRST_NAME` → `_firstName` show the intent to normalize acronyms. Shared by every casing fix through `CasingUtilities` (ToCamelCase, ToPascalCase likely behave the same — not checked for every rule).
+Touches: RH4106-004.
+
+## sdd/specs/analyzer/RH5002.md
+
+### Q5 — The fix inserts two blank lines when a block comment shares the `if` line
+Input:
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+        /* block */ if (a > 7) { }
+    }
+}
+```
+Output of the RH5002 fix (harness run): two blank lines between `a++;` and `/* block */ if …`. RH5023 then reports the result.
+Why it looks wrong: RH5002 asks for one blank line; `ReplaceFormattingOnlyGap` adds two line breaks while the previous token keeps its own trailing line break (`TokenGapAnalysis.RequiredLineBreakCountForBlankLine` returns 2 here). Affects every rule on `StatementShouldBePrecededByABlankLineCodeFixProviderBase`.
+Touches: RH5002-005, SHARED-BLANK-001.
