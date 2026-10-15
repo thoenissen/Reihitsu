@@ -47,6 +47,7 @@ Start from [`templates/spec.md`](templates/spec.md).
 - The **normative sentence comes first** and uses MUST, MUST NOT, or SHOULD.
 - **`Why:`** follows — short, but always present. It is what decides an edge case the requirement does not spell out.
 - **`Example:`** gives concrete before/after C# blocks where behavior is visible. Examples are the seed for tests.
+- In an analyzer spec, the first example block marks each reported span as `{|RH####:…|}`, as the verifier markup does; a second block, when present, is the code after the code fix. A single block followed by "is not reported" or "no code fix is offered" states a negative case.
 - A rule that a shared policy already states is referenced by its ID, never restated.
 
 ## Requirement IDs
