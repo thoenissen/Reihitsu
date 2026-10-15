@@ -113,3 +113,34 @@ class C
 Output: RH6002 reports nothing (`CommaSpacingUtilities.IsSpacingExempt` skips the comma entirely, asserted by `VerifyArrayRankCommasDoNotProduceDiagnostics` only for the unspaced form). RH6007/RH6008 report the bracket sides of `[ , ]`; for `< , >` only RH6012 reports the space before `>`, so after every available fix `Dictionary< ,>` remains without a diagnostic. The formatter writes `int[,]` and `Dictionary<,>` (FMT-SPACE-004, FMT-SPACE-008).
 Why it looks wrong: the exemption is meant to forbid the space after the comma, but it also switches off the before-side check (RH6002-001) and the after-side check for these forms, so analyzer and formatter disagree on `< , >`.
 Touches: RH6002-001, RH6002-003, FMT-SPACE-004, FMT-SPACE-008.
+
+## sdd/specs/analyzer/RH2005.md
+
+### Q7 — `static public` loses its indentation
+Input:
+```csharp
+public class Sample
+{
+    static public int Counter;
+}
+```
+Output of the RH2005 fix (harness run): `private     static int Counter;` at column 1 — `private` is inserted at index 0 without the indentation, and `static` keeps the indentation that was its leading trivia.
+Why it looks wrong: `DeclarationModifierUtilities.AddAccessibilityModifiers` takes the leading trivia from the old accessibility token, which is not the first modifier here. The result is valid C# but not laid out, and the fix does not run the formatter.
+Touches: RH2005-003.
+
+### Q8 — The fix breaks every access from outside the type
+Input:
+```csharp
+public class Sample
+{
+    public int Value;
+}
+
+public class User
+{
+    public int Read(Sample s) => s.Value;
+}
+```
+Output of the RH2005 fix: `private int Value;`, and the project no longer compiles: CS0122 at `s.Value`.
+Why it looks wrong: CLAUDE.md "Code-fix coverage" prefers no fix over an unsafe one. The fix is offered regardless of references outside the type (in the same project or, for a public type, in consumers). Options: withhold the fix when a reference outside the containing type exists (needs a symbol search), or accept that the fix is a deliberate API break and say so on the rule page.
+Touches: RH2005-003.
