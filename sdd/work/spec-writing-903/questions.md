@@ -96,3 +96,20 @@ class C
 Output of the RH5002 fix (harness run): two blank lines between `a++;` and `/* block */ if …`. RH5023 then reports the result.
 Why it looks wrong: RH5002 asks for one blank line; `ReplaceFormattingOnlyGap` adds two line breaks while the previous token keeps its own trailing line break (`TokenGapAnalysis.RequiredLineBreakCountForBlankLine` returns 2 here). Affects every rule on `StatementShouldBePrecededByABlankLineCodeFixProviderBase`.
 Touches: RH5002-005, SHARED-BLANK-001.
+
+## sdd/specs/analyzer/RH6002.md
+
+### Q6 — Whitespace around the comma of a compact form is never reported
+Input:
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    int[ , ] g2 = null;
+    object t2 = typeof(Dictionary< , >);
+}
+```
+Output: RH6002 reports nothing (`CommaSpacingUtilities.IsSpacingExempt` skips the comma entirely, asserted by `VerifyArrayRankCommasDoNotProduceDiagnostics` only for the unspaced form). RH6007/RH6008 report the bracket sides of `[ , ]`; for `< , >` only RH6012 reports the space before `>`, so after every available fix `Dictionary< ,>` remains without a diagnostic. The formatter writes `int[,]` and `Dictionary<,>` (FMT-SPACE-004, FMT-SPACE-008).
+Why it looks wrong: the exemption is meant to forbid the space after the comma, but it also switches off the before-side check (RH6002-001) and the after-side check for these forms, so analyzer and formatter disagree on `< , >`.
+Touches: RH6002-001, RH6002-003, FMT-SPACE-004, FMT-SPACE-008.
