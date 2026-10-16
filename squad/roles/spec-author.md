@@ -21,7 +21,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 1. Decide whether intended behavior changes. If it does, write the change doc first from `sdd/templates/change.md`: What, Why, the decisions taken, and the alternatives rejected, with `Status: Draft`. No task list, no implementation plan.
 2. Write the spec diff:
-   - one requirement per heading, `### <ID> — <short title>`, with the next free ID; never reuse or renumber one;
+   - one requirement per heading, `### <ID> — <short title>`, with the next free ID, appended to `sdd/specs/requirement-ids.txt`; never reuse or renumber one;
    - the normative sentence first (MUST, MUST NOT, SHOULD), then `Why:`, then `Example:` with before/after C# where behavior is visible — the examples are the seed for the tests;
    - in an analyzer spec, mark reported spans as `{|RH####:…|}`; a negative case is one block followed by "is not reported" or "no code fix is offered";
    - a rule a `shared/` spec already states is referenced by its ID, never restated;

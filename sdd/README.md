@@ -12,6 +12,7 @@ sdd/
   templates/             templates for a spec and a change doc
   specs/
     README.md            index: spec → ID prefix → code owners
+    requirement-ids.txt  ledger of every requirement ID ever issued
     analyzer/RH####.md   one spec per rule
     formatter/
       pipeline.md        phase order and cross-phase invariants
@@ -54,6 +55,7 @@ Start from [`templates/spec.md`](templates/spec.md).
 
 - Format: `<PREFIX>-<NNN>`, for example `RH3202-001`, `FMT-BLANK-007`, `SHARED-ORDER-002`, `CLI-004`. Analyzer specs use the rule ID as prefix.
 - IDs are immutable and never reused. New requirements take the next free number in their spec.
+- Every ID ever issued is listed in [`specs/requirement-ids.txt`](specs/requirement-ids.txt), one per line. Append the ID of a new requirement in the same PR; never remove a line, retired IDs included.
 - A dropped requirement is retired, not deleted: it keeps its heading and ID, gets a `Status: Retired` line under the heading with the reason, and stays in its file so every link keeps resolving.
 - Specs, change docs, tests, and PR descriptions refer to requirements by ID.
 
@@ -96,6 +98,16 @@ A spec describes current behavior. When the real output looks wrong while a spec
 - Plans, task lists, handovers, and working notes for a run live under `work/<slug>/` on the PR branch.
 - Commit them to the branch: sessions are disposable, and a later step may run in a different session.
 - Delete `work/<slug>/` before the PR is marked ready. A PR that still contains `sdd/work/` is not mergeable.
+
+## Checks
+
+`SpecConsistencyTests` in `Reihitsu.ArchitectureTests` enforces the mechanical part of these rules and runs in CI with the other architecture tests:
+
+- every type named under `Code owners` is declared in a production project under `src/` (a Razor component counts by its file name);
+- every requirement ID heads exactly one requirement across all specs;
+- every ID in the ledger still heads a requirement, active or retired, and every requirement ID is in the ledger exactly once.
+
+The CI workflow also fails a pull request that removes a line from the ledger, so a requirement cannot be deleted together with its ledger entry.
 
 ## Keeping specs true
 
