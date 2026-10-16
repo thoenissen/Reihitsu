@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
-/// Verifies that both <c>apply-fix</c> wrapper scripts stop interpreting their own options once a literal
+/// Verifies that the <c>apply-fix</c> wrapper script stops interpreting their own options once a literal
 /// <c>--</c> has been seen, so a positional argument literally named <c>--no-install</c> reaches the runner
 /// instead of being swallowed as the wrapper's own install-skip option
 /// </summary>
@@ -96,69 +96,6 @@ public sealed class ApplyFixWrapperPositionalArgumentTests
             // Assert
             Assert.AreEqual(2, exitCode);
             Assert.Contains($"no analyzer reports '{UnknownDiagnosticId}'", error);
-        }
-    }
-
-    /// <summary>
-    /// Verifies that the PowerShell wrapper already forwards a positional <c>--no-install</c> value that follows a
-    /// literal <c>--</c>. The wrapper needs no change for this case; the test is the cross-wrapper coverage owed
-    /// alongside the bash fix so the two implementations stay provably in sync
-    /// </summary>
-    /// <returns>A task representing the asynchronous test operation</returns>
-    [TestMethod]
-    public async Task PowerShellAlreadyForwardsPositionalNoInstallAfterDoubleDash()
-    {
-        // Arrange
-        if (FindExecutable("pwsh") is not { } pwsh)
-        {
-            Assert.Inconclusive("pwsh is not available in this environment.");
-
-            return;
-        }
-
-        using (var scope = new ApplyFixWrapperFixtureDirectoryScope())
-        {
-            scope.CreateFixture("--no-install", "Sample.cs");
-
-            // Act
-            var (exitCode, _, error) = await RunAsync(pwsh,
-                                                      ["-NoProfile", "-File", FindScript("apply-fix.ps1"), UnknownDiagnosticId, "--", "--no-install"],
-                                                      scope.Path);
-
-            // Assert
-            Assert.AreEqual(2, exitCode);
-            Assert.Contains($"no analyzer reports '{UnknownDiagnosticId}'", error);
-        }
-    }
-
-    /// <summary>
-    /// Verifies that the PowerShell wrapper already forwards <c>-NoInstall</c> as a plain positional once it
-    /// follows a literal <c>--</c>, so the runner (not the wrapper) rejects the resulting third positional
-    /// </summary>
-    /// <returns>A task representing the asynchronous test operation</returns>
-    [TestMethod]
-    public async Task PowerShellAlreadyForwardsNoInstallSwitchAfterDoubleDashAsPositional()
-    {
-        // Arrange
-        if (FindExecutable("pwsh") is not { } pwsh)
-        {
-            Assert.Inconclusive("pwsh is not available in this environment.");
-
-            return;
-        }
-
-        using (var scope = new ApplyFixWrapperFixtureDirectoryScope())
-        {
-            var directory = scope.CreateFixture("plain", "Sample.cs");
-
-            // Act
-            var (exitCode, _, error) = await RunAsync(pwsh,
-                                                      ["-NoProfile", "-File", FindScript("apply-fix.ps1"), UnknownDiagnosticId, directory, "--", "-NoInstall"],
-                                                      scope.Path);
-
-            // Assert
-            Assert.AreEqual(2, exitCode);
-            Assert.Contains("expected exactly one diagnostic ID and one fixture directory", error);
         }
     }
 

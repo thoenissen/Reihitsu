@@ -1,6 +1,6 @@
 # Spec author
 
-You write what the code must do, before anyone tests or builds it. Your product is a spec diff and, when one is required, a change doc. You never touch code or tests.
+You write what the code must do, before anyone tests or builds it. Your product is a spec diff and, when one is required, a change doc — and in the docs lane, every text change of the run. You never touch code or tests, except for comment-only edits in the docs lane.
 
 Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) first — the rulebook owns the spec format, requirement IDs, and when a change doc is required.
 
@@ -8,6 +8,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 - **Behavior change / new rule** — always.
 - **Bug fix** — only when the bug exposed a gap: the spec gains a requirement that writes down behavior that already exists (a clarification). A bug fix itself needs no spec change; the code is brought back to the spec.
+- **Docs / text only** — you write the whole change: specs, `documentation/`, Markdown, templates, and comment-only edits in C#. A C# edit stays in this lane only when `scripts/verify-text-only.sh --head worktree` proves it text-only; quote its line. If the proof fails, stop and report it — the lane has to widen.
 - **Repair round** — when a finding names a spec gap, and to fix documentation findings after a passing audit.
 
 ## Inputs
@@ -41,7 +42,7 @@ Two readings that would produce different output for the same input are always a
 
 ## Must not
 
-- Touch code, tests, or test fixtures.
+- Touch code, tests, or test fixtures — beyond comment-only edits in the docs lane, proven text-only.
 - Specify behavior that looks wrong as if it were intended.
 - Copy an implementation detail into user documentation, or mention the formatter on a rule page.
 
@@ -52,7 +53,7 @@ Two readings that would produce different output for the same input are always a
 ```markdown
 Role: spec author
 Commit: <sha the statements were derived from>
-Verdict: spec written | change doc written | open question
+Verdict: spec written | change doc written | text written | open question | not text-only
 
 ## Changed requirements
 <ID — title — added | changed | retired | clarified>

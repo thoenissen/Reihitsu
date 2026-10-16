@@ -1,25 +1,21 @@
 # Repository scripts
 
-Cross-platform entry points for building, testing, formatting, and proving changes. Every script exists as a `.sh` and a `.ps1` variant with the same behavior, so the repository instructions, the squad roles, and a developer shell all drive the same commands.
+Bash entry points for building, testing, formatting, and proving changes, on Linux and macOS, so the repository instructions, the squad roles, and a developer shell all drive the same commands. The repository ships no PowerShell variants.
 
-Use the `.sh` variants on Linux and macOS and the `.ps1` variants on Windows. Both are maintained together — a change to one belongs in the other.
-
-Each script resolves the .NET SDK itself through `lib/dotnet-env.sh` / `lib/dotnet-env.ps1`: it probes `dotnet --list-sdks` first and installs the required SDK into `$HOME/.dotnet` **only** when it is missing. On an image that already ships the SDK, that step is a no-op and nothing about the environment changes. Pass `--no-install` / `-NoInstall` to turn a missing SDK into a failure instead of an installation — use it in any environment that must not change, such as a sandbox with a preinstalled SDK.
+Each script resolves the .NET SDK itself through `lib/dotnet-env.sh`: it probes `dotnet --list-sdks` first and installs the required SDK into `$HOME/.dotnet` **only** when it is missing. On an image that already ships the SDK, that step is a no-op and nothing about the environment changes. Pass `--no-install` to turn a missing SDK into a failure instead of an installation — use it in any environment that must not change, such as a sandbox with a preinstalled SDK.
 
 Paths are resolved against **your** working directory, not the repository root: the scripts address the solution, the test projects, and the CLI by absolute path instead of changing directory, so `scripts/format.sh Foo.cs` from a subdirectory means the `Foo.cs` next to you.
 
 | Script | Purpose |
 |---|---|
-| `prepare.sh` / `prepare.ps1` | Verify the toolchain, installing the SDK only if needed |
-| `build.sh` / `build.ps1` | `dotnet build Reihitsu.sln`, in Release unless `--configuration Debug` / `-Configuration Debug` |
-| `test.sh` / `test.ps1` | Run one or all test projects, with an optional focused filter and configuration |
-| `format.sh` / `format.ps1` | Format the given paths through `Reihitsu.Cli` |
-| `trace.sh` / `trace.ps1` | Trace source changes at each top-level formatter phase without modifying the input |
-| `apply-fix.sh` / `apply-fix.ps1` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
-| `verify-text-only.sh` / `verify-text-only.ps1` | Prove that a change carries no compiled behavior |
-| `lane-check.sh` / `lane-check.ps1` | Confirm the squad lane a run claimed against the paths its diff changes |
-| `clean-bin-obj.ps1` | Remove all `bin` and `obj` directories |
-| `install-cli.ps1` | Install or update the locally built `Reihitsu.Cli` global tool |
+| `prepare.sh` | Verify the toolchain, installing the SDK only if needed |
+| `build.sh` | `dotnet build Reihitsu.sln`, in Release unless `--configuration Debug` |
+| `test.sh` | Run one or all test projects, with an optional focused filter and configuration |
+| `format.sh` | Format the given paths through `Reihitsu.Cli` |
+| `trace.sh` | Trace source changes at each top-level formatter phase without modifying the input |
+| `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
+| `verify-text-only.sh` | Prove that a change carries no compiled behavior |
+| `lane-check.sh` | Confirm the squad lane a run claimed against the paths its diff changes |
 
 ## Examples
 
@@ -34,20 +30,9 @@ scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
 scripts/lane-check.sh bug-fix --head worktree
 ```
 
-```powershell
-.\scripts\prepare.ps1
-.\scripts\build.ps1
-.\scripts\test.ps1 -Project analyzer -Filter "FullyQualifiedName~RH3204"
-.\scripts\format.ps1 src\Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs
-.\scripts\trace.ps1 samples\Example.cs -Passes 3 -NoInstall
-.\scripts\apply-fix.ps1 RH7101 C:\Temp\sweep
-.\scripts\verify-text-only.ps1 -Base a1b2c3d -Head worktree
-.\scripts\lane-check.ps1 bug-fix -Head worktree
-```
-
 ## Formatter pipeline trace
 
-`trace.sh <file> [--passes N] [--no-install]` and `trace.ps1 <file> [-Passes N] [-NoInstall]` run one C# file through the twelve top-level `IFormattingPhase` boundaries. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
+`trace.sh <file> [--passes N] [--no-install]` runs one C# file through the twelve top-level `IFormattingPhase` boundaries. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
 
 The trace defaults to at most three passes and requires a positive pass count. It prints a pass/phase header only when that phase changes serialized source. Line-content changes get a unified diff; when a change only normalizes line-ending separators, the shared diff generator has no line hunk, so the trace prints before/after CRLF, LF, and CR counts instead. It preserves the input's detected LF or CRLF convention and stops early after the first complete pass that makes no change. Syntax-invalid and generated inputs are reported as legitimate skips.
 
@@ -57,13 +42,13 @@ The implementation lives in `trace/trace.cs` as a [.NET 10 file-based app](https
 
 ## The code-fix fixture runner
 
-`apply-fix.sh <diagnostic-id> <fixture-directory> [--max-iterations N]` and `apply-fix.ps1 <DiagnosticId> <FixtureDirectory> [-MaxIterations N]` exercise **the code-fix surface** — analyzer, then code fix provider, then re-analysis — over every `*.cs` file below a directory. It exists so a defect-class sweep by the skeptic or the test implementer is "write N fixture files and run one command" rather than "build a disposable harness, then write N fixture files"; `format.sh` already reaches the full pipeline, and this closes the surface that had no entry point.
+`apply-fix.sh <diagnostic-id> <fixture-directory> [--max-iterations N]` exercises **the code-fix surface** — analyzer, then code fix provider, then re-analysis — over every `*.cs` file below a directory. It exists so a defect-class sweep by the skeptic or the test implementer is "write N fixture files and run one command" rather than "build a disposable harness, then write N fixture files"; `format.sh` already reaches the full pipeline, and this closes the surface that had no entry point.
 
 The target is named by **diagnostic ID**, because `FixableDiagnosticIds` and `SupportedDiagnostics` are the only public, stable handles on these types: analyzer and code-fix type names carry no compatibility contract, and the formatter's structural transforms are `internal` and stay that way. An ID no analyzer reports, an ID no provider fixes, or an ID claimed by more than one provider fails before any fixture runs, naming every candidate — the runner never silently picks one.
 
 Fixtures are only read, and paths resolve against the caller's working directory, so a read-only workflow keeps its fixture directory outside the repository and deletes it afterwards. The whole directory is one invocation: process startup is paid once, not once per candidate. Every fixture is run twice, normalized to LF and to CRLF, because the two differ in the trivia the code reads rather than only in the bytes.
 
-Everything after a literal `--` is forwarded to the runner as-is by both wrappers, so a fixture directory that is itself named like an option (`--no-install`, for example) still reaches the runner instead of being consumed as the wrapper's own flag.
+Everything after a literal `--` is forwarded to the runner as-is by the wrapper, so a fixture directory that is itself named like an option (`--no-install`, for example) still reaches the runner instead of being consumed as the wrapper's own flag.
 
 Each fixture is analyzed under its own on-disk relative path rather than a constant placeholder, so a rule that reads the document's file name (RH4001, for example) observes the fixture's real identity, and Roslyn's own generated-code heuristic — file name pattern and leading comment alike — is disabled so a fixture that happens to look generated is still analyzed like every other fixture. Each fixture is also the only document in its ad-hoc project, so a code fix that inspects sibling documents (RH4001's own rename-collision guard, for example) never observes another fixture in the sweep. A code fix that replaces the document's identity instead of only its text — RH4001's rename is the shipped example — is followed into the next iteration under its new name; the rename counts as progress on its own, so a rename-only fix still converges rather than being reported as `no-progress`. The arm header always names the fixture's on-disk path, never the renamed document, and an arm whose analyzed document was renamed prints one additional `Document renamed: <before> -> <after>` line.
 
@@ -112,7 +97,7 @@ One consequence is worth knowing: its leading `#:package` directive is not C# th
 
 ## The lane check
 
-`lane-check.sh <lane> [--base <rev>] [--head <rev|worktree>] [--no-install]` and `lane-check.ps1 <Lane> [-Base <rev>] [-Head <rev|worktree>] [-NoInstall]` confirm the lane a squad run claimed — `docs`, `tests`, `bug-fix`, `behavior-change`, or `tooling` — against the paths its diff changes. The diff decides, not the claim. The defaults are the merge base with `origin/main` and `HEAD`; `--head worktree` includes uncommitted changes to tracked files and ignores untracked ones, so stage a new file before checking it.
+`lane-check.sh <lane> [--base <rev>] [--head <rev|worktree>] [--no-install]` confirms the lane a squad run claimed — `docs`, `tests`, `bug-fix`, `behavior-change`, or `tooling` — against the paths its diff changes. The diff decides, not the claim. The defaults are the merge base with `origin/main` and `HEAD`; `--head worktree` includes uncommitted changes to tracked files and ignores untracked ones, so stage a new file before checking it.
 
 It first runs the text-only proof over the same range and prints its line, because a C# file counts as text only when the proof covers the whole diff. Then every changed path (`git diff --name-status --no-renames`, so a rename counts as a deletion and an addition) is classified:
 

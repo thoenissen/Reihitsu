@@ -9,7 +9,7 @@ This file is the process every role follows. The lead's playbook is [`lead.md`](
 | Role | Job | Must not |
 |---|---|---|
 | [Lead](lead.md) | Talks to the maintainer, claims the lane, spawns roles, routes findings, escalates, publishes the PR and watches its CI | Write specs, tests, or production code |
-| [Spec author](roles/spec-author.md) | Writes the change doc (when required) and the spec diff; files open questions it finds in passing | Touch code or tests |
+| [Spec author](roles/spec-author.md) | Writes the change doc (when required), the spec diff, and the documentation; writes every text change of the docs lane; lists open questions it finds in passing | Touch code or tests, beyond comment-only edits in the docs lane |
 | [Skeptic](roles/skeptic.md) | Challenges the premise: is the issue real, is the spec wrong instead, does it conflict with other specs or `shared/`, which input breaks it, is there a simpler option | Review code |
 | [Test implementer](roles/test-implementer.md) | Derives tests from the spec examples and the failure-class catalog; for a bug, the first test is the reproduction | Touch production code |
 | [Implementer](roles/implementer.md) | Makes the tests pass; builds in Debug | Change test assertions |
@@ -22,11 +22,11 @@ Roles are strictly separated. A role that has to re-read everything was given a 
 
 ## Lanes
 
-The lead claims a lane at the start. The diff's paths decide whether the claim holds, not the lead's judgment: `scripts/lane-check.sh <lane>` (`.ps1` on Windows) classifies every changed path and names the narrowest lane that admits them. Every skipped role is recorded with its reason in the PR's run report.
+The lead claims a lane at the start. The diff's paths decide whether the claim holds, not the lead's judgment: `scripts/lane-check.sh <lane>` classifies every changed path and names the narrowest lane that admits them. Every skipped role is recorded with its reason in the PR's run report.
 
 | Lane | Spec author | Skeptic | Test impl. | Implementer | Cleaner | Spec checker | Auditor | Validator |
 |---|---|---|---|---|---|---|---|---|
-| Docs / text only (proven) | – | – | – | – | – | ✓ | – | only if a compiled file changed |
+| Docs / text only (proven) | ✓ writes the text | – | – | – | – | ✓ | – | only if a compiled file changed |
 | Tests for existing behavior | – | – | ✓ | – | ✓ | ✓ | – | ✓ |
 | Bug fix | only for a clarification | ✓ premise check | ✓ reproduction | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Behavior change / new rule | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |

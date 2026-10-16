@@ -33,22 +33,6 @@ public sealed class TestScriptProjectSelectionTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the PowerShell all branch selects every test project in the solution
-    /// </summary>
-    [TestMethod]
-    public void PowerShellAllIncludesEverySolutionTestProject()
-    {
-        // Arrange
-        var repositoryRoot = FindRepositoryRoot();
-        var script = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.ps1"));
-
-        // Act and assert
-        AssertAllSelection(script,
-                           @"(?ms)^\s*'all'\s*\r?\n\s*\{\s*\r?\n(?<body>.*?)^\s*\}\s*\r?\n\}",
-                           repositoryRoot);
-    }
-
-    /// <summary>
     /// Verifies that the shell all branch selects every test project in the solution
     /// </summary>
     [TestMethod]
@@ -65,23 +49,16 @@ public sealed class TestScriptProjectSelectionTests
     }
 
     /// <summary>
-    /// Verifies that the architecture and tooling aliases remain single-project selections in both scripts
+    /// Verifies that the architecture and tooling aliases remain single-project selections
     /// </summary>
     [TestMethod]
     public void NamedArchitectureAndToolingSelectionsRemainNarrow()
     {
         // Arrange
         var repositoryRoot = FindRepositoryRoot();
-        var powerShell = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.ps1"));
         var shell = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.sh"));
 
         // Act and assert
-        AssertNamedPowerShellSelection(powerShell,
-                                       "architecture",
-                                       "src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj");
-        AssertNamedPowerShellSelection(powerShell,
-                                       "tooling",
-                                       "src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj");
         AssertNamedShellSelection(shell,
                                   "architecture",
                                   "src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj");
@@ -107,21 +84,6 @@ public sealed class TestScriptProjectSelectionTests
 
         Assert.AreSequenceEqual(_expectedTestProjects, selected, "The all-project order changed.");
         Assert.AreSequenceEqual(_expectedTestProjects, solutionProjects, SequenceOrder.InAnyOrder, "The all branch does not match the solution's test projects.");
-    }
-
-    /// <summary>
-    /// Verifies one named PowerShell selection
-    /// </summary>
-    /// <param name="script">Script text</param>
-    /// <param name="name">Selection name</param>
-    /// <param name="expectedProject">Expected project path</param>
-    private static void AssertNamedPowerShellSelection(string script, string name, string expectedProject)
-    {
-        var match = Regex.Match(script,
-                                $@"(?m)^\s*'{Regex.Escape(name)}'\s*\{{\s*@\('(?<path>[^']+\.csproj)'\)\s*\}}");
-
-        Assert.IsTrue(match.Success, $"Could not locate the PowerShell '{name}' selection.");
-        Assert.AreEqual(expectedProject, match.Groups["path"].Value);
     }
 
     /// <summary>

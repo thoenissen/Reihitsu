@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11205.157
@@ -377,9 +377,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Cli.Test", "src\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj", "{CEFCDC4D-1738-4B47-8212-CB37FF659773}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{5EEF23E5-D408-4949-9A9B-42D96B35882D}"
-	ProjectSection(SolutionItems) = preProject
-		scripts\install_cli.ps1 = scripts\install_cli.ps1
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0D60025A-7C27-41A2-9512-09633033A1C0}"
 EndProject

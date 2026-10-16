@@ -37,14 +37,14 @@ scripts/lane-check.*      confirms the claimed lane against the diff
 
 Claude Code reads `CLAUDE.md`, not `AGENTS.md`; the `@AGENTS.md` import makes `AGENTS.md` the single source. `.codex/`, the Copilot files under `.github/` (`copilot-instructions.md`, `agents/`, `skills/`), and the Codex-specific content of `AGENTS.md` are removed. Model tier and effort stay in the agent-specific wrapper files, because they are agent-specific.
 
-The previous workflow skills (`gh-implement`, `gh-preflight`, `gh-rubber-duck`), their agent definitions, and the task commands `create-analyzer-rule`, `fix-analyzer-rule`, `fix-formatter`, `extend-formatter`, and `draft-issue` are removed; the roles replace them. `create-rule-doc` and `add-resource-texts` stay as reference commands the roles cite. `scripts/upload-issues.ps1` is removed with `draft-issue`: the lead drafts a follow-up issue from the repository's issue templates, and creates it only after the maintainer approved its text.
+The previous workflow skills (`gh-implement`, `gh-preflight`, `gh-rubber-duck`), their agent definitions, and the task commands `create-analyzer-rule`, `fix-analyzer-rule`, `fix-formatter`, `extend-formatter`, and `draft-issue` are removed; the roles replace them. `create-rule-doc` and `add-resource-texts` stay as reference commands the roles cite. The repository scripts are Bash only; the PowerShell variants are removed, and with them `scripts/upload-issues.ps1`, which belonged to `draft-issue`: the lead drafts a follow-up issue from the repository's issue templates, and creates it only after the maintainer approved its text.
 
 ### Roles
 
 | Role | Job | Must not |
 |---|---|---|
 | Lead | Talks to the maintainer, picks the lane, spawns roles, routes findings, escalates, publishes the PR and watches its CI | Write specs, tests, or production code itself, or perform a role itself |
-| Spec author | Writes the change doc (when required) and the spec diff | Touch code or tests |
+| Spec author | Writes the change doc (when required), the spec diff, and the documentation; writes every text change of the docs lane | Touch code or tests, beyond comment-only edits in the docs lane |
 | Skeptic | Challenges the premise: is the issue real, is the spec wrong instead, does it conflict with other specs or `shared/`, which input breaks it, is there a simpler option | Review code |
 | Test implementer | Derives tests from the spec examples and the failure-class catalog; for a bug, the first test is the reproduction | Touch production code |
 | Implementer | Makes the tests pass; builds in Debug (`scripts/build.sh --configuration Debug`) | Change test assertions — a test it believes is wrong goes back to the lead |
@@ -67,7 +67,7 @@ The lead claims a lane at the start; `scripts/lane-check.sh` confirms it against
 
 | Lane | Spec author | Skeptic | Test impl. | Implementer | Cleaner | Spec checker | Auditor | Validator |
 |---|---|---|---|---|---|---|---|---|
-| Docs / text only (proven) | – | – | – | – | – | ✓ | – | only if a compiled file changed |
+| Docs / text only (proven) | ✓ writes the text | – | – | – | – | ✓ | – | only if a compiled file changed |
 | Tests for existing behavior | – | – | ✓ | – | ✓ | ✓ | – | ✓ |
 | Bug fix | only for a clarification | ✓ premise check | ✓ reproduction | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Behavior change / new rule | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |

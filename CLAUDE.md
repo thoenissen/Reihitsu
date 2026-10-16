@@ -6,7 +6,7 @@ Everything above is imported from `AGENTS.md`, the single source of repository i
 
 ## Environment
 
-Claude runs in a Linux cloud sandbox, so use the `.sh` variants of the repository scripts and let them install .NET 10 into `$HOME/.dotnet` when no `10.*` SDK is present — the sandbox is fresh on every session, so `--no-install` does not apply here. GitHub is reached through the GitHub MCP server (`mcp__github__*`), not the `gh` CLI.
+Claude runs in a Linux cloud sandbox, so let the repository scripts install .NET 10 into `$HOME/.dotnet` when no `10.*` SDK is present — the sandbox is fresh on every session, so `--no-install` does not apply here. GitHub is reached through the GitHub MCP server (`mcp__github__*`), not the `gh` CLI.
 
 ## The squad
 

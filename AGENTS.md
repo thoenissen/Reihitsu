@@ -4,9 +4,9 @@ These are the repository instructions for every agent and every contributor. Age
 
 ## Build, test, and lint
 
-The repository scripts under `scripts/` are the canonical entry points — use them instead of hand-written `dotnet` invocations. Every script exists twice: `.sh` for Linux and macOS, `.ps1` for Windows. Both variants take the same options and are maintained together. See `scripts/README.md`.
+The repository scripts under `scripts/` are the canonical entry points — use them instead of hand-written `dotnet` invocations. They are Bash scripts for Linux and macOS; the repository ships no PowerShell variants. See `scripts/README.md`.
 
-Each script resolves the .NET SDK itself: it probes `dotnet --list-sdks` and installs .NET 10 into `$HOME/.dotnet` only when no `10.*` SDK is present. In an environment that must not change — a preinstalled SDK, a locked-down sandbox — pass `--no-install` / `-NoInstall`, so a missing SDK fails instead of being installed.
+Each script resolves the .NET SDK itself: it probes `dotnet --list-sdks` and installs .NET 10 into `$HOME/.dotnet` only when no `10.*` SDK is present. In an environment that must not change — a preinstalled SDK, a locked-down sandbox — pass `--no-install`, so a missing SDK fails instead of being installed.
 
 ```shell
 scripts/prepare.sh        # verify the toolchain, installing only if needed
@@ -22,8 +22,6 @@ scripts/test.sh --project formatter --filter "FullyQualifiedName~Reihitsu.Format
 scripts/test.sh --project core --filter "FullyQualifiedName~Reihitsu.Core.Test.CasingUtilitiesTests.ToCamelCaseTest"
 scripts/test.sh --project cli --filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
 ```
-
-On Windows the same calls read `.\scripts\test.ps1 -Project analyzer -Filter "..."`.
 
 `scripts/verify-text-only.sh` proves mechanically that a change carries no compiled behavior — a Roslyn comparison of the token stream, directive and disabled-text structure, literal contents, and changed trivia categories of every changed C# file. Use its verdict, not a line-based `grep`, to decide whether a change that touches a `.cs` file is text-only.
 
@@ -83,7 +81,7 @@ In short: a bug is a difference between the code and a spec. Behavior that looks
 <!-- formatter-phase-ownership:start -->
 ### Formatter phase ownership
 
-The trace tools show these top-level phase boundaries without modifying the input: `scripts/trace.sh <file> [--passes N] [--no-install]` or `.\scripts\trace.ps1 <file> [-Passes N] [-NoInstall]`. They default to three passes, print a unified diff for each phase that changes line content (or line-ending counts when only separators change), and stop early when a complete pass is stable.
+The trace tools show these top-level phase boundaries without modifying the input: `scripts/trace.sh <file> [--passes N] [--no-install]`. They default to three passes, print a unified diff for each phase that changes line content (or line-ending counts when only separators change), and stop early when a complete pass is stable.
 
 Formatter transformations are non-destructive: they may rewrite syntax and trivia into canonical form, but they must preserve user-authored directives, comments, disabled text, literals, and executable information. Region formatting may normalize names, matching comments, layout, indentation, and line endings, but it never deletes `#region` or `#endregion`; removing a misplaced region remains an explicit analyzer code-fix action.
 

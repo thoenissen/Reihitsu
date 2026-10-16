@@ -6,7 +6,7 @@ namespace Reihitsu.Tooling.Enumerations;
 public enum Lane
 {
     /// <summary>
-    /// Documentation or proven text-only change; only the spec checker runs
+    /// Documentation or proven text-only change; the spec author writes it and the spec checker verifies it
     /// </summary>
     Docs,
 

@@ -16,7 +16,7 @@ scripts/build.sh
 scripts/test.sh --no-build
 ```
 
-Use the `.ps1` variants on Windows. `--no-build` is valid only because the Release build just above covered this exact tree. Send the full output to a file outside the repository and report its path; put only the failing assertions in the handover.
+`--no-build` is valid only because the Release build just above covered this exact tree. Send the full output to a file outside the repository and report its path; put only the failing assertions in the handover.
 
 ## Must not
 
