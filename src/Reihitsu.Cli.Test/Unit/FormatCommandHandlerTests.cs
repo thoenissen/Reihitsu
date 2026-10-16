@@ -227,6 +227,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-006")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncNoFilesFoundReturnsSuccess()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -250,6 +252,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-006")]
     public async Task ExecuteAsyncSingleFilePathCollectsFile()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -273,6 +276,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-006")]
     public async Task ExecuteAsyncDirectoryCollectsRecursively()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -306,6 +310,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-006")]
     public async Task ExecuteAsyncSkipsBinDirectory()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -335,6 +340,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-006")]
     public async Task ExecuteAsyncSkipsObjDirectory()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -364,6 +370,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-006")]
     public async Task ExecuteAsyncNonCsFileIgnored()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -388,6 +395,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-006")]
     public async Task ExecuteAsyncDeduplicatesOverlappingFileAndDirectoryInputs()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -425,6 +433,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-007")]
     public async Task ExecuteAsyncSkipsDesignerCsFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -454,6 +463,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-007")]
     public async Task ExecuteAsyncSkipsGCsFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -483,6 +493,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-007")]
     public async Task ExecuteAsyncSkipsGICsFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -513,6 +524,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-007")]
+    [Requirement("CLI-015")]
     public async Task ExecuteAsyncVerboseLogsSkippedGeneratedFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -546,6 +559,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-008")]
     public async Task ExecuteAsyncSkipsFilesWithSyntaxErrors()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -570,6 +584,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-008")]
+    [Requirement("CLI-015")]
     public async Task ExecuteAsyncVerboseLogsSkippedSyntaxErrorFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -597,6 +613,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-012")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncCheckModeFormattedFileReturnsSuccess()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -621,6 +639,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-012")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncCheckModeUnformattedFileReturnsFormattingNeeded()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -645,6 +665,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-012")]
     public async Task ExecuteAsyncCheckModeDoesNotWriteFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -669,6 +690,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-012")]
     public async Task ExecuteAsyncCheckModeOutputsNotFormatted()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -697,6 +719,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
     public async Task ExecuteAsyncDryRunShowsDiff()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -724,6 +747,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
     public async Task ExecuteAsyncDryRunDoesNotWriteFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -750,6 +774,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncDryRunReturnsFormattingNeeded()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -776,6 +802,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
     public async Task ExecuteAsyncDryRunCallsDiffGenerator()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -806,6 +833,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-011")]
     public async Task ExecuteAsyncFormatsAndWritesChangedFile()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -830,6 +858,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-011")]
     public async Task ExecuteAsyncUnchangedFileNotWritten()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -854,6 +883,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-011")]
     public async Task ExecuteAsyncFormatsOutputsFormattedMessage()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -878,6 +908,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-015")]
     public async Task ExecuteAsyncVerboseOutputsUnchangedMessage()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -902,6 +933,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-011")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncReturnsSuccessWhenAllFilesFormatted()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -930,6 +963,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-010")]
     public async Task ExecuteAsyncUtf8BomRewritesContentCleanFileWithoutBom()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -960,6 +994,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-010")]
     public async Task ExecuteAsyncUtf8BomDoesNotRewriteAlreadyNormalizedFile()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -991,6 +1026,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-010")]
     public async Task ExecuteAsyncCheckUtf8BomReportsEncodingOnlyChange()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1021,6 +1057,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-010")]
     public async Task ExecuteAsyncDryRunUtf8BomReportsEncodingOnlyChange()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1052,6 +1089,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-008")]
+    [Requirement("CLI-010")]
     public async Task ExecuteAsyncUtf8BomDoesNotRewriteSyntaxErrorFile()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1084,6 +1123,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunPromptsForConfirmation()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1110,6 +1150,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunConfirmedFormatsFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1142,6 +1183,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunConfirmedUsesContentReadAfterConfirmation()
     {
         const string editedContent = "namespace  Test;\n\ninternal  class  Foo\n{\n    internal  int  Value  {  get;  }\n}";
@@ -1207,6 +1249,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunConfirmedWithYesWordFormatsFiles()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1233,6 +1276,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-017")]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunDeclinedMakesNoChangesAndReturnsSuccess()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1261,6 +1306,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunEmptyAnswerAborts()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1286,6 +1332,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunForceSkipsPrompt()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1316,6 +1363,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-017")]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunNonInteractiveWithoutForceReturnsError()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1346,6 +1395,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunHeaderGeneratedFilesSkipNonInteractiveConfirmation()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1402,6 +1452,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunCheckModeDoesNotPrompt()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1429,6 +1480,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncLargeRunDryRunDoesNotPrompt()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1458,6 +1510,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncRunAtThresholdDoesNotPrompt()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1488,6 +1541,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task ExecuteAsyncGeneratedFilesDoNotCountTowardThreshold()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1533,6 +1587,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-016")]
     public async Task ExecuteAsyncFileReadErrorContinuesProcessing()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1563,6 +1618,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-016")]
     public async Task ExecuteAsyncFileReadErrorIncrementsErrorCount()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1588,6 +1644,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-016")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncErrorFilesReturnsErrorExitCode()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1613,6 +1671,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-016")]
     public async Task ExecuteAsyncErrorOutputsErrorMessage()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1638,6 +1697,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-009")]
     public async Task ExecuteAsyncNonUtf8FileIsNotWritten()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1663,6 +1723,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-009")]
     public async Task ExecuteAsyncNonUtf8FileWritesWarning()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1688,6 +1749,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-009")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncNonUtf8FileReturnsSuccessExitCode()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1713,6 +1776,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-009")]
+    [Requirement("CLI-014")]
     public async Task ExecuteAsyncNonUtf8FilePrintsSkippedEncodingSummary()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1738,6 +1803,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-009")]
     public async Task ExecuteAsyncNonUtf8FileContinuesProcessing()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1768,6 +1834,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncCancellationIsNotSwallowedAsError()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1793,6 +1860,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-005")]
+    [Requirement("CLI-017")]
     public async Task ExecuteAsyncMissingPathReturnsErrorAndReportsIt()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1822,6 +1891,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-012")]
+    [Requirement("CLI-014")]
     public async Task ExecuteAsyncCheckModePrintsSummaryWithNeedFormatting()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1846,6 +1917,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
+    [Requirement("CLI-014")]
     public async Task ExecuteAsyncDryRunPrintsSummaryWithWouldFormat()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1872,6 +1945,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-011")]
+    [Requirement("CLI-014")]
     public async Task ExecuteAsyncFormatModePrintsSummaryWithFormatted()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1896,6 +1971,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-007")]
+    [Requirement("CLI-014")]
     public async Task ExecuteAsyncSkippedGeneratedFilesInSummary()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1925,6 +2002,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-008")]
+    [Requirement("CLI-014")]
     public async Task ExecuteAsyncSkippedSyntaxErrorsInSummary()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -1948,6 +2027,8 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
+    [Requirement("CLI-014")]
+    [Requirement("CLI-016")]
     public async Task ExecuteAsyncErrorFilesInSummary()
     {
         var fileSystem = Substitute.For<IFileSystem>();
@@ -2083,6 +2164,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-004")]
     public async Task ExecuteAsyncParsesAtMaxSupportedLanguageVersionByDefault()
     {
         var parsedVersion = await CaptureParsedLanguageVersion(null);
@@ -2095,6 +2177,7 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-004")]
     public async Task ExecuteAsyncParsesAtSelectedLanguageVersion()
     {
         var parsedVersion = await CaptureParsedLanguageVersion(LanguageVersion.CSharp11);

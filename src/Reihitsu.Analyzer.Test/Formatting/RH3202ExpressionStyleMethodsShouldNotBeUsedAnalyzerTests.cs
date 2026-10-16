@@ -21,6 +21,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3202-001")]
+    [Requirement("RH3202-003")]
+    [Requirement("RH3202-004")]
     public async Task VerifyExpressionBodiedMethodsAreDetectedAndFixed()
     {
         const string testData = """
@@ -60,6 +63,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3202-004")]
     public async Task VerifyThrowExpressionBodiedMethodIsFixedToThrowStatement()
     {
         const string testData = """
@@ -89,6 +93,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3202-001")]
+    [Requirement("RH3202-004")]
     public async Task VerifyAsyncValueTaskExpressionBodiedMethodIsFixed()
     {
         const string testData = """
@@ -123,6 +129,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3202-002")]
     public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
     {
         const string testData = """
@@ -144,6 +151,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3202-002")]
+    [Requirement("RH3202-004")]
     public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
     {
         const string testData = """
@@ -177,6 +186,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3202-005")]
     public async Task VerifyBlankLineAboveFixedMethodIsKept()
     {
         const string testData = """
@@ -208,6 +218,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3202-004")]
     public async Task VerifyExpressionOnNextLineIsFixedToSingleSpacedReturn()
     {
         const string testData = """
@@ -234,6 +245,14 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    [TestMethod]
+    [Requirement("RH3202-006")]
+    public override async Task FixAllCorrectsEveryDiagnostic()
+    {
+        await base.FixAllCorrectsEveryDiagnostic();
+    }
 
     /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()

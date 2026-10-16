@@ -23,6 +23,9 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-001")]
+    [Requirement("RH7103-005")]
+    [Requirement("RH7103-006")]
     public async Task StaticMembersAreReportedAndFixedWhenTheyAppearAfterInstanceMembers()
     {
         const string testCode = """
@@ -60,6 +63,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task StaticMembersAreReportedAndFixedUnderCarriageReturnLineFeed()
     {
         const string testCode = """
@@ -99,6 +103,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task StaticMemberWithDocumentationKeepsTheSeparatorWhenReordered()
     {
         const string testCode = """
@@ -143,6 +148,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task SeparatorBeforeADocumentedTargetSurvivesTheReorder()
     {
         const string testCode = """
@@ -186,6 +192,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task SeparatorSurvivesTheReorderWhenBothMembersAreDocumented()
     {
         const string testCode = """
@@ -235,6 +242,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task SeparatorStaysAtTargetPositionWhenOnlyTheTargetHadABlankLineBefore()
     {
         const string testCode = """
@@ -275,6 +283,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task RelocationPreservesGapCountWhenTargetIsNotTheFirstMember()
     {
         const string testCode = """
@@ -314,6 +323,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task CodeFixPreservesGapSequenceWhenMoveCrossesMultipleMembers()
     {
         const string testCode = """
@@ -359,6 +369,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task CodeFixPreservesGapSequenceWhenCrossedGapsAreNotUniform()
     {
         const string testCode = """
@@ -403,6 +414,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task MultipleBlankLinesAboveTheMovedMemberCollapseToOneAfterReordering()
     {
         const string testCode = """
@@ -442,6 +454,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
     public async Task CodeFixTravelsWithABalancedDisabledDirectiveBlockAboveTheMovedMember()
     {
         const string testCode = """
@@ -488,6 +501,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-002")]
     public async Task DestructorsDoNotCrashAnalyzer()
     {
         const string testCode = """
@@ -509,6 +523,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-007")]
     public async Task NoCodeFixWhenMoveChangesStaticInitializerExecutionOrder()
     {
         const string testCode = """
@@ -538,6 +553,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-007")]
     public async Task NoCodeFixWhenMoveChangesInitializerExecutionOrderAcrossEventField()
     {
         const string testCode = """
@@ -568,6 +584,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-007")]
     public async Task NoCodeFixWhenDirectivesAreInLeadingTrivia()
     {
         const string testCode = """
@@ -597,6 +614,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-007")]
     public async Task NoCodeFixWhenDirectiveFollowsAttributeList()
     {
         const string testCode = """
@@ -633,6 +651,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
+    [Requirement("RH7103-007")]
     public async Task CodeFixIsOfferedWhenCrossedMemberBodyContainsBalancedConditional()
     {
         const string testCode = """
@@ -676,6 +696,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-006")]
+    [Requirement("RH7103-007")]
     public async Task CodeFixIsOfferedWhenCrossedMemberBodyContainsActiveBalancedConditional()
     {
         const string testCode = """
@@ -711,6 +733,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-007")]
     public async Task NoCodeFixWhenDirectiveFollowsModifier()
     {
         const string testCode = """
@@ -746,6 +769,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-004")]
     public async Task NoDiagnosticWhenStaticAndInstanceLiveInSeparateRegions()
     {
         const string testCode = """
@@ -778,6 +802,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-004")]
     public async Task NoDiagnosticWhenInstanceIsOutsideRegionAndStaticIsInsideRegion()
     {
         const string testCode = """
@@ -806,6 +831,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-004")]
     public async Task NoDiagnosticWhenStaticIsOutsideRegionAndInstanceIsInsideRegion()
     {
         const string testCode = """
@@ -834,6 +860,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-004")]
     public async Task StaticMembersAreReportedWhenTheyAppearAfterInstanceMembersInSameRegion()
     {
         const string testCode = """
@@ -861,6 +888,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-004")]
     public async Task DiagnosticIsScopedToContainingRegion()
     {
         const string testCode = """
@@ -897,6 +925,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7103-004")]
+    [Requirement("RH7103-006")]
     public async Task CodeFixReordersStaticWithinRegionAndIgnoresInstanceMembersInOtherRegions()
     {
         const string testCode = """
@@ -962,9 +992,126 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying a static member is compared only with instance members of the same kind and the same accessibility,
+    /// so a static field and a private static method after a public instance method are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-001")]
+    [Requirement("RH7103-002")]
+    [Requirement("RH7103-003")]
+    [Requirement("RH7103-006")]
+    public async Task OnlyStaticMembersOfTheSameKindAndAccessibilityAreReported()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static int Count;
+
+                                    private static void Helper()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                     }
+
+                                     public static int Count;
+
+                                     private static void Helper()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying a static abstract interface member counts as static and is reported after an instance member of the
+    /// same kind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-001")]
+    [Requirement("RH7103-002")]
+    public async Task StaticAbstractInterfaceMemberIsReported()
+    {
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    void Run();
+
+                                    static abstract void {|#0:Create|}();
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface ITest
+                                 {
+                                     static abstract void Create();
+
+                                     void Run();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying a private static method after a public instance method is not reported, because the two members
+    /// differ in accessibility
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-003")]
+    public async Task NoDiagnosticWhenStaticMemberHasDifferentAccessibility()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    private static void Helper()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    [TestMethod]
+    [Requirement("RH7103-008")]
+    public override async Task FixAllCorrectsEveryDiagnostic()
+    {
+        await base.FixAllCorrectsEveryDiagnostic();
+    }
 
     /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()

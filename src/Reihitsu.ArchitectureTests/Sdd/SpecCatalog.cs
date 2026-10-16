@@ -47,6 +47,11 @@ internal static class SpecCatalog
     /// </summary>
     private static readonly Regex _requirementHeadingPattern = new(@"^### (?<id>\S+) — ");
 
+    /// <summary>
+    /// Matches the status line that marks a requirement as retired
+    /// </summary>
+    private static readonly Regex _retiredStatusPattern = new(@"^Status:\s*Retired\b");
+
     #endregion // Constants
 
     #region Methods
@@ -120,7 +125,8 @@ internal static class SpecCatalog
     }
 
     /// <summary>
-    /// Reads every requirement heading of every spec, skipping fenced code blocks
+    /// Reads every requirement heading of every spec, skipping fenced code blocks. A requirement is retired when a
+    /// <c>Status: Retired</c> line follows its heading before the next heading
     /// </summary>
     /// <param name="specsDirectory">The <c>sdd/specs</c> directory</param>
     /// <returns>The requirement headings of all specs</returns>
@@ -133,6 +139,7 @@ internal static class SpecCatalog
             var specPath = Path.GetRelativePath(specsDirectory, specFile).Replace('\\', '/');
             var isInFence = false;
             var lineNumber = 0;
+            SpecRequirement current = null;
 
             foreach (var line in File.ReadLines(specFile))
             {
@@ -150,11 +157,26 @@ internal static class SpecCatalog
                     continue;
                 }
 
+                if (line.StartsWith("#", StringComparison.Ordinal))
+                {
+                    current = null;
+                }
+
                 var heading = _requirementHeadingPattern.Match(line);
 
                 if (heading.Success)
                 {
-                    requirements.Add(new SpecRequirement(specPath, lineNumber, heading.Groups["id"].Value));
+                    current = new SpecRequirement(specPath, lineNumber, heading.Groups["id"].Value, false);
+                    requirements.Add(current);
+                }
+                else if (current != null
+                         && _retiredStatusPattern.IsMatch(line))
+                {
+                    current = current with
+                                      {
+                                          IsRetired = true
+                                      };
+                    requirements[^1] = current;
                 }
             }
         }

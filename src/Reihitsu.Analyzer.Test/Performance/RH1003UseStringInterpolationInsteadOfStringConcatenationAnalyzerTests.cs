@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Performance;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 namespace Reihitsu.Analyzer.Test.Performance;
 
@@ -20,6 +21,8 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1003-001")]
+    [Requirement("RH1003-004")]
     public async Task VerifyNonConstantStringConcatenationChainIsReported()
     {
         const string testData = """
@@ -42,6 +45,7 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1003-002")]
     public async Task VerifyCompileTimeConstantStringConcatenationChainIsIgnored()
     {
         const string testData = """
@@ -67,6 +71,7 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1003-001")]
     public async Task VerifyTwoPartStringConcatenationIsIgnored()
     {
         const string testData = """
@@ -89,6 +94,8 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1003-003")]
+    [Requirement("RH1003-004")]
     public async Task VerifyNestedConcatenationChainOnlyReportsOnce()
     {
         const string testData = """
@@ -111,6 +118,7 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1003-001")]
     public async Task VerifyNonStringAdditionExpressionIsIgnored()
     {
         const string testData = """
@@ -133,6 +141,8 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1003-001")]
+    [Requirement("RH1003-002")]
     public async Task VerifyStringConcatenationChainWithConstantSubExpressionIsReported()
     {
         const string testData = """
@@ -148,6 +158,18 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
                                 """;
 
         await Verify(testData, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, AnalyzerResources.RH1003MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that no code fix provider is registered for the rule
+    /// </summary>
+    [TestMethod]
+    [Requirement("RH1003-005")]
+    public void VerifyNoCodeFixIsOffered()
+    {
+        var codeFixProviders = AnalyzerMetadataDiscovery.DiscoverCodeFixProviders();
+
+        Assert.DoesNotContain(codeFixProvider => codeFixProvider.DiagnosticId == RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, codeFixProviders);
     }
 
     #endregion // Methods
