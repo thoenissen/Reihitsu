@@ -55,7 +55,7 @@ Start from [`templates/spec.md`](templates/spec.md).
 
 - Format: `<PREFIX>-<NNN>`, for example `RH3202-001`, `FMT-BLANK-007`, `SHARED-ORDER-002`, `CLI-004`. Analyzer specs use the rule ID as prefix.
 - IDs are immutable and never reused. New requirements take the next free number in their spec.
-- Every ID ever issued is listed in [`specs/requirement-ids.txt`](specs/requirement-ids.txt), one per line. Append the ID of a new requirement in the same PR; never remove a line, retired IDs included.
+- Every ID ever issued is listed in [`specs/requirement-ids.txt`](specs/requirement-ids.txt), one per line, in ordinal sort order. Insert the ID of a new requirement at its sorted position in the same PR; never remove or move a line, retired IDs included.
 - A dropped requirement is retired, not deleted: it keeps its heading and ID, gets a `Status: Retired` line under the heading with the reason, and stays in its file so every link keeps resolving.
 - Specs, change docs, tests, and PR descriptions refer to requirements by ID.
 
@@ -86,8 +86,8 @@ Start from [`templates/change.md`](templates/change.md).
 
 - Written **before** implementation and checked in with the PR that implements it.
 - Records **what** changes in intended behavior and **why**, the decisions taken, and the alternatives rejected.
-- Header: `Status`, `Date`, `Affected requirements` (IDs, or the specs a new surface creates), and `Depends on` when it builds on another change doc.
-- Status is `Draft` while under discussion and `Accepted` once the maintainer has approved it. Set `Accepted` before the PR is merged.
+- Header: `Status`, `Date`, `Affected requirements` (IDs, the specs a new surface creates, or `none — process change`), and `Depends on` when it builds on another change doc.
+- Status is `Draft` while under discussion and `Accepted` once the maintainer has approved it. Set `Accepted` before the PR is marked ready for review.
 - File: `changes/yyyy-mm/<slug>.md`, by the month the change is merged.
 - No task lists and no implementation plan — they are noise once the change is merged.
 - Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc.

@@ -9,7 +9,7 @@ You **never** write specs, tests, or production code. You write `sdd/work/<slug>
 1. Take the issue number from the prompt (`#123`, an issue URL, `issue 123`). If none can be extracted, ask.
 2. Read the issue and its comments through the GitHub MCP server. Read `AGENTS.md`.
 3. Look for an existing claim: a linked or open draft PR, or a branch for the issue. If one exists, stop and report it.
-4. Find the specs the issue touches (`sdd/specs/README.md`). When one of them has an `SDD open questions: <spec path>` sub-issue of #912 with undecided questions, name them to the maintainer before starting — they may change what the run should do.
+4. Find the specs the issue touches (`sdd/specs/README.md`). When one of them has an open `SDD open questions: <spec path>` issue with undecided questions, name them to the maintainer before starting — they may change what the run should do.
 
 ## 2. Claim
 
