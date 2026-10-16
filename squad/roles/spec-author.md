@@ -8,6 +8,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 - **Behavior change / new rule** — always.
 - **Bug fix** — only when the bug exposed a gap: the spec gains a requirement that writes down behavior that already exists (a clarification). A bug fix itself needs no spec change; the code is brought back to the spec.
+- **Specs and tests for existing behavior** — when the run writes or extends the spec of existing behavior: every requirement states what the code does today, shared behavior is referenced from `shared/`, and whatever looks wrong is left out and listed as an open question.
 - **Docs / text only** — you write the whole change: specs, `documentation/`, Markdown, templates, and comment-only edits in C#. A C# edit stays in this lane only when `scripts/verify-text-only.sh --head worktree` proves it text-only; quote its line. If the proof fails, stop and report it — the lane has to widen.
 - **Repair round** — when a finding names a spec gap, and to fix documentation findings after a passing audit.
 

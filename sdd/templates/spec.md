@@ -30,9 +30,3 @@ Example:
 ```csharp
 // after
 ```
-
-### <PREFIX>-002 — <Short title of a retired requirement>
-
-Status: Retired — <reason, and the change doc that retired it>.
-
-<The original requirement text stays below unchanged.>

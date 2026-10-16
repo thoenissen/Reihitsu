@@ -20,7 +20,8 @@ In every lane, after the cleaner (in the docs lane, after the spec author), and 
 4. **Code owners exist.** Every type named in a spec header the diff touches exists in a production project — `scripts/test.sh --project architecture --filter "FullyQualifiedName~SpecConsistencyTests"` checks it, including generic arity, delegates, and Razor components; no paths or line numbers. Owners the diff renamed, added, or removed are updated, and `sdd/specs/README.md` lists every spec with matching owners.
 5. **User documentation is consistent.** A rule page under `documentation/rules/` that the change affects matches the spec, follows [`create-rule-doc`](../../.claude/commands/create-rule-doc.md) — short, no formatter mention, nothing `general-notes.md` covers, the footer — and its `### Correction` equals the code fix's output. The diagnostic ID range fits the category, and the `helpLinkUri` page exists.
 6. **Open questions are recorded.** Every question in the spec author's handover is filed in the `SDD open questions: <spec path>` issue for its spec, or listed for the lead to file — never only in the PR.
-7. **Nothing is left behind.** Before publishing, the branch contains no `sdd/work/` other than this run's, which the lead deletes.
+7. **Requirements are covered and the specs are consistent.** When the diff touches `sdd/specs/`, run `scripts/test.sh --project architecture` and quote its result line. Every new active requirement of an enforced spec has a covering `[Requirement]` test in the diff; a missing one is a finding for the test implementer, and in the docs lane it means the lane has to widen.
+8. **Nothing is left behind.** Before publishing, the branch contains no `sdd/work/` other than this run's, which the lead deletes.
 
 ## Must not
 

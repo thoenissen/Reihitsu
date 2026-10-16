@@ -63,12 +63,12 @@ Each writing role commits its own files and its handover with `[skip ci]`; only 
 
 ### Lanes
 
-The lead claims a lane at the start; `scripts/lane-check.sh` confirms it against the diff after each writing role and before publishing. The diff's paths decide, not the lead's judgment: shipped source with a change doc is a behavior change, shipped source without one a bug fix, test projects alone are tests, and text — including C# that `verify-text-only.sh` proves text-only — is docs. Every skipped role is recorded with its reason in the PR's run report.
+The lead claims a lane at the start; `scripts/lane-check.sh` confirms it against the diff after each writing role and before publishing. The diff's paths decide, not the lead's judgment: shipped source with a change doc is a behavior change, shipped source without one a bug fix, test projects alone, or together with the spec of an existing rule, are tests, and text — including C# that `verify-text-only.sh` proves text-only — is docs. Every skipped role is recorded with its reason in the PR's run report.
 
 | Lane | Spec author | Skeptic | Test impl. | Implementer | Cleaner | Spec checker | Auditor | Validator |
 |---|---|---|---|---|---|---|---|---|
 | Docs / text only (proven) | ✓ writes the text | – | – | – | – | ✓ | – | only if a compiled file changed |
-| Tests for existing behavior | – | – | ✓ | – | ✓ | ✓ | – | ✓ |
+| Specs and tests for existing behavior | ✓ writes the spec, when the run adds one | ✓ spec against the code | ✓ | – | ✓ | ✓ | – | ✓ |
 | Bug fix | only for a clarification | ✓ premise check | ✓ reproduction | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Behavior change / new rule | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Tooling | – | – | ✓ when the tool has tests | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -112,7 +112,7 @@ Every escalation is recorded in `squad/decisions/`: question, answer, short reas
 
 - Every existing rule in the current skills is sorted into one of three buckets: **knowledge about the code** (moves into `shared/` and pipeline specs and into `failure-classes.md`), **process mechanics** (moves into the lead playbook), or **obsolete** (Behavior Contract, admission artifact, review flows — removed). An agent produces the sorting as a table; the maintainer decides per row.
 - `failure-classes.md` holds one line per known failure class plus its origin. The test implementer works through it for matching inputs; the auditor checks the same list.
-- Rules that hold for every code fix — one-pass convergence, Fix All, no action that changes nothing — are code knowledge that no spec owns yet. They live in `failure-classes.md` until an analyzer-wide code-fix spec takes them over; they do not belong under `shared/`, which is reserved for policies the analyzer and the formatter must agree on.
+- Rules that hold for every code fix — one-pass convergence, Fix All, no action that changes nothing — are code knowledge that no spec owns yet. They live in `failure-classes.md` until a shared code-fix spec under `shared/` takes them over; `shared/` holds every behavior more than one spec relies on, not only the policies the analyzer and the formatter must agree on.
 - Source carries no `TODO`. Unfinished work becomes an approved follow-up issue linked from the PR, never from the code.
 - Each role file has a budget of about 150 lines. Content beyond that belongs in specs or the catalog.
 - A new rule is added only together with a decisions entry naming the failure it prevents.
