@@ -397,5 +397,5 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Copilot plans
+# Local plans and issue drafts
 /plans

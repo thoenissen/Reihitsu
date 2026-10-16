@@ -5,8 +5,8 @@
     Paths are resolved against the caller's working directory, not the
     repository root, so a relative path means what it looks like it means.
 
-    Run this over every changed C# path before running tests, as AGENTS.md and
-    CLAUDE.md require.
+    Run this over every changed C# path before running tests, as AGENTS.md
+    requires.
 .PARAMETER Paths
     Files or directories to format.
 .PARAMETER NoInstall

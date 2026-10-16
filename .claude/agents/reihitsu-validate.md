@@ -1,6 +1,6 @@
 ---
 name: reihitsu-validate
-description: Full validation runner for the Reihitsu workflows. `gh-implement` and `gh-apply-review` spawn it once, on the final tree, to run `scripts/build.sh` and `scripts/test.sh --no-build` and report pass/fail plus the failing assertions. It fixes nothing and decides nothing. Do not delegate diagnosis, repairs, or focused test runs during implementation to it.
+description: Full validation runner for the Reihitsu workflows. `gh-implement` spawns it once, on the final tree, to run `scripts/build.sh` and `scripts/test.sh --no-build` and report pass/fail plus the failing assertions. It fixes nothing and decides nothing. Do not delegate diagnosis, repairs, or focused test runs during implementation to it.
 model: haiku
 effort: low
 disallowedTools: Edit, Write, NotebookEdit

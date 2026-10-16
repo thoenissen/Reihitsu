@@ -2,7 +2,7 @@
 
 Derive the **Behavior Contract** for **$ARGUMENTS** before any code is written. This is a read-only analysis: it inspects, it reports, it changes nothing.
 
-`$ARGUMENTS` accepts an issue number, an issue URL, a PR number or PR URL when the behavior question comes out of review work, or nothing at all — in which case the target is inferred from the current branch (`claude/issue-<N>-<slug>`) or from the issue linked by the current PR's `Closes #<N>`.
+`$ARGUMENTS` accepts an issue number, an issue URL, a PR number or PR URL when the behavior question comes out of an open pull request, or nothing at all — in which case the target is inferred from the current branch (`claude/issue-<N>-<slug>`) or from the issue linked by the current PR's `Closes #<N>`.
 
 Examples:
 

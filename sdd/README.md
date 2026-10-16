@@ -81,6 +81,15 @@ Start from [`templates/change.md`](templates/change.md).
 - No task lists and no implementation plan — they are noise once the change is merged.
 - Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc.
 
+## Open questions
+
+A spec describes current behavior. When the real output looks wrong while a spec is written or extended, do not write that output into a requirement, and do not change the behavior in the same PR. File it as an open question:
+
+- Collect open questions in [#912](https://github.com/thoenissen/Reihitsu/issues/912). Each spec with open questions gets one sub-issue of it, titled `SDD open questions: <spec path>`. Add later questions to the existing sub-issue for that spec; open one only when none exists.
+- Each question stands on its own: input, real output, why it looks wrong, and the requirement IDs it touches.
+- The maintainer decides each question: a bug fix brings the code in line with the spec, a clarification adds the current behavior as a requirement, and a different intended behavior needs a change doc first (see [When a change doc is required](#when-a-change-doc-is-required)).
+- A question is never recorded only in a PR description, which nobody reads after the merge. The PR may link the sub-issue.
+
 ## Temporary working docs
 
 - Plans, task lists, handovers, and working notes for a run live under `work/<slug>/` on the PR branch.

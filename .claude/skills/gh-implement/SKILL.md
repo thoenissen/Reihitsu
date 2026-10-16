@@ -14,7 +14,7 @@ You own the environment, the issue lookup, the branch, the Behavior Contract gat
 
 Follow this sequence. The gates exist because rework in this repository is caused by starting to code against an unstated contract and by discovering problems one preflight round at a time — both are far more expensive than the analysis that prevents them.
 
-1. Read the repository instructions (`CLAUDE.md`) and the GitHub issue.
+1. Read the repository instructions (`CLAUDE.md`, which imports `AGENTS.md`) and the GitHub issue.
 2. Check issue ownership and open draft PRs.
 3. Claim the issue through the existing ownership workflow when it is unclaimed, then prepare the toolchain.
 4. Gather the neutral **evidence bundle** once; every isolated agent in this run consumes that same bundle.
@@ -476,7 +476,7 @@ Never silently broaden the implemented behavior beyond the accepted contract.
 
 ## Freeze the scope ledger
 
-At contract acceptance — before the first test or production edit — record the **scope ledger**. It is what makes a later "should this still be in this PR?" decidable instead of a matter of taste, and it is the same discipline `gh-apply-review` already applies to review findings:
+At contract acceptance — before the first test or production edit — record the **scope ledger**. It is what makes a later "should this still be in this PR?" decidable instead of a matter of taste, and it is applied again to every preflight finding:
 
 - the accepted defect mechanism or requirement boundary, phrased so membership is decidable;
 - the behavior rows of the accepted contract;
@@ -501,11 +501,11 @@ A **scope checkpoint** is mandatory when a change or repair:
 
 At that checkpoint, stop and present three explicit choices (`AskUserQuestion`): narrow or revert the change, approve an expanded contract and scope, or create and link a follow-up issue. Do not pick one silently — an expanding repair is exactly how a bounded fix turns into an unreviewed refactor.
 
-For follow-up work, use the same mechanism as `gh-apply-review`'s follow-up preservation and publication steps: stable `F<n>` IDs, an English copy-ready draft written from the matching template in `.claude/commands/draft-issue.md`, the complete draft in the final chat response, and the same text cached under the ignored `plans/issues/pr-<PR>/`. Create the GitHub issue only after the user explicitly approves that draft ID and content, and never invoke `scripts/upload-issues.ps1`.
+For follow-up work, first search open and closed issues through the GitHub MCP server and reuse an exact existing issue instead of drafting a duplicate. Otherwise use stable `F<n>` IDs, an English copy-ready draft written from the matching template in `.claude/commands/draft-issue.md`, the complete draft in the final chat response, and the same text cached under the ignored `plans/issues/pr-<PR>/`. Create the GitHub issue only after the user explicitly approves that draft ID and content, and never invoke `scripts/upload-issues.ps1`.
 
 ## Convert the contract into a regression matrix
 
-Before production code changes, turn the accepted contract — or the routine run's contract note — into the complete test plan. A single narrow test is not acceptable when the contract identifies a broader defect class — that is precisely the gap that produces another review round.
+Before production code changes, turn the accepted contract — or the routine run's contract note — into the complete test plan. A single narrow test is not acceptable when the contract identifies a broader defect class — that is precisely the gap that produces another repair round.
 
 The matrix must cover, for the surfaces the contract names:
 
@@ -673,7 +673,7 @@ If `origin/main` moves again **after** a passing preflight: do not enter an unli
 Add two things to the bundle before the spawn, both derived once by you rather than three times by the agents:
 
 - the `git ls-remote origin refs/heads/main` result from the spawning step and the `scripts/build.sh` result on this head;
-- a **checklist-applicability list**: for each of `gh-review`'s 19 items, `applies` or `N/A` with a one-clause reason from the diff's shape. Six or seven are typically `N/A` — security, error handling, performance, parts of SOLID, coupling — and the reviewer confirms your list rather than rediscovering it. It may overturn any row, and an `N/A` the diff can actually reach comes back as a finding, so state the reason, not just the verdict.
+- a **checklist-applicability list**: for each of the 19 items in `.claude/skills/gh-preflight/review-checklist.md`, `applies` or `N/A` with a one-clause reason from the diff's shape. Six or seven are typically `N/A` — security, error handling, performance, parts of SOLID, coupling — and the reviewer confirms your list rather than rediscovering it. It may overturn any row, and an `N/A` the diff can actually reach comes back as a finding, so state the reason, not just the verdict.
 
 **Hand over conclusions to falsify, not homework to redo.** A spawn prompt that asks the reviewer to
 independently re-derive analysis the parent already performed pays for that analysis twice, and the second

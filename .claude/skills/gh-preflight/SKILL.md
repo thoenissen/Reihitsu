@@ -1,15 +1,15 @@
 ---
 name: gh-preflight
-description: Run a read-only, local preflight review of a Reihitsu pull request before external review or re-review in a Linux Claude Code Cloud Agent. Use for `/gh-preflight`, "preflight this PR", "review before review", or as the risk-triggered final quality gate inside `gh-implement` and `gh-apply-review` — invoked once their implementation, admission artifact, and `origin/main` synchronization are done, and before their single full validation and CI-trigger commit. Owns the trigger list that decides when an audit is required at all, the four gate results, the repair-delta retry contract, and the evidence-bundle and restart policy for isolated gate agents. Apply the complete repository `gh-review` checklist, adversarial corpus, test expectations, counterpart tracing, defect-class closure, and an explicit three-axis audit of guard scope, policy ownership, and assertion adequacy without posting through GitHub MCP or changing code. Report every confirmed finding in one pass, because the parent gets one consolidated repair cycle and at most one retry attempt.
+description: Run a read-only, local preflight review of a Reihitsu pull request before it is published, in a Linux Claude Code Cloud Agent. Use for `/gh-preflight`, "preflight this PR", "review before review", or as the risk-triggered final quality gate inside `gh-implement` — invoked once its implementation, admission artifact, and `origin/main` synchronization are done, and before its single full validation and CI-trigger commit. Owns the trigger list that decides when an audit is required at all, the four gate results, the repair-delta retry contract, and the evidence-bundle and restart policy for isolated gate agents. Apply the complete review checklist in `review-checklist.md`, adversarial corpus, test expectations, counterpart tracing, defect-class closure, and an explicit three-axis audit of guard scope, policy ownership, and assertion adequacy without posting through GitHub MCP or changing code. Report every confirmed finding in one pass, because the parent gets one consolidated repair cycle and at most one retry attempt.
 ---
 
 # Reihitsu GitHub PR Preflight
 
-Audit the current PR as an independent reviewer before the author declares it ready. Find the issues that would otherwise create another `gh-review` / `gh-apply-review` round.
+Audit the current PR as an independent reviewer before the author declares it ready. Find the issues that would otherwise surface only after the PR is published.
 
 Preflight is the **final quality gate**, not a discovery or debugging loop. The parent workflow is expected to arrive here with its Behavior Contract satisfied, its complete admission artifact recorded, and current `origin/main` already merged, so this audit confirms a finished change instead of driving it. That is also why the parent may spend at most two official attempts on it: one, plus one retry after a single consolidated repair cycle.
 
-It is also the most expensive step in the workflow, which is why "the diff contains a compiled file" is not the trigger. An audit is spent on risk — a moved predicate, a changed rewrite, a new diagnostic — and never on a guess. This skill owns that trigger list, the gate results, the retry contract, and the evidence-bundle and restart policy; `gh-implement` and `gh-apply-review` reference them rather than restating them, so the policy has exactly one owner.
+It is also the most expensive step in the workflow, which is why "the diff contains a compiled file" is not the trigger. An audit is spent on risk — a moved predicate, a changed rewrite, a new diagnostic — and never on a guess. This skill owns that trigger list, the gate results, the retry contract, and the evidence-bundle and restart policy; `gh-implement` references them rather than restating them, so the policy has exactly one owner.
 
 Preflight is read-only:
 
@@ -21,8 +21,8 @@ Preflight is read-only:
 ## Position in the workflow
 
 ```text
-gh-implement / gh-apply-review
-  -> Behavior Contract (gh-implement) or complete review worklist (gh-apply-review)
+gh-implement
+  -> Behavior Contract
   -> implementation + focused tests
   -> local self-review -> admission artifact complete (parent, not official)
   -> merge current origin/main, format, focused tests, push
@@ -75,7 +75,7 @@ Skipping preflight never implies skipping the full validation. A diff that conta
 
 Once the trigger list says an audit is required, a parent should invoke it only when all of the following hold. Preflighting earlier burns one of the two attempts on a state that was going to change anyway:
 
-- the intended implementation or review repair cycle is complete and committed;
+- the intended implementation or repair cycle is complete and committed;
 - the parent's local self-review has run, its findings are fixed, and its admission artifact is complete — a missing row there is a cheap local gap that must not become an expensive audit finding;
 - current `origin/main` is merged into the branch and any conflict resolution is formatted and focused-tested;
 - the head is pushed and the local checkout matches it;
@@ -92,7 +92,7 @@ Both results belong in the bundle as facts.
 
 ## Reviewer isolation and the evidence bundle
 
-When `gh-implement` or `gh-apply-review` invokes preflight and a subagent facility is available, run the audit in exactly one fresh subagent of type `reihitsu-preflight`, with no author transcript. Its model and effort come from `.claude/agents/reihitsu-preflight.md` — the single owner of that decision — so spawn it by `subagent_type` and pass no model argument. The parent remains the only writer and consumes the subagent's gate report.
+When `gh-implement` invokes preflight and a subagent facility is available, run the audit in exactly one fresh subagent of type `reihitsu-preflight`, with no author transcript. Its model and effort come from `.claude/agents/reihitsu-preflight.md` — the single owner of that decision — so spawn it by `subagent_type` and pass no model argument. The parent remains the only writer and consumes the subagent's gate report.
 
 The subagent receives the repository root, this skill path, and one **immutable evidence bundle** the parent gathered once:
 
@@ -221,7 +221,7 @@ What the gate certifies is the **tree**, not the commit id. The parent may add a
 
 ## Apply the review methodology
 
-Read `.claude/skills/gh-review/SKILL.md` completely. Apply its complete methodology to the current PR:
+Read `review-checklist.md` next to this skill completely. Apply its complete methodology to the current PR:
 
 - all 19 checklist items;
 - the relevant adversarial input corpus;
@@ -230,7 +230,7 @@ Read `.claude/skills/gh-review/SKILL.md` completely. Apply its complete methodol
 - counterpart tracing beyond the diff;
 - static-first verification.
 
-Override the review skill's GitHub-posting, existing-comment deduplication, and output rules with this skill. Review the current code independently; do not fetch prior review comments merely to learn what another reviewer found.
+This skill owns the output format. Review the current code independently; do not fetch prior review comments merely to learn what another reviewer found.
 
 **Corpus breadth stays flat, deliberately.** The three-axis tables scale with the change — one row per changed
 decision — and it is tempting to scale the adversarial corpus and counterpart tracing the same way, so a
@@ -282,7 +282,7 @@ Do not collapse these axes into the ordinary checklist. Their value is that the 
 
 ## Prove defect-class closure
 
-For every bug fix or review fix:
+For every bug fix or repair:
 
 1. State the general defect class, not only the reported counterexample.
 2. Search for sibling syntax shapes and private copies of the same policy.
@@ -318,12 +318,12 @@ Both passing results also require a complete three-axis audit. Missing rows, unn
 
 The `Required change` column is a **suggestion, not a specification**. It is written from the reviewer's read of one finding, and implementing it literally is how an over-broad repair creates the next round's finding. The parent owns the repair and must re-derive its scope.
 
-When invoked by `gh-implement` or `gh-apply-review`, the parent owns the budget:
+When invoked by `gh-implement`, the parent owns the budget:
 
 1. It merges all confirmed findings into one consolidated worklist and fixes every in-scope item — including the complete defect class — in a single repair cycle, without invoking preflight in between.
 2. It re-runs the contract's guard-delta and predicate-boundary tables **against its own repair**, not only against the original change, and adds a test on each side of any boundary the repair moved.
 3. It formats changed paths, runs focused tests, redoes its local self-review and admission artifact, commits with `[skip ci]`, pushes, and updates the PR body when needed.
-4. It applies its own scope policy: both parents classify against a frozen scope ledger, ask before expanding the accepted contract, and preserve confirmed out-of-scope work as an unapproved follow-up draft.
+4. It applies its own scope policy: it classifies against the frozen scope ledger, ask before expanding the accepted contract, and preserve confirmed out-of-scope work as an unapproved follow-up draft.
 5. It spends the **preflight retry** — one fresh, independent, read-only run against the exact new head, with the repair-delta inputs above. `BLOCKED — state mismatch` does not consume an attempt; neither does an agent start that returned no verdict. Reconcile and rerun.
 6. On `PASS — non-blocking cleanup` it applies the listed text fixes and proves them non-behavioral with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree`, then continues to full validation without another attempt. `--strict-docs` is required here rather than optional: this result excludes public API documentation, and a plain exit code 0 does not establish that, because a documentation edit is exactly what a comment-only change is otherwise allowed to be. A proven text-only cleanup does not invalidate the audit; anything the proof rejects does.
 7. It proceeds to full validation only after a passing result, and it stops and reports if the retry blocks. A third official attempt requires explicit user direction.
@@ -345,7 +345,7 @@ PASS
 - Reviewed changed files, linked issue requirements, and named counterpart files.
 
 ## Checklist
-<all 19 gh-review checklist items>
+<all 19 review-checklist items>
 
 ## Three-axis audit
 
@@ -444,7 +444,7 @@ Rules for it:
 - Never mark either passing result without explicit guard-scope, policy-ownership, and assertion-adequacy rows for every applicable changed decision and test.
 - Never accept a line-based `grep` as the proof for a comment-only carve-out — the syntax-aware proof is the evidence.
 - Never treat a rename as behavior-preserving without a narrower mechanical proof.
-- Never turn a retry into a silent full re-review after the repair grew: say scope expanded and audit it as a new scope decision.
+- Never turn a retry into a silent full re-audit after the repair grew: say scope expanded and audit it as a new scope decision.
 - Never review only the diff when a counterpart or pipeline neighbor is relevant.
 - Never accept a test-only or paper fix when the defect class remains open.
 - Never run the full validation suite from preflight.

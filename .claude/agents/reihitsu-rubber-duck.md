@@ -1,6 +1,6 @@
 ---
 name: reihitsu-rubber-duck
-description: Behavior Contract gate for a Reihitsu issue or pull request. `gh-implement` spawns exactly one of these before its first edit on a behavioral run, and `gh-apply-review` may spawn one when review feedback introduces a materially ambiguous behavior change. It follows `.claude/skills/gh-rubber-duck/SKILL.md` and returns the contract schema. Do not delegate implementation, commits, or GitHub writes to it.
+description: Behavior Contract gate for a Reihitsu issue or pull request. `gh-implement` spawns exactly one of these before its first edit on a behavioral run. It follows `.claude/skills/gh-rubber-duck/SKILL.md` and returns the contract schema. Do not delegate implementation, commits, or GitHub writes to it.
 model: opus
 effort: xhigh
 color: purple

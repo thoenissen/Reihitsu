@@ -7,7 +7,7 @@ description: Read-only Behavior Contract analysis ("rubber duck") for a Reihitsu
 
 Produce a **Behavior Contract**: an explicit, example-backed statement of what the change must do, before a single test or production line is written.
 
-The expensive failure mode in this repository is not a wrong fix — it is a *correct fix for the wrong contract*. A formatter issue that reads unambiguously at first glance usually hides a decision (which token is the anchor? what happens when the key spans lines? does the analyzer have to agree?), and that decision only surfaces after implementation, preflight, and review have already run. Surfacing it here costs one read-only pass; surfacing it later costs a full implement/preflight/review cycle.
+The expensive failure mode in this repository is not a wrong fix — it is a *correct fix for the wrong contract*. A formatter issue that reads unambiguously at first glance usually hides a decision (which token is the anchor? what happens when the key spans lines? does the analyzer have to agree?), and that decision only surfaces after implementation and preflight have already run. Surfacing it here costs one read-only pass; surfacing it later costs a full implement/preflight/repair cycle.
 
 Your job is to **argue with the issue**, not to summarize it. A contract that only restates the issue text has found nothing.
 
@@ -35,7 +35,7 @@ Because the analysis mutates no repository or GitHub state, it is safe to run at
 Accept, in this order:
 
 1. An explicit issue number, `#number`, or issue URL from the prompt or `$ARGUMENTS`.
-2. An explicit PR number or PR URL (`PR 586`, a `/pull/586` URL) when the behavior question comes from review work.
+2. An explicit PR number or PR URL (`PR 586`, a `/pull/586` URL) when the behavior question comes from an open pull request.
 3. An unambiguous issue inferred from context: the issue linked by `Closes/Fixes/Resolves #N` in the current PR body, or the issue number embedded in the current branch name (`claude/issue-<N>-<slug>`).
 
 If the target is still ambiguous — no number, several candidates, or a branch that does not map to exactly one issue — ask **one** concise question naming the candidates (`AskUserQuestion` is the right tool) and stop. Do not guess, and do not mutate anything while asking.
@@ -305,7 +305,7 @@ The analysis is cheap only if it stays cheap:
 ## Hard rules
 
 - Never edit, commit, push, or open/update a PR, and never post to GitHub in any form.
-- Never claim an issue or resolve a review thread — ownership belongs to `gh-implement`, resolution to `gh-rereview`.
+- Never claim an issue or resolve a review thread — ownership belongs to `gh-implement`.
 - Never start implementation, and never call an implementation skill or command.
 - Never run the full validation suite; focused, filtered runs only, and only to settle a factual question or to execute the mandatory bug-report sweep. Prepare the toolchain with `scripts/prepare.sh` only when the sweep needs it; if it cannot install, report `BLOCKED` instead of an unproven contract.
 - Never report `READY` while a material interpretation question is open.

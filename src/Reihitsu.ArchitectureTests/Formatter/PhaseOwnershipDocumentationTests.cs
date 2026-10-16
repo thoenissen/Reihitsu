@@ -12,7 +12,7 @@ using Reihitsu.Formatter.Pipeline;
 namespace Reihitsu.ArchitectureTests.Formatter;
 
 /// <summary>
-/// Guards the formatter phase ownership map shared by repository instruction files
+/// Guards the formatter phase ownership map in the repository instructions
 /// </summary>
 [TestClass]
 public sealed class PhaseOwnershipDocumentationTests
@@ -20,12 +20,12 @@ public sealed class PhaseOwnershipDocumentationTests
     #region Constants
 
     /// <summary>
-    /// Marker before the mirrored ownership-map block
+    /// Marker before the ownership-map block
     /// </summary>
     private const string StartMarker = "<!-- formatter-phase-ownership:start -->";
 
     /// <summary>
-    /// Marker after the mirrored ownership-map block
+    /// Marker after the ownership-map block
     /// </summary>
     private const string EndMarker = "<!-- formatter-phase-ownership:end -->";
 
@@ -34,30 +34,19 @@ public sealed class PhaseOwnershipDocumentationTests
     #region Methods
 
     /// <summary>
-    /// Verifies that every instruction file carries the same map and lists every runtime phase exactly once in order
+    /// Verifies that the map in <c>AGENTS.md</c> lists every runtime phase exactly once in order
     /// </summary>
     [TestMethod]
-    public void OwnershipMapsAreIdenticalAndMatchRuntimePhaseOrder()
+    public void OwnershipMapMatchesRuntimePhaseOrder()
     {
         // Arrange
         var repositoryRoot = FindRepositoryRoot();
-        var instructionPaths = new[]
-                               {
-                                   Path.Combine(repositoryRoot, "CLAUDE.md"),
-                                   Path.Combine(repositoryRoot, "AGENTS.md"),
-                                   Path.Combine(repositoryRoot, ".github", "copilot-instructions.md")
-                               };
-        var expectedBlock = ExtractOwnershipMap(instructionPaths[0]);
+        var expectedBlock = ExtractOwnershipMap(Path.Combine(repositoryRoot, "AGENTS.md"));
+
+        // Act
         var phaseNames = GetRuntimePhaseNames();
 
-        // Act and assert
-        foreach (var instructionPath in instructionPaths)
-        {
-            Assert.AreEqual(expectedBlock,
-                            ExtractOwnershipMap(instructionPath),
-                            $"Ownership map differs in {instructionPath}.");
-        }
-
+        // Assert
         Assert.HasCount(12, phaseNames);
 
         var previousPosition = -1;

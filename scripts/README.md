@@ -2,9 +2,9 @@
 
 Cross-platform entry points for building, testing, formatting, and proving changes. Every script exists as a `.sh` and a `.ps1` variant with the same behavior, so the repository instructions, the `gh-*` workflow skills, and a developer shell all drive the same commands.
 
-The Claude workflows run on Linux and use the `.sh` variants; the Codex workflows run on Windows and use the `.ps1` variants. Both are maintained together — a change to one belongs in the other.
+Use the `.sh` variants on Linux and macOS and the `.ps1` variants on Windows. Both are maintained together — a change to one belongs in the other.
 
-Each script resolves the .NET SDK itself through `lib/dotnet-env.sh` / `lib/dotnet-env.ps1`: it probes `dotnet --list-sdks` first and installs the required SDK into `$HOME/.dotnet` **only** when it is missing. On an image that already ships the SDK, that step is a no-op and nothing about the environment changes. Pass `--no-install` / `-NoInstall` to turn a missing SDK into a failure instead of an installation — the Codex environments require that, because they must not change the environment at all.
+Each script resolves the .NET SDK itself through `lib/dotnet-env.sh` / `lib/dotnet-env.ps1`: it probes `dotnet --list-sdks` first and installs the required SDK into `$HOME/.dotnet` **only** when it is missing. On an image that already ships the SDK, that step is a no-op and nothing about the environment changes. Pass `--no-install` / `-NoInstall` to turn a missing SDK into a failure instead of an installation — use it in any environment that must not change, such as a sandbox with a preinstalled SDK.
 
 Paths are resolved against **your** working directory, not the repository root: the scripts address the solution, the test projects, and the CLI by absolute path instead of changing directory, so `scripts/format.sh Foo.cs` from a subdirectory means the `Foo.cs` next to you.
 
@@ -71,7 +71,7 @@ Each arm prints a header, an optional line-ending note, an optional document-ren
 |---|---|
 | `fixed (N action(s), M iteration(s))` | The fix was applied until the diagnostic stopped being reported. `N` above one means the provider offered several actions and the first was taken |
 | `no-diagnostic` | The analyzer never reported — the fixture does not reproduce |
-| `no-fix-offered` | Reported, but the provider registered no action. A **supported end state**, per the code-fix coverage policy in `CLAUDE.md`, not a failure |
+| `no-fix-offered` | Reported, but the provider registered no action. A **supported end state**, per the code-fix coverage policy in `AGENTS.md`, not a failure |
 | `not-converged (M iteration(s))` | Still reported when the iteration cap was reached |
 | `no-progress (M iteration(s))` | An action was applied but changed nothing, so the diagnostic can never clear. Reported apart from the cap because an ineffective fix is a defect in the rule and a cap is not |
 | `analyzer-failure` | An analyzer threw. Roslyn reports this as `AD0001` rather than as a failure, so the runner surfaces it explicitly — filtering it away would make a crashed analyzer read as "does not reproduce" |
@@ -98,7 +98,7 @@ It is syntax-aware rather than line-based, because a `grep` over the diff does n
 
 Generated XML-documentation impact is **reported separately** instead of folded into the verdict, because a documentation edit is exactly what a comment-only change is allowed to be. When the caller must also exclude public API documentation — `gh-preflight`'s `PASS — non-blocking cleanup` does — pass `--strict-docs` / `-StrictDocs`; a plain exit code `0` does not establish it. Interface members and enum members count as public even though they carry no accessibility modifier.
 
-A file that is neither C# nor a known non-compiled text path (Markdown, `.claude/**`, `.codex/**`, `documentation/**`, issue and PR templates) is reported as carrying behavior. `scripts/**` and `.github/workflows/**` are behavioral regardless of extension: nothing there compiles, but everything there executes. Added, deleted, and renamed files are never text-only.
+A file that is neither C# nor a known non-compiled text path (Markdown, `.claude/**`, `documentation/**`, issue and PR templates) is reported as carrying behavior. `scripts/**` and `.github/workflows/**` are behavioral regardless of extension: nothing there compiles, but everything there executes. Added, deleted, and renamed files are never text-only.
 
 Two things about `--head worktree`. Both sides are compared with normalized line endings, because git rewrites line endings on checkout under `core.autocrlf` and a raw comparison would otherwise report every multi-line literal and disabled-text region as changed on Windows; a byte order mark is stripped from both sides for the same reason. And untracked files are ignored with a note rather than counted as additions — they are not part of the tree that will merge, so a stray scratch file must not decide the verdict.
 
