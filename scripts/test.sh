@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Runs the Reihitsu test projects in Release configuration.
+# Runs the Reihitsu test projects, in Release configuration unless told otherwise.
 #
 #   scripts/test.sh [options] [<extra dotnet test arguments>...]
 #
 #   --project <analyzer|formatter|core|cli|architecture|tooling|playground|all>   default: all
 #   --filter <expression>                                              focused run
-#   --no-build                                                         reuse the previous Release build
+#   --configuration <Release|Debug>                                    default: Release
+#   --no-build                                                         reuse the previous build of that configuration
 #   --no-install                                                       fail instead of installing the SDK
 #
 # Test projects are addressed by absolute path, so the caller's working
@@ -23,6 +24,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 project="all"
 filter=""
+configuration="Release"
 install_arguments=()
 test_arguments=()
 
@@ -44,6 +46,15 @@ while [[ "$#" -gt 0 ]]; do
             fi
 
             filter="$2"
+            shift 2
+            ;;
+        --configuration)
+            if [[ "$#" -lt 2 || ( "$2" != "Release" && "$2" != "Debug" ) ]]; then
+                echo "test.sh: --configuration expects Release or Debug." >&2
+                exit 2
+            fi
+
+            configuration="$2"
             shift 2
             ;;
         --no-install)
@@ -90,8 +101,8 @@ for test_project in "${projects[@]}"; do
     echo "==> $test_project"
 
     if [[ -n "$filter" ]]; then
-        dotnet test "$repository_root/$test_project" -c Release --verbosity minimal --filter "$filter" "${test_arguments[@]+"${test_arguments[@]}"}"
+        dotnet test "$repository_root/$test_project" -c "$configuration" --verbosity minimal --filter "$filter" "${test_arguments[@]+"${test_arguments[@]}"}"
     else
-        dotnet test "$repository_root/$test_project" -c Release --verbosity minimal "${test_arguments[@]+"${test_arguments[@]}"}"
+        dotnet test "$repository_root/$test_project" -c "$configuration" --verbosity minimal "${test_arguments[@]+"${test_arguments[@]}"}"
     fi
 done
