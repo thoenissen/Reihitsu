@@ -1,25 +1,21 @@
 # Repository scripts
 
-Cross-platform entry points for building, testing, formatting, and proving changes. Every script exists as a `.sh` and a `.ps1` variant with the same behavior, so the repository instructions, the `gh-*` workflow skills, and a developer shell all drive the same commands.
+Bash entry points for building, testing, formatting, and proving changes, on Linux and macOS, so the repository instructions, the squad roles, and a developer shell all drive the same commands. The repository ships no PowerShell variants.
 
-Use the `.sh` variants on Linux and macOS and the `.ps1` variants on Windows. Both are maintained together — a change to one belongs in the other.
-
-Each script resolves the .NET SDK itself through `lib/dotnet-env.sh` / `lib/dotnet-env.ps1`: it probes `dotnet --list-sdks` first and installs the required SDK into `$HOME/.dotnet` **only** when it is missing. On an image that already ships the SDK, that step is a no-op and nothing about the environment changes. Pass `--no-install` / `-NoInstall` to turn a missing SDK into a failure instead of an installation — use it in any environment that must not change, such as a sandbox with a preinstalled SDK.
+Each script resolves the .NET SDK itself through `lib/dotnet-env.sh`: it probes `dotnet --list-sdks` first and installs the required SDK into `$HOME/.dotnet` **only** when it is missing. On an image that already ships the SDK, that step is a no-op and nothing about the environment changes. Pass `--no-install` to turn a missing SDK into a failure instead of an installation — use it in any environment that must not change, such as a sandbox with a preinstalled SDK.
 
 Paths are resolved against **your** working directory, not the repository root: the scripts address the solution, the test projects, and the CLI by absolute path instead of changing directory, so `scripts/format.sh Foo.cs` from a subdirectory means the `Foo.cs` next to you.
 
 | Script | Purpose |
 |---|---|
-| `prepare.sh` / `prepare.ps1` | Verify the toolchain, installing the SDK only if needed |
-| `build.sh` / `build.ps1` | `dotnet build Reihitsu.sln -c Release` |
-| `test.sh` / `test.ps1` | Run one or all test projects, with an optional focused filter |
-| `format.sh` / `format.ps1` | Format the given paths through `Reihitsu.Cli` |
-| `trace.sh` / `trace.ps1` | Trace source changes at each top-level formatter phase without modifying the input |
-| `apply-fix.sh` / `apply-fix.ps1` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
-| `verify-text-only.sh` / `verify-text-only.ps1` | Prove that a change carries no compiled behavior |
-| `clean-bin-obj.ps1` | Remove all `bin` and `obj` directories |
-| `install-cli.ps1` | Install or update the locally built `Reihitsu.Cli` global tool |
-| `upload-issues.ps1` | User-owned issue upload tool — the `gh-*` workflows never invoke it |
+| `prepare.sh` | Verify the toolchain, installing the SDK only if needed |
+| `build.sh` | `dotnet build Reihitsu.sln`, in Release unless `--configuration Debug` |
+| `test.sh` | Run one or all test projects, with an optional focused filter and configuration |
+| `format.sh` | Format the given paths through `Reihitsu.Cli` |
+| `trace.sh` | Trace source changes at each top-level formatter phase without modifying the input |
+| `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
+| `verify-text-only.sh` | Prove that a change carries no compiled behavior |
+| `lane-check.sh` | Confirm the squad lane a run claimed against the paths its diff changes |
 
 ## Examples
 
@@ -31,21 +27,12 @@ scripts/format.sh src/Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/apply-fix.sh RH7101 /tmp/sweep
 scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
-```
-
-```powershell
-.\scripts\prepare.ps1
-.\scripts\build.ps1
-.\scripts\test.ps1 -Project analyzer -Filter "FullyQualifiedName~RH3204"
-.\scripts\format.ps1 src\Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs
-.\scripts\trace.ps1 samples\Example.cs -Passes 3 -NoInstall
-.\scripts\apply-fix.ps1 RH7101 C:\Temp\sweep
-.\scripts\verify-text-only.ps1 -Base a1b2c3d -Head worktree
+scripts/lane-check.sh bug-fix --head worktree
 ```
 
 ## Formatter pipeline trace
 
-`trace.sh <file> [--passes N] [--no-install]` and `trace.ps1 <file> [-Passes N] [-NoInstall]` run one C# file through the twelve top-level `IFormattingPhase` boundaries. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
+`trace.sh <file> [--passes N] [--no-install]` runs one C# file through the twelve top-level `IFormattingPhase` boundaries. Paths are resolved relative to the caller, including when the wrapper is invoked outside the repository root. The input file is only read: each pass operates in memory, and the complete result is reparsed before the next pass to match repeated CLI invocations.
 
 The trace defaults to at most three passes and requires a positive pass count. It prints a pass/phase header only when that phase changes serialized source. Line-content changes get a unified diff; when a change only normalizes line-ending separators, the shared diff generator has no line hunk, so the trace prints before/after CRLF, LF, and CR counts instead. It preserves the input's detected LF or CRLF convention and stops early after the first complete pass that makes no change. Syntax-invalid and generated inputs are reported as legitimate skips.
 
@@ -55,13 +42,13 @@ The implementation lives in `trace/trace.cs` as a [.NET 10 file-based app](https
 
 ## The code-fix fixture runner
 
-`apply-fix.sh <diagnostic-id> <fixture-directory> [--max-iterations N]` and `apply-fix.ps1 <DiagnosticId> <FixtureDirectory> [-MaxIterations N]` exercise **the code-fix surface** — analyzer, then code fix provider, then re-analysis — over every `*.cs` file below a directory. It exists so a `gh-rubber-duck` defect-class sweep is "write N fixture files and run one command" rather than "build a disposable harness, then write N fixture files"; `format.sh` already reaches the full pipeline, and this closes the surface that had no entry point.
+`apply-fix.sh <diagnostic-id> <fixture-directory> [--max-iterations N]` exercises **the code-fix surface** — analyzer, then code fix provider, then re-analysis — over every `*.cs` file below a directory. It exists so a defect-class sweep by the skeptic or the test implementer is "write N fixture files and run one command" rather than "build a disposable harness, then write N fixture files"; `format.sh` already reaches the full pipeline, and this closes the surface that had no entry point.
 
 The target is named by **diagnostic ID**, because `FixableDiagnosticIds` and `SupportedDiagnostics` are the only public, stable handles on these types: analyzer and code-fix type names carry no compatibility contract, and the formatter's structural transforms are `internal` and stay that way. An ID no analyzer reports, an ID no provider fixes, or an ID claimed by more than one provider fails before any fixture runs, naming every candidate — the runner never silently picks one.
 
 Fixtures are only read, and paths resolve against the caller's working directory, so a read-only workflow keeps its fixture directory outside the repository and deletes it afterwards. The whole directory is one invocation: process startup is paid once, not once per candidate. Every fixture is run twice, normalized to LF and to CRLF, because the two differ in the trivia the code reads rather than only in the bytes.
 
-Everything after a literal `--` is forwarded to the runner as-is by both wrappers, so a fixture directory that is itself named like an option (`--no-install`, for example) still reaches the runner instead of being consumed as the wrapper's own flag.
+Everything after a literal `--` is forwarded to the runner as-is by the wrapper, so a fixture directory that is itself named like an option (`--no-install`, for example) still reaches the runner instead of being consumed as the wrapper's own flag.
 
 Each fixture is analyzed under its own on-disk relative path rather than a constant placeholder, so a rule that reads the document's file name (RH4001, for example) observes the fixture's real identity, and Roslyn's own generated-code heuristic — file name pattern and leading comment alike — is disabled so a fixture that happens to look generated is still analyzed like every other fixture. Each fixture is also the only document in its ad-hoc project, so a code fix that inspects sibling documents (RH4001's own rename-collision guard, for example) never observes another fixture in the sweep. A code fix that replaces the document's identity instead of only its text — RH4001's rename is the shipped example — is followed into the next iteration under its new name; the rename counts as progress on its own, so a rename-only fix still converges rather than being reported as `no-progress`. The arm header always names the fixture's on-disk path, never the renamed document, and an arm whose analyzed document was renamed prints one additional `Document renamed: <before> -> <after>` line.
 
@@ -87,7 +74,7 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 
 ## The text-only proof
 
-`verify-text-only` answers one question mechanically: **can this change affect compiled behavior?** The `gh-*` workflows use it to decide whether an expensive preflight audit is required and to prove that a comment-only cleanup after a passing audit did not invalidate it.
+`verify-text-only` answers one question mechanically: **can this change affect compiled behavior?** The squad uses it to admit a comment-only C# change to the docs lane (through `lane-check`) and to prove that a comment cleanup after a passing audit did not invalidate the audit.
 
 It is syntax-aware rather than line-based, because a `grep` over the diff does not recognize every block-comment form and cannot tell a comment apart from a directive or from comment-looking text inside a string literal. For every changed C# file it parses both versions with Roslyn and proves that
 
@@ -96,7 +83,7 @@ It is syntax-aware rather than line-based, because a `grep` over the diff does n
 - every changed syntax element belongs to an allowed comment, documentation, or layout trivia category;
 - both versions parse without errors, so a malformed comment cannot slip through.
 
-Generated XML-documentation impact is **reported separately** instead of folded into the verdict, because a documentation edit is exactly what a comment-only change is allowed to be. When the caller must also exclude public API documentation — `gh-preflight`'s `PASS — non-blocking cleanup` does — pass `--strict-docs` / `-StrictDocs`; a plain exit code `0` does not establish it. Interface members and enum members count as public even though they carry no accessibility modifier.
+Generated XML-documentation impact is **reported separately** instead of folded into the verdict, because a documentation edit is exactly what a comment-only change is allowed to be. When the caller must also exclude public API documentation — the cleanup after an auditor's `pass, text cleanup` does — pass `--strict-docs` / `-StrictDocs`; a plain exit code `0` does not establish it. Interface members and enum members count as public even though they carry no accessibility modifier.
 
 A file that is neither C# nor a known non-compiled text path (Markdown, `.claude/**`, `documentation/**`, issue and PR templates) is reported as carrying behavior. `scripts/**` and `.github/workflows/**` are behavioral regardless of extension: nothing there compiles, but everything there executes. Added, deleted, and renamed files are never text-only.
 
@@ -107,3 +94,24 @@ Exit codes: `0` proven text-only, `1` not proven, `2` tool or setup error. The s
 The proof itself lives in `proof/verify-text-only.cs` as a standalone [file-based app](https://learn.microsoft.com/dotnet/core/sdk/file-based-programs). It is deliberately outside `Reihitsu.sln`: it ships with no package, is not built by CI, and its local `Directory.Build.props` keeps the solution's versioning, ruleset, and self-hosting analyzer references out of it.
 
 One consequence is worth knowing: its leading `#:package` directive is not C# the Roslyn parser accepts, so `Reihitsu.Cli` reports the file as syntax-invalid and leaves it untouched, and neither self-hosting test sees it. Keep it to the repository's style by hand.
+
+## The lane check
+
+`lane-check.sh <lane> [--base <rev>] [--head <rev|worktree>] [--no-install]` confirms the lane a squad run claimed — `docs`, `tests`, `bug-fix`, `behavior-change`, or `tooling` — against the paths its diff changes. The diff decides, not the claim. The defaults are the merge base with `origin/main` and `HEAD`; `--head worktree` includes uncommitted changes to tracked files and ignores untracked ones, so stage a new file before checking it.
+
+It first runs the text-only proof over the same range and prints its line, because a C# file counts as text only when the proof covers the whole diff. Then every changed path (`git diff --name-status --no-renames`, so a rename counts as a deletion and an addition) is classified:
+
+| Category | Paths |
+|---|---|
+| Change doc | `sdd/changes/**` |
+| Text | the rest of `sdd/**`, `documentation/**`, issue and PR templates, `README.MD`, `LICENSE`, Markdown under `src/`, and C# under `src/` when the proof passed |
+| Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
+| Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
+| Production | every other file under `src/` |
+| Unknown | anything else |
+
+The narrowest lane that admits every category is the lane the diff needs: production with a change doc needs `behavior-change`, production without one `bug-fix`, tooling `tooling`, a change doc alone `behavior-change`, tests `tests`, and text alone `docs`. The claim passes when it is that lane or a wider one along docs → tests → bug fix → behavior change, or docs → tests → tooling → behavior change; a `behavior-change` claim additionally needs a change doc in the diff.
+
+Exit codes are `0` when the claim covers the diff, `1` when it does not (the verdict names the lane the diff needs), `2` for a tool or setup error, and `3` when no lane admits the diff — an unknown path, or production next to tooling without a change doc. The single `LANE CHECK: …` line is the quotable evidence the run report records.
+
+The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.

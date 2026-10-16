@@ -4,9 +4,9 @@ These are the repository instructions for every agent and every contributor. Age
 
 ## Build, test, and lint
 
-The repository scripts under `scripts/` are the canonical entry points — use them instead of hand-written `dotnet` invocations. Every script exists twice: `.sh` for Linux and macOS, `.ps1` for Windows. Both variants take the same options and are maintained together. See `scripts/README.md`.
+The repository scripts under `scripts/` are the canonical entry points — use them instead of hand-written `dotnet` invocations. They are Bash scripts for Linux and macOS; the repository ships no PowerShell variants. See `scripts/README.md`.
 
-Each script resolves the .NET SDK itself: it probes `dotnet --list-sdks` and installs .NET 10 into `$HOME/.dotnet` only when no `10.*` SDK is present. In an environment that must not change — a preinstalled SDK, a locked-down sandbox — pass `--no-install` / `-NoInstall`, so a missing SDK fails instead of being installed.
+Each script resolves the .NET SDK itself: it probes `dotnet --list-sdks` and installs .NET 10 into `$HOME/.dotnet` only when no `10.*` SDK is present. In an environment that must not change — a preinstalled SDK, a locked-down sandbox — pass `--no-install`, so a missing SDK fails instead of being installed.
 
 ```shell
 scripts/prepare.sh        # verify the toolchain, installing only if needed
@@ -22,8 +22,6 @@ scripts/test.sh --project formatter --filter "FullyQualifiedName~Reihitsu.Format
 scripts/test.sh --project core --filter "FullyQualifiedName~Reihitsu.Core.Test.CasingUtilitiesTests.ToCamelCaseTest"
 scripts/test.sh --project cli --filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
 ```
-
-On Windows the same calls read `.\scripts\test.ps1 -Project analyzer -Filter "..."`.
 
 `scripts/verify-text-only.sh` proves mechanically that a change carries no compiled behavior — a Roslyn comparison of the token stream, directive and disabled-text structure, literal contents, and changed trivia categories of every changed C# file. Use its verdict, not a line-based `grep`, to decide whether a change that touches a `.cs` file is text-only.
 
@@ -61,6 +59,10 @@ Issues here are filed under the maintainer's GitHub account, but many of them ar
 - Fix the defect that exists, not the one the issue asserts. Where the analysis and the report disagree, implement the analysis and state plainly in the pull request how the shipped change differs from what was requested.
 - Say so when a report turns out to be wrong, overstated, or already-correct behavior. Downgrading, narrowing, or closing it is a legitimate result of a run. A bug that does not reproduce keeps its passing test as a characterization test, the pull request links the issue with `Refs #<N>` rather than `Closes #<N>`, and the maintainer decides how to proceed.
 
+## The squad
+
+Agents implement issues as a squad: the maintainer talks only to a lead, and the lead delegates every stage to a role with a narrow job. [`squad/README.md`](squad/README.md) describes the roles, lanes, handovers, and escalations; [`squad/lead.md`](squad/lead.md) is the lead's playbook, and `squad/roles/` holds one file per role. `scripts/lane-check.sh <lane>` confirms the lane a run claimed against its diff.
+
 ## Spec Driven Development
 
 The intended behavior of every shipped surface is specified under `sdd/specs/`, and decisions that change it are recorded as change docs under `sdd/changes/`. [`sdd/README.md`](sdd/README.md) is the rulebook: layout, spec format, requirement IDs, when a change doc is required, temporary working docs under `sdd/work/`, and how an open question about intended behavior is filed. Read it before changing behavior a spec covers.
@@ -79,7 +81,7 @@ In short: a bug is a difference between the code and a spec. Behavior that looks
 <!-- formatter-phase-ownership:start -->
 ### Formatter phase ownership
 
-The trace tools show these top-level phase boundaries without modifying the input: `scripts/trace.sh <file> [--passes N] [--no-install]` or `.\scripts\trace.ps1 <file> [-Passes N] [-NoInstall]`. They default to three passes, print a unified diff for each phase that changes line content (or line-ending counts when only separators change), and stop early when a complete pass is stable.
+The trace tools show these top-level phase boundaries without modifying the input: `scripts/trace.sh <file> [--passes N] [--no-install]`. They default to three passes, print a unified diff for each phase that changes line content (or line-ending counts when only separators change), and stop early when a complete pass is stable.
 
 Formatter transformations are non-destructive: they may rewrite syntax and trivia into canonical form, but they must preserve user-authored directives, comments, disabled text, literals, and executable information. Region formatting may normalize names, matching comments, layout, indentation, and line endings, but it never deletes `#region` or `#endregion`; removing a misplaced region remains an explicit analyzer code-fix action.
 
@@ -111,6 +113,7 @@ Formatter transformations are non-destructive: they may rewrite syntax and trivi
 - CLI end-to-end tests call `Program.Main()` directly, use the console/temp-directory helpers in `src/Reihitsu.Cli.Test/Helpers`, and are marked `[DoNotParallelize]`.
 - The formatter and CLI intentionally leave syntax-invalid or generated code alone. Preserve that behavior when changing formatting flows: the formatter returns the original tree/document for syntax errors or auto-generated source, and the CLI skips generated files such as `.Designer.cs`, `.g.cs`, and `.g.i.cs`.
 - A `Regex` match timeout is a ReDoS guard against untrusted input, not a general safety margin — it is a wall-clock budget, so a thread merely descheduled on a loaded machine can throw even when the engine has done almost no matching work. Inside an analyzer, that throw surfaces as `AD0001` and silently disables the analyzer for the whole compilation; inside a test, it is a spurious failure under CI contention. Default new `Regex` instances to `Regex.InfiniteMatchTimeout`. Only add a bounded timeout when the pattern matches genuinely untrusted input (not a repository-owned file, not source Roslyn already parsed) *and* is capable of catastrophic backtracking (nested or overlapping quantifiers) — and when you do, record both facts in a comment at the declaration so the bound reads as a decision, not a copied neighbour.
+- Source carries no `TODO` comments. Unfinished work is a follow-up issue, which the maintainer approves before it is created and which is linked from the pull request, never from the code.
 - Source comments, documentation comments, and declared type/member/file names must not reference this repository's own GitHub tracker numbers (`issue #123`, `PR #123`, or a bare `#123`) — state the durable behavior, invariant, or constraint the code protects instead; a tracker number can be renumbered, closed, or deleted, and it carries no information a reader can act on without leaving the editor. A link to another project's tracker, written as a full `https://github.com/<owner>/<repo>/issues/<n>` URL, stays legitimate. This does not restrict a pull-request description's `Closes #123` link, or agent workflow files that document passing an issue URL as workflow input — both name a tracker reference in a context outside source. `Reihitsu.ArchitectureTests` enforces the source-comment and declared-name rule and fails, naming file and line, when it is violated.
 
 ## Instructions

@@ -115,7 +115,7 @@ File: `sdd/changes/yyyy-mm/<slug>.md`, by the month the change is merged.
 
 ### Temporary implementation docs
 
-Plans, task lists, and Behavior Contract working notes live under `sdd/work/<slug>/` on the PR branch. Sessions run in disposable containers and later steps may run in a different session, so these docs are committed to the branch rather than kept local. They are deleted before the PR is published as ready; a PR that still contains `sdd/work/` is not mergeable.
+Plans, task lists, and working notes live under `sdd/work/<slug>/` on the PR branch. Sessions run in disposable containers and later steps may run in a different session, so these docs are committed to the branch rather than kept local. They are deleted before the PR is published as ready; a PR that still contains `sdd/work/` is not mergeable.
 
 ### Keeping specs true
 
