@@ -203,3 +203,28 @@ The concept leaves these open, or I would drop a rule that is not clearly obsole
 | Q16 | Which run metrics stay in the run report? | **a)** Only what the concept requires: lane, roles run/skipped with reason, escalations, repair round used. **b)** Also elapsed time and model/effort per role. |
 | Q17 | CHK #18 says "no `TODO` without an issue link", which contradicts the `AGENTS.md` ban on tracker numbers in source. | **a)** Auditor rule becomes "no `TODO` left in the diff". **b)** Drop the rule. |
 | Q18 | Record your decisions on this table in `squad/decisions/`? | **a)** One entry, `2026-10-<dd>-squad-inventory.md`, summarizing the rows you changed from my proposal and the answers to Q01–Q17. **b)** None — the PR is the record. |
+
+## Maintainer decisions (round 1)
+
+Rows without a comment are taken as accepted with their proposed destination.
+
+| # | Decision |
+|---|---|
+| Q01 | a), but `draft-issue` is removed too, and so is `scripts/upload-issues.ps1`. K50 → removed; P22 drafts follow-ups from `.github/ISSUE_TEMPLATE` instead. |
+| Q02 | a) `/squad <issue>` command |
+| Q03 | a) |
+| Q04 | a) ready for review; the squad watches the CI build of the published PR |
+| Q05 | a) |
+| Q06 | a) fifth lane "Tooling"; asked: escalation path when no lane fits |
+| Q07 | a) |
+| Q08 | a) |
+| Q09 | a) |
+| Q10 | a) |
+| Q11 | a) |
+| Q12 | a) |
+| Q13 | a) |
+| Q14 | a) |
+| Q15 | open — asked why code-fix behavior would be "shared"; the formatter must not be mixed with code fixes |
+| Q16 | a) |
+| Q17 | a) — no `TODO` and no issue links in source; follow-up issues may be linked from the PR once approved |
+| Q18 | open — asked to record decisions in `establish-squad.md` instead |
