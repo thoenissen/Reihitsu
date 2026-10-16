@@ -252,7 +252,7 @@ internal static class Proof
     /// <summary>
     /// Paths that hold no compiled source and no build configuration
     /// </summary>
-    private static readonly string[] _nonCompiledPrefixes = [".claude/", ".codex/", ".github/ISSUE_TEMPLATE/", "documentation/", "plans/"];
+    private static readonly string[] _nonCompiledPrefixes = [".claude/", ".github/ISSUE_TEMPLATE/", "documentation/", "plans/"];
 
     /// <summary>
     /// Paths whose contents are executable behavior even though nothing there compiles

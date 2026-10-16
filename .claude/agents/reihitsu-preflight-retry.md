@@ -1,6 +1,6 @@
 ---
 name: reihitsu-preflight-retry
-description: Repair-delta retry of the official preflight audit (attempt 2 of 2). `gh-implement` and `gh-apply-review` spawn one fresh instance after their single consolidated repair cycle, on the repaired head. It follows `.claude/skills/gh-preflight/SKILL.md`, audits the repair delta rather than the whole change, and returns a gate verdict using the retry schema. Do not use it for attempt 1 — that is `reihitsu-preflight` — and never reuse an instance.
+description: Repair-delta retry of the official preflight audit (attempt 2 of 2). `gh-implement` spawns one fresh instance after its single consolidated repair cycle, on the repaired head. It follows `.claude/skills/gh-preflight/SKILL.md`, audits the repair delta rather than the whole change, and returns a gate verdict using the retry schema. Do not use it for attempt 1 — that is `reihitsu-preflight` — and never reuse an instance.
 model: opus
 effort: high
 color: red

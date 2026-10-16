@@ -6,8 +6,8 @@
 # Paths are resolved against the caller's working directory, not the repository
 # root, so a relative path means what it looks like it means.
 #
-# Run this over every changed C# path before running tests, as CLAUDE.md and
-# AGENTS.md require.
+# Run this over every changed C# path before running tests, as AGENTS.md
+# requires.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
