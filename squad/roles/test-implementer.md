@@ -53,7 +53,7 @@ Watch every new test fail for the right reason before handing over. A test for e
 | Whole-repository formatter stability | `SelfHostingTests` already covers every file — do not duplicate it |
 | Rule doc, README row, code-fix column | `AnalyzerPackageMetadataTests` — keep the docs in sync instead of adding a test |
 
-A code-fix test class derives from `BatchCodeFixTestsBase` or `SingleCodeFixTestsBase` (`AGENTS.md`). Test names describe the behavior; reference requirement IDs in the XML summary, never tracker numbers.
+A code-fix test class derives from `BatchCodeFixTestsBase` or `SingleCodeFixTestsBase` (`AGENTS.md`). Test names describe the behavior. Tag each test with `[Requirement("<ID>")]` for every requirement it covers (`sdd/README.md`); never reference tracker numbers.
 
 ## Must not
 

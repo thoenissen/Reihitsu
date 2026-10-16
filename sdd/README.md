@@ -59,6 +59,15 @@ Start from [`templates/spec.md`](templates/spec.md).
 - A dropped requirement is retired, not deleted: it keeps its heading and ID, gets a `Status: Retired` line under the heading with the reason, and stays in its file so every link keeps resolving.
 - Specs, change docs, tests, and PR descriptions refer to requirements by ID.
 
+## Tests and requirements
+
+- A test names each requirement it covers with `[Requirement("<ID>")]` on its test method, one attribute per ID, the ID written as a string literal. A test that verifies a requirement only incidentally does not tag it.
+- The attribute is declared in `Reihitsu.Analyzer.Test` and `Reihitsu.Cli.Test`; another test project declares it when its tests are first tagged.
+- The attribute is a test category, so `scripts/test.sh --project <project> --filter "TestCategory=<ID>"` runs every test of one requirement in that project.
+- A test that covers a Fix All requirement overrides `FixAllCorrectsEveryDiagnostic` from `BatchCodeFixTestsBase` only to carry the tag.
+- Every active requirement of an **enforced** spec directory is covered by at least one test. Enforced today: `analyzer/` and `cli/`. Every other spec is reported but not enforced. A PR that adds a requirement to an enforced spec adds its covering test in the same PR.
+- A retired requirement is never tagged; the tests that covered it tag the requirement that replaced it, or no requirement.
+
 ## When a change doc is required
 
 A change doc is required **only when intended behavior changes**: a requirement is added with new behavior, changed, or retired; or a rule, phase, or surface is added or removed.
@@ -109,11 +118,19 @@ A spec describes current behavior. When the real output looks wrong while a spec
 
 The CI workflow also fails a pull request that removes a line from the ledger, so a requirement cannot be deleted together with its ledger entry.
 
+`RequirementCoverageTests` in the same project reads the `[Requirement]` attributes from the sources of every test project and fails the build when:
+
+- an attribute names an ID that heads no requirement, names a retired requirement, has an argument that is not one string literal, or sits on a method that is not a `[TestMethod]`;
+- an active requirement of an enforced spec directory has no covering test.
+
+For the specs that are not enforced yet, it writes the uncovered requirements per spec to the test output without failing.
+
 ## Keeping specs true
 
 Every PR, in the same PR:
 
 - updates each spec whose behavior or code owners it changes, and keeps `specs/README.md` in sync;
+- tags the tests it adds with the requirements they cover;
 - adds a change doc exactly when one is required;
 - keeps the user documentation consistent with the spec;
 - leaves no `sdd/work/` behind.

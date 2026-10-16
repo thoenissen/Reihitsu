@@ -86,6 +86,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-003")]
+    [Requirement("CLI-017")]
     public async Task MainHelpFlagPrintsUsageAndReturnsSuccess()
     {
         // Act
@@ -110,6 +112,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-003")]
     public async Task MainShortHelpFlagPrintsUsageAndReturnsSuccess()
     {
         // Act
@@ -132,6 +135,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-003")]
+    [Requirement("CLI-017")]
     public async Task MainVersionFlagPrintsVersionAndReturnsSuccess()
     {
         // Act
@@ -150,10 +155,61 @@ public class CliEndToEndTests
     }
 
     /// <summary>
+    /// Verifies that help wins when both <c>--help</c> and <c>--version</c> are given
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("CLI-003")]
+    public async Task MainHelpAndVersionFlagsPrintUsage()
+    {
+        // Act
+        int exitCode;
+        string output;
+
+        using (var capture = new ConsoleCapture())
+        {
+            exitCode = await Program.Main(["--version", "--help"]);
+            output = capture.StandardOutput;
+        }
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("--utf8-bom", output);
+    }
+
+    /// <summary>
+    /// Verifies that an invalid argument takes precedence over <c>--help</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("CLI-002")]
+    public async Task MainUnknownOptionTakesPrecedenceOverHelp()
+    {
+        // Act
+        int exitCode;
+        string standardOutput;
+        string errorOutput;
+
+        using (var capture = new ConsoleCapture())
+        {
+            exitCode = await Program.Main(["--bogus", "--help"]);
+            standardOutput = capture.StandardOutput;
+            errorOutput = capture.StandardError;
+        }
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.Contains("Unknown option: --bogus", errorOutput);
+        Assert.DoesNotContain("reihitsu-format", standardOutput);
+    }
+
+    /// <summary>
     /// Verifies that an unknown option prints an error message and returns an error exit code
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-002")]
+    [Requirement("CLI-017")]
     public async Task MainUnknownOptionPrintsErrorAndReturnsError()
     {
         // Act
@@ -176,6 +232,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-002")]
     public async Task MainUnknownOptionWritesUsageToStandardError()
     {
         // Act
@@ -199,6 +256,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-002")]
     public async Task MainCheckAndDryRunCombinedReturnsError()
     {
         // Arrange
@@ -227,6 +285,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-005")]
+    [Requirement("CLI-017")]
     public async Task MainNonExistentPathReturnsError()
     {
         // Act
@@ -249,6 +309,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-012")]
+    [Requirement("CLI-017")]
     public async Task MainCheckModeOnFormattedFilesReturnsSuccess()
     {
         // Arrange
@@ -275,6 +337,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-012")]
+    [Requirement("CLI-017")]
     public async Task MainCheckModeOnUnformattedFileReturnsFormattingNeeded()
     {
         // Arrange
@@ -301,6 +365,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-011")]
     public async Task MainFormatModeFormatsFileAndReturnsSuccess()
     {
         // Arrange
@@ -331,6 +396,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
+    [Requirement("CLI-017")]
     public async Task MainDryRunModeOnFormattedFilesReturnsSuccess()
     {
         // Arrange
@@ -359,6 +426,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-010")]
     public async Task MainUtf8BomNormalizesContentCleanFileAndIsIdempotent()
     {
         // Arrange
@@ -392,6 +460,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-010")]
     public async Task MainCheckUtf8BomReportsEncodingOnlyChangeWithoutWriting()
     {
         // Arrange
@@ -425,6 +494,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-010")]
     public async Task MainDryRunUtf8BomReportsEncodingOnlyChangeWithoutWriting()
     {
         // Arrange
@@ -458,6 +528,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task MainForceFlagFormatsLargeRunWithoutPrompting()
     {
         // Arrange
@@ -497,6 +568,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-018")]
     public async Task MainCheckModeLargeRunDoesNotPrompt()
     {
         // Arrange
@@ -527,6 +599,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
+    [Requirement("CLI-017")]
     public async Task MainDryRunShowsDiffAndReturnsFormattingNeeded()
     {
         // Arrange
@@ -555,6 +629,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-013")]
     public async Task MainDryRunDoesNotModifyFile()
     {
         // Arrange
@@ -580,6 +655,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-015")]
     public async Task MainVerboseModeShowsDetailedOutput()
     {
         // Arrange
@@ -607,6 +683,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-001")]
     public async Task MainDefaultPathUsesCurrentDirectory()
     {
         // Arrange
@@ -651,6 +728,7 @@ public class CliEndToEndTests
     [DataRow("obj", "relative")]
     [DataRow("obj", "dot-relative")]
     [DataRow("obj", "absolute")]
+    [Requirement("CLI-006")]
     public async Task MainExplicitBuildOutputDirectoryTargetFormatsFile(string directoryName, string targetSpelling)
     {
         // Arrange
@@ -699,6 +777,7 @@ public class CliEndToEndTests
     [DataRow("obj", "relative")]
     [DataRow("obj", "dot-relative")]
     [DataRow("obj", "absolute")]
+    [Requirement("CLI-006")]
     public async Task MainExplicitBuildOutputFileTargetFormatsFile(string directoryName, string targetSpelling)
     {
         // Arrange
@@ -742,6 +821,7 @@ public class CliEndToEndTests
     [TestMethod]
     [DataRow("binary")]
     [DataRow("objects")]
+    [Requirement("CLI-006")]
     public async Task MainRecursiveTargetFormatsDirectoriesThatOnlyContainBuildOutputNames(string directoryName)
     {
         // Arrange
@@ -773,6 +853,7 @@ public class CliEndToEndTests
     [TestMethod]
     [DataRow("BIN")]
     [DataRow("OBJ")]
+    [Requirement("CLI-006")]
     public async Task MainRecursiveTargetUsesPlatformCasingForBuildOutputDirectories(string directoryName)
     {
         // Arrange
@@ -809,6 +890,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-001")]
+    [Requirement("CLI-006")]
     public async Task MainMultiplePathsAreAllProcessed()
     {
         // Arrange
@@ -841,6 +924,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-003")]
+    [Requirement("CLI-004")]
     public async Task MainHelpFlagDocumentsLangVersionOption()
     {
         string output;
@@ -860,6 +945,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-004")]
     public async Task MainWithoutLangVersionFormatsForNewestSupportedVersion()
     {
         using (var tempDir = new TemporaryDirectoryFixture())
@@ -883,6 +969,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-004")]
     public async Task MainLangVersionBelowCSharp12KeepsEmptyClassBraced()
     {
         using (var tempDir = new TemporaryDirectoryFixture())
@@ -909,6 +996,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-004")]
     public async Task MainLangVersionPreviewWarnsOnceAndFormatsForNewestSupportedVersion()
     {
         using (var tempDir = new TemporaryDirectoryFixture())
@@ -938,6 +1026,8 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-002")]
+    [Requirement("CLI-004")]
     public async Task MainLangVersionInvalidValueReturnsErrorAndLeavesFileUntouched()
     {
         using (var tempDir = new TemporaryDirectoryFixture())
@@ -966,6 +1056,7 @@ public class CliEndToEndTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
+    [Requirement("CLI-002")]
     public async Task MainLangVersionWithoutValueReturnsError()
     {
         int exitCode;

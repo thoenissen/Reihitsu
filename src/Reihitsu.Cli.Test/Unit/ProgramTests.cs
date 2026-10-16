@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Cli.Test.Helpers;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli.Test.Unit;
@@ -18,6 +19,7 @@ public class ProgramTests
     /// all flags set to <see langword="false"/>, and no unknown option
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsNoArgumentsReturnsEmptyPaths()
     {
         var result = Program.ParseArguments([]);
@@ -37,6 +39,7 @@ public class ProgramTests
     /// Verifies that <c>--check</c> sets <see cref="ParseResult.CheckOnly"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsCheckFlagSetsCheckOnly()
     {
         var result = Program.ParseArguments(["--check"]);
@@ -56,6 +59,7 @@ public class ProgramTests
     /// Verifies that <c>--dry-run</c> sets <see cref="ParseResult.DryRun"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsDryRunFlagSetsDryRun()
     {
         var result = Program.ParseArguments(["--dry-run"]);
@@ -75,6 +79,7 @@ public class ProgramTests
     /// Verifies that <c>--verbose</c> sets <see cref="ParseResult.Verbose"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsVerboseFlagSetsVerbose()
     {
         var result = Program.ParseArguments(["--verbose"]);
@@ -94,6 +99,7 @@ public class ProgramTests
     /// Verifies that <c>--force</c> sets <see cref="ParseResult.Force"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsForceFlagSetsForce()
     {
         var result = Program.ParseArguments(["--force"]);
@@ -113,6 +119,7 @@ public class ProgramTests
     /// Verifies that <c>--utf8-bom</c> sets <see cref="ParseResult.Utf8Bom"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsUtf8BomFlagSetsUtf8Bom()
     {
         var result = Program.ParseArguments(["--utf8-bom"]);
@@ -132,6 +139,8 @@ public class ProgramTests
     /// Verifies that <c>--help</c> sets <see cref="ParseResult.ShowHelp"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
+    [Requirement("CLI-003")]
     public void ParseArgumentsHelpFlagSetsShowHelp()
     {
         var result = Program.ParseArguments(["--help"]);
@@ -151,6 +160,8 @@ public class ProgramTests
     /// Verifies that <c>-h</c> sets <see cref="ParseResult.ShowHelp"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
+    [Requirement("CLI-003")]
     public void ParseArgumentsShortHelpFlagSetsShowHelp()
     {
         var result = Program.ParseArguments(["-h"]);
@@ -170,6 +181,8 @@ public class ProgramTests
     /// Verifies that <c>--version</c> sets <see cref="ParseResult.ShowVersion"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
+    [Requirement("CLI-003")]
     public void ParseArgumentsVersionFlagSetsShowVersion()
     {
         var result = Program.ParseArguments(["--version"]);
@@ -189,6 +202,8 @@ public class ProgramTests
     /// Verifies that an unrecognized option like <c>--foo</c> is returned as <see cref="ParseResult.UnknownOption"/>
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
+    [Requirement("CLI-002")]
     public void ParseArgumentsUnknownOptionReturnsUnknownOption()
     {
         var result = Program.ParseArguments(["--foo"]);
@@ -200,6 +215,7 @@ public class ProgramTests
     /// Verifies that multiple flags are combined correctly when passed together
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsMultipleFlagsCombine()
     {
         var result = Program.ParseArguments(["--check", "--verbose", "--utf8-bom"]);
@@ -219,6 +235,7 @@ public class ProgramTests
     /// Verifies that non-option arguments are collected as paths
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsPathsAreCollected()
     {
         var result = Program.ParseArguments(["file.cs", "dir/"]);
@@ -240,6 +257,7 @@ public class ProgramTests
     /// Verifies that flags and paths are correctly parsed when mixed together
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsMixedFlagsAndPaths()
     {
         var result = Program.ParseArguments(["--verbose", "file.cs", "--check"]);
@@ -260,6 +278,7 @@ public class ProgramTests
     /// Verifies that arguments after the <c>--</c> separator are treated as paths even when they start with a dash
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsSeparatorTreatsRemainingArgumentsAsPaths()
     {
         var result = Program.ParseArguments(["--check", "--", "--dry-run", "-weird.cs"]);
@@ -276,6 +295,7 @@ public class ProgramTests
     /// Verifies that omitting <c>--lang-version</c> selects the newest supported language version without a warning or error
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-004")]
     public void ParseArgumentsWithoutLangVersionSelectsMaxSupportedVersion()
     {
         var result = Program.ParseArguments([]);
@@ -289,6 +309,7 @@ public class ProgramTests
     /// Verifies that an explicit major version is selected as given
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-004")]
     public void ParseArgumentsLangVersionSelectsExplicitVersion()
     {
         var result = Program.ParseArguments(["--lang-version", "11", "src"]);
@@ -304,6 +325,7 @@ public class ProgramTests
     /// Verifies that an explicit version with a minor component is accepted
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-004")]
     public void ParseArgumentsLangVersionAcceptsMajorMinorForm()
     {
         var result = Program.ParseArguments(["--lang-version", "12.0"]);
@@ -316,6 +338,7 @@ public class ProgramTests
     /// Verifies that <c>latest</c> selects the newest supported version rather than Roslyn's newest, without a warning
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-004")]
     public void ParseArgumentsLangVersionLatestSelectsMaxSupportedVersion()
     {
         var result = Program.ParseArguments(["--lang-version", "latest"]);
@@ -329,6 +352,7 @@ public class ProgramTests
     /// Verifies that <c>default</c> selects the newest supported version without a warning
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-004")]
     public void ParseArgumentsLangVersionDefaultSelectsMaxSupportedVersion()
     {
         var result = Program.ParseArguments(["--lang-version", "default"]);
@@ -341,6 +365,7 @@ public class ProgramTests
     /// Verifies that a version newer than the newest supported one is clamped and reported for a warning
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-004")]
     public void ParseArgumentsLangVersionPreviewIsClampedToMaxSupportedVersion()
     {
         var result = Program.ParseArguments(["--lang-version", "preview"]);
@@ -354,6 +379,8 @@ public class ProgramTests
     /// Verifies that an unrecognized version produces an argument error naming the option and the value
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-002")]
+    [Requirement("CLI-004")]
     public void ParseArgumentsLangVersionInvalidValueReturnsArgumentError()
     {
         var result = Program.ParseArguments(["--lang-version", "foo"]);
@@ -367,6 +394,8 @@ public class ProgramTests
     /// Verifies that a version Roslyn does not know produces an argument error
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-002")]
+    [Requirement("CLI-004")]
     public void ParseArgumentsLangVersionUnknownNumberReturnsArgumentError()
     {
         var result = Program.ParseArguments(["--lang-version", "99"]);
@@ -379,6 +408,7 @@ public class ProgramTests
     /// Verifies that <c>--lang-version</c> without a value produces an argument error
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-002")]
     public void ParseArgumentsLangVersionWithoutValueReturnsArgumentError()
     {
         var result = Program.ParseArguments(["--lang-version"]);
@@ -391,6 +421,7 @@ public class ProgramTests
     /// Verifies that the last <c>--lang-version</c> wins when the option is repeated
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-004")]
     public void ParseArgumentsRepeatedLangVersionUsesLastValue()
     {
         var result = Program.ParseArguments(["--lang-version", "preview", "--lang-version", "10"]);
@@ -403,6 +434,7 @@ public class ProgramTests
     /// Verifies that <c>--lang-version</c> after the <c>--</c> separator is treated as a path
     /// </summary>
     [TestMethod]
+    [Requirement("CLI-001")]
     public void ParseArgumentsLangVersionAfterSeparatorIsPath()
     {
         var result = Program.ParseArguments(["--", "--lang-version", "11"]);
