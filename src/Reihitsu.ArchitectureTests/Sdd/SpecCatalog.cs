@@ -18,6 +18,11 @@ internal static class SpecCatalog
     #region Constants
 
     /// <summary>
+    /// File name of the append-only ledger of every requirement ID ever issued
+    /// </summary>
+    public const string LedgerFileName = "requirement-ids.txt";
+
+    /// <summary>
     /// File name of the spec index, which is not a spec itself
     /// </summary>
     private const string IndexFileName = "README.md";
@@ -155,6 +160,26 @@ internal static class SpecCatalog
         }
 
         return requirements;
+    }
+
+    /// <summary>
+    /// Reads the requirement-ID ledger: one ID per line, blank lines ignored
+    /// </summary>
+    /// <param name="specsDirectory">The <c>sdd/specs</c> directory</param>
+    /// <returns>The ledger entries with their one-based line numbers; empty when the ledger does not exist</returns>
+    public static IReadOnlyList<(int Line, string Id)> ReadLedger(string specsDirectory)
+    {
+        var ledgerPath = Path.Combine(specsDirectory, LedgerFileName);
+
+        if (File.Exists(ledgerPath) == false)
+        {
+            return [];
+        }
+
+        return File.ReadLines(ledgerPath)
+                   .Select((line, index) => (Line: index + 1, Id: line.Trim()))
+                   .Where(entry => entry.Id.Length > 0)
+                   .ToList();
     }
 
     /// <summary>

@@ -9,8 +9,10 @@ namespace Reihitsu.ArchitectureTests.Sdd;
 
 /// <summary>
 /// Guards the specs under <c>sdd/specs/</c> against drifting from the code and from each other: every type a
-/// spec names as a code owner must exist in a production project, and every requirement ID must be unique
-/// across all specs, as <c>sdd/README.md</c> requires
+/// spec names as a code owner must exist in a production project, every requirement ID must be unique across
+/// all specs, and every ID ever issued must still head a requirement, as <c>sdd/README.md</c> requires. The
+/// last check reads the append-only ledger <c>sdd/specs/requirement-ids.txt</c> rather than git history, so it
+/// runs the same everywhere; the CI workflow separately rejects a pull request that removes a ledger line
 /// </summary>
 [TestClass]
 public sealed class SpecConsistencyTests
@@ -48,6 +50,93 @@ public sealed class SpecConsistencyTests
 
         // Assert
         Assert.IsEmpty(findings, DescribeFindings("Requirement IDs must be unique across all specs", findings));
+    }
+
+    /// <summary>
+    /// Verifies that every ID in the ledger still heads a requirement, so that no requirement was deleted instead
+    /// of retired, and that every requirement ID is recorded in the ledger exactly once
+    /// </summary>
+    [TestMethod]
+    public void RequirementIdLedgerMatchesSpecs()
+    {
+        // Arrange
+        var repositoryRoot = FindRepositoryRoot();
+
+        // Act
+        var findings = FindLedgerProblems(repositoryRoot);
+
+        // Assert
+        Assert.IsEmpty(findings, DescribeFindings($"The requirement-ID ledger sdd/specs/{SpecCatalog.LedgerFileName} must match the specs", findings));
+    }
+
+    /// <summary>
+    /// Verifies that a ledger ID whose heading was deleted is reported as removed instead of retired
+    /// </summary>
+    [TestMethod]
+    public void LedgerCheckReportsDeletedRequirement()
+    {
+        // Arrange
+        List<string> findings;
+
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
+            fixture.WriteFile($"sdd/specs/{SpecCatalog.LedgerFileName}", "CLI-001\nCLI-002\n");
+
+            // Act
+            findings = FindLedgerProblems(fixture.Path);
+        }
+
+        // Assert
+        Assert.HasCount(1, findings);
+        Assert.Contains("CLI-002", findings[0]);
+        Assert.Contains("Retired", findings[0]);
+    }
+
+    /// <summary>
+    /// Verifies that a retired requirement, which keeps its heading, satisfies the ledger
+    /// </summary>
+    [TestMethod]
+    public void LedgerCheckAcceptsRetiredRequirement()
+    {
+        // Arrange
+        List<string> findings;
+
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteFile("sdd/specs/cli/reihitsu-format.md", "### CLI-001 — Title\n\nStatus: Retired — superseded.\n");
+            fixture.WriteFile($"sdd/specs/{SpecCatalog.LedgerFileName}", "CLI-001\n");
+
+            // Act
+            findings = FindLedgerProblems(fixture.Path);
+        }
+
+        // Assert
+        Assert.IsEmpty(findings, DescribeFindings("Unexpected findings", findings));
+    }
+
+    /// <summary>
+    /// Verifies that a requirement missing from the ledger and an ID listed twice are both reported
+    /// </summary>
+    [TestMethod]
+    public void LedgerCheckReportsUnrecordedAndRepeatedIds()
+    {
+        // Arrange
+        List<string> findings;
+
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001", "CLI-002");
+            fixture.WriteFile($"sdd/specs/{SpecCatalog.LedgerFileName}", "CLI-001\nCLI-001\n");
+
+            // Act
+            findings = FindLedgerProblems(fixture.Path);
+        }
+
+        // Assert
+        Assert.HasCount(2, findings);
+        Assert.Contains(finding => finding.Contains("CLI-002", StringComparison.Ordinal), findings);
+        Assert.Contains(finding => finding.Contains("CLI-001", StringComparison.Ordinal), findings);
     }
 
     /// <summary>
@@ -264,6 +353,35 @@ public sealed class SpecConsistencyTests
                           .Where(group => group.Count() > 1)
                           .Select(group => $"{group.Key}: {string.Join(", ", group.Select(requirement => $"{requirement.SpecPath}:{requirement.Line}"))}")
                           .ToList();
+    }
+
+    /// <summary>
+    /// Compares the requirement-ID ledger with the requirement headings of all specs
+    /// </summary>
+    /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c></param>
+    /// <returns>One message per ledger ID without a heading, per heading ID missing from the ledger, and per ID the ledger repeats</returns>
+    private static List<string> FindLedgerProblems(string repositoryRoot)
+    {
+        var specsDirectory = Path.Combine(repositoryRoot, "sdd", "specs");
+        var ledger = SpecCatalog.ReadLedger(specsDirectory);
+        var headingIds = SpecCatalog.ReadRequirements(specsDirectory)
+                                    .Select(requirement => requirement.Id)
+                                    .ToHashSet(StringComparer.Ordinal);
+        var ledgerIds = ledger.Select(entry => entry.Id)
+                              .ToHashSet(StringComparer.Ordinal);
+        var problems = new List<string>();
+
+        problems.AddRange(ledger.GroupBy(entry => entry.Id, StringComparer.Ordinal)
+                                .Where(group => group.Count() > 1)
+                                .Select(group => $"{group.Key}: listed more than once, at lines {string.Join(", ", group.Select(entry => entry.Line))}"));
+        problems.AddRange(ledgerIds.Where(id => headingIds.Contains(id) == false)
+                                   .OrderBy(id => id, StringComparer.Ordinal)
+                                   .Select(id => $"{id}: in the ledger but no spec has this requirement heading; a dropped requirement keeps its heading with a 'Status: Retired' line instead of being deleted"));
+        problems.AddRange(headingIds.Where(id => ledgerIds.Contains(id) == false)
+                                    .OrderBy(id => id, StringComparer.Ordinal)
+                                    .Select(id => $"{id}: heads a requirement but is not in the ledger; append it"));
+
+        return problems;
     }
 
     /// <summary>
