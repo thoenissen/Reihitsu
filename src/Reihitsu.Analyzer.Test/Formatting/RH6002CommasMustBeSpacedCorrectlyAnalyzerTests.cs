@@ -21,6 +21,8 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-001")]
+    [Requirement("RH6002-002")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -40,6 +42,9 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-002")]
+    [Requirement("RH6002-005")]
+    [Requirement("RH6002-006")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -67,6 +72,8 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-001")]
+    [Requirement("RH6002-006")]
     public async Task VerifySpaceBeforeCommaIsDetectedAndFixed()
     {
         const string testData = """
@@ -94,6 +101,8 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-002")]
+    [Requirement("RH6002-006")]
     public async Task VerifyMultipleSpacesAfterCommaAreDetectedAndFixed()
     {
         const string testData = """
@@ -121,6 +130,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-003")]
     public async Task VerifySizedArrayRankCommaIsDetectedAndFixed()
     {
         const string testData = """
@@ -150,6 +160,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-001")]
     public async Task VerifyFormFeedBeforeCommaIsDetectedAndFixed()
     {
         const string testData = "internal class TestClass\r\n{\r\n    void Method(int x\f{|#0:,|} int y)\r\n    {\r\n    }\r\n}";
@@ -163,6 +174,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-002")]
     public async Task VerifyFormFeedAfterCommaIsDetectedAndFixed()
     {
         const string testData = "internal class TestClass\r\n{\r\n    void Method(int x{|#0:,|}\fint y)\r\n    {\r\n    }\r\n}";
@@ -176,6 +188,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-004")]
     public async Task VerifyBlockCommentAfterCommaIsNormalized()
     {
         const string testData = """
@@ -203,6 +216,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-006")]
     public async Task VerifyDirectiveOnLineBrokenSideSurvivesFix()
     {
         const string testData = """
@@ -240,6 +254,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-007")]
     public async Task VerifyMultipleCommaDiagnosticsAreFixedInOneFixAllIteration()
     {
         const string testData = """
@@ -272,6 +287,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-003")]
     public async Task VerifyArrayRankCommasDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -292,6 +308,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-003")]
     public async Task VerifyUnboundGenericCommaDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -315,6 +332,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-003")]
     public async Task VerifyUnboundGenericMultipleCommasDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -337,6 +355,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-002")]
     public async Task VerifyBoundGenericCommaIsStillDetected()
     {
         const string testData = """
@@ -370,6 +389,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-003")]
     public async Task VerifyCompactInterpolationAlignmentCommaDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -390,6 +410,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-003")]
     public async Task VerifySpaceAfterInterpolationAlignmentCommaIsDetectedAndFixed()
     {
         const string testData = """
@@ -420,6 +441,8 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6002-001")]
+    [Requirement("RH6002-003")]
     public async Task VerifySpaceBeforeInterpolationAlignmentCommaIsStillDetectedAndFixed()
     {
         const string testData = """
@@ -447,6 +470,14 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    [TestMethod]
+    [Requirement("RH6002-007")]
+    public override async Task FixAllCorrectsEveryDiagnostic()
+    {
+        await base.FixAllCorrectsEveryDiagnostic();
+    }
 
     /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()

@@ -21,6 +21,9 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5002-001")]
+    [Requirement("RH5002-004")]
+    [Requirement("RH5002-005")]
     public async Task VerifyDiagnosticForIfStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -60,6 +63,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5002-001")]
     public async Task VerifyNoDiagnosticForIfStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -85,6 +89,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5002-001")]
     public async Task VerifyNoDiagnosticForIfStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -107,6 +112,8 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5002-001")]
+    [Requirement("RH5002-005")]
     public async Task VerifyDiagnosticForIfStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -148,6 +155,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5002-002")]
     public async Task VerifyNoDiagnosticForIfStatementAsEmbeddedWhileBody()
     {
         const string testCode = """
@@ -172,6 +180,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5002-002")]
     public async Task VerifyNoDiagnosticForElseIfStatement()
     {
         const string testCode = """
@@ -202,9 +211,78 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported when a preprocessor directive is the last trivia directly above the if statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5002-003")]
+    public async Task VerifyNoDiagnosticForIfStatementDirectlyBelowDirective()
+    {
+        const string testCode = """
+                                internal class RH5002
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        value++;
+                                #if DEBUG
+                                        value--;
+                                #endif
+                                        if (value > 6)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix moves an if statement that shares its line with the previous statement onto its own line after a blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5002-001")]
+    [Requirement("RH5002-005")]
+    public async Task VerifyIfStatementOnSameLineAsPreviousStatementIsMovedToItsOwnLine()
+    {
+        const string testCode = """
+                                internal class RH5002
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        value++; {|#0:if|} (value > 5) { }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5002
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         value++;
+
+                                         if (value > 5) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    [TestMethod]
+    [Requirement("RH5002-006")]
+    public override async Task FixAllCorrectsEveryDiagnostic()
+    {
+        await base.FixAllCorrectsEveryDiagnostic();
+    }
 
     /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()

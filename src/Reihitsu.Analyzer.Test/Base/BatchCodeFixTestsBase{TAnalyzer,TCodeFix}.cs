@@ -29,11 +29,12 @@ public abstract class BatchCodeFixTestsBase<TAnalyzer, TCodeFix> : AnalyzerTests
     #region Tests
 
     /// <summary>
-    /// Verifying the code fix corrects every diagnostic of one document
+    /// Verifying the code fix corrects every diagnostic of one document. A derived class overrides this test only to
+    /// tag it with the Fix All requirement of its rule's spec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixAllCorrectsEveryDiagnostic()
+    public virtual async Task FixAllCorrectsEveryDiagnostic()
     {
         var scenario = GetFixAllScenario();
 
