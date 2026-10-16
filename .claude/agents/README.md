@@ -1,72 +1,20 @@
 # Agent definitions
 
-The `gh-*` workflow skills spawn their gates as subagents. Without a definition every gate inherits the
-session model and the session effort level, so a purely mechanical stage costs exactly as much per token as
-the adversarial audit next to it. These files are the **single owner** of that decision: model tier, effort
-level, and the tool restrictions that make a stage's "read-only" or "reports only" promise mechanical rather
-than a sentence in a prompt.
+One thin wrapper per squad role. The role's job lives in `squad/roles/<role>.md`, which is agent-neutral; these files hold only what is specific to Claude Code: model tier, effort level, and tool restrictions. The lead is the session agent itself, started with `/squad <issue>`, so it has no wrapper.
 
-The skills reference an agent by its `name` through the `subagent_type` parameter and pass no model
-argument, so re-tuning a stage is a one-line frontmatter change here — not an edit spread across
-`gh-implement` and `gh-preflight`.
+The lead spawns a role by its `subagent_type` and passes no model argument, so re-tuning a role is a one-line change here.
 
-## Current assignment
-
-| Agent | Stage | Model | Effort | Why this tier |
+| Agent | Model | Effort | Denied tools | Why this tier |
 |---|---|---|---|---|
-| `reihitsu-reproduction` | Reproduction gate (`gh-implement`) | `sonnet` | `high` | Writes one test against a helper named in a fixed table and returns a rigid schema. Its cheap verdict is falsified by the next three stages; its terminal verdict is escalated, see below. |
-| `reihitsu-rubber-duck` | Behavior Contract gate | `opus` | `xhigh` | Produces the guard-delta and predicate-boundary tables the workflow treats as load-bearing. A missed defect class here is paid for by a full implement/preflight/repair cycle. |
-| `reihitsu-preflight` | Official preflight, attempt 1 | `opus` | `xhigh` | Adversarial audit against ~50 rules; it is the gate that catches a boundary test which cannot falsify the change it guards. |
-| `reihitsu-preflight-retry` | Official preflight, repair-delta retry | `opus` | `high` | Same audit discipline, bounded by the repair delta: attempt 1 already paid for the breadth, so the retry re-derives only what moved. Kept on `opus` because it still returns a terminal verdict; dropped to `high` because a retry that costs as much as attempt 1 has re-audited rather than delta-audited. |
-| `reihitsu-validate` | Full validation | `haiku` | `low` | Runs two repository scripts and reports pass/fail plus the failing assertions. No judgement, and thousands of output lines that would otherwise land in the orchestrator's context. |
+| `spec-author` | `opus` | `high` | — | Writes requirements whose `Why:` decides later edge cases, and spots open questions about intended behavior |
+| `skeptic` | `opus` | `xhigh` | `Edit`, `NotebookEdit` | Its value is finding the reading or the input nobody else considered; a missed premise is paid for by a whole run |
+| `test-implementer` | `opus` | `high` | — | The tests define the change; a weak assertion lets a wrong implementation through |
+| `implementer` | `opus` | `high` | — | Changes guards and rewrites in Roslyn trivia, where the failure classes live |
+| `cleaner` | `sonnet` | `medium` | — | Formats files and resolves warnings by form-only changes; little judgment |
+| `spec-checker` | `sonnet` | `high` | `Edit`, `NotebookEdit` | Compares written text with the diff against a fixed checklist |
+| `auditor` | `opus` | `xhigh` | `Edit`, `NotebookEdit` | The last independent check, against the specs and every failure class |
+| `validator` | `haiku` | `low` | `Edit`, `NotebookEdit` | Runs three scripts and reports; keeps thousands of output lines out of the lead's context |
 
-The orchestrator itself is the session agent, not a subagent, so it is not configured here. It stays on the
-session model and effort — it owns the `Never` rules, the scope ledger, and the 1 + 1 preflight budget, and a
-weaker model there silently skips a gate rather than failing loudly.
+Every role keeps `Write`, because every role writes its handover under `sdd/work/<slug>/`, and the skeptic and the auditor write disposable fixtures outside the repository. The read-only roles lose `Edit`, so they cannot change an existing repository file; that they write nothing but their handover is stated in their role files.
 
-## Asymmetric escalation of the reproduction gate
-
-The reproduction gate runs at the cheaper tier because its verdicts are not equally reversible:
-
-- `REPRODUCED` is falsified immediately — the contract, the implementation, and the audit all run against
-  that test.
-- `BLOCKED` costs one restart.
-- `NOT REPRODUCED` ends the run, downgrades the PR link to `Refs #<N>`, and hands the user a question. A
-  wrong one is expensive and quiet.
-
-So the terminal negative is ratified before it is acted on: the parent re-runs **the same**
-`reihitsu-reproduction` agent type once with a per-invocation `model: opus` override, handing it the first
-run's report as evidence. The cheap tier does the work; the expensive tier only confirms the verdict that
-cannot be taken back. Exactly one escalation — a disagreement is decided by the escalated run.
-
-If the environment offers no per-invocation model override, the parent performs that confirmation itself
-rather than acting on an unconfirmed `NOT REPRODUCED`.
-
-## Effort levels
-
-`effort` is set per agent instead of being left to whatever the operator chose that day, so a stage's cost
-profile is a standing, reviewable decision. On Opus it is the primary cost lever and, unlike a tier
-downgrade, it preserves instruction-following against a large rule set — which is why the two audit agents
-keep `opus` and are tuned through `effort` rather than through their model.
-
-`reihitsu-validate` omits nothing but judgement, so it takes the lowest level. Available levels depend on the
-model; if a level is rejected for a model, drop it from that file rather than moving the stage to another
-tier.
-
-## Tool restrictions
-
-`reihitsu-validate` denies `Edit`, `Write`, and `NotebookEdit`: it exists to run `scripts/build.sh` and
-`scripts/test.sh` and report, and the parent stays the only writer.
-
-`reihitsu-rubber-duck` and `reihitsu-preflight` are read-only towards the **repository**, but both legitimately
-create disposable fixtures in a temporary directory outside it to execute a sweep or check a corpus. Their
-restriction therefore stays where it can express that difference — in the skill's own read-only guarantees —
-rather than in a `disallowedTools` list that would also block the fixtures.
-
-## Deliberately not configured
-
-- **PR title and body rewrite.** It runs in the orchestrator, which already holds the diff. Spawning a
-  cheaper agent for it would re-read the diff into a second context, so the tier saving is smaller than the
-  duplication it buys.
-- **The delegated implementation commands.** They also run in the orchestrator; moving them into a subagent
-  is a restructuring of the workflow, not a configuration change.
+Available effort levels depend on the model. If a level is rejected for a model, drop it from that file rather than moving the role to another tier.

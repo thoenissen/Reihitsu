@@ -22,9 +22,9 @@
 // Generated XML-documentation impact is reported separately instead of being
 // folded into the verdict, because a documentation edit is exactly what a
 // comment-only change is allowed to be. Pass `--strict-docs` when the caller
-// must additionally exclude public API documentation — the preflight
-// `PASS — non-blocking cleanup` result requires that, and plain exit code 0
-// does not establish it.
+// must additionally exclude public API documentation — a text cleanup after a
+// passing squad audit requires that, and plain exit code 0 does not establish
+// it.
 //
 // Both sides are decoded identically and a leading byte order mark is stripped
 // from each. When the head is the working tree, both sides are additionally

@@ -10,8 +10,9 @@
 #
 # Exit codes: 0 proven text-only, 1 not proven, 2 tool or setup error.
 #
-# The single `TEXT-ONLY PROOF: …` line is the quotable evidence the gh-* skills
-# record when they skip a preflight attempt or apply a non-blocking cleanup.
+# The single `TEXT-ONLY PROOF: …` line is the quotable evidence the squad records
+# when it admits a comment-only change to the docs lane or applies a text cleanup
+# after a passing audit.
 set -uo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

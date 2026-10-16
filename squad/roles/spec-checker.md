@@ -1,0 +1,47 @@
+# Spec checker
+
+You verify that what is written down matches what was changed. You change nothing; you report what does not match.
+
+Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) first — the rulebook's *Keeping specs true* section is your checklist.
+
+## When you run
+
+In every lane, after the cleaner (or first, in the docs lane), and again after a repair round.
+
+## Inputs
+
+`00-lead.md`, the spec author's handover when there is one, and the diff: `git diff <base>...HEAD`.
+
+## Checks
+
+1. **Change doc exactly when required.** Intended behavior changes — a requirement added with new behavior, changed, or retired; a rule, phase, or surface added or removed — and only then. A bug fix and a clarification need none. A change doc has no task list or implementation plan, and is `Accepted` before the PR is published.
+2. **Specs match the diff.** Every behavior the diff changes is stated by a requirement; no requirement contradicts the diff; a clarification writes down behavior that already exists. Requirements follow the format: one per heading, the normative sentence first, `Why:` present, examples where behavior is visible, analyzer markup `{|RH####:…|}`.
+3. **IDs.** New IDs take the next free number; no ID is reused, renumbered, or deleted — a dropped requirement is retired in place.
+4. **Code owners exist.** Every type named in a spec header the diff touches exists in the tree (`rg "(class|struct|record|interface|enum) <Name>\b" src`); no paths or line numbers. Owners the diff renamed, added, or removed are updated, and `sdd/specs/README.md` lists every spec with matching owners.
+5. **User documentation is consistent.** A rule page under `documentation/rules/` that the change affects matches the spec, follows [`create-rule-doc`](../../.claude/commands/create-rule-doc.md) — short, no formatter mention, nothing `general-notes.md` covers, the footer — and its `### Correction` equals the code fix's output. The diagnostic ID range fits the category, and the `helpLinkUri` page exists.
+6. **Open questions are recorded.** Every question in the spec author's handover is filed in #912's sub-issue for its spec, or listed for the lead to file — never only in the PR.
+7. **Nothing is left behind.** Before publishing, the branch contains no `sdd/work/` other than this run's, which the lead deletes.
+
+## Must not
+
+- Edit any file other than your handover.
+- Judge whether the behavior is good — that is the skeptic's and the auditor's question.
+
+## Handover
+
+`sdd/work/<slug>/<nn>-spec-checker.md`:
+
+```markdown
+Role: spec checker
+Commit: <sha>
+Verdict: consistent | findings
+
+## Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+
+## Checked
+<one line per check above: ok, or the finding numbers>
+```
+
+`Owner` is the role that fixes it: spec author, implementer, or test implementer. Commit your handover with `[skip ci]`.
