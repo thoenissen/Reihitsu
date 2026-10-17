@@ -21,6 +21,8 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5009-001")]
+    [Requirement("RH5009-002")]
     public async Task VerifyDiagnosticForGotoStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -60,6 +62,8 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5009-001")]
+    [Requirement("RH5009-002")]
     public async Task VerifyDiagnosticForGotoCaseStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -105,6 +109,8 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5009-001")]
+    [Requirement("RH5009-002")]
     public async Task VerifyDiagnosticForGotoDefaultStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -150,6 +156,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5009-001")]
     public async Task VerifyNoDiagnosticForGotoStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -175,6 +182,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForGotoStatementAfterLabel()
     {
         const string testCode = """
@@ -199,6 +207,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5009-001")]
     public async Task VerifyDiagnosticForGotoStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -233,6 +242,69 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a goto to a label, a goto case, and a goto default that each end a switch section after another statement are reported on their goto keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5009-001")]
+    [Requirement("RH5009-002")]
+    public async Task VerifyDiagnosticForGotoLabelGotoCaseAndGotoDefaultEndingSwitchSections()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+                                                {|#0:goto|} case 2;
+                                            case 2:
+                                                a++;
+                                                {|#1:goto|} default;
+                                            default:
+                                                a++;
+                                                {|#2:goto|} End;
+                                        }
+
+                                        End:
+                                        a--;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         switch (a)
+                                         {
+                                             case 1:
+                                                 a++;
+
+                                                 goto case 2;
+                                             case 2:
+                                                 a++;
+
+                                                 goto default;
+                                             default:
+                                                 a++;
+
+                                                 goto End;
+                                         }
+
+                                         End:
+                                         a--;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat, 3));
     }
 
     #endregion // Tests

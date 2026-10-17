@@ -21,6 +21,8 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5012-001")]
+    [Requirement("RH5012-002")]
     public async Task VerifyDiagnosticForContinueStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -60,6 +62,7 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5012-001")]
     public async Task VerifyNoDiagnosticForContinueStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -85,6 +88,7 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5012-001")]
     public async Task VerifyNoDiagnosticForContinueStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -108,6 +112,7 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5012-001")]
     public async Task VerifyDiagnosticForContinueStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
