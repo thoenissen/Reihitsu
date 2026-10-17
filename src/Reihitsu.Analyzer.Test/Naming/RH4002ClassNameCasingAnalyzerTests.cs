@@ -562,6 +562,27 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a nested class is still reported but no fix is offered when the new name would equal the name of one of its members, which adds a compile error inside the containing type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenRenamingANestedClassAddsACompileErrorInItsContainingType()
+    {
+        const string testCode = """
+                                class Outer
+                                {
+                                    class {|RH4002:order|}
+                                    {
+                                        public int Order;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

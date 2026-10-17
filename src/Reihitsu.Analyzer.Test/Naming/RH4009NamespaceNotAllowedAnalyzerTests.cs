@@ -271,5 +271,30 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
                      });
     }
 
+    /// <summary>
+    /// Verifies that nothing is reported when the configuration file ends inside its root object
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-001")]
+    public async Task ConfigurationMalformedInsideItsRootObjectIsInactive()
+    {
+        const string testCode = """
+                                namespace Company.Product
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      { "naming": { "allowedNamespaceDeclarations": [ "A" ]
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     });
+    }
+
     #endregion // Methods
 }
