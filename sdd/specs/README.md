@@ -18,6 +18,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [formatter/cleanup.md](formatter/cleanup.md) | FMT-CLEAN | `CleanupPhase`, `EndOfLineWhitespace` |
 | [formatter/line-endings.md](formatter/line-endings.md) | FMT-EOL | `LineEndingNormalizationPhase` |
 | [shared/blank-line-spacing.md](shared/blank-line-spacing.md) | SHARED-BLANK | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
+| [shared/casing.md](shared/casing.md) | SHARED-CASING | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | [shared/code-fixes.md](shared/code-fixes.md) | SHARED-FIX | — |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
@@ -28,7 +29,27 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH1003.md](analyzer/RH1003.md) | RH1003 | `RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer` |
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
 | [analyzer/RH3202.md](analyzer/RH3202.md) | RH3202 | `RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer`, `RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider`, `ExpressionBodyRewriteUtilities` |
-| [analyzer/RH4106.md](analyzer/RH4106.md) | RH4106 | `RH4106PrivateFieldCasingAnalyzer`, `RH4106PrivateFieldCasingCodeFixProvider`, `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `CasingUtilities` |
+| [analyzer/RH4001.md](analyzer/RH4001.md) | RH4001 | `RH4001TypeNameShouldMatchFileNameAnalyzer`, `RH4001TypeNameShouldMatchFileNameCodeFixProvider`, `RH4001TypeNameShouldMatchFileNameHelper` |
+| [analyzer/RH4002.md](analyzer/RH4002.md) | RH4002 | `RH4002ClassNameCasingAnalyzer`, `RH4002ClassNameCasingCodeFixProvider` |
+| [analyzer/RH4003.md](analyzer/RH4003.md) | RH4003 | `RH4003StructNameCasingAnalyzer`, `RH4003StructNameCasingCodeFixProvider` |
+| [analyzer/RH4004.md](analyzer/RH4004.md) | RH4004 | `RH4004EnumNameCasingAnalyzer`, `RH4004EnumNameCasingCodeFixProvider` |
+| [analyzer/RH4005.md](analyzer/RH4005.md) | RH4005 | `RH4005InterfaceNameCasingAnalyzer`, `RH4005InterfaceNameCasingCodeFixProvider` |
+| [analyzer/RH4006.md](analyzer/RH4006.md) | RH4006 | `RH4006DelegateNameCasingAnalyzer`, `RH4006DelegateNameCasingCodeFixProvider` |
+| [analyzer/RH4007.md](analyzer/RH4007.md) | RH4007 | `RH4007FileScopedNamespaceCasingAnalyzer` |
+| [analyzer/RH4008.md](analyzer/RH4008.md) | RH4008 | `RH4008NamespaceCasingAnalyzer` |
+| [analyzer/RH4009.md](analyzer/RH4009.md) | RH4009 | `RH4009NamespaceNotAllowedAnalyzer` |
+| [analyzer/RH4010.md](analyzer/RH4010.md) | RH4010 | `RH4010RecordNameCasingAnalyzer`, `RH4010RecordNameCasingCodeFixProvider` |
+| [analyzer/RH4011.md](analyzer/RH4011.md) | RH4011 | `RH4011RecordStructNameCasingAnalyzer`, `RH4011RecordStructNameCasingCodeFixProvider` |
+| [analyzer/RH4101.md](analyzer/RH4101.md) | RH4101 | `RH4101EnumMemberCasingAnalyzer`, `RH4101EnumMemberCasingCodeFixProvider` |
+| [analyzer/RH4102.md](analyzer/RH4102.md) | RH4102 | `RH4102EventNameCasingAnalyzer`, `RH4102EventNameCasingCodeFixProvider`, `RH4102CustomEventNameCasingCodeFixProvider` |
+| [analyzer/RH4103.md](analyzer/RH4103.md) | RH4103 | `RH4103MethodNameCasingAnalyzer`, `RH4103MethodNameCasingCodeFixProvider` |
+| [analyzer/RH4104.md](analyzer/RH4104.md) | RH4104 | `RH4104LocalFunctionNameCasingAnalyzer`, `RH4104LocalFunctionNameCasingCodeFixProvider` |
+| [analyzer/RH4105.md](analyzer/RH4105.md) | RH4105 | `RH4105MethodParameterCasingAnalyzer`, `RH4105MethodParameterCasingCodeFixProvider` |
+| [analyzer/RH4106.md](analyzer/RH4106.md) | RH4106 | `RH4106PrivateFieldCasingAnalyzer`, `RH4106PrivateFieldCasingCodeFixProvider` |
+| [analyzer/RH4107.md](analyzer/RH4107.md) | RH4107 | `RH4107ProtectedFieldCasingAnalyzer`, `RH4107ProtectedFieldCasingCodeFixProvider` |
+| [analyzer/RH4108.md](analyzer/RH4108.md) | RH4108 | `RH4108InternalFieldCasingAnalyzer`, `RH4108InternalFieldCasingCodeFixProvider` |
+| [analyzer/RH4109.md](analyzer/RH4109.md) | RH4109 | `RH4109PublicFieldCasingAnalyzer`, `RH4109PublicFieldCasingCodeFixProvider` |
+| [analyzer/RH4110.md](analyzer/RH4110.md) | RH4110 | `RH4110ConstFieldCasingAnalyzer`, `RH4110ConstFieldCasingCodeFixProvider` |
 | [analyzer/RH5001.md](analyzer/RH5001.md) | RH5001 | `RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5002.md](analyzer/RH5002.md) | RH5002 | `RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5003.md](analyzer/RH5003.md) | RH5003 | `RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider` |
