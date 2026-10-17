@@ -21,6 +21,8 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5029-001")]
+    [Requirement("RH5029-002")]
     public async Task VerifyDiagnosticWhenLocalDeclarationIsNotPrecededByBlankLine()
     {
         const string testCode = """
@@ -999,6 +1001,8 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5029-001")]
+    [Requirement("RH5029-002")]
     public async Task VerifyDiagnosticWhenLocalDeclarationInSwitchSectionIsNotPrecededByBlankLine()
     {
         const string testCode = """
@@ -1060,6 +1064,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5029-001")]
     public async Task VerifyNoDiagnosticWhenLocalDeclarationIsFirstStatementInBlock()
     {
         const string testCode = """
@@ -1090,6 +1095,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5029-001")]
     public async Task VerifyNoDiagnosticWhenLocalDeclarationIsFirstStatementInSwitchSection()
     {
         const string testCode = """
@@ -1125,6 +1131,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5029-001")]
     public async Task VerifyNoDiagnosticForConsecutiveLocalDeclarations()
     {
         const string testCode = """
@@ -1162,6 +1169,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5029-001")]
     public async Task VerifyNoDiagnosticWhenLocalDeclarationAlreadyHasPrecedingBlankLine()
     {
         const string testCode = """
@@ -1194,6 +1202,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-003")]
     public async Task VerifyNoDiagnosticWhenLocalDeclarationDirectlyFollowsPreprocessorDirective()
     {
         const string testCode = """
@@ -1225,6 +1234,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-003")]
     public async Task VerifyNoDiagnosticWhenLocalDeclarationDirectlyFollowsEndIfDirective()
     {
         const string testCode = """
@@ -1246,6 +1256,159 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
 
                                     private void Consume()
                                     {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a local, const, or using declaration after another kind of statement is reported on its first token while a declaration after a declaration is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5029-001")]
+    [Requirement("RH5029-002")]
+    public async Task VerifyDiagnosticForFirstDeclarationOfEachRunIncludingConstAndUsingDeclarations()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a, System.IDisposable resource)
+                                    {
+                                        var b = a;
+                                        var c = b;
+                                        a++;
+                                        {|#0:var|} d = c;
+                                        const int e = 1;
+
+                                        M(d + e, resource);
+                                        {|#1:const|} int f = 2;
+
+                                        M(f, resource);
+                                        {|#2:using|} var other = resource;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a, System.IDisposable resource)
+                                     {
+                                         var b = a;
+                                         var c = b;
+                                         a++;
+
+                                         var d = c;
+                                         const int e = 1;
+
+                                         M(d + e, resource);
+
+                                         const int f = 2;
+
+                                         M(f, resource);
+
+                                         using var other = resource;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported on the const keyword of a const declaration that directly follows another kind of statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5029-001")]
+    [Requirement("RH5029-002")]
+    public async Task VerifyDiagnosticForConstDeclarationAfterStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        a++;
+                                        {|#0:const|} int f = 2;
+
+                                        return a + f;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         a++;
+
+                                         const int f = 2;
+
+                                         return a + f;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported on the using keyword of a using declaration that directly follows another kind of statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5029-001")]
+    [Requirement("RH5029-002")]
+    public async Task VerifyDiagnosticForUsingDeclarationAfterStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a, System.IDisposable resource)
+                                    {
+                                        a++;
+                                        {|#0:using|} var other = resource;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a, System.IDisposable resource)
+                                     {
+                                         a++;
+
+                                         using var other = resource;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for a const declaration that directly follows a local declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5029-001")]
+    public async Task VerifyNoDiagnosticForConstDeclarationAfterLocalDeclaration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        var d = a;
+                                        const int e = 1;
+
+                                        return d + e;
                                     }
                                 }
                                 """;

@@ -21,6 +21,8 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5018-001")]
+    [Requirement("RH5018-002")]
     public async Task VerifyDiagnosticForLockStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -64,6 +66,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5018-001")]
     public async Task VerifyNoDiagnosticForLockStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -91,6 +94,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5018-001")]
     public async Task VerifyNoDiagnosticForLockStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -115,6 +119,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5018-001")]
     public async Task VerifyDiagnosticForLockStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """

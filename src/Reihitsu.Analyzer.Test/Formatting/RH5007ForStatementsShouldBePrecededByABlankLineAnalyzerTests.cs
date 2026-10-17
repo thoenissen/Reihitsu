@@ -21,6 +21,8 @@ public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5007-001")]
+    [Requirement("RH5007-002")]
     public async Task VerifyDiagnosticForForStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -58,6 +60,7 @@ public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5007-001")]
     public async Task VerifyNoDiagnosticForForStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -82,6 +85,7 @@ public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5007-001")]
     public async Task VerifyNoDiagnosticForForStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -104,6 +108,7 @@ public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5007-001")]
     public async Task VerifyDiagnosticForForStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """

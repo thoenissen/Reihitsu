@@ -32,7 +32,23 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5001.md](analyzer/RH5001.md) | RH5001 | `RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5002.md](analyzer/RH5002.md) | RH5002 | `RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5003.md](analyzer/RH5003.md) | RH5003 | `RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5004.md](analyzer/RH5004.md) | RH5004 | `RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5004DoStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5005.md](analyzer/RH5005.md) | RH5005 | `RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5005UsingStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5006.md](analyzer/RH5006.md) | RH5006 | `RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5006ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5007.md](analyzer/RH5007.md) | RH5007 | `RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5007ForStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5008.md](analyzer/RH5008.md) | RH5008 | `RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5008ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5009.md](analyzer/RH5009.md) | RH5009 | `RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5009GotoStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5010.md](analyzer/RH5010.md) | RH5010 | `RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5010BreakStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5012.md](analyzer/RH5012.md) | RH5012 | `RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5012ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5013.md](analyzer/RH5013.md) | RH5013 | `RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5013ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5014.md](analyzer/RH5014.md) | RH5014 | `RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5014SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5015.md](analyzer/RH5015.md) | RH5015 | `RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5015CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5016.md](analyzer/RH5016.md) | RH5016 | `RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5016UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5017.md](analyzer/RH5017.md) | RH5017 | `RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5017FixedStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5018.md](analyzer/RH5018.md) | RH5018 | `RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5018LockStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5019.md](analyzer/RH5019.md) | RH5019 | `RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5021.md](analyzer/RH5021.md) | RH5021 | `RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer`, `RH5021LocalDeclarationsShouldBeFollowedByABlankLineCodeFixProvider` |
+| [analyzer/RH5029.md](analyzer/RH5029.md) | RH5029 | `RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer`, `RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH6002.md](analyzer/RH6002.md) | RH6002 | `RH6002CommasMustBeSpacedCorrectlyAnalyzer`, `RH6002CommasMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH7103.md](analyzer/RH7103.md) | RH7103 | `RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer`, `RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider` |
 | [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |

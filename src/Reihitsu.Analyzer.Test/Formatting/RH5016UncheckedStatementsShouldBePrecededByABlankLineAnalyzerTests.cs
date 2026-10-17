@@ -21,6 +21,8 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5016-001")]
+    [Requirement("RH5016-002")]
     public async Task VerifyDiagnosticForUncheckedStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -60,6 +62,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5016-001")]
     public async Task VerifyNoDiagnosticForUncheckedStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -85,6 +88,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5016-001")]
     public async Task VerifyNoDiagnosticForUncheckedStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -108,6 +112,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5016-001")]
     public async Task VerifyDiagnosticForUncheckedStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -142,6 +147,112 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies an unchecked statement after a statement is reported on its unchecked keyword while a checked statement and an unchecked expression are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5016-001")]
+    [Requirement("RH5016-002")]
+    public async Task VerifyDiagnosticForUncheckedStatementButNotForCheckedStatementOrUncheckedExpression()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        {|#0:unchecked|}
+                                        {
+                                            a++;
+                                        }
+
+                                        a++;
+                                        checked
+                                        {
+                                            a--;
+                                        }
+
+                                        a++;
+                                        a = unchecked(a + 1);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         unchecked
+                                         {
+                                             a++;
+                                         }
+
+                                         a++;
+                                         checked
+                                         {
+                                             a--;
+                                         }
+
+                                         a++;
+                                         a = unchecked(a + 1);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for a checked statement that directly follows another statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5016-001")]
+    public async Task VerifyNoDiagnosticForCheckedStatementAfterStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        checked
+                                        {
+                                            a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for an unchecked expression inside a statement that directly follows another statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5016-001")]
+    public async Task VerifyNoDiagnosticForUncheckedExpressionAfterStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        a = unchecked(a + 1);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests

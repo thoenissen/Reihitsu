@@ -21,6 +21,8 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5013-001")]
+    [Requirement("RH5013-002")]
     public async Task VerifyDiagnosticForThrowStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -64,6 +66,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5013-001")]
     public async Task VerifyNoDiagnosticForThrowStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -91,6 +94,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5013-001")]
     public async Task VerifyNoDiagnosticForThrowStatementAfterCaseLabel()
     {
         const string testCode = """
@@ -117,6 +121,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5013-001")]
     public async Task VerifyDiagnosticForThrowStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -155,6 +160,79 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a throw statement after a statement is reported on its throw keyword while a throw expression is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5013-001")]
+    [Requirement("RH5013-002")]
+    public async Task VerifyDiagnosticForThrowStatementButNotForThrowExpression()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(object value)
+                                    {
+                                        var text = value.ToString();
+                                        {|#0:throw|} new System.InvalidOperationException(text);
+                                    }
+
+                                    string N(string value)
+                                    {
+                                        var text = value ?? throw new System.ArgumentNullException(nameof(value));
+
+                                        return text;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(object value)
+                                     {
+                                         var text = value.ToString();
+
+                                         throw new System.InvalidOperationException(text);
+                                     }
+
+                                     string N(string value)
+                                     {
+                                         var text = value ?? throw new System.ArgumentNullException(nameof(value));
+
+                                         return text;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for a throw expression inside a statement that directly follows another statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5013-001")]
+    public async Task VerifyNoDiagnosticForThrowExpressionAfterStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string value, int count)
+                                    {
+                                        count++;
+                                        var text = value ?? throw new System.ArgumentNullException(nameof(value));
+
+                                        return text + count;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests

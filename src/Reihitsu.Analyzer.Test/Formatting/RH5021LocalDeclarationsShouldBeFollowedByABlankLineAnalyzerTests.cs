@@ -21,6 +21,8 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5021-001")]
+    [Requirement("RH5021-003")]
     public async Task VerifyDiagnosticWhenLocalDeclarationIsFollowedByExpressionStatementWithoutBlankLine()
     {
         const string testCode = """
@@ -72,6 +74,8 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5021-001")]
+    [Requirement("RH5021-003")]
     public async Task VerifyDiagnosticWhenLocalDeclarationWithoutInitializerIsFollowedByExpressionStatementWithoutBlankLine()
     {
         const string testCode = """
@@ -234,6 +238,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5021-001")]
     public async Task VerifyNoDiagnosticForConsecutiveExpressionStatements()
     {
         const string testCode = """
@@ -259,6 +264,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5021-001")]
     public async Task VerifyNoDiagnosticWhenLocalDeclarationAndExpressionStatementAreAlreadySeparatedByBlankLine()
     {
         const string testCode = """
@@ -290,6 +296,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5021-001")]
     public async Task VerifyNoDiagnosticForLocalDeclarationAdjacentToControlFlowStatement()
     {
         const string testCode = """
@@ -316,6 +323,8 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5021-001")]
+    [Requirement("RH5021-002")]
     public async Task VerifyNoDiagnosticForAssignmentStatementAdjacentToExpressionStatement()
     {
         const string testCode = """
@@ -348,6 +357,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5021-001")]
     public async Task VerifyDiagnosticWhenLocalDeclarationIsFollowedByCommentLineThenExpressionStatement()
     {
         const string testCode = """
@@ -394,6 +404,181 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies an expression statement is reported on its first token after a local declaration and after a using declaration, but not after another expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5021-001")]
+    [Requirement("RH5021-003")]
+    public async Task VerifyDiagnosticForExpressionStatementAfterLocalOrUsingDeclarationButNotAfterExpressionStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a, System.IDisposable resource)
+                                    {
+                                        var b = a;
+                                        {|#0:M|}(b, resource);
+                                        M(a, resource);
+
+                                        using var other = resource;
+                                        {|#1:other|}.Dispose();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a, System.IDisposable resource)
+                                     {
+                                         var b = a;
+
+                                         M(b, resource);
+                                         M(a, resource);
+
+                                         using var other = resource;
+
+                                         other.Dispose();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported on the first token of an expression statement that directly follows a using declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5021-001")]
+    [Requirement("RH5021-003")]
+    public async Task VerifyDiagnosticForExpressionStatementAfterUsingDeclaration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(System.IDisposable resource)
+                                    {
+                                        using var other = resource;
+                                        {|#0:other|}.Dispose();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(System.IDisposable resource)
+                                     {
+                                         using var other = resource;
+
+                                         other.Dispose();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies simple and compound assignments after a local declaration are exempt while an increment after a local declaration is reported on its first token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5021-002")]
+    [Requirement("RH5021-001")]
+    [Requirement("RH5021-003")]
+    public async Task VerifyNoDiagnosticForAssignmentsAfterLocalDeclarationButDiagnosticForIncrement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        var b = a;
+                                        b = 2;
+
+                                        var c = a;
+                                        c += 3;
+
+                                        var d = a;
+                                        {|#0:d|}++;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         var b = a;
+                                         b = 2;
+
+                                         var c = a;
+                                         c += 3;
+
+                                         var d = a;
+
+                                         d++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for a compound assignment that directly follows a local declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5021-002")]
+    public async Task VerifyNoDiagnosticForCompoundAssignmentAfterLocalDeclaration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        var c = a;
+                                        c += 3;
+
+                                        return c;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for a null-coalescing assignment that directly follows a local declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5021-002")]
+    public async Task VerifyNoDiagnosticForNullCoalescingAssignmentAfterLocalDeclaration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string value)
+                                    {
+                                        var text = value;
+                                        text ??= string.Empty;
+
+                                        return text;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests
