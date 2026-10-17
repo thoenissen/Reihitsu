@@ -11,7 +11,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Phase
 
-1 — decision round for open questions (#912, sub-issues #913–#934). No code.
+2 — follow-ups of the decisions. Phase 1 complete (all boxes in #913–#934 ticked, 2026-10-17).
 
 ## Order for phase 1
 
@@ -67,6 +67,10 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 | #914 Q1 `#region   Fields` | New: always one space, no trailing ws; update test `TrailingOpeningWhitespaceWithCanonicalCloseIsStable` | https://github.com/thoenissen/Reihitsu/issues/914#issuecomment-6233201504 | issue (phase 2) |
 | #924 Q1 EOL in block comments/disabled text | New: normalize; FMT-PIPE-002 allowance (with #923 Q1), FMT-PIPE-007 updated | https://github.com/thoenissen/Reihitsu/issues/924#issuecomment-6233201915 | issue (phase 2) |
 | #927 Q1 balanced pragma in crossed body | Bug (guard scope): balanced pragma/nullable inside crossed body doesn't block; replace Core test | https://github.com/thoenissen/Reihitsu/issues/927#issuecomment-6233202421 | bug issue (phase 2) |
+| #931 Q1 RH1003 numeric sub-addition | Bug: non-string sub-addition is one part | https://github.com/thoenissen/Reihitsu/issues/931#issuecomment-6233289154 | bug issue (phase 2) |
+| #932 Q1 RH0001 trailing content | Bug: report anything but whitespace after root | https://github.com/thoenissen/Reihitsu/issues/932#issuecomment-6233289419 | bug issue (phase 2) |
+| #933 Q1 dry-run diff header | Bug: path relative to cwd, forward slashes; outside cwd full path w/o prefixes | https://github.com/thoenissen/Reihitsu/issues/933#issuecomment-6233289816 | bug issue (phase 2) |
+| #934 Q1 Playground generated input | New: show note like PLAY-006 | https://github.com/thoenissen/Reihitsu/issues/934#issuecomment-6233290045 | issue (phase 2) |
 
 ## Running
 
@@ -74,7 +78,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- #931, #932, #933, #934 (last round of phase 1)
+- Phase 2 plan approval (grouping below) and the lane question for new-behavior items
 
 ## Collected for later phases
 
@@ -87,8 +91,47 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Issues fully decided (close when follow-ups exist)
 
-- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917, #923, #915, #918, #913, #914, #924, #927
+- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917, #923, #915, #918, #913, #914, #924, #927, #931, #932, #933, #934 (all 21; close each once its follow-up issues exist, then tick it in #912)
 
 ## Still open in phase 1
 
-- #931; #932; #933; #934
+- none
+
+## Phase 2 plan (draft, not approved)
+
+Kind: B = bug fix lane, N = new intended behavior (no change doc yet; lane question open), C = cleanup.
+
+Formatter
+- F1 B #919 Q1 switch bracing must not break cross-section locals
+- F2 B #919 Q3 blank line before comment leading terminal `break`
+- F3 C #919 Q2 delete dead `RemoveBraces` + #921 Q4 `SwitchExpressionContributor` summary/test name
+- F4 B #922 Q1+#921 Q3, #922 Q2, #922 Q3 raw-string alignment (holes owned by FMT-RAW, nested literal, tabs)
+- F5 B #921 Q2 `#endif` after disabled text
+- F6 N continuation-line rule (#921 Q1, #918 Q5, #913 Q2, #913 Q4)
+- F7 B #918 Q3 empty region after `{` (phases undo each other)
+- F8 B #918 Q1 + Q2 ctor-initializer colon, constraint-clause wrap
+- F9 N #918 Q4 + Q6 switch arms one per line, argument lists like parameter lists
+- F10 B #920 Q1 + Q4 `fixed (`, double space before comment
+- F11 N #920 Q2 + Q3 new spacing rules
+- F12 N #923 Q1 + #915 Q1 + #924 Q1 comment line ends: trailing ws + line endings (FMT-PIPE-002 allowance)
+- F13 B #923 Q2 + Q3 directive-line and EOF trailing ws
+- F14 B #915 Q2 + Q3 doc element normalization (end tag symmetric, block-level only)
+- F15 B #915 Q4 stray `///` relocation
+- F16 B #913 Q1 + Q3 structural transforms (comment after `=>`, field split guard)
+- F17 N #914 Q1 `#region` line normalization
+Usings (analyzer + formatter)
+- U1 N/B #916 Q1 comment-led directive in using group (RH7207, SHARED-USING-008)
+- U2 B #916 Q2 + Q3 textual `#` check, `global::` sort key
+Analyzer / code fixes
+- A1 B #930 Q1 + Q2 RH2005 fix
+- A2 B #926 Q1 RH7103 effective accessibility
+- A3 B #926 Q2 ordering fixes format only the moved member
+- A4 B #927 Q1 balanced pragma guard
+- A5 B #928 Q1 casing acronym run
+- A6 B #929 Q1 statement-blank-line fix base
+- A7 B #931 Q1 RH1003
+- A8 B #932 Q1 RH0001
+- #946 existing (RH5005/RH5006 await using/foreach)
+CLI / Playground
+- C1 B #933 Q1 diff header
+- C2 N #934 Q1 generated-input note
