@@ -39,3 +39,14 @@ Maintainer's answer (verbatim):
 ## Lane widened: tests → tooling
 
 `scripts/lane-check.sh tests --head worktree` reports `mismatch — claimed tests, diff needs tooling`. The only path that causes it is the lead's decisions entry `squad/decisions/2026-10-17-rh4106-shared-casing-move.md`, which `squad/README.md` requires to ship with the PR. The implementer had not started, so the lane widens along docs → tests → tooling, as `squad/README.md` allows. The roles it adds are the implementer (run at its stage; this run has no production change to make) and the auditor. Follow-up candidate: the lane check classifies `squad/decisions/` entries as tooling.
+
+## Open questions filed (sub-issues of thoenissen/Reihitsu#912, from `06-spec-author.md`)
+
+- thoenissen/Reihitsu#1009 — `sdd/specs/shared/casing.md` (Q1–Q4)
+- thoenissen/Reihitsu#1010 — `sdd/specs/analyzer/RH4005.md`
+- thoenissen/Reihitsu#1011 — `sdd/specs/analyzer/RH4001.md` (Q1–Q3)
+- thoenissen/Reihitsu#1012 — `sdd/specs/analyzer/RH4009.md` (Q1–Q2)
+- thoenissen/Reihitsu#1013 — `sdd/specs/analyzer/RH4103.md` (Q1–Q2)
+- thoenissen/Reihitsu#1014 — `sdd/specs/analyzer/RH4102.md`
+
+Follow-up candidate awaiting the maintainer's approval: RH4102's Fix All corrects only the event kind it was invoked from (it breaks SHARED-FIX-002).
