@@ -609,14 +609,6 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     #region BatchCodeFixTestsBase
 
     /// <inheritdoc/>
-    [TestMethod]
-    [Requirement("RH8107-008")]
-    public override async Task FixAllCorrectsEveryDiagnostic()
-    {
-        await base.FixAllCorrectsEveryDiagnostic();
-    }
-
-    /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()
     {
         const string source = """

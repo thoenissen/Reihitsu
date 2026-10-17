@@ -254,7 +254,6 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH6002-007")]
     public async Task VerifyMultipleCommaDiagnosticsAreFixedInOneFixAllIteration()
     {
         const string testData = """
@@ -470,14 +469,6 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
-
-    /// <inheritdoc/>
-    [TestMethod]
-    [Requirement("RH6002-007")]
-    public override async Task FixAllCorrectsEveryDiagnostic()
-    {
-        await base.FixAllCorrectsEveryDiagnostic();
-    }
 
     /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()

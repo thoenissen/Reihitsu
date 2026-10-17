@@ -5,7 +5,7 @@
 | ID prefix | FMT-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingPhase`, `UsingDirectiveOrderingRewriter`, `UsingGrouping`, `UsingLeadingTriviaBuilder`, `UsingTrailingTriviaBuilder` |
-| Uses | SHARED-USING-001, SHARED-USING-002, SHARED-USING-003, SHARED-USING-004, SHARED-USING-005, SHARED-USING-006, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-007 |
+| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, FMT-PIPE-003 |
 
 This spec covers what the `UsingDirectiveOrderingPhase` decides on its own: how a using block is rebuilt once its canonical order is known — blank lines between groups, one directive per line, and where header, leading, and trailing comments end up. The order itself and the safety guard are the shared policy in SHARED-USING. The code fixes of RH7201–RH7207 run this phase on the one block they fix, so its output is also their output.
 

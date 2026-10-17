@@ -588,7 +588,6 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// Verifying that no code fix provider is registered for the rule
     /// </summary>
     [TestMethod]
-    [Requirement("RH0001-007")]
     public void VerifyNoCodeFixIsOffered()
     {
         var codeFixProviders = AnalyzerMetadataDiscovery.DiscoverCodeFixProviders();

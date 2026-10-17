@@ -25,7 +25,17 @@ internal static class SpecCatalog
     /// <summary>
     /// File name of the spec index, which is not a spec itself
     /// </summary>
-    private const string IndexFileName = "README.md";
+    public const string IndexFileName = "README.md";
+
+    /// <summary>
+    /// Cell text of a header row that names nothing, such as <c>Uses</c> without uses
+    /// </summary>
+    public const string NoneCell = "—";
+
+    /// <summary>
+    /// Heading of the section that lists what a spec deliberately does not cover
+    /// </summary>
+    private const string NonGoalsHeading = "## Non-goals";
 
     /// <summary>
     /// Matches the <c>Code owners</c> row of a spec's header table and captures its cell
@@ -51,6 +61,21 @@ internal static class SpecCatalog
     /// Matches the status line that marks a requirement as retired
     /// </summary>
     private static readonly Regex _retiredStatusPattern = new(@"^Status:\s*Retired\b");
+
+    /// <summary>
+    /// Matches one row of a spec's header table and captures its label and its cell
+    /// </summary>
+    private static readonly Regex _headerRowPattern = new(@"^\|\s*(?<label>[^|]*?)\s*\|\s*(?<value>.*?)\s*\|\s*$");
+
+    /// <summary>
+    /// Matches a requirement ID anywhere in a line, such as <c>RH3202-001</c> or <c>SHARED-ORDER-002</c>
+    /// </summary>
+    private static readonly Regex _requirementIdPattern = new(@"\b(?<id>(?:RH[0-9]{4}[A-Z]?|[A-Z]+(?:-[A-Z]+)*)-[0-9]{3})\b");
+
+    /// <summary>
+    /// Matches a row of the spec index and captures the linked spec path, the ID prefix, and the code owners cell
+    /// </summary>
+    private static readonly Regex _indexRowPattern = new(@"^\|\s*\[(?<path>[^\]]+)\]\([^)]*\)\s*\|\s*(?<prefix>[^|]*?)\s*\|\s*(?<owners>.*?)\s*\|\s*$");
 
     #endregion // Constants
 
@@ -94,9 +119,11 @@ internal static class SpecCatalog
                 continue;
             }
 
-            var entries = _quotedEntryPattern.Matches(rows[0].Groups["owners"].Value);
+            var cell = rows[0].Groups["owners"].Value.Trim();
+            var entries = _quotedEntryPattern.Matches(cell);
 
-            if (entries.Count == 0)
+            if (entries.Count == 0
+                && cell != NoneCell)
             {
                 problems.Add($"{specPath}: the 'Code owners' header row names no type");
             }
@@ -182,6 +209,139 @@ internal static class SpecCatalog
         }
 
         return requirements;
+    }
+
+    /// <summary>
+    /// Reads the header table of every spec: the rows between the title and the first section heading
+    /// </summary>
+    /// <param name="specsDirectory">The <c>sdd/specs</c> directory</param>
+    /// <returns>The headers of all specs</returns>
+    public static IReadOnlyList<SpecHeader> ReadHeaders(string specsDirectory)
+    {
+        var headers = new List<SpecHeader>();
+
+        foreach (var specFile in EnumerateSpecFiles(specsDirectory))
+        {
+            var rows = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            foreach (var line in File.ReadLines(specFile))
+            {
+                if (line.StartsWith("## ", StringComparison.Ordinal))
+                {
+                    break;
+                }
+
+                var row = _headerRowPattern.Match(line);
+
+                if (row.Success
+                    && row.Groups["label"].Value.Length > 0
+                    && row.Groups["label"].Value.Trim('-').Length > 0)
+                {
+                    rows.TryAdd(row.Groups["label"].Value, row.Groups["value"].Value);
+                }
+            }
+
+            headers.Add(new SpecHeader(GetSpecPath(specsDirectory, specFile), rows));
+        }
+
+        return headers;
+    }
+
+    /// <summary>
+    /// Reads every requirement ID a spec mentions outside its header table and its <c>Non-goals</c> section,
+    /// including the IDs of its own requirements
+    /// </summary>
+    /// <param name="specsDirectory">The <c>sdd/specs</c> directory</param>
+    /// <returns>The mentioned IDs per spec path</returns>
+    public static IReadOnlyDictionary<string, HashSet<string>> ReadMentionedRequirementIds(string specsDirectory)
+    {
+        var mentions = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+
+        foreach (var specFile in EnumerateSpecFiles(specsDirectory))
+        {
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            var isInHeaderTable = false;
+            var hasPassedHeaderTable = false;
+            var isInNonGoals = false;
+
+            foreach (var line in File.ReadLines(specFile))
+            {
+                if (hasPassedHeaderTable == false)
+                {
+                    if (line.StartsWith('|'))
+                    {
+                        isInHeaderTable = true;
+
+                        continue;
+                    }
+
+                    if (isInHeaderTable)
+                    {
+                        hasPassedHeaderTable = true;
+                    }
+                }
+
+                if (line.StartsWith("## ", StringComparison.Ordinal))
+                {
+                    hasPassedHeaderTable = true;
+                    isInNonGoals = line.TrimEnd() == NonGoalsHeading;
+                }
+
+                if (isInNonGoals)
+                {
+                    continue;
+                }
+
+                foreach (Match match in _requirementIdPattern.Matches(line))
+                {
+                    ids.Add(match.Groups["id"].Value);
+                }
+            }
+
+            mentions.Add(GetSpecPath(specsDirectory, specFile), ids);
+        }
+
+        return mentions;
+    }
+
+    /// <summary>
+    /// Reads the rows of the spec index <c>sdd/specs/README.md</c>
+    /// </summary>
+    /// <param name="specsDirectory">The <c>sdd/specs</c> directory</param>
+    /// <returns>Spec path, ID prefix, and code owners cell of every row; empty when the index does not exist</returns>
+    public static IReadOnlyList<(string SpecPath, string Prefix, string CodeOwners)> ReadIndex(string specsDirectory)
+    {
+        var indexPath = Path.Combine(specsDirectory, IndexFileName);
+
+        if (File.Exists(indexPath) == false)
+        {
+            return [];
+        }
+
+        return File.ReadLines(indexPath)
+                   .Select(line => _indexRowPattern.Match(line))
+                   .Where(match => match.Success)
+                   .Select(match => (match.Groups["path"].Value, match.Groups["prefix"].Value, match.Groups["owners"].Value))
+                   .ToList();
+    }
+
+    /// <summary>
+    /// Splits a comma-separated header cell into its entries; <see cref="NoneCell"/> yields none
+    /// </summary>
+    /// <param name="cell">Cell text</param>
+    /// <returns>The trimmed entries</returns>
+    public static IReadOnlyList<string> SplitCell(string cell)
+    {
+        if (cell == null
+            || cell.Trim() == NoneCell)
+        {
+            return [];
+        }
+
+        return cell.Split(',')
+                   .Select(entry => entry.Trim())
+                   .Where(entry => entry.Length > 0)
+                   .ToList();
     }
 
     /// <summary>
@@ -286,6 +446,17 @@ internal static class SpecCatalog
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Builds the spec path relative to <c>sdd/specs</c>, with forward slashes
+    /// </summary>
+    /// <param name="specsDirectory">The <c>sdd/specs</c> directory</param>
+    /// <param name="specFile">Full path of the spec file</param>
+    /// <returns>The relative spec path</returns>
+    private static string GetSpecPath(string specsDirectory, string specFile)
+    {
+        return Path.GetRelativePath(specsDirectory, specFile).Replace('\\', '/');
     }
 
     #endregion // Methods

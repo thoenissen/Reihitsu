@@ -247,14 +247,6 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     #region BatchCodeFixTestsBase
 
     /// <inheritdoc/>
-    [TestMethod]
-    [Requirement("RH3202-006")]
-    public override async Task FixAllCorrectsEveryDiagnostic()
-    {
-        await base.FixAllCorrectsEveryDiagnostic();
-    }
-
-    /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """

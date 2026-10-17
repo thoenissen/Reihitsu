@@ -379,7 +379,7 @@ public sealed class SpecConsistencyTests
                                    .Select(id => $"{id}: in the ledger but no spec has this requirement heading; a dropped requirement keeps its heading with a 'Status: Retired' line instead of being deleted"));
         problems.AddRange(headingIds.Where(id => ledgerIds.Contains(id) == false)
                                     .OrderBy(id => id, StringComparer.Ordinal)
-                                    .Select(id => $"{id}: heads a requirement but is not in the ledger; append it"));
+                                    .Select(id => $"{id}: heads a requirement but is not in the ledger; insert it at its sorted position"));
 
         return problems;
     }
