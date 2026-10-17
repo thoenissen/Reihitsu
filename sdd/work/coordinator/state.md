@@ -52,6 +52,12 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 | #916 Q2 `#` in block comment blocks reorder | Bug: drop textual check | https://github.com/thoenissen/Reihitsu/issues/916#issuecomment-6232450977 | bug issue (phase 2) |
 | #916 Q3 `global::` sort key | Bug (RH7203 + formatter): strip `global::`, unqualified first on tie | https://github.com/thoenissen/Reihitsu/issues/916#issuecomment-6232450977 | bug issue (phase 2) |
 | #917 Q1/Q2 duplicates | Pointed to #918 Q3 and #916 Q1 | https://github.com/thoenissen/Reihitsu/issues/917 | none of its own |
+| #923 Q1 + #915 Q1 trailing ws in comments | Remove: `///` lines by FMT-DOC, `//` and `/* */` by FMT-CLEAN; FMT-PIPE-002 allowance; empty summary -> bare `///` | https://github.com/thoenissen/Reihitsu/issues/923#issuecomment-6232535812 | one issue (phase 2) |
+| #923 Q2 directive line trailing ws | Bug: strip for directives without message text | https://github.com/thoenissen/Reihitsu/issues/923#issuecomment-6232535812 | bug issue (phase 2) |
+| #923 Q3 trailing ws at EOF w/o newline | Bug: strip | https://github.com/thoenissen/Reihitsu/issues/923#issuecomment-6232535812 | bug issue (phase 2) |
+| #915 Q2 end tag on content line | Bug: symmetric, any length | https://github.com/thoenissen/Reihitsu/issues/915#issuecomment-6232536716 | bug issue (phase 2) |
+| #915 Q3 inline elements expanded | Bug: rebuild only block-level elements | https://github.com/thoenissen/Reihitsu/issues/915#issuecomment-6232536716 | bug issue (phase 2) |
+| #915 Q4 stray `///` relocated | Bug: relocate only before documentable node (shared predicate, FMT-BLANK follows) | https://github.com/thoenissen/Reihitsu/issues/915#issuecomment-6232536716 | bug issue (phase 2) |
 
 ## Running
 
@@ -59,7 +65,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- #923 Q1–Q3 + #915 Q1–Q4 (trailing whitespace in comments group)
+- #918 Q1, Q2, Q4, Q6; #913 Q1, Q3
 
 ## Collected for later phases
 
@@ -72,8 +78,8 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Issues fully decided (close when follow-ups exist)
 
-- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917
+- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917, #923, #915
 
 ## Still open in phase 1
 
-- #918 Q1, Q2, Q4, Q6; #913 Q1, Q3; #914; #924; #927; #931; #932; #933; #934
+- #914; #924; #927; #931; #932; #933; #934
