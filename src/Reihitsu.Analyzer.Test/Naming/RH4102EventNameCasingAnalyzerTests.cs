@@ -23,6 +23,8 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-001")]
+    [Requirement("RH4102-003")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -77,6 +79,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseEvent()
     {
         const string testCode = """
@@ -99,6 +102,8 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-001")]
+    [Requirement("RH4102-003")]
     public async Task VerifyDiagnosticsForGenericEventHandlerWrongCasing()
     {
         const string testCode = """
@@ -133,6 +138,8 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-001")]
+    [Requirement("RH4102-003")]
     public async Task VerifyDiagnosticsForEventInInterface()
     {
         const string testCode = """
@@ -167,6 +174,8 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-001")]
+    [Requirement("RH4102-003")]
     public async Task VerifyDiagnosticsForStaticEventWrongCasing()
     {
         const string testCode = """
@@ -201,6 +210,8 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-001")]
+    [Requirement("RH4102-003")]
     public async Task VerifyPropertyStyleEventIsDetectedAndFixed()
     {
         const string testCode = """
@@ -253,6 +264,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-003")]
     public async Task VerifyEventRenameRetargetsSubscriptionsAndReferences()
     {
         const string testCode = """
@@ -297,6 +309,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-003")]
     public async Task VerifyTwoEventsAreFixedInOneFixAllIteration()
     {
         const string testCode = """
@@ -332,6 +345,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-003")]
     public async Task VerifyTwoCustomEventsAreFixedInOneFixAllIteration()
     {
         const string testCode = """
@@ -380,6 +394,8 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4102-002")]
+    [Requirement("RH4102-003")]
     public async Task VerifyExplicitInterfaceEventImplementationIsExcluded()
     {
         const string testCode = """
@@ -419,6 +435,206 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that interface events, every declarator of a field-like event, static events, events with accessors, and overrides and implicit implementations of source events are each reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4102-001")]
+    public async Task EveryKindOfEventIsCheckedWithOneDiagnosticPerEvent()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface ISource
+                                {
+                                    event EventHandler {|RH4102:changed|};
+                                }
+
+                                public class Source
+                                {
+                                    public event EventHandler {|RH4102:opened|}, {|RH4102:closed|};
+
+                                    public static event EventHandler {|RH4102:instanceCreated|};
+
+                                    public event EventHandler DataReceived;
+
+                                    public event EventHandler {|RH4102:saved|}
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+
+                                public abstract class BaseSource
+                                {
+                                    public abstract event EventHandler {|RH4102:updated|};
+                                }
+
+                                public class Derived : BaseSource, ISource
+                                {
+                                    public override event EventHandler {|RH4102:updated|};
+
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit interface event implementation is not reported, and that the fix for the interface event renames it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4102-002")]
+    public async Task ExplicitInterfaceEventImplementationIsNotReportedAndIsRenamedWithTheInterfaceEvent()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal interface ISource
+                                {
+                                    event EventHandler {|RH4102:dataChanged|};
+                                }
+
+                                internal class Source : ISource
+                                {
+                                    event EventHandler ISource.dataChanged
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal interface ISource
+                                 {
+                                     event EventHandler DataChanged;
+                                 }
+
+                                 internal class Source : ISource
+                                 {
+                                     event EventHandler ISource.DataChanged
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a field-like event to PascalCase together with its subscription and its invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4102-003")]
+    public async Task FixRenamesFieldLikeEventAndEverySubscriptionAndInvocation()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class Source
+                                {
+                                    public event EventHandler {|RH4102:dataChanged|};
+
+                                    public void Subscribe()
+                                    {
+                                        dataChanged += OnChanged;
+                                        dataChanged?.Invoke(this, EventArgs.Empty);
+                                    }
+
+                                    private void OnChanged(object sender, EventArgs args)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class Source
+                                 {
+                                     public event EventHandler DataChanged;
+
+                                     public void Subscribe()
+                                     {
+                                         DataChanged += OnChanged;
+                                         DataChanged?.Invoke(this, EventArgs.Empty);
+                                     }
+
+                                     private void OnChanged(object sender, EventArgs args)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an event with accessors to PascalCase together with its subscription and unsubscription
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4102-003")]
+    public async Task FixRenamesEventWithAccessorsAndEverySubscription()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class Source
+                                {
+                                    public event EventHandler {|#0:saved|}
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+
+                                    public void Subscribe()
+                                    {
+                                        saved += OnChanged;
+                                        saved -= OnChanged;
+                                    }
+
+                                    private void OnChanged(object sender, EventArgs args)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class Source
+                                 {
+                                     public event EventHandler Saved
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+
+                                     public void Subscribe()
+                                     {
+                                         Saved += OnChanged;
+                                         Saved -= OnChanged;
+                                     }
+
+                                     private void OnChanged(object sender, EventArgs args)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCustomEvent(testCode, fixedCode, 1);
     }
 
     /// <summary>

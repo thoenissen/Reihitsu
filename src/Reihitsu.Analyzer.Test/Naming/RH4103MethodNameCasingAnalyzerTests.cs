@@ -21,6 +21,8 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
+    [Requirement("RH4103-003")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -71,6 +73,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseMethod()
     {
         const string testCode = """
@@ -93,6 +96,8 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
+    [Requirement("RH4103-003")]
     public async Task VerifyDiagnosticsForStaticMethodWrongCasing()
     {
         const string testCode = """
@@ -127,6 +132,8 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
+    [Requirement("RH4103-003")]
     public async Task VerifyDiagnosticsForAsyncMethodWrongCasing()
     {
         const string testCode = """
@@ -167,6 +174,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
     public async Task VerifyNoDiagnosticsForAsyncMethod()
     {
         const string testCode = """
@@ -192,6 +200,8 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
+    [Requirement("RH4103-003")]
     public async Task VerifyDiagnosticsForInterfaceMethodWrongCasing()
     {
         const string testCode = """
@@ -222,6 +232,8 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
+    [Requirement("RH4103-003")]
     public async Task VerifyDiagnosticsForAbstractMethodWrongCasing()
     {
         const string testCode = """
@@ -252,6 +264,8 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
+    [Requirement("RH4103-003")]
     public async Task VerifyDiagnosticsForGenericMethodWrongCasing()
     {
         const string testCode = """
@@ -290,6 +304,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-001")]
     public async Task VerifyNoDiagnosticsForOverrideMethod()
     {
         const string testCode = """
@@ -319,6 +334,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4103-002")]
     public async Task VerifyNoDiagnosticsForExplicitInterfaceImplementation()
     {
         const string testCode = """
@@ -336,6 +352,256 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 """;
 
         await Verify(testCode, Diagnostics(RH4103MethodNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that interface, static, async, abstract, generic, and virtual methods, and overrides and implicit implementations of source methods are reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4103-001")]
+    public async Task EveryKindOfMethodWhoseOriginalDefinitionIsInSourceIsChecked()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                public interface IProcessor
+                                {
+                                    void {|RH4103:execute|}();
+                                }
+
+                                public abstract class C
+                                {
+                                    public void ProcessData()
+                                    {
+                                    }
+
+                                    public static void {|RH4103:calculateTotal|}()
+                                    {
+                                    }
+
+                                    public async Task {|RH4103:loadDataAsync|}()
+                                    {
+                                        await Task.CompletedTask;
+                                    }
+
+                                    public abstract void {|RH4103:compute|}();
+
+                                    public T {|RH4103:createInstance|}<T>()
+                                        where T : new()
+                                    {
+                                        return new T();
+                                    }
+
+                                    public virtual void {|RH4103:run|}()
+                                    {
+                                    }
+                                }
+
+                                public class Derived : C, IProcessor
+                                {
+                                    public override void {|RH4103:compute|}()
+                                    {
+                                    }
+
+                                    public override void {|RH4103:run|}()
+                                    {
+                                    }
+
+                                    public void {|RH4103:execute|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an explicit interface method implementation is not reported, and that the fix for the interface method renames it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4103-002")]
+    public async Task ExplicitInterfaceMethodImplementationIsNotReportedAndIsRenamedWithTheInterfaceMethod()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    void {|RH4103:process|}();
+                                }
+
+                                public class Processor : IProcessor
+                                {
+                                    void IProcessor.process()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IProcessor
+                                 {
+                                     void Process();
+                                 }
+
+                                 public class Processor : IProcessor
+                                 {
+                                     void IProcessor.Process()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames each method to PascalCase together with its call, splits at the separator, and treats a name without separator or uppercase letter as one word
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4103-003")]
+    public async Task FixRenamesMethodAndEveryCallTreatingUnseparatedLowercaseNameAsOneWord()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void {|RH4103:testmethod|}()
+                                    {
+                                    }
+
+                                    public void {|RH4103:run_all|}()
+                                    {
+                                        testmethod();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public void Testmethod()
+                                     {
+                                     }
+
+                                     public void RunAll()
+                                     {
+                                         Testmethod();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that renaming a source interface method or virtual method also renames its implicit implementation or override
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4103-003")]
+    public async Task FixRenamesOverridesAndImplementationsWithTheirBase()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    void {|RH4103:execute|}();
+                                }
+
+                                public class Processor : IProcessor
+                                {
+                                    public void {|RH4103:execute|}()
+                                    {
+                                    }
+                                }
+
+                                public class Base
+                                {
+                                    public virtual void {|RH4103:run|}()
+                                    {
+                                    }
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public override void {|RH4103:run|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IProcessor
+                                 {
+                                     void Execute();
+                                 }
+
+                                 public class Processor : IProcessor
+                                 {
+                                     public void Execute()
+                                     {
+                                     }
+                                 }
+
+                                 public class Base
+                                 {
+                                     public virtual void Run()
+                                     {
+                                     }
+                                 }
+
+                                 public class Derived : Base
+                                 {
+                                     public override void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames each method through the renamer, so the declarations and the call in the other method change together
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("RH4103-003")]
+    public async Task FixRenamesTheDeclarationAndEveryReference()
+    {
+        const string testCode = """
+                                public class Calculator
+                                {
+                                    public int {|RH4103:computeTotal|}(int value)
+                                    {
+                                        return computeFactor(value) * 2;
+                                    }
+
+                                    private int {|RH4103:computeFactor|}(int value)
+                                    {
+                                        return value + 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Calculator
+                                 {
+                                     public int ComputeTotal(int value)
+                                     {
+                                         return ComputeFactor(value) * 2;
+                                     }
+
+                                     private int ComputeFactor(int value)
+                                     {
+                                         return value + 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
