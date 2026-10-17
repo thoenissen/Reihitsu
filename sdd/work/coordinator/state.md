@@ -12,7 +12,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Phase
 
-2 — follow-ups of the decisions. Phase 1 complete (all boxes in #913–#934 ticked, 2026-10-17).
+3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): all questions decided, 29 follow-up issues #948–#976, per-spec issues #913–#934 closed and ticked in #912. #912 stays open for questions the backfill files.
 
 ## Order for phase 1
 
@@ -79,7 +79,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- nothing; closing per-spec issues #913–#934 with follow-up links, ticking #912
+- maintainer: start phase 3 (backfill plan)?
 
 ## Collected for later phases
 
