@@ -21,6 +21,8 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5017-001")]
+    [Requirement("RH5017-002")]
     public async Task VerifyDiagnosticForFixedStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -64,6 +66,7 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5017-001")]
     public async Task VerifyNoDiagnosticForFixedStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -91,6 +94,7 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5017-001")]
     public async Task VerifyNoDiagnosticForFixedStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -116,6 +120,7 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5017-001")]
     public async Task VerifyDiagnosticForFixedStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """

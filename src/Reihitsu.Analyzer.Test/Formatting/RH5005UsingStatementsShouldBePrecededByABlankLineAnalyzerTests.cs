@@ -21,6 +21,8 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5005-001")]
+    [Requirement("RH5005-002")]
     public async Task VerifyDiagnosticForUsingStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -62,6 +64,7 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5005-001")]
     public async Task VerifyNoDiagnosticForUsingStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -88,6 +91,7 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5005-001")]
     public async Task VerifyNoDiagnosticForUsingStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -112,6 +116,7 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5005-001")]
     public async Task VerifyDiagnosticForUsingStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -148,6 +153,76 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a using statement after a statement is reported on its using keyword while a using declaration after a statement is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-001")]
+    [Requirement("RH5005-002")]
+    public async Task VerifyDiagnosticForUsingStatementButNotForUsingDeclaration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(System.IDisposable resource)
+                                    {
+                                        var a = 1;
+                                        {|#0:using|} (resource)
+                                        {
+                                            a++;
+                                        }
+
+                                        a++;
+                                        using var other = resource;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(System.IDisposable resource)
+                                     {
+                                         var a = 1;
+
+                                         using (resource)
+                                         {
+                                             a++;
+                                         }
+
+                                         a++;
+                                         using var other = resource;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for a using declaration that directly follows another statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-001")]
+    public async Task VerifyNoDiagnosticForUsingDeclarationAfterStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(System.IDisposable resource)
+                                    {
+                                        var a = 1;
+                                        a++;
+                                        using var other = resource;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests

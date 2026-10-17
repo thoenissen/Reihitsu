@@ -21,6 +21,8 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5014-001")]
+    [Requirement("RH5014-002")]
     public async Task VerifyDiagnosticForSwitchStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -66,6 +68,7 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5014-001")]
     public async Task VerifyNoDiagnosticForSwitchStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -94,6 +97,7 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5014-001")]
     public async Task VerifyNoDiagnosticForSwitchStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -120,6 +124,7 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5014-001")]
     public async Task VerifyDiagnosticForSwitchStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -160,6 +165,91 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : B
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5014MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a switch statement after a statement is reported on its switch keyword while a switch expression is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5014-001")]
+    [Requirement("RH5014-002")]
+    public async Task VerifyDiagnosticForSwitchStatementButNotForSwitchExpression()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        {|#0:switch|} (a)
+                                        {
+                                            case 1:
+                                                break;
+                                        }
+
+                                        a++;
+                                        a = a switch
+                                        {
+                                            1 => 2,
+                                            _ => 3
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         switch (a)
+                                         {
+                                             case 1:
+                                                 break;
+                                         }
+
+                                         a++;
+                                         a = a switch
+                                         {
+                                             1 => 2,
+                                             _ => 3
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5014MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for a switch expression inside a statement that directly follows another statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5014-001")]
+    public async Task VerifyNoDiagnosticForSwitchExpressionAfterStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        a++;
+                                        var b = a switch
+                                        {
+                                            1 => 2,
+                                            _ => 3
+                                        };
+
+                                        return b;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests
