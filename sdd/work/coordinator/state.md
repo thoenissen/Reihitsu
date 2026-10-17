@@ -15,7 +15,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 ## Order for phase 1
 
 1. Program meaning: #919 Q1, #930 Q2
-2. Shared code-fix bases (family questions): #926 Q2, #928 Q1, #929 Q1
+2. Shared code-fix bases (family questions): #926 Q2, #928 Q1, #929 Q1, #922 Q1(+#921 Q3), #922 Q2, #922 Q3, #921 Q2
 3. Idempotency: #919 Q3, #922 Q1+Q2 (with #921 Q3, same cause)
 4. Phases undo each other: #918 Q3
 5. Analyzer/formatter disagree: #920 Q1, #916 Q1
@@ -35,6 +35,11 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 | #926 Q2 ordering fixes format whole type | Bug: format only moved member + touched separators (all `TypeMemberOrderingCodeFixProviderBase` fixes: RH7102/7103/7109); correct test `CodeFixReordersStaticWithinRegionAndIgnoresInstanceMembersInOtherRegions` | https://github.com/thoenissen/Reihitsu/issues/926#issuecomment-6232283207 | bug issue (phase 2) |
 | #928 Q1 `_hTTPClient` | Bug: leading uppercase run lowercased as one word (last letter starts next word before lowercase) for camel/_camel; PascalCase unchanged | https://github.com/thoenissen/Reihitsu/issues/928#issuecomment-6232283725 | bug issue (phase 2); requirement goes to shared casing spec |
 | #929 Q1 RH5002 two blank lines | Bug in `StatementShouldBePrecededByABlankLineCodeFixProviderBase`: exactly one blank line | https://github.com/thoenissen/Reihitsu/issues/929#issuecomment-6232284098 | bug issue (phase 2), check RH5001–RH5019 |
+| #922 Q1 + #921 Q3 raw-string hole lines | Bug: FMT-RAW alone owns line starts inside multi-line raw strings incl. holes; FMT-INDENT skips them | https://github.com/thoenissen/Reihitsu/issues/922#issuecomment-6232341520 | bug issue (phase 2) |
+| #922 Q2 nested raw string | Bug: aligned in one pass | https://github.com/thoenissen/Reihitsu/issues/922#issuecomment-6232341520 | bug issue (phase 2) |
+| #922 Q3 tab-indented raw string | Bug: replace closing-line whitespace prefix by spaces on every line | https://github.com/thoenissen/Reihitsu/issues/922#issuecomment-6232341520 | bug issue (phase 2) |
+| #921 Q2 `#endif` after disabled text | Bug: FMT-INDENT-009 without exception | https://github.com/thoenissen/Reihitsu/issues/921#issuecomment-6232342201 | bug issue (phase 2) |
+| #921 Q4 SwitchExpressionContributor comment | Code right (FMT-INDENT-027); fix summary + test name `SwitchExpressionArmsRemainAlignedWithSwitchKeyword` | https://github.com/thoenissen/Reihitsu/issues/921#issuecomment-6232342201 | small text/rename fix (phase 2) |
 
 ## Running
 
@@ -42,17 +47,18 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- #922 Q1+#921 Q3, #922 Q2, #922 Q3, #921 Q2, #921 Q4
+- #918 Q3; continuation-line group #921 Q1 + #918 Q5 + #913 Q2 + #913 Q4
+- TODO after #921 Q1: tick #921 boxes Q1–Q4 (Q2–Q4 commented, not yet ticked)
 
 ## Collected for later phases
 
 - Clarifications per spec batch: —
-- Bug issues to draft (phase 2): #919 Q1, #919 Q3, #930 Q1, #930 Q2 (maybe one issue for RH2005), #926 Q1, #926 Q2, #928 Q1, #929 Q1
-- Cleanup issues (phase 2): #919 Q2
+- Bug issues to draft (phase 2): #919 Q1, #919 Q3, #930 Q1, #930 Q2 (maybe one issue for RH2005), #926 Q1, #926 Q2, #928 Q1, #929 Q1, #922 Q1(+#921 Q3), #922 Q2, #922 Q3, #921 Q2
+- Cleanup issues (phase 2): #919 Q2, #921 Q4
 - #946 (RH5005/RH5006 `await using`/`await foreach` fix never converges) → phase 2; blocks RH5005/RH5006 specs.
 - #939 split → phase 3.
 - #942 → phase 5.
 
 ## Issues fully decided (close when follow-ups exist)
 
-- #919, #930, #926, #928, #929
+- #919, #930, #926, #928, #929, #922
