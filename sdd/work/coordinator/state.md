@@ -114,6 +114,7 @@ Status: open / running / PR #… / merged.
 | 23 | #998 | opt-out + every test tagged | all above | open |
 
 Phase-3 decisions (maintainer 2026-10-17): #946 does not block — RH5005/RH5006 are in #977, the `await` form is covered by SHARED-STMT-004/SHARED-FIX-001 and fixed later by #946. No parallel runs. Order chosen by coordinator.
+#978 question (2026-10-17): `CasingUtilities` used also by RH2001 fix → still code owner of shared casing spec (it implements the naming styles; a consumer outside the family uses the behavior, it is not a general utility). RH2001 spec (#996) references casing IDs under `Uses`; note posted on #996.
 Retiring an existing spec requirement while moving it to a shared spec (RH4106, RH3202, RH8107) = escalate to maintainer (written into #978, #997, #982).
 
 ## Phase 3 plan (approved 2026-10-17; SA merged into ST → 21 batches)
