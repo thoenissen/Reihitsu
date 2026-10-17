@@ -60,3 +60,5 @@ Maintainer approved filing bug issues ("bug issues kannst du anlegen"). Filed: t
 ## Escalation 7 — answered
 
 The auditor (`14-auditor.md`) blocked with five findings after the run's one repair round (spec checker, neutral names). The maintainer chose a second repair round for all five findings and filing finding 1 as a bug; see `squad/decisions/2026-10-17-second-repair-round-naming-specs.md`. Filed: thoenissen/Reihitsu#1016 (casing fixes produce a name the rule still reports). The repair is routed to the spec author (findings 1, 2, 4, 5) and the test implementer (findings 3 and 5), followed by the cleaner, the spec checker, the auditor (repair only) and the validator.
+
+`15-spec-author.md` proposes a new open question for `sdd/specs/analyzer/RH0001.md` (content after the root object). It is not filed: thoenissen/Reihitsu#932 Q1 already decided this case as a bug, tracked in thoenissen/Reihitsu#974. RH4009-001 and RH4009-002 leave the case out, as the spec author repaired them. thoenissen/Reihitsu#1009 Q2 was corrected (RH4120 is a PascalCase rule).
