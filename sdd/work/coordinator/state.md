@@ -12,7 +12,9 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Phase
 
-3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): all questions decided, 29 follow-up issues #948–#976, per-spec issues #913–#934 closed and ticked in #912. #912 stays open for questions the backfill files.
+4 — run the batches (phase 3 done 2026-10-17: 21 batch issues #977–#997, #939 split into #939 + #998).
+
+Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): all questions decided, 29 follow-up issues #948–#976, per-spec issues #913–#934 closed and ticked in #912. #912 stays open for questions the backfill files.
 
 ## Order for phase 1
 
@@ -79,9 +81,42 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- maintainer: ok on phase-3 backfill plan (below) + answers Q1–Q3 (RH5005/RH5006 split, parallelism, order)
+- maintainer: start #977 with the worker prompt (given in chat 2026-10-17)
 
-## Phase 3 plan (draft 2026-10-17, branch merged with main 33a29f7)
+## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
+
+Status: open / running / PR #… / merged.
+
+| Order | Issue | Batch | Blocked by | Status |
+|---|---|---|---|---|
+| 1 | #977 | ST statement blank lines (incl. RH5005/RH5006) | — | open |
+| 2 | #978 | N1 naming part 1, creates casing spec | — | open |
+| 3 | #979 | N2 naming part 2 | #978 | open |
+| 4 | #980 | AP attribute placement, creates attribute-target spec | — | open |
+| 5 | #981 | AS attribute list shape | #980 | open |
+| 6 | #982 | D1 element documentation part 1, creates doc spec | — | open |
+| 7 | #983 | D2 element documentation part 2 | #982 | open |
+| 8 | #984 | D3 parameter/return/typeparam/inheritdoc docs | #982 | open |
+| 9 | #985 | D4 documentation layout + comments | #982 | open |
+| 10 | #986 | S1 whitespace/spacing part 1 | — | open |
+| 11 | #987 | S2 spacing part 2 | #986 | open |
+| 12 | #988 | BL other blank lines | — | open |
+| 13 | #989 | CP comment placement, creates spec | — | open |
+| 14 | #990 | LB line breaks + alignment (fluent chain) | — | open |
+| 15 | #991 | LA initializers/expressions/braces | — | open |
+| 16 | #992 | LC trailing commas, empty types | — | open |
+| 17 | #993 | O1 file layout, member/modifier ordering | — | open |
+| 18 | #994 | O2 usings, regions | — | open |
+| 19 | #995 | O3 member grouping by regions, RH7501 | — | open |
+| 20 | #996 | B1 RH0002–RH2109 | — | open |
+| 21 | #997 | B2 clarity | — | open |
+| 22 | #939 | tag formatter/shared/CLI/Playground tests | — | open |
+| 23 | #998 | opt-out + every test tagged | all above | open |
+
+Phase-3 decisions (maintainer 2026-10-17): #946 does not block — RH5005/RH5006 are in #977, the `await` form is covered by SHARED-STMT-004/SHARED-FIX-001 and fixed later by #946. No parallel runs. Order chosen by coordinator.
+Retiring an existing spec requirement while moving it to a shared spec (RH4106, RH3202, RH8107) = escalate to maintainer (written into #978, #997, #982).
+
+## Phase 3 plan (approved 2026-10-17; SA merged into ST → 21 batches)
 
 328 rules without spec, 22 batches, every one covered exactly once (checked by script).
 Shared specs: new ones are created by the first batch of a family; "if shared" = the batch creates it only when >1 spec relies on the behavior.
@@ -119,7 +154,7 @@ Shared specs: new ones are created by the first batch of a family; "if shared" =
 - Bug issues to draft (phase 2): #919 Q1, #919 Q3, #930 Q1, #930 Q2 (maybe one issue for RH2005), #926 Q1, #926 Q2, #928 Q1, #929 Q1, #922 Q1(+#921 Q3), #922 Q2, #922 Q3, #921 Q2, #918 Q3, continuation rule (#921 Q1/#918 Q5/#913 Q2+Q4)
 - Cleanup issues (phase 2): #919 Q2, #921 Q4
 - #946 (RH5005/RH5006 `await using`/`await foreach` fix never converges) → phase 2; blocks RH5005/RH5006 specs.
-- #939 split → phase 3.
+- #939 split → done: #939 (tagging) + #998 (opt-out).
 - #942 → phase 5.
 
 ## Issues fully decided (close when follow-ups exist)
