@@ -21,6 +21,8 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5008-001")]
+    [Requirement("RH5008-002")]
     public async Task VerifyDiagnosticForReturnStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -54,6 +56,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5008-001")]
     public async Task VerifyNoDiagnosticForReturnStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -76,6 +79,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5008-001")]
     public async Task VerifyNoDiagnosticForReturnStatementAfterCaseLabel()
     {
         const string testCode = """
@@ -101,6 +105,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5008-001")]
     public async Task VerifyDiagnosticForReturnStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -137,6 +142,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5008-001")]
     public async Task VerifyNoDiagnosticForReturnStatementWhenBlankLineThenCommentPrecedesIt()
     {
         const string testCode = """
@@ -161,6 +167,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-003")]
     public async Task VerifyNoDiagnosticForReturnStatementDirectlyAfterPreprocessorDirective()
     {
         const string testCode = """
@@ -183,6 +190,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-003")]
     public async Task VerifyNoDiagnosticForReturnStatementDirectlyAfterEndIfDirective()
     {
         const string testCode = """
@@ -207,6 +215,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedWhileBody()
     {
         const string testCode = """
@@ -232,6 +241,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedForBody()
     {
         const string testCode = """
@@ -255,6 +265,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedForeachBody()
     {
         const string testCode = """
@@ -280,6 +291,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedUsingBody()
     {
         const string testCode = """
@@ -303,6 +315,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedLockBody()
     {
         const string testCode = """
@@ -326,6 +339,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedFixedBody()
     {
         const string testCode = """
@@ -349,6 +363,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedElseBody()
     {
         const string testCode = """
@@ -374,6 +389,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedDoBody()
     {
         const string testCode = """
@@ -477,6 +493,109 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
                                  internal sealed class Config
                                  {
                                      public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a return statement after a statement is reported, including a return that ends a switch section, while a return that is the first statement of its section is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5008-001")]
+    [Requirement("RH5008-002")]
+    public async Task VerifyDiagnosticForReturnAfterStatementAndForReturnEndingSwitchSection()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        a++;
+                                        {|#0:return|} a;
+                                    }
+
+                                    int N(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                return a;
+                                            default:
+                                                a++;
+                                                {|#1:return|} 0;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         a++;
+
+                                         return a;
+                                     }
+
+                                     int N(int a)
+                                     {
+                                         switch (a)
+                                         {
+                                             case 1:
+                                                 return a;
+                                             default:
+                                                 a++;
+
+                                                 return 0;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a return statement that ends a switch section after another statement of that section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5008-001")]
+    [Requirement("RH5008-002")]
+    public async Task VerifyDiagnosticForReturnStatementEndingSwitchSection()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            default:
+                                                a++;
+                                                {|#0:return|} 0;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         switch (a)
+                                         {
+                                             default:
+                                                 a++;
+
+                                                 return 0;
+                                         }
+                                     }
                                  }
                                  """;
 

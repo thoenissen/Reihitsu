@@ -21,6 +21,8 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5004-001")]
+    [Requirement("RH5004-002")]
     public async Task VerifyDiagnosticForDoStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -62,6 +64,7 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5004-001")]
     public async Task VerifyNoDiagnosticForDoStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -88,6 +91,7 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5004-001")]
     public async Task VerifyNoDiagnosticForDoStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -111,6 +115,7 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5004-001")]
     public async Task VerifyDiagnosticForDoStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
