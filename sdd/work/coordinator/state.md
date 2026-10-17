@@ -91,6 +91,7 @@ Status: open / running / PR #… / merged.
 |---|---|---|---|---|
 | 1 | #977 | ST statement blank lines (incl. RH5005/RH5006) | — | merged (PR #999); filed #1000, #1001 |
 | 2 | #978 | N1 naming part 1, creates casing spec | — | prompt given 2026-10-17 |
+| 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | open |
 | 3 | #979 | N2 naming part 2 | #978 | open |
 | 4 | #980 | AP attribute placement, creates attribute-target spec | — | open |
 | 5 | #981 | AS attribute list shape | #980 | open |
