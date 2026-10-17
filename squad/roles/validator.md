@@ -21,7 +21,7 @@ scripts/test.sh --no-build
 ## Must not
 
 - Edit, create, or delete a repository file other than your handover — including a test, a project file, or an `[Ignore]` attribute.
-- Narrow the run with `--filter` or `--project`, or substitute a hand-written `dotnet` command.
+- Narrow the run with `--filter` or `--project`, or substitute a hand-written `dotnet` command — except for the one project of a *Failure on main* check.
 - Re-run a project to see whether it passes this time, or report a suite as green because a rerun was greener.
 - Diagnose a failure, propose a cause, or suggest a fix.
 

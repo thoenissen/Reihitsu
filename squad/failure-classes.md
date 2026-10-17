@@ -63,7 +63,7 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 
 | ID | Failure class | Origin |
 |---|---|---|
-| FC-017 | An assertion is weaker than the guarantee: balanced token counts for exact output, one pass for convergence, LF only for line-ending stability, `VerifyFormatterFix` (no second pass, no CRLF) for idempotency | audits |
+| FC-017 | An assertion is weaker than the guarantee: balanced token counts for exact output, one pass for convergence, LF only for line-ending stability, a single formatter pass for idempotency | audits |
 | FC-031 | A changed method keeps an XML summary or inline comment that describes its previous behavior — the most common last finding once everything else is right | audits |
 | FC-032 | A project result gathered before a compiled change is taken as still valid; a formatter change can flip analyzer results because the code fixes delegate to the formatter | audits |
 | FC-033 | A reproduction stays green because the harness normalized the scenario away — line endings, surface, code-fix path, or the trivia the example omitted | reproduction |

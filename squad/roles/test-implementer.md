@@ -46,9 +46,8 @@ Watch every new test fail for the right reason before handing over. A test for e
 |---|---|
 | Diagnostic and code fix, one pass, re-analysis | `Verify(source, fixedSource, …)` on `AnalyzerTestsBase<TAnalyzer, TCodeFix>` |
 | Code fix applied by hand, several diagnostics | `ApplyCodeFixAsync`, `GetCodeFixActionsAsync` |
-| Analyzer ↔ formatter parity | `FormatterTestsBase<TAnalyzer>.VerifyFormatterFix` — checks neither a second pass nor CRLF (FC-017) |
-| Parity plus second pass plus LF/CRLF | `VerifyFormatterFixAndIdempotency` — required whenever layout changes |
-| Analyzer-clean code stays untouched | `VerifyFormatterStability` |
+| Analyzer ↔ formatter parity: the formatter clears the diagnostic, stays stable on a second pass, under LF and CRLF | `FormatterTestsBase<TAnalyzer>.VerifyFormatter(source, fixedSource, …)` |
+| Analyzer-clean code stays untouched and analyzer-clean after formatting, under LF and CRLF | `FormatterTestsBase<TAnalyzer>.VerifyFormatter(source)` |
 | Formatter phase per line ending | `Formatter.Test/Helpers/FormatterTestsBase.AssertRuleResult(input, expected, endOfLine)` |
 | Whole-repository formatter stability | `SelfHostingTests` already covers every file — do not duplicate it |
 | Rule doc, README row, code-fix column | `AnalyzerPackageMetadataTests` — keep the docs in sync instead of adding a test |
