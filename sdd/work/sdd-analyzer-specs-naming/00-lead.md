@@ -52,3 +52,7 @@ Maintainer's answer (verbatim):
 Follow-up candidate awaiting the maintainer's approval: RH4102's Fix All corrects only the event kind it was invoked from (it breaks SHARED-FIX-002).
 
 Maintainer approved filing bug issues ("bug issues kannst du anlegen"). Filed: thoenissen/Reihitsu#1015 (RH4102 Fix All corrects only the event kind it was invoked from). The namespace-type fix (#1009 Q1) and the `Leaf` fixes (#1013 Q1, #1014 Q1) stay open questions; no earlier spec covered them, so they are not bugs against a spec.
+
+## Implementer skipped
+
+`07-test-implementer.md` reports every test green on the unchanged production code, and the issue rules out production changes. The tooling lane adds the implementer only because of the decisions entry under `squad/`, which needs no implementation. With no failing test to make pass, the implementer is skipped.
