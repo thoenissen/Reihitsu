@@ -30,7 +30,7 @@ sdd/
     formatter/
       pipeline.md        phase order and cross-phase invariants
       <phase>.md         one spec per pipeline phase
-    shared/<policy>.md   policies analyzer and formatter must agree on
+    shared/<behavior>.md behavior specified once and used by more than one spec
     cli/…
     playground/…
   changes/
@@ -39,7 +39,7 @@ sdd/
     <slug>/…             temporary implementation docs, never merged
 ```
 
-`Reihitsu.Tooling` (the fixture runner) is internal and gets no spec. `Reihitsu.Core` gets no per-project spec: specs follow behavior, not project boundaries. The policies Core hosts that analyzer and formatter must share (for example blank-line spacing, ordering move safety, using-directive ordering safety) are specified once under `shared/` and referenced by ID from analyzer and formatter specs instead of being restated.
+`Reihitsu.Tooling` (the fixture runner) is internal and gets no spec. `Reihitsu.Core` gets no per-project spec: specs follow behavior, not project boundaries. Behavior that more than one spec relies on is specified once under `shared/` and referenced by ID instead of being restated — whether analyzer and formatter share it (for example blank-line spacing, ordering move safety, using-directive ordering safety), analyzer and code fixes, every code fix, or several rules of one kind. A shared spec specifies behavior, not an implementation: a base class that implements it is a code owner, and no requirement demands that a rule derive from it.
 
 ### Specs and user documentation are different documents
 
@@ -88,8 +88,8 @@ Rules:
 - The normative sentence comes first and uses MUST / MUST NOT / SHOULD.
 - `Why` is short but present — it is what lets an agent decide an edge case the requirement does not spell out.
 - Examples are concrete before/after C# blocks; they are the seed for tests.
-- `Non-goals` list what the spec deliberately does not cover, so an agent does not extend behavior on its own.
-- Code owners are type names only, never file paths or line numbers.
+- `Non-goals` list what the spec deliberately does not cover, so an agent does not extend behavior on its own. Open questions are never written into a spec; they are filed as issues.
+- Code owners are type names only, never file paths or line numbers. A type is a code owner of at most one spec.
 
 ### Requirement IDs
 
@@ -128,7 +128,7 @@ Plans, task lists, and working notes live under `sdd/work/<slug>/` on the PR bra
 - Formatter: the pipeline spec plus one spec per phase — complete from the start, because the formatter is the main reason for SDD and has a fixed size.
 - Shared policies used by analyzer and formatter.
 - CLI and Playground.
-- Analyzer: one example rule per category (RH0 through RH8), preferably rules with a code fix, so every category has a template. All other rules get a spec when they are next touched, or in batches when time allows.
+- Analyzer: one example rule per category (RH0 through RH8), preferably rules with a code fix, so every category has a template. All other rules get their specs in planned batches, grouped by the behavior they share, from a dedicated analyzer template.
 
 ## Rollout
 

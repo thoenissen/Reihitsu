@@ -8,7 +8,8 @@ Read [`../README.md`](../README.md) and [`../failure-classes.md`](../failure-cla
 
 - **Bug fix** — your first test is the reproduction.
 - **Behavior change / new rule** — tests derived from the spec examples.
-- **Tests for existing behavior**, and **Tooling** when the tool has tests.
+- **Specs and tests for existing behavior** — every test must pass on the unchanged code. When the run writes a spec, tag the existing tests that cover its requirements and add tests for the examples no test covers yet; a test that fails is a finding against the spec, not the code.
+- **Tooling** when the tool has tests.
 - **Repair round** — for a missing or weak test.
 
 ## Inputs
