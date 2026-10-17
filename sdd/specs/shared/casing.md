@@ -21,7 +21,7 @@ This spec covers the rules that require one kind of name to be written in a nami
 
 ### SHARED-CASING-001 — PascalCase
 
-A name MUST be accepted as PascalCase exactly when its first character is an uppercase letter and every other character is a letter or a digit.
+A name whose characters are all letters, digits, or `_` MUST be accepted as PascalCase exactly when its first character is an uppercase letter and every other character is a letter or a digit.
 
 Why: PascalCase is the .NET style for namespaces, types, and members that are visible outside their type. The uppercase letters inside the name mark its word boundaries, so a separator such as `_` adds nothing, and an acronym may stay uppercase.
 
@@ -51,7 +51,7 @@ class {|RH4002:_Invoice|}
 
 ### SHARED-CASING-002 — camelCase
 
-A name MUST be accepted as camelCase exactly when its first character is a lowercase letter and every other character is a letter or a digit.
+A name whose characters are all letters, digits, or `_` MUST be accepted as camelCase exactly when its first character is a lowercase letter and every other character is a letter or a digit.
 
 Why: camelCase is the .NET style for parameters and locals. It differs from PascalCase only in the first letter, so a parameter and the property it initializes can share their words.
 
@@ -68,7 +68,7 @@ class C
 
 ### SHARED-CASING-003 — `_camelCase`
 
-A name MUST be accepted as `_camelCase` exactly when it starts with `_` and is either just `_` or continues with a name that is camelCase as SHARED-CASING-002 defines it. Every other name MUST NOT be accepted, including a name with a second underscore or a digit after the prefix.
+A name whose characters are all letters, digits, or `_` MUST be accepted as `_camelCase` exactly when it starts with `_` and is either just `_` or continues with a name that is camelCase as SHARED-CASING-002 defines it. Every other name MUST NOT be accepted, including a name with a second underscore or a digit after the prefix.
 
 Why: The prefix tells a reader at the point of use that a name is state of the object, not a local or a parameter. What follows it is the camelCase name a local of the same meaning would have, so the prefix is the only difference between the two. `_` alone is the conventional name of an unused field.
 
@@ -189,9 +189,9 @@ namespace {|RH4008:company|}.Product.{|RH4008:data_access|}
 
 ### SHARED-CASING-006 — The fix derives the new name from the words of the old one
 
-A rule's code fix MUST derive the new name from the old one as follows. It splits the old name into words at every character that is not a letter or a digit, and drops those characters. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words. The result is the PascalCase name. The camelCase name is the PascalCase name with its first character in lowercase, and the `_camelCase` name is the camelCase name with a `_` in front.
+A rule's code fix MUST derive the new name from an old name whose characters are all letters, digits, or `_` as follows. It splits the old name into words at every `_`, and drops the underscores. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words. The result is the PascalCase name. The camelCase name is the PascalCase name with its first character in lowercase, and the `_camelCase` name is the camelCase name with a `_` in front.
 
-For the camelCase and the `_camelCase` name, this requirement covers an old name whose first word has no uppercase letter as its second character, or consists of uppercase letters only.
+For the camelCase and the `_camelCase` name, this requirement covers an old name whose first word does not start with two uppercase letters, or consists of uppercase letters only.
 
 Why: A separator such as `_`, or the `_` of a leading `m_`, is a word boundary in common naming styles. A word in uppercase letters only (`FIRST_NAME`, `URL`) is a shouted word, not an acronym inside a PascalCase name. Uppercase letters inside a word are kept, because they already mark the word boundaries of a PascalCase or camelCase name. Deriving the name mechanically keeps the result predictable across every rule.
 
@@ -251,8 +251,9 @@ public class C
     private int {|RH4106:m_value|};
     private int {|RH4106:__double|};
     private int {|RH4106:URL|};
+    private int {|RH4106:iPhone|};
 
-    public int Sum => FirstName + LAST_NAME + m_value + __double + URL;
+    public int Sum => FirstName + LAST_NAME + m_value + __double + URL + iPhone;
 }
 ```
 
@@ -264,14 +265,17 @@ public class C
     private int _mValue;
     private int _double;
     private int _url;
+    private int _iPhone;
 
-    public int Sum => _firstName + _lastName + _mValue + _double + _url;
+    public int Sum => _firstName + _lastName + _mValue + _double + _url + _iPhone;
 }
 ```
 
 ### SHARED-CASING-007 — The fix renames the declaration and every reference
 
-The code fix MUST rename the reported declaration's symbol with the Roslyn renamer, so that the declaration and every reference to it in the solution change together. It MUST NOT be offered when the declared symbol cannot be resolved.
+The code fix MUST rename the reported declaration's symbol with the Roslyn renamer, so that the declaration and every reference to it in the active code of the solution change together. It MUST NOT be offered when the declared symbol cannot be resolved.
+
+This requirement covers a derived name that is not a C# keyword. For a type declared directly in a namespace, it covers a type none of whose type parameters, and none of whose members other than enum members, already has the new name.
 
 Why: Renaming only the declaration would leave every use pointing at a name that no longer exists.
 
@@ -309,7 +313,7 @@ public class Calculator
 
 ### SHARED-CASING-008 — The fix is withheld when no usable name can be derived
 
-The code fix MUST NOT be offered when the old name has no letter or digit, or when the name SHARED-CASING-006 derives is the old name itself or is not a valid identifier. The diagnostic is still reported.
+The code fix MUST NOT be offered when the old name has no letter or digit, or when the name SHARED-CASING-006 derives is the old name itself or is not a valid identifier because it starts with a digit. The diagnostic is still reported.
 
 Why: A name such as `__` has no words to build a name from. A derived name that equals the old one changes nothing, and one that is not an identifier does not compile.
 
@@ -339,7 +343,7 @@ is reported, and no code fix is offered, because the derived name is `_1st` agai
 
 ### SHARED-CASING-009 — The fix is withheld when the new name would collide
 
-The code fix MUST NOT be offered when renaming to the derived name would collide with an existing name: when the renamer reports a conflict, when the rename adds a compile error inside the declarations that contain the renamed symbol, or, for a symbol declared directly in a namespace, when a type or another member of that namespace in source already has the new name. A type MUST be treated as colliding with another type only when both have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file. The diagnostic is still reported.
+The code fix MUST NOT be offered when renaming to the derived name would collide with an existing name: when the renamer reports a conflict; for a symbol that is not declared directly in a namespace, when the rename adds a compile error inside the declarations that contain the renamed symbol; and for a symbol declared directly in a namespace, when a type or another member of that namespace in source already has the new name. A type MUST be treated as colliding with another type only when both have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file. The diagnostic is still reported.
 
 Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe.
 
