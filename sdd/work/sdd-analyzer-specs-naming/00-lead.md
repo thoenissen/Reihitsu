@@ -27,3 +27,15 @@ RH4001–RH4011, RH4101–RH4105, RH4107–RH4110 (20 rules), plus the shared ca
 > - Done means: one spec per listed rule (20 rules), the shared casing spec, the existing tests tagged with [Requirement], a focused test added only where a requirement has no covering test, every example verified against a test or by running it, open questions filed per sdd/README.md, CI green, PR based on main with no sdd/work/.
 > - Must not: write current-but-defective behavior into a spec; re-file #971 (leading uppercase run such as `_hTTPClient`) — leave that case out, #971 adds its requirement itself; change any existing requirement of another spec without asking me.
 > - You may file open questions as the rulebook says (sub-issues of #912) without asking. Do not create any other issue without my approval. Opening the claim PR and publishing it per squad/lead.md is approved.
+
+## Escalation 1 — answered
+
+The spec author's handover `01-spec-author.md` blocked on whether RH4106's shared requirements are retired. The answer is recorded in `squad/decisions/2026-10-17-rh4106-shared-casing-move.md`. In short: retire no RH4106 ID. Rewrite RH4106 freely so that the shared casing spec and RH4106 together are defined optimally, state the shared behavior once in the shared spec, and update the test tags to match. Remove the acronym (`HTTPClient`) non-goal. `CasingUtilities` becomes a code owner of the shared casing spec.
+
+Maintainer's answer (verbatim):
+
+> Wir sind grade noch dabei die Specs zu definieren. Daher können auch Specs umgeschrieben oder geändert werden. Wir sollten nichts retiren, wenn nichtmal alles da ist. Einfach ändern. Wenn der Unit-Tests fehlschlägt ist das egal. Wir müssen es so machen, dass die specs optimal definiert sind
+
+## Lane widened: tests → tooling
+
+`scripts/lane-check.sh tests --head worktree` reports `mismatch — claimed tests, diff needs tooling`. The only path that causes it is the lead's decisions entry `squad/decisions/2026-10-17-rh4106-shared-casing-move.md`, which `squad/README.md` requires to ship with the PR. The implementer had not started, so the lane widens along docs → tests → tooling, as `squad/README.md` allows. The roles it adds are the implementer (run at its stage; this run has no production change to make) and the auditor. Follow-up candidate: the lane check classifies `squad/decisions/` entries as tooling.
