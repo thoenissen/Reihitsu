@@ -21,6 +21,8 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5010-001")]
+    [Requirement("RH5010-003")]
     public async Task VerifyDiagnosticForBreakStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -60,6 +62,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5010-001")]
     public async Task VerifyNoDiagnosticForBreakStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -85,6 +88,8 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5010-002")]
+    [Requirement("SHARED-BLANK-004")]
     public async Task VerifyNoDiagnosticForBreakStatementInSwitchSection()
     {
         const string testCode = """
@@ -106,10 +111,44 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     }
 
     /// <summary>
+    /// Verifies the terminal break owned directly by a switch section is exempt while a break inside a block the
+    /// section owns is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5010-002")]
+    [Requirement("SHARED-BLANK-004")]
+    public async Task VerifyTerminalSectionBreakIsExemptAndBreakInsideSectionBlockIsReported()
+    {
+        const string testCode = """
+                                internal class C
+                                {
+                                    public void M(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                var value = choice;
+                                                break;
+                                            case 2:
+                                            {
+                                                var other = choice;
+                                                {|#0:break|};
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5010-001")]
     public async Task VerifyDiagnosticForBreakStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -151,6 +190,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForBreakStatementAsEmbeddedWhileBody()
     {
         const string testCode = """
@@ -173,6 +213,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5010-002")]
     public async Task VerifyDiagnosticAndFixForBreakStatementInsideBracedSwitchSection()
     {
         const string testCode = """
@@ -304,6 +345,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-003")]
     public async Task VerifyNoDiagnosticForBreakAfterDirectiveInsideBracedSwitchSection()
     {
         const string testCode = """
@@ -759,6 +801,8 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5010-002")]
+    [Requirement("SHARED-BLANK-004")]
     public async Task VerifyDiagnosticAndFixForNonTerminalDirectSwitchSectionBreak()
     {
         const string testCode = """

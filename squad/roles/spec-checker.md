@@ -6,7 +6,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 ## When you run
 
-In every lane, after the cleaner (or first, in the docs lane), and again after a repair round.
+In every lane, after the cleaner (in the docs lane, after the spec author), and again after a repair round.
 
 ## Inputs
 
@@ -14,13 +14,14 @@ In every lane, after the cleaner (or first, in the docs lane), and again after a
 
 ## Checks
 
-1. **Change doc exactly when required.** Intended behavior changes — a requirement added with new behavior, changed, or retired; a rule, phase, or surface added or removed — and only then. A bug fix and a clarification need none. A change doc has no task list or implementation plan, and is `Accepted` before the PR is published.
+1. **Change doc exactly when required.** Intended behavior changes — a requirement added with new behavior, changed, or retired; a rule, phase, or surface added or removed — and only then. A bug fix and a clarification need none. A change doc has no task list or implementation plan, and is `Accepted` before the PR is marked ready for review.
 2. **Specs match the diff.** Every behavior the diff changes is stated by a requirement; no requirement contradicts the diff; a clarification writes down behavior that already exists. Requirements follow the format: one per heading, the normative sentence first, `Why:` present, examples where behavior is visible, analyzer markup `{|RH####:…|}`.
-3. **IDs.** New IDs take the next free number; no ID is reused, renumbered, or deleted — a dropped requirement is retired in place.
-4. **Code owners exist.** Every type named in a spec header the diff touches exists in the tree (`rg "(class|struct|record|interface|enum) <Name>\b" src`); no paths or line numbers. Owners the diff renamed, added, or removed are updated, and `sdd/specs/README.md` lists every spec with matching owners.
+3. **IDs.** New IDs take the next free number and are inserted at their sorted position in `sdd/specs/requirement-ids.txt`; no ID is reused, renumbered, or deleted — a dropped requirement is retired in place, and its ledger line stays.
+4. **Code owners exist.** Every type named in a spec header the diff touches exists in a production project — `scripts/test.sh --project architecture --filter "FullyQualifiedName~SpecConsistencyTests"` checks it, including generic arity, delegates, and Razor components; no paths or line numbers. Owners the diff renamed, added, or removed are updated, and `sdd/specs/README.md` lists every spec with matching owners.
 5. **User documentation is consistent.** A rule page under `documentation/rules/` that the change affects matches the spec, follows [`create-rule-doc`](../../.claude/commands/create-rule-doc.md) — short, no formatter mention, nothing `general-notes.md` covers, the footer — and its `### Correction` equals the code fix's output. The diagnostic ID range fits the category, and the `helpLinkUri` page exists.
-6. **Open questions are recorded.** Every question in the spec author's handover is filed in #912's sub-issue for its spec, or listed for the lead to file — never only in the PR.
-7. **Nothing is left behind.** Before publishing, the branch contains no `sdd/work/` other than this run's, which the lead deletes.
+6. **Open questions are recorded.** Every question in the spec author's handover is filed in the `SDD open questions: <spec path>` issue for its spec, or listed for the lead to file — never only in the PR.
+7. **Requirements are covered and the specs are consistent.** When the diff touches `sdd/specs/`, run `scripts/test.sh --project architecture` and quote its result line. Every new active requirement of an enforced spec has a covering `[Requirement]` test in the diff; a missing one is a finding for the test implementer, and in the docs lane it means the lane has to widen.
+8. **Nothing is left behind.** Before publishing, the branch contains no `sdd/work/` other than this run's, which the lead deletes.
 
 ## Must not
 

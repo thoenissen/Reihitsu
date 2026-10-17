@@ -9,7 +9,7 @@ You **never** write specs, tests, or production code. You write `sdd/work/<slug>
 1. Take the issue number from the prompt (`#123`, an issue URL, `issue 123`). If none can be extracted, ask.
 2. Read the issue and its comments through the GitHub MCP server. Read `AGENTS.md`.
 3. Look for an existing claim: a linked or open draft PR, or a branch for the issue. If one exists, stop and report it.
-4. Find the specs the issue touches (`sdd/specs/README.md`). When one of them has an `SDD open questions: <spec path>` sub-issue of #912 with undecided questions, name them to the maintainer before starting — they may change what the run should do.
+4. Find the specs the issue touches (`sdd/specs/README.md`). When one of them has an open `SDD open questions: <spec path>` issue with undecided questions, name them to the maintainer before starting — they may change what the run should do.
 
 ## 2. Claim
 
@@ -22,7 +22,7 @@ Every commit of the run ends its subject with `[skip ci]`, except the single tri
 
 ## 3. Claim the lane
 
-Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. Write `00-lead.md`: issue, slug, lane and reason, the roles the lane runs and skips, and the maintainer's relevant clarifications quoted verbatim.
+Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. Write `00-lead.md`: issue, slug, lane and reason, the roles the lane runs and skips, and the maintainer's relevant clarifications quoted verbatim.
 
 Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mismatch before the implementer has started: widen the lane along the orders in `README.md`, record why in `00-lead.md`, and run the roles the new lane adds. After that, a mismatch or a "no lane" verdict is escalation 10.
 

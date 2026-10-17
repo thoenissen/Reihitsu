@@ -16,6 +16,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # The pull-request merge commit and its first parent, the base it was merged onto
+          fetch-depth: 2
+
+      # The architecture tests check every ledger ID against the spec headings; this step keeps the ledger
+      # itself append-only, so a requirement cannot be deleted by deleting its ledger line too.
+      - name: Check the requirement-ID ledger is append-only
+        if: github.event_name == 'pull_request'
+        run: |
+          removed=$(git diff -U0 HEAD^1 HEAD -- sdd/specs/requirement-ids.txt | grep -E '^-[^-]' || true)
+          if [ -n "$removed" ]; then
+            echo "::error file=sdd/specs/requirement-ids.txt::Requirement IDs were removed from the ledger. Retire a requirement instead of deleting it (sdd/README.md):"
+            echo "$removed"
+            exit 1
+          fi
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6

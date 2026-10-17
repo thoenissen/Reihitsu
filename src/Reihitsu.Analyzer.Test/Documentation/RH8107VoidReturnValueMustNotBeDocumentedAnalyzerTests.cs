@@ -22,6 +22,9 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-001")]
+    [Requirement("RH8107-005")]
+    [Requirement("RH8107-006")]
     public async Task VerifyDiagnosticAndCodeFixForVoidReturnsDocumentation()
     {
         const string source = """
@@ -59,6 +62,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-006")]
     public async Task VerifyCodeFixKeepsSummaryTagSharingTheLine()
     {
         const string source = """
@@ -95,6 +99,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-006")]
     public async Task VerifyCodeFixKeepsPrecedingEndTagSharingTheLine()
     {
         const string source = """
@@ -135,6 +140,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-006")]
     public async Task VerifyCodeFixKeepsFollowingTagSharingTheLastLine()
     {
         const string source = """
@@ -175,6 +181,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-006")]
     public async Task VerifyCodeFixRemovesMultiLineReturnsTagCompletely()
     {
         const string source = """
@@ -214,6 +221,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-006")]
     public async Task VerifyCodeFixKeepsSurroundingTagsSharingTheLine()
     {
         const string source = """
@@ -250,6 +258,8 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-001")]
+    [Requirement("RH8107-006")]
     public async Task VerifyCodeFixRemovesReturnsTagFromDelimitedDocumentationComment()
     {
         const string source = """
@@ -295,6 +305,9 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// declaration would be pulled into the documentation comment
     /// </remarks>
     [TestMethod]
+    [Requirement("RH8107-001")]
+    [Requirement("RH8107-005")]
+    [Requirement("RH8107-007")]
     public async Task VerifyNoCodeFixWhenEndTagIsMissing()
     {
         const string source = """
@@ -321,6 +334,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-007")]
     public async Task VerifyNoCodeFixWhenEndTagIsMissingAndFollowingTagIsSwallowed()
     {
         const string source = """
@@ -347,6 +361,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-001")]
     public async Task VerifyDiagnosticAndCodeFixForVoidCompoundAssignmentOperatorReturnsDocumentation()
     {
         const string source = """
@@ -392,6 +407,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-004")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -415,6 +431,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-003")]
     public async Task VerifyDiagnosticForReturnsTagNestedInRemarks()
     {
         const string source = """
@@ -456,6 +473,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-003")]
     public async Task VerifyNoDiagnosticForReturnsTagInsideCodeSample()
     {
         const string source = """
@@ -483,6 +501,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-003")]
     public async Task VerifyNoDiagnosticForReturnsTagInsideExampleSample()
     {
         const string source = """
@@ -508,6 +527,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8107-003")]
     public async Task VerifyTopLevelReturnsTagIsDetectedBesideCodeSample()
     {
         const string source = """
@@ -548,6 +568,40 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
         await Verify(source,
                      fixedSource,
                      Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a returns tag on a member whose return type is a task, not void
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8107-002")]
+    public async Task VerifyNoDiagnosticForReturnsTagOnTaskReturningMember()
+    {
+        const string source = """
+                              using System.Threading.Tasks;
+
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// <returns>A task</returns>
+                                  internal Task RunAsync()
+                                  {
+                                      return Task.CompletedTask;
+                                  }
+
+                                  /// <summary>Runs the method.</summary>
+                                  /// <returns>A task</returns>
+                                  internal async ValueTask RunValueAsync()
+                                  {
+                                      await Task.CompletedTask;
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // Tests

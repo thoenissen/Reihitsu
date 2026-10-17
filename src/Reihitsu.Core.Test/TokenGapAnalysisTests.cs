@@ -165,6 +165,7 @@ public class TokenGapAnalysisTests
     /// Verifies that one blank line between statements produces a blank-line count of one
     /// </summary>
     [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
     public void BetweenBlankLineCountReturnsOneForOneBlankLine()
     {
         // Arrange
@@ -479,6 +480,7 @@ public class TokenGapAnalysisTests
     /// Verifies that a blank line embedded inside a block comment does not count as a blank line
     /// </summary>
     [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
     public void OfTriviaRangeDoesNotCountBlankLineInsideBlockComment()
     {
         // Arrange

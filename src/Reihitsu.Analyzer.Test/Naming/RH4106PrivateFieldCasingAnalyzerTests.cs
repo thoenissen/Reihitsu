@@ -24,6 +24,11 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4106-001")]
+    [Requirement("RH4106-002")]
+    [Requirement("RH4106-003")]
+    [Requirement("RH4106-004")]
+    [Requirement("RH4106-005")]
     public async Task VerifyDiagnosticsForPrivateFieldAndReferenceAreFixed()
     {
         const string testCode = """
@@ -64,6 +69,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4106-002")]
     public async Task VerifyNoDiagnosticsForUnderlineCamelCasePrivateField()
     {
         const string testCode = """
@@ -84,6 +90,8 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4106-001")]
+    [Requirement("RH4106-004")]
     public async Task VerifyDiagnosticsForPrivateReadonlyFieldWithoutUnderlinePrefix()
     {
         const string testCode = """
@@ -114,6 +122,8 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4106-001")]
+    [Requirement("RH4106-004")]
     public async Task VerifyDiagnosticsForPrivateStaticReadonlyFieldWithoutUnderlinePrefix()
     {
         const string testCode = """
@@ -144,6 +154,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4106-001")]
     public async Task VerifyNoDiagnosticsForPrivateProtectedField()
     {
         const string testCode = """
@@ -164,6 +175,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4106-006")]
     public async Task NoCodeFixForLetterlessPrivateField()
     {
         const string testCode = """
@@ -192,6 +204,8 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4106-001")]
+    [Requirement("RH4106-004")]
     public async Task VerifyImplicitlyPrivateFieldIsDetectedAndFixed()
     {
         const string testCode = """
@@ -214,6 +228,14 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    [TestMethod]
+    [Requirement("RH4106-007")]
+    public override async Task FixAllCorrectsEveryDiagnostic()
+    {
+        await base.FixAllCorrectsEveryDiagnostic();
+    }
 
     /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()

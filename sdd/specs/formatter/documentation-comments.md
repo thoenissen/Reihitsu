@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | FMT-DOC |
 | Status | Active |
-| Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `ReihitsuFormatterHelpers`, `DocumentationCommentUtilities` |
-| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-007, FMT-PIPE-010 |
+| Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `DocumentationCommentUtilities` |
+| Uses | FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010 |
 
 This spec covers what the documentation-comment phase decides about single-line documentation comments (`///`): moving a comment written behind code onto its own line, the separator after each `///` exterior, and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows.
 

@@ -5,7 +5,7 @@
 | ID prefix | SHARED-BLANK |
 | Status | Active |
 | Code owners | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
-| Uses | — |
+| Uses | FMT-BLANK-001, FMT-BLANK-004, FMT-PIPE-002 |
 
 This spec covers the blank-line rules that analyzer, code fixes, and formatter decide through the same `Reihitsu.Core` code: what counts as a blank line and as the start of a line, the blank line after a closing brace, the exemption of a switch section's terminal `break`, and the blank lines around `#region` and `#endregion`. The formatter's own blank-line decisions are specified in FMT-BLANK.
 

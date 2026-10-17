@@ -4,7 +4,7 @@
 |---|---|
 | Status | Draft |
 | Date | <yyyy-mm> |
-| Affected requirements | <REQUIREMENT-ID>, … or the specs this change creates |
+| Affected requirements | <REQUIREMENT-ID>, …, the specs this change creates, or none — process change |
 | Depends on | <link to another change doc, or remove this row> |
 
 ## What

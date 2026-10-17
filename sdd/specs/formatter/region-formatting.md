@@ -5,7 +5,7 @@
 | ID prefix | FMT-REGION |
 | Status | Active |
 | Code owners | `RegionFormattingPhase`, `RegionNamingRewriter`, `RegionDirectiveUtilities` |
-| Uses | FMT-PIPE-002, FMT-PIPE-005 |
+| Uses | FMT-PIPE-002 |
 
 This spec covers the region phase: the capitalization of `#region` descriptions and the `// Description` comment on the matching `#endregion`. The phase changes only the text of region directives; it never adds, removes, or moves one.
 

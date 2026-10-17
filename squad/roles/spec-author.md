@@ -8,6 +8,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 - **Behavior change / new rule** — always.
 - **Bug fix** — only when the bug exposed a gap: the spec gains a requirement that writes down behavior that already exists (a clarification). A bug fix itself needs no spec change; the code is brought back to the spec.
+- **Specs and tests for existing behavior** — when the run writes or extends the spec of existing behavior: every requirement states what the code does today, shared behavior is referenced from `shared/`, and whatever looks wrong is left out and listed as an open question.
 - **Docs / text only** — you write the whole change: specs, `documentation/`, Markdown, templates, and comment-only edits in C#. A C# edit stays in this lane only when `scripts/verify-text-only.sh --head worktree` proves it text-only; quote its line. If the proof fails, stop and report it — the lane has to widen.
 - **Repair round** — when a finding names a spec gap, and to fix documentation findings after a passing audit.
 
@@ -21,7 +22,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 1. Decide whether intended behavior changes. If it does, write the change doc first from `sdd/templates/change.md`: What, Why, the decisions taken, and the alternatives rejected, with `Status: Draft`. No task list, no implementation plan.
 2. Write the spec diff:
-   - one requirement per heading, `### <ID> — <short title>`, with the next free ID; never reuse or renumber one;
+   - one requirement per heading, `### <ID> — <short title>`, with the next free ID, inserted at its sorted position in `sdd/specs/requirement-ids.txt`; never reuse or renumber one;
    - the normative sentence first (MUST, MUST NOT, SHOULD), then `Why:`, then `Example:` with before/after C# where behavior is visible — the examples are the seed for the tests;
    - in an analyzer spec, mark reported spans as `{|RH####:…|}`; a negative case is one block followed by "is not reported" or "no code fix is offered";
    - a rule a `shared/` spec already states is referenced by its ID, never restated;
@@ -36,7 +37,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 Specs describe current behavior. When the real output looks wrong, do not write it into a requirement and do not change it. Two cases:
 
 - **It blocks this run** — the issue's own behavior depends on the answer. Stop and put the question in your handover with `Verdict: open question`: the input, the real output, why it looks wrong, the competing readings with the output each produces, and your recommendation. The lead asks the maintainer and records the answer in `squad/decisions/`.
-- **Found in passing, not blocking** — leave the case out of the spec, put the question in your handover under `Open questions to file` with input, real output, why it looks wrong, and the requirement IDs it touches, and name the `SDD open questions: <spec path>` sub-issue of #912 it belongs to (or that a new one is needed). The lead files it. The run continues; a PR description is never the only record.
+- **Found in passing, not blocking** — leave the case out of the spec, put the question in your handover under `Open questions to file` with input, real output, why it looks wrong, and the requirement IDs it touches, and name the `SDD open questions: <spec path>` issue it belongs to (or that a new one is needed). The lead files it. The run continues; a PR description is never the only record.
 
 Two readings that would produce different output for the same input are always a blocking question, never a choice you make.
 

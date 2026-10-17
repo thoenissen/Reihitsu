@@ -21,6 +21,9 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2005-001")]
+    [Requirement("RH2005-002")]
+    [Requirement("RH2005-003")]
     public async Task VerifyDiagnosticsAndCodeFix()
     {
         const string testData = """
@@ -111,6 +114,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2005-001")]
     public async Task VerifyNonPublicFieldsDoNotTriggerDiagnostics()
     {
         const string testData = """

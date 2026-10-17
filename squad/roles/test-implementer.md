@@ -8,7 +8,8 @@ Read [`../README.md`](../README.md) and [`../failure-classes.md`](../failure-cla
 
 - **Bug fix** — your first test is the reproduction.
 - **Behavior change / new rule** — tests derived from the spec examples.
-- **Tests for existing behavior**, and **Tooling** when the tool has tests.
+- **Specs and tests for existing behavior** — every test must pass on the unchanged code. When the run writes a spec, tag the existing tests that cover its requirements and add tests for the examples no test covers yet; a test that fails is a finding against the spec, not the code.
+- **Tooling** when the tool has tests.
 - **Repair round** — for a missing or weak test.
 
 ## Inputs
@@ -46,14 +47,13 @@ Watch every new test fail for the right reason before handing over. A test for e
 |---|---|
 | Diagnostic and code fix, one pass, re-analysis | `Verify(source, fixedSource, …)` on `AnalyzerTestsBase<TAnalyzer, TCodeFix>` |
 | Code fix applied by hand, several diagnostics | `ApplyCodeFixAsync`, `GetCodeFixActionsAsync` |
-| Analyzer ↔ formatter parity | `FormatterTestsBase<TAnalyzer>.VerifyFormatterFix` — checks neither a second pass nor CRLF (FC-017) |
-| Parity plus second pass plus LF/CRLF | `VerifyFormatterFixAndIdempotency` — required whenever layout changes |
-| Analyzer-clean code stays untouched | `VerifyFormatterStability` |
+| Analyzer ↔ formatter parity: the formatter clears the diagnostic, stays stable on a second pass, under LF and CRLF | `FormatterTestsBase<TAnalyzer>.VerifyFormatter(source, fixedSource, …)` |
+| Analyzer-clean code stays untouched and analyzer-clean after formatting, under LF and CRLF | `FormatterTestsBase<TAnalyzer>.VerifyFormatter(source)` |
 | Formatter phase per line ending | `Formatter.Test/Helpers/FormatterTestsBase.AssertRuleResult(input, expected, endOfLine)` |
 | Whole-repository formatter stability | `SelfHostingTests` already covers every file — do not duplicate it |
 | Rule doc, README row, code-fix column | `AnalyzerPackageMetadataTests` — keep the docs in sync instead of adding a test |
 
-A code-fix test class derives from `BatchCodeFixTestsBase` or `SingleCodeFixTestsBase` (`AGENTS.md`). Test names describe the behavior; reference requirement IDs in the XML summary, never tracker numbers.
+A code-fix test class derives from `BatchCodeFixTestsBase` or `SingleCodeFixTestsBase` (`AGENTS.md`). Test names describe the behavior. Tag each test with `[Requirement("<ID>")]` for every requirement it covers (`sdd/README.md`); never reference tracker numbers.
 
 ## Must not
 

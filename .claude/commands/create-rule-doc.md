@@ -122,8 +122,8 @@ If a sentence only makes sense to someone who has read the analyzer source, dele
 
 ## Writing process
 
-1. Read the existing analyzer name, package README entry, nearby rule docs, and `documentation/rules/general-notes.md`.
-2. Infer the user-visible rule intent.
+1. Read the rule's spec `sdd/specs/analyzer/RH####.md` when it exists — the page is derived from it (`sdd/README.md`) — then the analyzer name, package README entry, nearby rule docs, and `documentation/rules/general-notes.md`.
+2. Infer the user-visible rule intent from the spec; without a spec, from the analyzer. Take `## Exceptions` from the requirements that state where the rule does not report or withholds its fix, leaving out what the general notes cover.
 3. Write the page in the required published format, including the footer.
 4. Remove implementation details, formatter mentions, and anything the general notes already cover.
 5. Check that the example code actually matches the rule and its preferred fix.

@@ -27,7 +27,7 @@ The lead claims a lane at the start. The diff's paths decide whether the claim h
 | Lane | Spec author | Skeptic | Test impl. | Implementer | Cleaner | Spec checker | Auditor | Validator |
 |---|---|---|---|---|---|---|---|---|
 | Docs / text only (proven) | ✓ writes the text | – | – | – | – | ✓ | – | only if a compiled file changed |
-| Tests for existing behavior | – | – | ✓ | – | ✓ | ✓ | – | ✓ |
+| Specs and tests for existing behavior | ✓ writes the spec, when the run adds one | ✓ spec against the code | ✓ | – | ✓ | ✓ | – | ✓ |
 | Bug fix | only for a clarification | ✓ premise check | ✓ reproduction | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Behavior change / new rule | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Tooling | – | – | ✓ when the tool has tests | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -37,12 +37,12 @@ Order: spec author → skeptic → test implementer → implementer → cleaner 
 What the lane check derives from the paths:
 
 - **Docs** — `sdd/`, `documentation/`, Markdown, issue and PR templates, and C# files when `scripts/verify-text-only.sh` proves the whole diff text-only.
-- **Tests** — files of test projects, besides text.
+- **Tests** — files of test projects, besides text. This is also the lane of a run that writes the spec of an existing rule: the spec's requirements need their covering tests in the same PR (`sdd/README.md`).
 - **Bug fix** — shipped source under `src/` without a change doc.
 - **Behavior change** — shipped source with a change doc under `sdd/changes/`. A claim of this lane without a change doc fails.
 - **Tooling** — `scripts/`, `.github/`, `.claude/`, `squad/`, `AGENTS.md`, `CLAUDE.md`, `Reihitsu.Tooling`, project files, `Directory.Build.props`, rulesets, `.editorconfig`, the solution.
 
-A claim may be wider than the diff — a bug that does not reproduce ends in the bug-fix lane with only a test. A narrower claim fails, and so does a diff no lane admits (an unclassified path, or shipped source next to tooling without a change doc). Lanes widen along two orders: docs → tests → bug fix → behavior change, and docs → tests → tooling → behavior change.
+A claim may be wider than the diff — a bug that does not reproduce ends in the bug-fix lane with only a test. A narrower claim fails, and so does a diff no lane admits (an unclassified path, or shipped source next to tooling without a change doc). Lanes widen along two orders: docs → tests → bug fix → behavior change, and docs → tests → tooling → behavior change. A docs-lane diff cannot add a requirement to an enforced spec, because the requirement needs a covering test; that run widens to tests.
 
 ## Handovers are files
 

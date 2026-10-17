@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Analyzer;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.SelfHosting.Utilities;
 
 namespace Reihitsu.Analyzer.Test.Analyzer;
 
@@ -35,6 +36,8 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
+    [Requirement("RH0001-005")]
     public async Task ValidConfiguration()
     {
         await Verify(TestCode,
@@ -59,6 +62,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
     public async Task SimilarFileNameIsIgnoredAndExactConfigurationFileIsLoaded()
     {
         await Verify(TestCode,
@@ -75,6 +79,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
     public async Task UppercaseConfigurationFileNameIsLoaded()
     {
         const string configurationPath = "REIHITSU.JSON";
@@ -89,6 +94,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
     public async Task ConfigurationFileInSubdirectoryIsLoaded()
     {
         var configurationPath = Path.Combine("settings", "reihitsu.json");
@@ -103,6 +109,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
     public async Task MyReihitsuConfigurationLookalikeIsIgnored()
     {
         await Verify(TestCode, test => test.TestState.AdditionalFiles.Add(("myreihitsu.json", string.Empty)));
@@ -113,6 +120,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
     public async Task TeamReihitsuConfigurationLookalikeIsIgnored()
     {
         await Verify(TestCode, test => test.TestState.AdditionalFiles.Add(("team-reihitsu.json", string.Empty)));
@@ -123,6 +131,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
     public async Task ConfigurationBackupFileIsIgnored()
     {
         await Verify(TestCode, test => test.TestState.AdditionalFiles.Add(("reihitsu.json.bak", string.Empty)));
@@ -133,6 +142,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-001")]
     public async Task ExactConfigurationFileBeforeLookalikeIsLoaded()
     {
         await Verify(TestCode,
@@ -149,6 +159,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-003")]
     public async Task EmptyConfiguration()
     {
         await Verify(TestCode,
@@ -161,6 +172,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-003")]
     public async Task WhitespaceConfiguration()
     {
         await Verify(TestCode,
@@ -173,6 +185,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-003")]
     public async Task InvalidJson()
     {
         await Verify(TestCode,
@@ -198,6 +211,8 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-002")]
+    [Requirement("RH0001-003")]
     public async Task InvalidJsonWithNonAsciiCharacterBeforeErrorDoesNotShiftLocation()
     {
         await Verify(TestCode,
@@ -223,6 +238,8 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-002")]
+    [Requirement("RH0001-004")]
     public async Task UnknownTopLevelSection()
     {
         await Verify(TestCode,
@@ -245,6 +262,8 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-002")]
+    [Requirement("RH0001-005")]
     public async Task UnknownNamingProperty()
     {
         await Verify(TestCode,
@@ -269,6 +288,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-004")]
     public async Task NamingSectionMustBeObject()
     {
         await Verify(TestCode,
@@ -291,6 +311,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-005")]
     public async Task AllowedNamespaceDeclarationsMustBeArray()
     {
         await Verify(TestCode,
@@ -314,6 +335,8 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-002")]
+    [Requirement("RH0001-005")]
     public async Task AllowedNamespaceDeclarationsEntriesMustBeStrings()
     {
         await Verify(TestCode,
@@ -340,6 +363,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-002")]
     public async Task NonAsciiCharacterBeforeErrorDoesNotShiftLocation()
     {
         await Verify(TestCode,
@@ -366,6 +390,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-006")]
     public async Task ValidCopyrightConfiguration()
     {
         await Verify(TestCode,
@@ -389,6 +414,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-004")]
     public async Task CopyrightSectionMustBeObject()
     {
         await Verify(TestCode,
@@ -411,6 +437,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-006")]
     public async Task CopyrightTextRequired()
     {
         await Verify(TestCode,
@@ -434,6 +461,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-006")]
     public async Task CopyrightTextMustBeString()
     {
         await Verify(TestCode,
@@ -459,6 +487,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-006")]
     public async Task MissingPlaceholderSetting()
     {
         await Verify(TestCode,
@@ -482,6 +511,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-006")]
     public async Task PlaceholderSettingMustBeString()
     {
         await Verify(TestCode,
@@ -508,6 +538,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-006")]
     public async Task FileNamePlaceholderMustNotBeConfigured()
     {
         await Verify(TestCode,
@@ -533,6 +564,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0001-006")]
     public async Task CopyrightTextMustBeCommentHeader()
     {
         await Verify(TestCode,
@@ -550,6 +582,17 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
                      InvalidConfiguration("The 'copyright.copyrightText' setting must be a comment header that uses either '//' line comments or '/* */' block comments.", 2, 16));
+    }
+
+    /// <summary>
+    /// Verifying that no code fix provider is registered for the rule
+    /// </summary>
+    [TestMethod]
+    public void VerifyNoCodeFixIsOffered()
+    {
+        var codeFixProviders = AnalyzerMetadataDiscovery.DiscoverCodeFixProviders();
+
+        Assert.DoesNotContain(codeFixProvider => codeFixProvider.DiagnosticId == RH0001ConfigurationFileMustBeValidAnalyzer.DiagnosticId, codeFixProviders);
     }
 
     #endregion // Tests
