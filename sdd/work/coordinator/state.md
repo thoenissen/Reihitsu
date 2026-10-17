@@ -104,17 +104,17 @@ Kind: B = bug fix lane, N = behavior-change lane (change doc), C = cleanup.
 Created: (fill in issue numbers)
 
 Formatter
-- F1 B #919 Q1 switch bracing must not break cross-section locals
-- F2 B #919 Q3 blank line before comment leading terminal `break`
-- F3 C #919 Q2 delete dead `RemoveBraces` + #921 Q4 `SwitchExpressionContributor` summary/test name
-- F4 B #922 Q1+#921 Q3, #922 Q2, #922 Q3 raw-string alignment (holes owned by FMT-RAW, nested literal, tabs)
-- F5 B #921 Q2 `#endif` after disabled text
-- F6 N continuation-line rule (#921 Q1, #918 Q5, #913 Q2, #913 Q4)
-- F7 B #918 Q3 empty region after `{` (phases undo each other)
-- F8 B #918 Q1 + Q2 ctor-initializer colon, constraint-clause wrap
-- F9 N #918 Q4 + Q6 switch arms one per line, argument lists like parameter lists
-- F10 B #920 Q1 + Q4 `fixed (`, double space before comment
-- F11 N #920 Q2 + Q3 new spacing rules
+- F1 B → #948 #919 Q1 switch bracing must not break cross-section locals
+- F2 B → #949 #919 Q3 blank line before comment leading terminal `break`
+- F3 C → #950 #919 Q2 delete dead `RemoveBraces` + #921 Q4 `SwitchExpressionContributor` summary/test name
+- F4 B → #951 #922 Q1+#921 Q3, #922 Q2, #922 Q3 raw-string alignment (holes owned by FMT-RAW, nested literal, tabs)
+- F5 B → #952 #921 Q2 `#endif` after disabled text
+- F6 N → #953 continuation-line rule (#921 Q1, #918 Q5, #913 Q2, #913 Q4)
+- F7 B → #954 #918 Q3 empty region after `{` (phases undo each other)
+- F8 B → #955 #918 Q1 + Q2 ctor-initializer colon, constraint-clause wrap
+- F9 N → #956 #918 Q4 + Q6 switch arms one per line, argument lists like parameter lists
+- F10 B → #957 #920 Q1 + Q4 `fixed (`, double space before comment
+- F11 N → #958 #920 Q2 + Q3 new spacing rules
 - F12 N #923 Q1 + #915 Q1 + #924 Q1 comment line ends: trailing ws + line endings (FMT-PIPE-002 allowance)
 - F13 B #923 Q2 + Q3 directive-line and EOF trailing ws
 - F14 B #915 Q2 + Q3 doc element normalization (end tag symmetric, block-level only)
