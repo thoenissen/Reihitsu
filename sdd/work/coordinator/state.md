@@ -2,6 +2,12 @@
 
 Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays out of PRs to main).
 
+## Working agreement
+
+- Several questions per round are fine.
+- A clear answer from the maintainer is approval to post the decision comment and tick the box; no separate ok needed.
+- Creating new issues still needs an ok.
+
 ## Phase
 
 1 — decision round for open questions (#912, sub-issues #913–#934). No code.
@@ -20,6 +26,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 | Question | Decision | Comment | Follow-up |
 |---|---|---|---|
+| #919 Q1 local scope across braced sections | Bug: guard like FMT-SWITCH-011, leave switch unchanged | https://github.com/thoenissen/Reihitsu/issues/919#issuecomment-6232112753 | bug issue (phase 2) |
 
 ## Running
 
@@ -27,12 +34,12 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- #919 Q1 decision
+- #919 Q2, #919 Q3, #930 Q1, #930 Q2
 
 ## Collected for later phases
 
 - Clarifications per spec batch: —
-- Bug issues to draft (phase 2): —
+- Bug issues to draft (phase 2): #919 Q1
 - #946 (RH5005/RH5006 `await using`/`await foreach` fix never converges) → phase 2; blocks RH5005/RH5006 specs.
 - #939 split → phase 3.
 - #942 → phase 5.
