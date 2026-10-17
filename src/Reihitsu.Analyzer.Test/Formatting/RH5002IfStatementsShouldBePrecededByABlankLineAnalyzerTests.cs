@@ -277,14 +277,6 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     #region BatchCodeFixTestsBase
 
     /// <inheritdoc/>
-    [TestMethod]
-    [Requirement("RH5002-006")]
-    public override async Task FixAllCorrectsEveryDiagnostic()
-    {
-        await base.FixAllCorrectsEveryDiagnostic();
-    }
-
-    /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()
     {
         const string testCode = """

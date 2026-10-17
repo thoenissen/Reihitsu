@@ -26,6 +26,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     [Requirement("RH7103-001")]
     [Requirement("RH7103-005")]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-001")]
     public async Task StaticMembersAreReportedAndFixedWhenTheyAppearAfterInstanceMembers()
     {
         const string testCode = """
@@ -104,6 +105,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-002")]
     public async Task StaticMemberWithDocumentationKeepsTheSeparatorWhenReordered()
     {
         const string testCode = """
@@ -149,6 +151,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-002")]
     public async Task SeparatorBeforeADocumentedTargetSurvivesTheReorder()
     {
         const string testCode = """
@@ -193,6 +196,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-002")]
     public async Task SeparatorSurvivesTheReorderWhenBothMembersAreDocumented()
     {
         const string testCode = """
@@ -243,6 +247,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-002")]
     public async Task SeparatorStaysAtTargetPositionWhenOnlyTheTargetHadABlankLineBefore()
     {
         const string testCode = """
@@ -284,6 +289,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-002")]
     public async Task RelocationPreservesGapCountWhenTargetIsNotTheFirstMember()
     {
         const string testCode = """
@@ -324,6 +330,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-002")]
     public async Task CodeFixPreservesGapSequenceWhenMoveCrossesMultipleMembers()
     {
         const string testCode = """
@@ -370,6 +377,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-002")]
     public async Task CodeFixPreservesGapSequenceWhenCrossedGapsAreNotUniform()
     {
         const string testCode = """
@@ -455,6 +463,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-ORDER-006")]
     public async Task CodeFixTravelsWithABalancedDisabledDirectiveBlockAboveTheMovedMember()
     {
         const string testCode = """
@@ -524,6 +533,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
     public async Task NoCodeFixWhenMoveChangesStaticInitializerExecutionOrder()
     {
         const string testCode = """
@@ -554,6 +564,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
     public async Task NoCodeFixWhenMoveChangesInitializerExecutionOrderAcrossEventField()
     {
         const string testCode = """
@@ -585,6 +596,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-004")]
     public async Task NoCodeFixWhenDirectivesAreInLeadingTrivia()
     {
         const string testCode = """
@@ -615,6 +627,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-003")]
     public async Task NoCodeFixWhenDirectiveFollowsAttributeList()
     {
         const string testCode = """
@@ -653,6 +666,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     [TestMethod]
     [Requirement("RH7103-006")]
     [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-006")]
     public async Task CodeFixIsOfferedWhenCrossedMemberBodyContainsBalancedConditional()
     {
         const string testCode = """
@@ -698,6 +712,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     [TestMethod]
     [Requirement("RH7103-006")]
     [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-006")]
     public async Task CodeFixIsOfferedWhenCrossedMemberBodyContainsActiveBalancedConditional()
     {
         const string testCode = """
@@ -734,6 +749,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-003")]
     public async Task NoCodeFixWhenDirectiveFollowsModifier()
     {
         const string testCode = """
@@ -760,6 +776,64 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                                                .Identifier
                                                                .GetLocation(),
                                                    "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when the move would cross a static initializer of another accessibility group,
+    /// since the crossed member is not compared with the moved one but its initializer still runs in declaration order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenMoveCrossesStaticInitializerOfAnotherAccessibility()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _instance;
+                                    public static int A = 1;
+                                    private static int {|#0:_b|} = A;
+                                }
+                                """;
+
+        // The fixed code equals the input, so the verifier also asserts that no code fix is offered
+        await Verify(testCode, testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when a position-sensitive directive sits in the leading trivia of the moved
+    /// member, since moving the member across or with the directive changes which code the directive covers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-005")]
+    public async Task NoCodeFixWhenPragmaDirectivePrecedesMovedMember()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                #pragma warning disable CS0168
+                                    public static void Create()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single(method => method.Identifier.ValueText == "Create")
+                                                               .Identifier
+                                                               .GetLocation());
 
         Assert.IsEmpty(actions);
     }

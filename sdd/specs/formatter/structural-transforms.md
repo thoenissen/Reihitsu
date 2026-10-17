@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-008, FMT-PIPE-011 |
 
 This spec covers the first phase of the pipeline, which rewrites syntax shape before any layout is decided: braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, and one field per declaration. Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002).
 

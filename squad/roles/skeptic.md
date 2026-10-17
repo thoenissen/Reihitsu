@@ -8,6 +8,7 @@ Read [`../README.md`](../README.md) first. Issues here are often generated from 
 
 - **Bug fix** — premise check before the reproduction.
 - **Behavior change / new rule** — after the spec author, against the spec diff and change doc.
+- **Specs and tests for existing behavior** — after the spec author, against the spec diff: does every requirement state what the code does today, does a case that looks wrong appear as intended, is shared behavior restated instead of referenced, and which inputs the code decides that the spec does not mention.
 
 ## Inputs
 

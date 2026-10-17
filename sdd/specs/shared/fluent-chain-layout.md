@@ -5,7 +5,7 @@
 | ID prefix | SHARED-CHAIN |
 | Status | Active |
 | Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
-| Uses | — |
+| Uses | FMT-PIPE-002 |
 
 This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
 

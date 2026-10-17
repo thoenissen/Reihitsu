@@ -164,7 +164,6 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
     /// Verifying that no code fix provider is registered for the rule
     /// </summary>
     [TestMethod]
-    [Requirement("RH1003-005")]
     public void VerifyNoCodeFixIsOffered()
     {
         var codeFixProviders = AnalyzerMetadataDiscovery.DiscoverCodeFixProviders();

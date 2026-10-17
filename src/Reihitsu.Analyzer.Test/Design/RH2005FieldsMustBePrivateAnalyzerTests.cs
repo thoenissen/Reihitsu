@@ -147,14 +147,6 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     #region BatchCodeFixTestsBase
 
     /// <inheritdoc/>
-    [TestMethod]
-    [Requirement("RH2005-004")]
-    public override async Task FixAllCorrectsEveryDiagnostic()
-    {
-        await base.FixAllCorrectsEveryDiagnostic();
-    }
-
-    /// <inheritdoc/>
     protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """

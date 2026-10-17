@@ -5,7 +5,7 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor` |
-| Uses | FMT-PIPE-002, FMT-PIPE-010, SHARED-USING-008, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, FMT-DOC-001, FMT-DOC-003 |
+| Uses | FMT-PIPE-002, SHARED-USING-008, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, FMT-DOC-001, FMT-DOC-003 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, chained keywords, and documentation comments), and how it collapses runs of blank lines. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 

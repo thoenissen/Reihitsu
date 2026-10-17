@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-ORDER |
 | Status | Active |
-| Code owners | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase`, `SyntaxTriviaUtilities` |
+| Code owners | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
 | Uses | — |
 
 This spec covers how the code fixes of the ordering rules move one declaration in front of an earlier sibling, and when such a move is refused. It applies to the member reordering fixes (RH7102 constants before fields, RH7103 static before instance, RH7109 readonly before non-readonly) and to the accessor reordering fixes (RH7107 property accessors, RH7108 event accessors). Which declaration a rule reports and where it should go is each rule's own spec; this spec owns the move and its guards.

@@ -11,7 +11,8 @@ namespace Reihitsu.ArchitectureTests.Sdd;
 /// Links the tests to the spec requirements they cover, as <c>sdd/README.md</c> describes: a test names each
 /// requirement it covers with a <c>[Requirement("&lt;ID&gt;")]</c> attribute. Every such reference must name an
 /// active requirement, and every active requirement of an enforced spec must be covered by at least one test.
-/// Specs outside <see cref="EnforcedSpecDirectories"/> are reported but do not fail
+/// A spec is enforced when it lies in <see cref="EnforcedSpecPaths"/>; a requirement of a <c>shared/</c> spec is
+/// enforced as well when an enforced spec lists it under <c>Uses</c>. Everything else is reported but does not fail
 /// </summary>
 [TestClass]
 public sealed class RequirementCoverageTests
@@ -19,10 +20,15 @@ public sealed class RequirementCoverageTests
     #region Constants
 
     /// <summary>
-    /// Spec directories, relative to <c>sdd/specs</c>, whose active requirements must each be covered by a test.
-    /// A directory stays on this list once it is added
+    /// Spec directories, each ending with a slash, and single spec files, relative to <c>sdd/specs</c>, whose active
+    /// requirements must each be covered by a test. A path stays on this list once it is added
     /// </summary>
-    internal static readonly IReadOnlyList<string> EnforcedSpecDirectories = ["analyzer/", "cli/"];
+    internal static readonly IReadOnlyList<string> EnforcedSpecPaths = ["analyzer/", "cli/", "shared/code-fixes.md", "shared/diagnostics.md"];
+
+    /// <summary>
+    /// Spec directory of the shared specs, whose requirements an enforced spec can enforce by using them
+    /// </summary>
+    private const string SharedDirectory = "shared/";
 
     #endregion // Constants
 
@@ -64,7 +70,7 @@ public sealed class RequirementCoverageTests
         var repositoryRoot = FindRepositoryRoot();
 
         // Act
-        var findings = FindUncoveredRequirements(repositoryRoot, EnforcedSpecDirectories);
+        var findings = FindUncoveredRequirements(repositoryRoot, EnforcedSpecPaths);
 
         // Assert
         Assert.IsEmpty(findings, DescribeFindings("Every active requirement of an enforced spec must be covered by a test tagged [Requirement(\"<ID>\")]", findings));
@@ -271,6 +277,30 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
+    /// Verifies that a shared requirement becomes enforced when an enforced spec lists it under <c>Uses</c>, while
+    /// an unused requirement of the same shared spec stays unenforced
+    /// </summary>
+    [TestMethod]
+    public void CoverageCheckEnforcesSharedRequirementsThatAnEnforcedSpecUses()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("shared/policy.md", "`Policy`", "SHARED-P-001", "SHARED-P-002");
+            fixture.WriteFile("sdd/specs/cli/reihitsu-format.md",
+                              "# CLI\n\n| | |\n|---|---|\n| ID prefix | CLI |\n| Uses | SHARED-P-001 |\n\n## Requirements\n\n### CLI-001 — Title\n\nThe CLI MUST follow SHARED-P-001.\n");
+            fixture.WriteFile("src/Reihitsu.Cli.Test/ProgramTests.cs", CreateTestSource("[Requirement(\"CLI-001\")]"));
+
+            // Act
+            var findings = FindUncoveredRequirements(fixture.Path, ["cli/"]);
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("SHARED-P-001", findings[0]);
+        }
+    }
+
+    /// <summary>
     /// Verifies that the report of specs not enforced yet counts the uncovered requirements per spec and leaves
     /// enforced specs out
     /// </summary>
@@ -340,27 +370,29 @@ public sealed class RequirementCoverageTests
     /// Finds every active requirement of the given spec directories that no test method covers
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c> and <c>src</c></param>
-    /// <param name="specDirectories">Spec directories relative to <c>sdd/specs</c>, each ending with a slash</param>
+    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
     /// <returns>One message per uncovered requirement, starting with its ID</returns>
-    private static List<string> FindUncoveredRequirements(string repositoryRoot, IReadOnlyList<string> specDirectories)
+    private static List<string> FindUncoveredRequirements(string repositoryRoot, IReadOnlyList<string> specPaths)
     {
         var coveredIds = ReadCoveredIds(repositoryRoot);
+        var usedSharedIds = ReadSharedIdsUsedBy(repositoryRoot, specPaths);
 
-        return ReadActiveRequirements(repositoryRoot).Where(requirement => IsInDirectories(requirement, specDirectories)
+        return ReadActiveRequirements(repositoryRoot).Where(requirement => IsEnforced(requirement, specPaths, usedSharedIds)
                                                                            && coveredIds.Contains(requirement.Id) == false)
                                                      .Select(requirement => $"{requirement.Id}: no test covers it ({requirement.SpecPath}:{requirement.Line})")
                                                      .ToList();
     }
 
     /// <summary>
-    /// Describes, per spec outside <see cref="EnforcedSpecDirectories"/>, the active requirements no test covers
+    /// Describes, per spec that is not enforced, the active requirements no test covers
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c> and <c>src</c></param>
     /// <returns>The report, one line per spec</returns>
     private static string DescribeCoverageOfSpecsNotYetEnforced(string repositoryRoot)
     {
         var coveredIds = ReadCoveredIds(repositoryRoot);
-        var lines = ReadActiveRequirements(repositoryRoot).Where(requirement => IsInDirectories(requirement, EnforcedSpecDirectories) == false)
+        var usedSharedIds = ReadSharedIdsUsedBy(repositoryRoot, EnforcedSpecPaths);
+        var lines = ReadActiveRequirements(repositoryRoot).Where(requirement => IsEnforced(requirement, EnforcedSpecPaths, usedSharedIds) == false)
                                                           .GroupBy(requirement => requirement.SpecPath, StringComparer.Ordinal)
                                                           .Select(group =>
                                                                   {
@@ -414,14 +446,45 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
-    /// Determines whether a requirement's spec lies in one of the given spec directories
+    /// Determines whether a requirement is enforced: its spec lies in one of the given spec paths, or it belongs to a
+    /// <c>shared/</c> spec and an enforced spec uses it
     /// </summary>
     /// <param name="requirement">Requirement</param>
-    /// <param name="specDirectories">Spec directories relative to <c>sdd/specs</c>, each ending with a slash</param>
-    /// <returns><see langword="true"/> when the spec lies in one of the directories</returns>
-    private static bool IsInDirectories(SpecRequirement requirement, IReadOnlyList<string> specDirectories)
+    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
+    /// <param name="usedSharedIds">Shared requirement IDs that an enforced spec lists under <c>Uses</c></param>
+    /// <returns><see langword="true"/> when the requirement is enforced</returns>
+    private static bool IsEnforced(SpecRequirement requirement, IReadOnlyList<string> specPaths, HashSet<string> usedSharedIds)
     {
-        return specDirectories.Any(directory => requirement.SpecPath.StartsWith(directory, StringComparison.Ordinal));
+        return IsInPaths(requirement.SpecPath, specPaths)
+               || (requirement.SpecPath.StartsWith(SharedDirectory, StringComparison.Ordinal)
+                   && usedSharedIds.Contains(requirement.Id));
+    }
+
+    /// <summary>
+    /// Determines whether a spec lies in one of the given spec paths
+    /// </summary>
+    /// <param name="specPath">Spec path relative to <c>sdd/specs</c></param>
+    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
+    /// <returns><see langword="true"/> when the spec is one of the files or lies in one of the directories</returns>
+    private static bool IsInPaths(string specPath, IReadOnlyList<string> specPaths)
+    {
+        return specPaths.Any(path => path.EndsWith('/')
+                                         ? specPath.StartsWith(path, StringComparison.Ordinal)
+                                         : string.Equals(specPath, path, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Reads the IDs that the specs in the given paths list under <c>Uses</c>
+    /// </summary>
+    /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c></param>
+    /// <param name="specPaths">Spec directories, each ending with a slash, and spec files, relative to <c>sdd/specs</c></param>
+    /// <returns>The used IDs</returns>
+    private static HashSet<string> ReadSharedIdsUsedBy(string repositoryRoot, IReadOnlyList<string> specPaths)
+    {
+        return SpecCatalog.ReadHeaders(Path.Combine(repositoryRoot, "sdd", "specs"))
+                          .Where(header => IsInPaths(header.SpecPath, specPaths))
+                          .SelectMany(header => SpecCatalog.SplitCell(header.GetRow("Uses")))
+                          .ToHashSet(StringComparer.Ordinal);
     }
 
     /// <summary>
