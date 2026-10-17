@@ -58,6 +58,11 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 | #915 Q2 end tag on content line | Bug: symmetric, any length | https://github.com/thoenissen/Reihitsu/issues/915#issuecomment-6232536716 | bug issue (phase 2) |
 | #915 Q3 inline elements expanded | Bug: rebuild only block-level elements | https://github.com/thoenissen/Reihitsu/issues/915#issuecomment-6232536716 | bug issue (phase 2) |
 | #915 Q4 stray `///` relocated | Bug: relocate only before documentable node (shared predicate, FMT-BLANK follows) | https://github.com/thoenissen/Reihitsu/issues/915#issuecomment-6232536716 | bug issue (phase 2) |
+| #918 Q1 ctor initializer colon | Bug: `: this(1)` on one line below parameter list | https://github.com/thoenissen/Reihitsu/issues/918#issuecomment-6232668152 | bug issue (phase 2) |
+| #918 Q2 constraint clause wrap | Bug: join (`where T : class`) | https://github.com/thoenissen/Reihitsu/issues/918#issuecomment-6232668152 | bug issue (phase 2) |
+| #918 Q4 switch-expression arms | New: one arm per line | https://github.com/thoenissen/Reihitsu/issues/918#issuecomment-6232668152 | issue (phase 2) |
+| #918 Q6 argument lists | New: like parameter lists (trailing comma, `)` after last arg); formatter only | https://github.com/thoenissen/Reihitsu/issues/918#issuecomment-6232668152 | issue (phase 2) |
+| #913 Q3 comment duplicated on split fields | Bug: comment between type and first declarator blocks the split; replace test `CommentOnTheTypeLineIsStillDuplicatedOntoEveryField` | https://github.com/thoenissen/Reihitsu/issues/913#issuecomment-6232668547 | bug issue (phase 2) |
 
 ## Running
 
@@ -65,7 +70,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- #918 Q1, Q2, Q4, Q6; #913 Q1, Q3
+- #913 Q1 (follow-up: comment after `{` on own line? converter-only vs. change FMT-BREAK-003); then tick #913 Q1+Q3
 
 ## Collected for later phases
 
@@ -78,7 +83,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Issues fully decided (close when follow-ups exist)
 
-- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917, #923, #915
+- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917, #923, #915, #918
 
 ## Still open in phase 1
 
