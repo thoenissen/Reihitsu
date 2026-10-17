@@ -56,3 +56,7 @@ Maintainer approved filing bug issues ("bug issues kannst du anlegen"). Filed: t
 ## Implementer skipped
 
 `07-test-implementer.md` reports every test green on the unchanged production code, and the issue rules out production changes. The tooling lane adds the implementer only because of the decisions entry under `squad/`, which needs no implementation. With no failing test to make pass, the implementer is skipped.
+
+## Escalation 7 — answered
+
+The auditor (`14-auditor.md`) blocked with five findings after the run's one repair round (spec checker, neutral names). The maintainer chose a second repair round for all five findings and filing finding 1 as a bug; see `squad/decisions/2026-10-17-second-repair-round-naming-specs.md`. Filed: thoenissen/Reihitsu#1016 (casing fixes produce a name the rule still reports). The repair is routed to the spec author (findings 1, 2, 4, 5) and the test implementer (findings 3 and 5), followed by the cleaner, the spec checker, the auditor (repair only) and the validator.
