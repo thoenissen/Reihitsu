@@ -44,7 +44,7 @@ sdd/
 
 Start from [`templates/spec.md`](templates/spec.md), or from [`templates/analyzer-spec.md`](templates/analyzer-spec.md) for an analyzer rule.
 
-- **Header table:** `ID prefix`, `Status` (`Active`), `Code owners`, and `Uses` — exactly the requirement IDs of other specs that the spec references outside its header and its non-goals, `—` when none. A pointer in a non-goal is not a use.
+- **Header table:** `ID prefix`, `Status` (`Active`), `Code owners`, and `Uses` — exactly the requirement IDs of other specs that the spec references outside its header and its non-goals, `—` when none. A pointer in a non-goal is not a use, and a range such as "SHARED-STMT-001 to SHARED-STMT-003" names only its ends; name every ID the spec relies on.
 - **Code owners** are type names only — never file paths or line numbers. Every named type must exist; `—` when no single type implements the behavior. A type is a code owner of at most one spec: a rule's analyzer and code-fix provider belong to the rule's spec, a type that implements shared behavior to that shared spec, and a general-purpose utility to none.
 - **Non-goals** list what the spec deliberately does not cover. Do not extend behavior into a non-goal without a change doc. An open question is never written into a spec, neither as a requirement nor as a non-goal (see [Open questions](#open-questions)).
 - **One requirement per heading:** `### <ID> — <short title>`. A requirement is one decision with its own `Why:`. Two decisions with different reasons are two requirements; the qualifiers of one decision stay in it, each with an example on either side.

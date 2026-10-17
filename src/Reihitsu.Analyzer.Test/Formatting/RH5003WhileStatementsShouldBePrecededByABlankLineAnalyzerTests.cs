@@ -21,6 +21,8 @@ public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5003-001")]
+    [Requirement("RH5003-002")]
     public async Task VerifyDiagnosticForWhileStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -60,6 +62,7 @@ public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5003-001")]
     public async Task VerifyNoDiagnosticForWhileStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -85,6 +88,7 @@ public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5003-001")]
     public async Task VerifyNoDiagnosticForWhileStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -107,6 +111,7 @@ public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5003-001")]
     public async Task VerifyDiagnosticForWhileStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """

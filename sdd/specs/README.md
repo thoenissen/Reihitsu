@@ -22,13 +22,17 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
+| [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
 | [analyzer/RH1003.md](analyzer/RH1003.md) | RH1003 | `RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer` |
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
 | [analyzer/RH3202.md](analyzer/RH3202.md) | RH3202 | `RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer`, `RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider`, `ExpressionBodyRewriteUtilities` |
 | [analyzer/RH4106.md](analyzer/RH4106.md) | RH4106 | `RH4106PrivateFieldCasingAnalyzer`, `RH4106PrivateFieldCasingCodeFixProvider`, `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `CasingUtilities` |
-| [analyzer/RH5002.md](analyzer/RH5002.md) | RH5002 | `RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider`, `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
+| [analyzer/RH5001.md](analyzer/RH5001.md) | RH5001 | `RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5002.md](analyzer/RH5002.md) | RH5002 | `RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5003.md](analyzer/RH5003.md) | RH5003 | `RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5010.md](analyzer/RH5010.md) | RH5010 | `RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5010BreakStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH6002.md](analyzer/RH6002.md) | RH6002 | `RH6002CommasMustBeSpacedCorrectlyAnalyzer`, `RH6002CommasMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH7103.md](analyzer/RH7103.md) | RH7103 | `RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer`, `RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider` |
 | [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
