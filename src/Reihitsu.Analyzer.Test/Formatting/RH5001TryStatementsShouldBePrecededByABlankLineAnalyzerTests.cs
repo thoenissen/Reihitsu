@@ -22,6 +22,8 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5001-001")]
+    [Requirement("RH5001-002")]
     public async Task VerifyDiagnosticForTryStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -67,6 +69,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5001-001")]
     public async Task VerifyNoDiagnosticForTryStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -95,6 +98,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5001-001")]
     public async Task VerifyNoDiagnosticForTryStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -121,6 +125,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForTopLevelTryStatement()
     {
         const string testCode = """
@@ -141,6 +146,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5001-001")]
     public async Task VerifyDiagnosticForTryStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -189,6 +195,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-STMT-004")]
     public async Task VerifyInsertedBlankLineUsesDetectedCarriageReturnLineFeedEndOfLine()
     {
         const string testCode = """

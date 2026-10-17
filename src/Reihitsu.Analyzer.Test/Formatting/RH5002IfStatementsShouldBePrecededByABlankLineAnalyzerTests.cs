@@ -23,7 +23,8 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     [TestMethod]
     [Requirement("RH5002-001")]
     [Requirement("RH5002-004")]
-    [Requirement("RH5002-005")]
+    [Requirement("SHARED-STMT-004")]
+    [Requirement("SHARED-STMT-001")]
     public async Task VerifyDiagnosticForIfStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -113,7 +114,8 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5002-001")]
-    [Requirement("RH5002-005")]
+    [Requirement("SHARED-STMT-004")]
+    [Requirement("SHARED-STMT-001")]
     public async Task VerifyDiagnosticForIfStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
@@ -155,7 +157,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5002-002")]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForIfStatementAsEmbeddedWhileBody()
     {
         const string testCode = """
@@ -180,7 +182,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5002-002")]
+    [Requirement("SHARED-STMT-002")]
     public async Task VerifyNoDiagnosticForElseIfStatement()
     {
         const string testCode = """
@@ -216,7 +218,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5002-003")]
+    [Requirement("SHARED-STMT-003")]
     public async Task VerifyNoDiagnosticForIfStatementDirectlyBelowDirective()
     {
         const string testCode = """
@@ -244,7 +246,8 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5002-001")]
-    [Requirement("RH5002-005")]
+    [Requirement("SHARED-STMT-004")]
+    [Requirement("SHARED-STMT-001")]
     public async Task VerifyIfStatementOnSameLineAsPreviousStatementIsMovedToItsOwnLine()
     {
         const string testCode = """
