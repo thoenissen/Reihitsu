@@ -63,6 +63,10 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 | #918 Q4 switch-expression arms | New: one arm per line | https://github.com/thoenissen/Reihitsu/issues/918#issuecomment-6232668152 | issue (phase 2) |
 | #918 Q6 argument lists | New: like parameter lists (trailing comma, `)` after last arg); formatter only | https://github.com/thoenissen/Reihitsu/issues/918#issuecomment-6232668152 | issue (phase 2) |
 | #913 Q3 comment duplicated on split fields | Bug: comment between type and first declarator blocks the split; replace test `CommentOnTheTypeLineIsStillDuplicatedOntoEveryField` | https://github.com/thoenissen/Reihitsu/issues/913#issuecomment-6232668547 | bug issue (phase 2) |
+| #913 Q1 comment after `=>` glued to `{` | Bug: converter puts comment on own line as first block line; FMT-BREAK-003/FMT-SPACE unchanged (general spacing rule withdrawn) | https://github.com/thoenissen/Reihitsu/issues/913#issuecomment-6233201145 | bug issue (phase 2) |
+| #914 Q1 `#region   Fields` | New: always one space, no trailing ws; update test `TrailingOpeningWhitespaceWithCanonicalCloseIsStable` | https://github.com/thoenissen/Reihitsu/issues/914#issuecomment-6233201504 | issue (phase 2) |
+| #924 Q1 EOL in block comments/disabled text | New: normalize; FMT-PIPE-002 allowance (with #923 Q1), FMT-PIPE-007 updated | https://github.com/thoenissen/Reihitsu/issues/924#issuecomment-6233201915 | issue (phase 2) |
+| #927 Q1 balanced pragma in crossed body | Bug (guard scope): balanced pragma/nullable inside crossed body doesn't block; replace Core test | https://github.com/thoenissen/Reihitsu/issues/927#issuecomment-6233202421 | bug issue (phase 2) |
 
 ## Running
 
@@ -70,7 +74,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- #913 Q1 (follow-up: comment after `{` on own line? converter-only vs. change FMT-BREAK-003); then tick #913 Q1+Q3
+- #931, #932, #933, #934 (last round of phase 1)
 
 ## Collected for later phases
 
@@ -83,8 +87,8 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Issues fully decided (close when follow-ups exist)
 
-- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917, #923, #915, #918
+- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917, #923, #915, #918, #913, #914, #924, #927
 
 ## Still open in phase 1
 
-- #914; #924; #927; #931; #932; #933; #934
+- #931; #932; #933; #934
