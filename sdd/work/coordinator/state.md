@@ -79,7 +79,39 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- maintainer: start phase 3 (backfill plan)?
+- maintainer: ok on phase-3 backfill plan (below) + answers Q1–Q3 (RH5005/RH5006 split, parallelism, order)
+
+## Phase 3 plan (draft 2026-10-17, branch merged with main 33a29f7)
+
+328 rules without spec, 22 batches, every one covered exactly once (checked by script).
+Shared specs: new ones are created by the first batch of a family; "if shared" = the batch creates it only when >1 spec relies on the behavior.
+
+| # | Title range | Rules | Shared spec | Depends / notes |
+|---|---|---|---|---|
+| B1 | RH0002–RH2109 | RH0002, RH1001, RH1002, RH2001–RH2004, RH2006, RH2007, RH2101–RH2109 (18) | struct-equality (RH1001/1002) if shared | — |
+| B2 | RH3001–RH3208 | RH3001–RH3007, RH3101–RH3107, RH3201, RH3203–RH3208 (21) | expression-body → block (may take `ExpressionBodyRewriteUtilities` out of RH3202); empty parentheses (RH3106/3107) if shared | — |
+| N1 | RH4001–RH4110 | RH4001–RH4011, RH4101–RH4105, RH4107–RH4110 (20) | creates shared casing spec; moves `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `CasingUtilities` out of RH4106 | note #971 |
+| N2 | RH4111–RH4127 | RH4111–RH4118, RH4120–RH4127 (16) | reuses casing | blocked by N1; note #971; RH4116/RH4118 share a class name |
+| ST | RH5004–RH5029 (statement blank lines) | RH5004, RH5007–RH5009, RH5012–RH5019, RH5021, RH5029 (14) | reuses SHARED-STMT | note #972 |
+| SA | RH5005–RH5006 | RH5005, RH5006 (2) | reuses SHARED-STMT | blocked by #946 (+ ST for no conflicts); note #972 |
+| BL | RH5011–RH5032 (other blank lines) | RH5011, RH5020, RH5022–RH5028, RH5030–RH5032 (12) | reuses SHARED-BLANK; blank-line span removal, region-directive blank line if shared | — |
+| CP | RH5033–RH5049 | RH5033–RH5047, RH5049 (16) | creates comment placement (`CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`) | — |
+| LB | RH5048–RH5206 | RH5048, RH5101–RH5114, RH5201–RH5206 (21) | reuses SHARED-CHAIN (+`FluentChainAnalyzerBase`); collapse token gap if shared | — |
+| LA | RH5301–RH5408 | RH5301–RH5308, RH5401–RH5408 (16) | statement braces (RH5405–5407) if shared | — |
+| LC | RH5409–RH5417 | RH5409–RH5417 (9) | trailing comma, empty type declaration | — |
+| AP | RH5501–RH5530 (placement) | odd RH5501–RH5527, RH5530 (15) | creates attribute-target spec (`AttributeTargetRuleAnalyzerBase`, placement bases) | — |
+| AS | RH5502–RH5531 (list shape) | even RH5502–RH5528, RH5529, RH5531 (16) | extends attribute-target spec | blocked by AP |
+| S1 | RH5601–RH6012 | RH5601–RH5604, RH6001, RH6003–RH6012 (15) | creates whitespace-run removal spec if shared | — |
+| S2 | RH6013–RH6024 | RH6013–RH6024 (12) | reuses S1's | blocked by S1 |
+| O1 | RH7001–RH7110 | RH7001–RH7004, RH7101, RH7102, RH7104–RH7110 (13) | reuses SHARED-ORDER; modifier ordering | note #968, #969, #970 |
+| O2 | RH7201–RH7311 | RH7201–RH7207, RH7301–RH7311, RH7305A (19) | reuses SHARED-USING; region description if shared | note #965, #966 |
+| O3 | RH7401–RH7501 | RH7401–RH7412, RH7501 (13) | creates member-region grouping spec | — |
+| D1 | RH8001–RH8019 | RH8001–RH8019 (19) | creates element-documentation spec; moves shared doc utilities out of RH8107 | — |
+| D2 | RH8020–RH8034 | RH8020–RH8034 (15) | reuses D1's | blocked by D1 |
+| D3 | RH8101–RH8204 | RH8101–RH8106, RH8108–RH8111, RH8201–RH8204 (14) | reuses D1's documentation spec | blocked by D1 |
+| D4 | RH8301–RH8501 | RH8301–RH8309, RH8401, RH8402, RH8501 (12) | reuses D1's | blocked by D1 |
+
+#939 split: #939 keeps tagging formatter/shared/CLI/Playground tests; new issue T = opt-out switch + every-test-tagged rule, blocked by all 22 batches; reconcile with "incidental tests do not tag"; decide architecture/tooling tests.
 
 ## Collected for later phases
 
