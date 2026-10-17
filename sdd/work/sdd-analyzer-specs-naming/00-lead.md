@@ -50,3 +50,5 @@ Maintainer's answer (verbatim):
 - thoenissen/Reihitsu#1014 — `sdd/specs/analyzer/RH4102.md`
 
 Follow-up candidate awaiting the maintainer's approval: RH4102's Fix All corrects only the event kind it was invoked from (it breaks SHARED-FIX-002).
+
+Maintainer approved filing bug issues ("bug issues kannst du anlegen"). Filed: thoenissen/Reihitsu#1015 (RH4102 Fix All corrects only the event kind it was invoked from). The namespace-type fix (#1009 Q1) and the `Leaf` fixes (#1013 Q1, #1014 Q1) stay open questions; no earlier spec covered them, so they are not bugs against a spec.
