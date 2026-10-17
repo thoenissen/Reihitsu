@@ -44,6 +44,14 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 | #918 Q3 empty region after `{` | Bug: no blank line after `{`, blank between directives stays; confirm root-cause hypothesis first | https://github.com/thoenissen/Reihitsu/issues/918#issuecomment-6232386342 | bug issue (phase 2) |
 | Continuation group #921 Q1, #918 Q5, #913 Q2 | New general rule: continuation line no contributor owns = one level deeper than the line its statement/member starts on; contributors keep precedence | https://github.com/thoenissen/Reihitsu/issues/921#issuecomment-6232385765 | one issue (phase 2), new FMT-INDENT requirement, no change doc |
 | #913 Q4 region inside declaration | `=> 42;` follows continuation rule; blank lines around region intended (clarify FMT-BLANK-013) | https://github.com/thoenissen/Reihitsu/issues/913#issuecomment-6232386892 | part of continuation issue |
+| #920 Q1 `fixed(` | Bug: `fixed` is a spaced keyword | https://github.com/thoenissen/Reihitsu/issues/920#issuecomment-6232450352 | bug issue (phase 2) |
+| #920 Q2 unruled token pairs | New formatter rules: `x => x`, `b ? 1 : 2`, `arr[0]`, `typeof(C)`, `new List<int>()`, `global::`, `b: b`; no analyzer rule now | https://github.com/thoenissen/Reihitsu/issues/920#issuecomment-6232450352 | one issue with Q3 (phase 2) |
+| #920 Q3 initializer braces | New: `{ 1, 2 }` both sides; RH6009/6010 unchanged | https://github.com/thoenissen/Reihitsu/issues/920#issuecomment-6232450352 | with Q2 |
+| #920 Q4 double space before `/** */` | Bug: collapse to one space | https://github.com/thoenissen/Reihitsu/issues/920#issuecomment-6232450352 | bug issue (phase 2) |
+| #916 Q1 (+#917 Q2) comment in using group | RH7207 + using phase accept blank line before comment-led directive; comment rule unchanged; SHARED-USING-008 changes | https://github.com/thoenissen/Reihitsu/issues/916#issuecomment-6232450977 | issue (phase 2) |
+| #916 Q2 `#` in block comment blocks reorder | Bug: drop textual check | https://github.com/thoenissen/Reihitsu/issues/916#issuecomment-6232450977 | bug issue (phase 2) |
+| #916 Q3 `global::` sort key | Bug (RH7203 + formatter): strip `global::`, unqualified first on tie | https://github.com/thoenissen/Reihitsu/issues/916#issuecomment-6232450977 | bug issue (phase 2) |
+| #917 Q1/Q2 duplicates | Pointed to #918 Q3 and #916 Q1 | https://github.com/thoenissen/Reihitsu/issues/917 | none of its own |
 
 ## Running
 
@@ -51,7 +59,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- #920 Q1, #916 Q1 (analyzer/formatter disagree), rest of #918 (Q1, Q2, Q4, Q6)
+- #923 Q1–Q3 + #915 Q1–Q4 (trailing whitespace in comments group)
 
 ## Collected for later phases
 
@@ -64,4 +72,8 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Issues fully decided (close when follow-ups exist)
 
-- #919, #930, #926, #928, #929, #922, #921
+- #919, #930, #926, #928, #929, #922, #921, #920, #916, #917
+
+## Still open in phase 1
+
+- #918 Q1, Q2, Q4, Q6; #913 Q1, Q3; #914; #924; #927; #931; #932; #933; #934
