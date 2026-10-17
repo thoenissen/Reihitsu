@@ -79,7 +79,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- nothing; creating phase 2 issues
+- nothing; closing per-spec issues #913–#934 with follow-up links, ticking #912
 
 ## Collected for later phases
 
@@ -101,7 +101,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 ## Phase 2 plan (approved 2026-10-17; create issues, then close per-spec issues and tick #912)
 
 Kind: B = bug fix lane, N = behavior-change lane (change doc), C = cleanup.
-Created: (fill in issue numbers)
+Created: all 29 (#948–#976), 2026-10-17. U1 runs as behavior change.
 
 Formatter
 - F1 B → #948 #919 Q1 switch bracing must not break cross-section locals
@@ -115,25 +115,25 @@ Formatter
 - F9 N → #956 #918 Q4 + Q6 switch arms one per line, argument lists like parameter lists
 - F10 B → #957 #920 Q1 + Q4 `fixed (`, double space before comment
 - F11 N → #958 #920 Q2 + Q3 new spacing rules
-- F12 N #923 Q1 + #915 Q1 + #924 Q1 comment line ends: trailing ws + line endings (FMT-PIPE-002 allowance)
-- F13 B #923 Q2 + Q3 directive-line and EOF trailing ws
-- F14 B #915 Q2 + Q3 doc element normalization (end tag symmetric, block-level only)
-- F15 B #915 Q4 stray `///` relocation
-- F16 B #913 Q1 + Q3 structural transforms (comment after `=>`, field split guard)
-- F17 N #914 Q1 `#region` line normalization
+- F12 N → #959 #923 Q1 + #915 Q1 + #924 Q1 comment line ends: trailing ws + line endings (FMT-PIPE-002 allowance)
+- F13 B → #960 #923 Q2 + Q3 directive-line and EOF trailing ws
+- F14 B → #961 #915 Q2 + Q3 doc element normalization (end tag symmetric, block-level only)
+- F15 B → #962 #915 Q4 stray `///` relocation
+- F16 B → #963 #913 Q1 + Q3 structural transforms (comment after `=>`, field split guard)
+- F17 N → #964 #914 Q1 `#region` line normalization
 Usings (analyzer + formatter)
-- U1 N/B #916 Q1 comment-led directive in using group (RH7207, SHARED-USING-008)
-- U2 B #916 Q2 + Q3 textual `#` check, `global::` sort key
+- U1 N/B → #965 #916 Q1 comment-led directive in using group (RH7207, SHARED-USING-008)
+- U2 B → #966 #916 Q2 + Q3 textual `#` check, `global::` sort key
 Analyzer / code fixes
-- A1 B #930 Q1 + Q2 RH2005 fix
-- A2 B #926 Q1 RH7103 effective accessibility
-- A3 B #926 Q2 ordering fixes format only the moved member
-- A4 B #927 Q1 balanced pragma guard
-- A5 B #928 Q1 casing acronym run
-- A6 B #929 Q1 statement-blank-line fix base
-- A7 B #931 Q1 RH1003
-- A8 B #932 Q1 RH0001
+- A1 B → #967 #930 Q1 + Q2 RH2005 fix
+- A2 B → #968 #926 Q1 RH7103 effective accessibility
+- A3 B → #969 #926 Q2 ordering fixes format only the moved member
+- A4 B → #970 #927 Q1 balanced pragma guard
+- A5 B → #971 #928 Q1 casing acronym run
+- A6 B → #972 #929 Q1 statement-blank-line fix base
+- A7 B → #973 #931 Q1 RH1003
+- A8 B → #974 #932 Q1 RH0001
 - #946 existing (RH5005/RH5006 await using/foreach)
 CLI / Playground
-- C1 B #933 Q1 diff header
-- C2 N #934 Q1 generated-input note
+- C1 B → #975 #933 Q1 diff header
+- C2 N → #976 #934 Q1 generated-input note
