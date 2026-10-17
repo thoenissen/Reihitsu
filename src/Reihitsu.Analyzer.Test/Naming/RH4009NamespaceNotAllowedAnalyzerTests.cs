@@ -89,7 +89,13 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
     [Requirement("RH4009-001")]
     public async Task NoConfiguration()
     {
-        await Verify(TestCode);
+        const string testCode = """
+                                namespace Company.Product
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -100,7 +106,13 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
     [Requirement("RH4009-001")]
     public async Task EmptyConfiguration()
     {
-        await Verify(TestCode,
+        const string testCode = """
+                                namespace Company.Product
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
                      test =>
                      {
                          const string configuration = """
@@ -124,7 +136,13 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
     [Requirement("RH4009-001")]
     public async Task InvalidConfiguration()
     {
-        await Verify(TestCode,
+        const string testCode = """
+                                namespace Company.Product
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
                      test =>
                      {
                          const string configuration = """
@@ -149,7 +167,7 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
     public async Task NamingSectionWithoutAllowListIsInactive()
     {
         const string testCode = """
-                                namespace TestNameSpace
+                                namespace Company.Product
                                 {
                                 }
                                 """;
@@ -174,7 +192,7 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
     public async Task AllowListWithoutStringEntryIsInactive()
     {
         const string testCode = """
-                                namespace TestNameSpace
+                                namespace Company.Product
                                 {
                                 }
                                 """;
@@ -199,7 +217,7 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
     public async Task EntriesThatAreNotStringsAreIgnoredAndStringEntriesStayInEffect()
     {
         const string testCode = """
-                                namespace {|RH4009:TestNameSpace|}
+                                namespace {|RH4009:Company.Product|}
                                 {
                                 }
                                 """;

@@ -77,7 +77,7 @@ public class RH4008NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH4008Namesp
     public async Task EachBlockScopedNamespaceSegmentThatIsNotPascalCaseIsReported()
     {
         const string testCode = """
-                                namespace Reihitsu.{|RH4008:analyzer|}.Naming.{|RH4008:resources|}
+                                namespace Company.{|RH4008:product|}.Data.{|RH4008:access|}
                                 {
                                 }
 
