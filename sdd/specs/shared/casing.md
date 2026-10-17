@@ -21,7 +21,7 @@ This spec covers the rules that require one kind of name to be written in a nami
 
 ### SHARED-CASING-001 — PascalCase
 
-A name whose characters are all letters, digits, or `_` MUST be accepted as PascalCase exactly when its first character is an uppercase letter and every other character is a letter or a digit.
+A name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` MUST be accepted as PascalCase exactly when its first character is an uppercase letter (category Lu) and every other character is a letter or a digit.
 
 Why: PascalCase is the .NET style for namespaces, types, and members that are visible outside their type. The uppercase letters inside the name mark its word boundaries, so a separator such as `_` adds nothing, and an acronym may stay uppercase.
 
@@ -51,7 +51,7 @@ class {|RH4002:_Invoice|}
 
 ### SHARED-CASING-002 — camelCase
 
-A name whose characters are all letters, digits, or `_` MUST be accepted as camelCase exactly when its first character is a lowercase letter and every other character is a letter or a digit.
+A name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` MUST be accepted as camelCase exactly when its first character is a lowercase letter (category Ll) and every other character is a letter or a digit.
 
 Why: camelCase is the .NET style for parameters and locals. It differs from PascalCase only in the first letter, so a parameter and the property it initializes can share their words.
 
@@ -68,7 +68,7 @@ class C
 
 ### SHARED-CASING-003 — `_camelCase`
 
-A name whose characters are all letters, digits, or `_` MUST be accepted as `_camelCase` exactly when it starts with `_` and is either just `_` or continues with a name that is camelCase as SHARED-CASING-002 defines it. Every other name MUST NOT be accepted, including a name with a second underscore or a digit after the prefix.
+A name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` MUST be accepted as `_camelCase` exactly when it starts with `_` and is either just `_` or continues with a name that is camelCase as SHARED-CASING-002 defines it. Every other name MUST NOT be accepted, including a name with a second underscore or a digit after the prefix.
 
 Why: The prefix tells a reader at the point of use that a name is state of the object, not a local or a parameter. What follows it is the camelCase name a local of the same meaning would have, so the prefix is the only difference between the two. `_` alone is the conventional name of an unused field.
 
@@ -189,7 +189,7 @@ namespace {|RH4008:company|}.Product.{|RH4008:data_access|}
 
 ### SHARED-CASING-006 — The fix derives the new name from the words of the old one
 
-A rule's code fix MUST derive the new name from an old name whose characters are all letters, digits, or `_` as follows. It splits the old name into words at every `_`, and drops the underscores. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words. The result is the PascalCase name. The camelCase name is the PascalCase name with its first character in lowercase, and the `_camelCase` name is the camelCase name with a `_` in front.
+A rule's code fix MUST derive the new name from an old name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` as follows. It splits the old name into words at every `_`, and drops the underscores. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words. The result is the PascalCase name. The camelCase name is the PascalCase name with its first character in lowercase, and the `_camelCase` name is the camelCase name with a `_` in front.
 
 For the camelCase and the `_camelCase` name, this requirement covers an old name whose first word does not start with two uppercase letters, or consists of uppercase letters only.
 
@@ -275,7 +275,7 @@ public class C
 
 The code fix MUST rename the reported declaration's symbol with the Roslyn renamer, so that the declaration and every reference to it in the active code of the solution change together. It MUST NOT be offered when the declared symbol cannot be resolved.
 
-This requirement covers a derived name that is not a C# keyword. For a type declared directly in a namespace, it covers a type none of whose type parameters, and none of whose members other than enum members, already has the new name.
+This requirement covers a derived name that is written without the verbatim prefix `@` at the declaration and at every reference: a name that is not a reserved C# keyword, and not `await` inside an async member. Contextual keywords such as `value`, `var`, and `nameof` are covered and stay as they are. For a type declared directly in a namespace, it covers a type none of whose type parameters, and none of whose members other than enum members, already has the new name.
 
 Why: Renaming only the declaration would leave every use pointing at a name that no longer exists.
 
