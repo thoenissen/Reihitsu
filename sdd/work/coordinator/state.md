@@ -7,7 +7,8 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 - Several questions per round are fine.
 - A clear answer from the maintainer is approval to post the decision comment and tick the box; no separate ok needed.
 - Creating new issues still needs an ok.
-- No change docs until all SDD documents are finished (maintainer, round 5). "Different intended behavior" decisions add the requirement in the implementing PR without a change doc. The rulebook still says otherwise; reconcile in #942.
+- "No change docs" applies only to writing the SDD documents. Every source change runs later through the squad with all rules (new behavior = behavior-change lane with change doc). Clarified on #912.
+- Follow-up issues are created without showing them first (maintainer trusts the texts). Fixing starts only after SDD is established; no follow-up is urgent.
 
 ## Phase
 
@@ -78,7 +79,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Waiting for maintainer
 
-- Phase 2 plan approval (grouping below) and the lane question for new-behavior items
+- nothing; creating phase 2 issues
 
 ## Collected for later phases
 
@@ -97,9 +98,10 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 - none
 
-## Phase 2 plan (draft, not approved)
+## Phase 2 plan (approved 2026-10-17; create issues, then close per-spec issues and tick #912)
 
-Kind: B = bug fix lane, N = new intended behavior (no change doc yet; lane question open), C = cleanup.
+Kind: B = bug fix lane, N = behavior-change lane (change doc), C = cleanup.
+Created: (fill in issue numbers)
 
 Formatter
 - F1 B #919 Q1 switch bracing must not break cross-section locals
