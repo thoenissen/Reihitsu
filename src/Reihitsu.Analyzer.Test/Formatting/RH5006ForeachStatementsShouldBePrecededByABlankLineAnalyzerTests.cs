@@ -21,6 +21,8 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5006-001")]
+    [Requirement("RH5006-002")]
     public async Task VerifyDiagnosticForForeachStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -58,6 +60,8 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5006-001")]
+    [Requirement("RH5006-002")]
     public async Task VerifyDiagnosticForDeconstructionForeachStatementWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -99,6 +103,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5006-001")]
     public async Task VerifyNoDiagnosticForForeachStatementWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -123,6 +128,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5006-001")]
     public async Task VerifyNoDiagnosticForForeachStatementAtStartOfBlock()
     {
         const string testCode = """
@@ -145,6 +151,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5006-001")]
     public async Task VerifyDiagnosticForForeachStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
