@@ -23,6 +23,12 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5526-001")]
+    [Requirement("RH5526-002")]
+    [Requirement("RH5526-003")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -57,6 +63,8 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5526-001")]
+    [Requirement("SHARED-ATTR-013")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -79,6 +87,8 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5526-004")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -113,6 +123,110 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the multi-attribute lists of a top-level and a nested delegate, with or without the <c>type:</c> specifier, are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5526-001")]
+    [Requirement("RH5526-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForMultiAttributeDelegateLists()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                delegate void D();
+
+                                class C
+                                {
+                                    {|#1:[type: A, B]|}
+                                    delegate void E();
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5526MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the delegate attribute list by one list per attribute, each on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5526-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachDelegateAttributeAListOfItsOwn()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                delegate void D();
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 delegate void D();
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5526MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the delegate attribute list by one list per attribute, each on its own line, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5526-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachDelegateAttributeAListOfItsOwnWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                delegate void D();
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 delegate void D();
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5526MessageFormat));
     }
 
     #endregion // Tests

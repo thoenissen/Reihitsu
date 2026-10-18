@@ -23,6 +23,12 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5531-001")]
+    [Requirement("RH5531-004")]
+    [Requirement("RH5531-005")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForMultilineAccessorPolicyViolation()
     {
         const string testData = """
@@ -71,6 +77,8 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5531-001")]
+    [Requirement("SHARED-ATTR-013")]
     public async Task VerifyNoDiagnosticForCompliantMultilineAccessorCode()
     {
         const string testData = """
@@ -100,6 +108,12 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5531-002")]
+    [Requirement("RH5531-004")]
+    [Requirement("RH5531-005")]
+    [Requirement("SHARED-ATTR-015")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-018")]
     public async Task VerifyDiagnosticAndCodeFixForSingleLineAccessorPolicyViolation()
     {
         const string testData = """
@@ -137,6 +151,8 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5531-002")]
+    [Requirement("SHARED-ATTR-014")]
     public async Task VerifyNoDiagnosticForCompliantSingleLineAccessorCode()
     {
         const string testData = """
@@ -163,6 +179,8 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5531-002")]
+    [Requirement("RH5531-005")]
     public async Task VerifyDiagnosticAndCodeFixForSingleLineAccessorPolicyViolationWithPropertyAttribute()
     {
         const string testData = """
@@ -210,6 +228,7 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5531-001")]
     public async Task VerifyNoDiagnosticForCompliantMultilineAccessorCodeWithPropertyAttribute()
     {
         const string testData = """
@@ -243,6 +262,8 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5531-006")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -291,6 +312,308 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that multi-attribute lists of property, indexer, and event accessors in multi-line accessor lists are reported, while separate single-attribute lists are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-001")]
+    [Requirement("RH5531-004")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForMultiAttributeListsOfAccessorsInMultiLineAccessorLists()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P
+                                    {
+                                        {|#0:[A, B]|}
+                                        get;
+                                        {|#1:[method: A, B]|}
+                                        set;
+                                    }
+
+                                    int this[int i]
+                                    {
+                                        {|#2:[A, B]|}
+                                        get => i;
+                                    }
+
+                                    event System.Action E
+                                    {
+                                        {|#3:[A, B]|}
+                                        add
+                                        {
+                                        }
+                                        {|#4:[type: A, B]|}
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    int Q
+                                    {
+                                        [A] [B]
+                                        get;
+                                        set;
+                                    }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies that on an inline auto-property a list following another list of the same accessor and target is reported, while a merged list and a list of another target are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-002")]
+    [Requirement("RH5531-004")]
+    [Requirement("SHARED-ATTR-014")]
+    [Requirement("SHARED-ATTR-015")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForFollowingListsOfInlineAutoPropertyAccessors()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { [A] {|#0:[B]|} get; set; }
+
+                                    int Q { [A] {|#1:[method: B]|} get; set; }
+
+                                    [D]
+                                    int R { [A] {|#2:[B]|} get; set; } = 1;
+
+                                    int S { [A, B] get; set; }
+
+                                    int T { [A] [type: B] get; set; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-attribute list of a method is left to the method rule, although it resolves to the method target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-003")]
+    public async Task VerifyNoDiagnosticForMultiAttributeMethodList()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    [A, B]
+                                    void M()
+                                    {
+                                    }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix splits a list in a multi-line accessor list and merges the lists of an inline auto-property accessor
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-005")]
+    [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-ATTR-018")]
+    public async Task VerifyCodeFixSplitsMultiLineAccessorListAndMergesInlineAccessorLists()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P
+                                    {
+                                        {|#0:[A, B]|}
+                                        get;
+                                        set;
+                                    }
+
+                                    int Q { [A] {|#1:[B]|} get; set; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P
+                                     {
+                                         [A]
+                                         [B]
+                                         get;
+                                         set;
+                                     }
+
+                                     int Q { [A, B] get; set; }
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix splits a list in a multi-line accessor list and merges the lists of an inline auto-property accessor, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-005")]
+    [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-ATTR-018")]
+    public async Task VerifyCodeFixSplitsMultiLineAccessorListAndMergesInlineAccessorListsWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P
+                                    {
+                                        {|#0:[A, B]|}
+                                        get;
+                                        set;
+                                    }
+
+                                    int Q { [A] {|#1:[B]|} get; set; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P
+                                     {
+                                         [A]
+                                         [B]
+                                         get;
+                                         set;
+                                     }
+
+                                     int Q { [A, B] get; set; }
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a list holding a comment and a list following a comment are still reported without offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-006")]
+    [Requirement("SHARED-ATTR-019")]
+    [Requirement("SHARED-ATTR-020")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenCommentIsInsideOrBetweenTheLists()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P
+                                    {
+                                        {|#0:[A, /* c */ B]|}
+                                        get;
+                                        set;
+                                    }
+
+                                    int Q { [A] /* c */ {|#1:[B]|} get; set; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   class C
+                                   {
+                                       int P
+                                       {
+                                           [A, /* c */ B]
+                                           get;
+                                           set;
+                                       }
+
+                                       int Q { [A] /* c */ [B] get; set; }
+                                   }
+                                   sealed class A : System.Attribute
+                                   {
+                                   }
+                                   sealed class B : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 2));
+
+        foreach (var index in new[] { 0, 2 })
+        {
+            var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                       RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                       root => root.DescendantNodes()
+                                                                   .OfType<AttributeListSyntax>()
+                                                                   .ElementAt(index)
+                                                                   .GetLocation());
+
+            Assert.IsEmpty(actions, $"A code fix was offered for attribute list {index}.");
+        }
     }
 
     #endregion // Tests
