@@ -20,6 +20,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-001")]
     public async Task VerifyCommentAfterDeclaratorSeparatorIsReported()
     {
         const string testData = """
@@ -39,6 +40,8 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-001")]
+    [Requirement("SHARED-COMMENT-003")]
     public async Task VerifyCommentBeforeDeclaratorSeparatorIsReported()
     {
         const string testData = """
@@ -56,6 +59,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-002")]
     public async Task VerifyCommentBeforeFieldTerminatorIsReported()
     {
         const string testData = """
@@ -75,6 +79,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-001")]
     public async Task VerifyCommentInLocalDeclaratorListIsReported()
     {
         const string testData = """
@@ -100,6 +105,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-002")]
     public async Task VerifyCommentBeforeEventFieldTerminatorIsReported()
     {
         const string testData = """
@@ -121,6 +127,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-001")]
     public async Task VerifyNoDiagnosticForCommentBetweenTypeAndFirstDeclarator()
     {
         const string testData = """
@@ -140,6 +147,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeField()
     {
         const string testData = """
@@ -176,6 +184,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-001")]
     public async Task VerifyNoDiagnosticForCommentAfterEnumMemberComma()
     {
         const string testData = """
@@ -196,6 +205,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5041-002")]
     public async Task VerifyNoDiagnosticForCommentBeforeReturnTerminator()
     {
         const string testData = """
@@ -211,6 +221,190 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the declarator list of a for initializer is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-001")]
+    public async Task VerifyCommentInForInitializerDeclaratorListIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        for (int i = 0, {|#0:/* second */|} j = 0; i < j; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the declarator list of a using statement is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-001")]
+    public async Task VerifyCommentInUsingStatementDeclaratorListIsReported()
+    {
+        const string testData = """
+                                using System.IO;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        using (MemoryStream a = new() {|#0:/* second */|}, b = new())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the declarator list of a using declaration is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-001")]
+    public async Task VerifyCommentInUsingDeclarationDeclaratorListIsReported()
+    {
+        const string testData = """
+                                using System.IO;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        using MemoryStream a = new(),
+                                            {|#0:// second|}
+                                            b = new();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the declarator list of a fixed statement is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-001")]
+    public async Task VerifyCommentInFixedStatementDeclaratorListIsReported()
+    {
+        const string testData = """
+                                internal unsafe class TestClass
+                                {
+                                    void Method(int[] first, int[] second)
+                                    {
+                                        fixed (int* a = first, {|#0:/* second */|} b = second)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject), Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the declarator list of an event field is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-001")]
+    public async Task VerifyCommentInEventFieldDeclaratorListIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    public event Action Opened,
+                                        {|#0:// second|}
+                                        Closed;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the semicolon of a local declaration is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-002")]
+    public async Task VerifyCommentBeforeLocalTerminatorIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        const int limit = 1 {|#0:/* terminator */|};
+
+                                        return limit;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment after the semicolon of a declaration is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-002")]
+    public async Task VerifyNoDiagnosticForCommentAfterDeclarationTerminator()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        int other = 2; // after the declaration
+
+                                        return other;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after a declarator separator is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5041-001")]
+    public async Task VerifyCommentAfterDeclaratorSeparatorIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _first,
+                                        {|#0:// second|}
+                                        _second;
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
     }
 
     #endregion // Tests

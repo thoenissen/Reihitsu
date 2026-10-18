@@ -20,6 +20,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-001")]
     public async Task VerifyCommentBetweenDocumentationAndMethodIsReported()
     {
         const string testData = """
@@ -41,6 +42,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-001")]
     public async Task VerifyCommentBetweenDocumentationAndAttributesIsReported()
     {
         const string testData = """
@@ -65,6 +67,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-001")]
     public async Task VerifyCommentBetweenDocumentationAndClassIsReported()
     {
         const string testData = """
@@ -83,6 +86,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-001")]
     public async Task VerifyCommentBetweenDocumentationAndEnumMemberIsReported()
     {
         const string testData = """
@@ -102,6 +106,8 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-001")]
+    [Requirement("SHARED-COMMENT-001")]
     public async Task VerifyCommentAfterDocumentationWithoutDocumentationParsingIsReported()
     {
         const string testData = """
@@ -123,6 +129,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeDocumentation()
     {
         const string testData = """
@@ -144,6 +151,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-001")]
     public async Task VerifyNoDiagnosticForCommentWithoutDocumentation()
     {
         const string testData = """
@@ -164,6 +172,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5034-002")]
     public async Task VerifyNoDiagnosticForCommentAfterDocumentationBeforeStatement()
     {
         const string testData = """
@@ -182,6 +191,215 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after a documentation comment and a region directive is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-001")]
+    public async Task VerifyCommentAfterDocumentationAndRegionDirectiveIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>Does work</summary>
+                                #region Members
+                                    {|#0:// note|}
+                                    public void DoWork()
+                                    {
+                                    }
+                                #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5034MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment after the first token of a documented declaration is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-001")]
+    public async Task VerifyNoDiagnosticForCommentAfterFirstTokenOfDeclaration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>Does work</summary>
+                                    public
+                                    // note
+                                    void DoWork()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between a documentation comment and a delegate is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-002")]
+    public async Task VerifyCommentBetweenDocumentationAndDelegateIsReported()
+    {
+        const string testData = """
+                                /// <summary>Handler</summary>
+                                {|#0:// note|}
+                                public delegate void Handler();
+                                """;
+
+        await Verify(testData, Diagnostics(RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5034MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment after a documentation comment in front of a namespace is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-002")]
+    public async Task VerifyNoDiagnosticForCommentAfterDocumentationBeforeNamespace()
+    {
+        const string testData = """
+                                /// <summary>Namespace</summary>
+                                // note
+                                namespace Sample
+                                {
+                                    internal class TestClass
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after a documentation comment in front of an accessor is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-002")]
+    public async Task VerifyNoDiagnosticForCommentAfterDocumentationBeforeAccessor()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value;
+
+                                    /// <summary>Value</summary>
+                                    public int Value
+                                    {
+                                        /// <summary>Gets</summary>
+                                        // note
+                                        get { return _value; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after a documentation comment in front of a parameter is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-002")]
+    public async Task VerifyNoDiagnosticForCommentAfterDocumentationBeforeParameter()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>Does work</summary>
+                                    /// <param name="item">Item</param>
+                                    public void DoWork(
+                                        /// <summary>Item</summary>
+                                        // note
+                                        int item)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after a documentation comment in front of a local function is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-002")]
+    public async Task VerifyNoDiagnosticForCommentAfterDocumentationBeforeLocalFunction()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        /// <summary>Local</summary>
+                                        // note
+                                        void Local()
+                                        {
+                                        }
+
+                                        Local();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after a block documentation comment is reported when documentation comments are not parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-001")]
+    [Requirement("SHARED-COMMENT-001")]
+    public async Task VerifyCommentAfterBlockDocumentationWithoutDocumentationParsingIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /** <summary>Does work</summary> */
+                                    {|#0:// note|}
+                                    public void DoWork()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5034MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment between a documentation comment and a method is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5034-001")]
+    public async Task VerifyCommentAfterDocumentationIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>Does work</summary>
+                                    {|#0:// note|}
+                                    public void DoWork()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5034MessageFormat));
     }
 
     #endregion // Tests
