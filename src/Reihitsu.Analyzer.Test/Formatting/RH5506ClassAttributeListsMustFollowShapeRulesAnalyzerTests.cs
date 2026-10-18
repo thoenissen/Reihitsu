@@ -426,6 +426,36 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         }
     }
 
+    /// <summary>
+    /// Verifies that two identical multi-attribute lists on one line are reported once each, on their own spans
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-001")]
+    [Requirement("RH5506-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForEachOfTwoIdenticalListsOnOneLine()
+    {
+        const string testData = """
+                                {|#0:[A, B]|} {|#1:[A, B]|}
+                                class C
+                                {
+                                }
+                                [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
