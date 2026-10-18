@@ -1,0 +1,22 @@
+Role: spec checker
+Commit: b5b6f85
+Verdict: findings
+
+No change doc is required and none exists: the diff changes no production code and no intended behavior (lane: specs and tests for existing behavior; `scripts/lane-check.sh tests` confirms). Findings are low severity; none blocks the run.
+
+## Findings
+| # | Check | Location | What does not match | Owner |
+|---|---|---|---|---|
+| 1 | 5 | `documentation/rules/RH5102.md`, "How to fix it" | The page affected by the RH5102 spec says "All three of the following are accepted", but the block lists two examples (single line, multi-line arguments each on its own line). Pre-existing text; the run edited neighbouring pages (RH5101, RH5106, RH5107, RH5206) and RH5102-001 states exactly these two accepted shapes. | spec author |
+| 2 | 2 | `sdd/specs/shared/fluent-chain-layout.md`, SHARED-CHAIN-008 Why | Says "keeps fixed code identical to formatted code". 03-spec-author softened the same claim in the Why of RH5101-003, RH5102-003, RH5110-003, RH5111-004, RH5113-003, RH5205-003 and RH5206-003 (D2, D11), and SHARED-CHAIN-009 itself allows the chain-only fix when the chain gets the same text and column, not the whole statement formatted. The wording is the one the run chose to avoid elsewhere. | spec author |
+| 3 | 5 | `documentation/rules/RH5103.md`, "How to fix it" | Says no fix is offered "when the reported statement is the first one on the line". RH5103-004 (gap holds anything but spaces/tabs) does not state that case; the only code path for it is the defensive stale-diagnostic guard (`FixIsNotOfferedWhenDiagnosticTargetsFirstStatement`), which RH5103-001 makes unreachable from a real report. Pre-existing text, not contradicted by the diff; mention only so the spec author can decide. | spec author |
+
+## Checked
+1. Change doc exactly when required: ok. None in the diff; no behavior is added, changed or retired. The only requirement edits (RH5103-003, RH5104-004) are clarifications of existing behavior (05-spec-author).
+2. Specs match the diff: ok except finding 2. 60 changed files: 21 analyzer specs, `shared/line-join-rules.md`, edits to `shared/fluent-chain-layout.md` and `shared/whitespace-removal-fixes.md`. Every spec has one `Why:` per requirement heading (counted for all 22 new specs, 0 mismatches). The spec examples were run through a harness by the spec author (03, 05: 0 mismatches); I did not repeat that run. Spot-read all 21 requirement lists against the rule pages and 03/05 handovers: no contradiction found.
+3. IDs: ok. 79 lines added to `sdd/specs/requirement-ids.txt`, 0 removed or changed, file passes `LC_ALL=C sort -c`. The 79 are the 74 rule IDs plus SHARED-CHAIN-008/009, SHARED-JOIN-001/002, SHARED-WS-003.
+4. Code owners: ok. `SpecConsistencyTests` passes (inside the architecture run). `sdd/specs/README.md` has a row for all 21 new rule specs and for `shared/line-join-rules.md`, and the owner columns of `fluent-chain-layout.md` and `whitespace-removal-fixes.md` match their headers.
+5. User documentation: findings 1 and 3. The four edited pages (RH5101, RH5106, RH5107, RH5206) match their specs; the other 17 pages were read against their specs with no contradiction. Footers present, no formatter mention (enforced by `RuleDocumentationConventionTests`, passing). Page `### Correction` blocks were compared with the spec examples (RH5101 alignment under the first argument, RH5201 anchor column, RH5202 and RH5206 columns) and match; I did not re-run every code fix. RH5xxx IDs are in the Layout range; every `helpLinkUri` page exists, including RH5304, which RH5111 links.
+6. Open questions: ok. All 15 issues from 03 are filed as sub-issues of #912 (#1111 to #1125, covering the 15 specs 03 lists). The one new question of 05 (Fix All needing two iterations, SHARED-FIX-002) is filed as a comment on #1113 (Q2). The lead's run log in `00-lead.md` does not list that comment; update the log if it should.
+7. Coverage: ok. `scripts/test.sh --project architecture`: Passed! - Failed: 0, Passed: 72, Skipped: 0, Total: 72 (includes `RequirementCoverageTests` and `SpecConsistencyTests`). Handovers 04 and 06 report 87 previously uncovered IDs now covered, and the two `RH5103-003` tags removed per 05. `Findings` 1 to 3 of 04 are covered by 05 (the SHARED-FIX-002 item) and 06.
+8. Nothing left behind: ok. `sdd/work/` holds only `rh5048-rh5206-line-breaks`; the lead deletes it before publishing. Handover 01 is superseded by 03 and stays in the directory until then.
