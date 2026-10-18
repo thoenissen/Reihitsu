@@ -30,3 +30,9 @@ None open for `analyzer/RH8107.md` or any element-documentation shared spec at t
 - Never write current-but-defective behavior into a spec; such output is filed as an open question (sub-issue of thoenissen/Reihitsu#912) per `sdd/README.md`. Filing those is pre-approved; no other issue may be created without approval.
 - Other squads (thoenissen/Reihitsu#979, #980, #986) also edit `sdd/specs/README.md` and `sdd/specs/requirement-ids.txt`; when main moves, merge it and keep both sides' rows.
 - Done: 19 rule specs, the shared spec, existing tests tagged with `[Requirement]`, focused tests only for uncovered requirements, every example verified against a test or by running it, open questions filed, CI green, PR based on main without `sdd/work/`.
+
+## Lane widened: tests → tooling
+
+After the spec author, the lead recorded the maintainer's answer on the RH8107 reference clauses in `squad/decisions/2026-10-18-rh8107-shared-doc-reference-clauses.md` (answer: keep the clauses and `Uses`). `scripts/lane-check.sh tests --head worktree` then reported `mismatch — claimed tests, diff needs tooling`, because `squad/` is a tooling path. The implementer had not started, so the lane widens along tests → tooling. The run still has no production change; the spec author's work remains in scope as the tests-lane part of the diff.
+
+Roles now: spec author (done) → skeptic → test implementer → implementer (only if a handed-over test fails against current code; otherwise skipped, since there is no production change to make) → cleaner → spec checker → auditor → validator.
