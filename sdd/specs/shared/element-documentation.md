@@ -448,9 +448,9 @@ public interface IDerived : IContract
 
 ### SHARED-DOC-010 — A summary without text
 
-A `<summary>` element MUST count as without text when it is an empty element (`<summary/>`) or when its content is only white space and line breaks. The `///` that continues a documentation comment on a new line, and the `*` or run of `*` that starts a line of a `/** */` comment after its leading white space, MUST count as line breaks, not as text; any other `*`, such as one after a space or in the middle of a line, is text. White space is every character that Unicode classifies as white space — a space, a tab, or a no-break space (`&#160;`) among them — whether written directly or as a character reference such as `&#32;`. A `<summary>` whose content has any other character MUST count as having text, a zero-width space (`&#x200B;`) included.
+A `<summary>` element MUST count as without text when it is an empty element (`<summary/>`) or when its content is only white space and line breaks. The `///` that continues a documentation comment on a new line, and the `*` or run of `*` that starts a line of a `/** */` comment after its leading white space, MUST count as line breaks, not as text; any other `*`, such as one after a space or in the middle of a line, is text. White space is every character that Unicode classifies as white space — a space, a tab, or a no-break space (`&#160;`) among them — whether written directly or as a character reference such as `&#32;`. A `<summary>` whose content has a character that is neither white space nor a line break MUST count as having text.
 
-This requirement covers a `<summary>` whose content is text and character references only; a `<summary>` that contains an XML element, an XML comment, a CDATA section, or a processing instruction is not covered.
+This requirement covers a `<summary>` whose content is text and character references only; a `<summary>` that contains an XML element, an XML comment, a CDATA section, or a processing instruction is not covered. A `<summary>` whose content is white space, line breaks, and at least one format character that renders nothing — Unicode category Cf, such as a zero-width space (`&#x200B;`), a zero-width no-break space (`&#xFEFF;`), a word joiner (`&#x2060;`), or a soft hyphen (`&#xAD;`) — is not covered either.
 
 Why: The summary is the one line the editor's tooltip and the generated documentation show for an element. A summary of whitespace shows nothing, so it leaves the reader exactly where a missing summary would, while it looks as if the element were documented.
 
@@ -519,11 +519,6 @@ public class G
 public class H
 {
 }
-
-/// <summary>&#x200B;</summary>
-public class I
-{
-}
 ```
 
 ### SHARED-DOC-011 — Parameters are checked only on documentation without `<inheritdoc>`
@@ -564,6 +559,31 @@ public static class Extensions
     /// Long values
     /// </summary>
     extension(long {|RH8032:value|})
+    {
+    }
+}
+```
+
+Example — RH8032, with a file `docs.xml` next to the source:
+
+```xml
+<doc>
+    <members>
+        <member name="I">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>
+```
+
+```csharp
+/// <summary>
+/// Extensions
+/// </summary>
+public static class Extensions
+{
+    /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+    extension(float value)
     {
     }
 }
@@ -704,7 +724,7 @@ public static class Extensions
 
 Extension declarations that the compiler merges into one extension — it gives them one documentation ID and writes one documentation entry that joins their documentation comments — MUST share that documentation, and SHARED-DOC-011 and SHARED-DOC-012 MUST read it for each of them. Extension declarations that the compiler does not merge MUST NOT share their documentation.
 
-The compiler merges the extension declarations of one static class, in one file or across the files of a partial class, whose parameter and type parameters it treats as the same: the same type, so that `string` and `System.String` merge while `string` and `string?` do not, and tuple types merge only with the same element names; the same parameter name; the same `ref`, `in`, `ref readonly`, and `scoped` modifiers; the same attributes with the same arguments on the parameter and on each type parameter; and the same type-parameter names with the same constraints, in any order.
+The compiler merges the extension declarations of one static class, whether they are in one declaration of the class or in several partial declarations of it, in one file or in several, whose parameter and type parameters it treats as the same: the same type, so that `string` and `System.String` merge while `string` and `string?` do not, and tuple types merge only with the same element names; the same parameter name; the same `ref`, `in`, `ref readonly`, and `scoped` modifiers; the same attributes with the same arguments on the parameter and on each type parameter; and the same type-parameter names with the same constraints, in any order.
 
 This requirement covers what SHARED-DOC-011 and SHARED-DOC-012 cover, for the documentation comments of every declaration of the merged extension; a merged extension in which any declaration's documentation comment is not well-formed XML is not covered.
 
@@ -811,6 +831,198 @@ public static class Extensions
     /// Writable references
     /// </summary>
     extension(ref double {|RH8032:number|})
+    {
+    }
+}
+```
+
+Example — RH8032 and RH8033:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+/// <summary>
+/// Marks a declaration
+/// </summary>
+[AttributeUsage(AttributeTargets.All)]
+public sealed class MarkAttribute : Attribute
+{
+    /// <summary>
+    /// Creates the attribute
+    /// </summary>
+    /// <param name="value">Value</param>
+    public MarkAttribute(int value)
+    {
+    }
+}
+
+/// <summary>
+/// Extensions
+/// </summary>
+public static partial class Extensions
+{
+    /// <summary>
+    /// Lists
+    /// </summary>
+    /// <typeparam name="T">Element</typeparam>
+    /// <param name="values">Values</param>
+    extension<T>(List<T> values)
+    {
+    }
+
+    /// <summary>
+    /// More lists
+    /// </summary>
+    extension<T>(List<T> values)
+    {
+    }
+
+    /// <summary>
+    /// Arrays
+    /// </summary>
+    /// <typeparam name="T">Element</typeparam>
+    /// <param name="values">Values</param>
+    extension<T>(T[] values)
+    {
+    }
+
+    /// <summary>
+    /// More arrays
+    /// </summary>
+    /// <param name="values">Values</param>
+    extension<{|RH8033:U|}>(U[] values)
+    {
+    }
+
+    /// <summary>
+    /// Sequences
+    /// </summary>
+    /// <typeparam name="T">Element</typeparam>
+    /// <param name="items">Items</param>
+    extension<T>(IEnumerable<T> items) where T : IComparable, IDisposable
+    {
+    }
+
+    /// <summary>
+    /// More sequences
+    /// </summary>
+    extension<T>(IEnumerable<T> items) where T : IDisposable, IComparable
+    {
+    }
+
+    /// <summary>
+    /// Sets of references
+    /// </summary>
+    /// <typeparam name="T">Element</typeparam>
+    /// <param name="items">Items</param>
+    extension<T>(ISet<T> items) where T : class
+    {
+    }
+
+    /// <summary>
+    /// Sets of values
+    /// </summary>
+    /// <param name="items">Items</param>
+    extension<{|RH8033:T|}>(ISet<T> items) where T : struct
+    {
+    }
+
+    /// <summary>
+    /// Read-only lists
+    /// </summary>
+    /// <typeparam name="T">Element</typeparam>
+    /// <param name="items">Items</param>
+    extension<T>(IList<T> items)
+    {
+    }
+
+    /// <summary>
+    /// Marked read-only lists
+    /// </summary>
+    /// <param name="items">Items</param>
+    extension<[Mark(0)] {|RH8033:T|}>(IList<T> items)
+    {
+    }
+
+    /// <summary>
+    /// Spans
+    /// </summary>
+    /// <param name="span">Span</param>
+    extension(ref Span<int> span)
+    {
+    }
+
+    /// <summary>
+    /// Scoped spans
+    /// </summary>
+    extension(scoped ref Span<int> {|RH8032:span|})
+    {
+    }
+
+    /// <summary>
+    /// Read-only references
+    /// </summary>
+    /// <param name="number">Number</param>
+    extension(in decimal number)
+    {
+    }
+
+    /// <summary>
+    /// Read-only references, declared otherwise
+    /// </summary>
+    extension(ref readonly decimal {|RH8032:number|})
+    {
+    }
+
+    /// <summary>
+    /// Marked longs
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension([Mark(1)] long value)
+    {
+    }
+
+    /// <summary>
+    /// Longs marked otherwise
+    /// </summary>
+    extension([Mark(2)] long {|RH8032:value|})
+    {
+    }
+
+    /// <summary>
+    /// Marked integers
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension([Mark(1)] int value)
+    {
+    }
+
+    /// <summary>
+    /// More marked integers
+    /// </summary>
+    extension([Mark(1)] int value)
+    {
+    }
+
+    /// <summary>
+    /// Single values
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension(float value)
+    {
+    }
+}
+
+/// <summary>
+/// More extensions
+/// </summary>
+public static partial class Extensions
+{
+    /// <summary>
+    /// More single values
+    /// </summary>
+    extension(float value)
     {
     }
 }
