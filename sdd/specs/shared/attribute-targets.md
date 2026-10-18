@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-ATTR |
 | Status | Active |
-| Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase` |
+| Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities` |
 | Uses | FMT-PIPE-007, FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027 |
 
 This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterpart is FMT-BREAK-027.
@@ -539,7 +539,11 @@ Example: see SHARED-ATTR-013 and SHARED-ATTR-015.
 
 The code fix of a rule that requires one attribute per list MUST replace the reported list with one list per attribute, in the order the attributes were written, each list with the reported list's specifier. Each list after the first MUST start a new line at the indentation of the reported list. A comment in front of the reported list stays in front of the first list, a comment after it on its line stays after the last list, and nothing else changes. The inserted line breaks MUST use the line ending detected as FMT-PIPE-007 specifies for the formatter.
 
-This requirement covers a list that starts its line and is followed on its line by nothing but a comment, where the list's line and the line after it are both indented with spaces, four more than the line of the innermost opening brace that encloses the list, four more again inside the statements of a switch section, and not at all when no brace encloses the list.
+This requirement covers a list for which all of the following hold:
+
+- the list starts its line, the line ends directly after its closing bracket or after a comment that follows it, and the first token after the list starts the next line;
+- no preprocessor directive lies between the code before the list and the list, every comment there starts at the list's column, and no line there ends in whitespace;
+- the list, the line after it, and every opening brace that encloses the list are indented with spaces only, four for each namespace, type, enum, block, switch statement, accessor list, initializer, or anonymous object whose braces enclose them, and four more inside the statements of a switch section.
 
 Why: The fix makes only the change the diagnostic asks for: the attributes keep their order and their target, and each gets the line the rule requires.
 
