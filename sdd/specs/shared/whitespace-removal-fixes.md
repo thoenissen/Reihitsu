@@ -7,7 +7,7 @@
 | Code owners | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase` |
 | Uses | — |
 
-This spec covers the code fixes of rules that report a run of whitespace that must not be there and correct it by deleting that run: what the deletion changes, and when a comment or a directive near the run withholds it. Each rule that uses this spec states which whitespace it reports and where its diagnostic is; it names the requirements of this spec its fix follows.
+This spec covers the code fixes of rules that report whitespace that must not be there — a run of spaces and tabs, or a span of blank lines — and correct it by deleting the reported span: what the deletion changes, and when a comment or a directive near a run withholds it. Each rule that uses this spec states which whitespace it reports and where its diagnostic is; it names the requirements of this spec its fix follows.
 
 ## Non-goals
 
@@ -19,9 +19,9 @@ This spec covers the code fixes of rules that report a run of whitespace that mu
 
 ### SHARED-WS-001 — The fix deletes exactly the reported whitespace
 
-A code fix that uses this spec MUST delete the whitespace of the reported span and MUST NOT change any other text: no line break, comment, directive, or token is added, moved, or removed.
+A code fix that uses this requirement MUST delete the whitespace of the reported span and MUST NOT change any other text: no comment, directive, or token is added, moved, or removed, and no whitespace outside the span is changed.
 
-Why: The diagnostic names one run of whitespace as wrong, and deleting that run is the whole correction. A reported run never contains a line break, so the line structure of the file stays as it was.
+Why: The diagnostic names one span of whitespace as wrong, and deleting that span is the whole correction. Whether the span holds a line break is decided by the rule that reports it: a rule that reports a run within one line keeps the line structure of the file as it was.
 
 Example — RH6003, which reports the whitespace before a semicolon:
 
