@@ -538,6 +538,24 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
         await Verify(testData, fixedData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the space after a literal is reported as code, while the <c> ;</c> inside the literal's text is content
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifySpaceAfterLiteralIsReportedButNotInsideLiteralText()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string s = "a ;"{|#0: |};
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

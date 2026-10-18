@@ -410,6 +410,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6002-003")]
+    [Requirement("SHARED-DIAG-003")]
     public async Task VerifySpaceAfterInterpolationAlignmentCommaIsDetectedAndFixed()
     {
         const string testData = """
@@ -442,6 +443,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
     [TestMethod]
     [Requirement("RH6002-001")]
     [Requirement("RH6002-003")]
+    [Requirement("SHARED-DIAG-003")]
     public async Task VerifySpaceBeforeInterpolationAlignmentCommaIsStillDetectedAndFixed()
     {
         const string testData = """
@@ -464,6 +466,53 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a comma inside an interpolation hole and a comma missing its space before a literal are reported as
+    /// code, while the <c> ,</c> in the text of a literal and of a comment is content, and comment-looking text inside a
+    /// literal starts no comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyCommasInHoleAndBetweenLiteralsAreReportedButNotInLiteralOrCommentText()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string s = $"a ,b{string.Concat("c" {|#0:,|} "d")}"; // e ,f
+                                    string t = string.Concat("// c"{|#1:,|}"d");
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the commas of a cref inside a documentation comment are content and are not reported, neither one
+    /// missing its following space nor one preceded by a space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyCommasInDocumentationCommentCrefsAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>See <see cref="M(int,int)"/> and <see cref="M(int ,int)"/>.</summary>
+                                    void N()
+                                    {
+                                    }
+
+                                    void M(int a, int b)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

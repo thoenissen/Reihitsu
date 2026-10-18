@@ -374,6 +374,56 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 1));
     }
 
+    /// <summary>
+    /// Verifies the rule whose subject is a raw string literal checks how the literal spells its value and reports the
+    /// literal whose closing quotes are not in the column of its opening quotes, while an aligned literal is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyMisalignedRawStringIsReportedBecauseTheLiteralIsTheRuleSubject()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = {|#0:"""
+                                        a
+                                        """|};
+
+                                    string t = """
+                                               a
+                                               """;
+                                }
+                                """";
+
+        await Verify(testData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a raw string literal whose closing quotes are not in the column of its opening quotes is reported and an
+    /// aligned one is not, when the document uses CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyMisalignedRawStringIsReportedBecauseTheLiteralIsTheRuleSubjectWithCarriageReturnLineFeed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = {|#0:"""
+                                        a
+                                        """|};
+
+                                    string t = """
+                                               a
+                                               """;
+                                }
+                                """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
