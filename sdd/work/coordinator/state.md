@@ -104,8 +104,9 @@ Round 1 decided (maintainer 2026-10-18): P1 a, P2 a, P3 a, P4 c (no principle, c
 - Casing unsafe renames (#1009 Q1/Q4/Q5) → #1073
 - Order: #1068, #1069 first (spec issues); bug issues are blocked by them. No bug urgent.
 - Batch issues told: mark instances `Decided by principle Pn (#912)`.
-Closed as fully decided (agent, 2026-10-18): #1013, #1014, #1023, #1025, #1026, #1027, #1039, #1047, #1048, #1051, #1052, #1060, #1061, #1063, #1066.
+Bookkeeping done (36 comments; #912 body lists all 45 issues, 15 ticked; follow-up list https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6253840713; note on 13 batch issues). Closed as fully decided (2026-10-18): #1013, #1014, #1023, #1025, #1026, #1027, #1039, #1047, #1048, #1051, #1052, #1060, #1061, #1063, #1066.
 Pending maintainer confirmation: #1065 Q1 — coordinator recommends reading A (bug in RH5024; RH5032 + SHARED-BLANK-006 + formatter agree the blank stays); same for region part of #1059 Q2 (bug in RH5025). Then add to #1076.
+Round 2 put to maintainer (spacing/blank): #1065 A?, R2.1 comment-adjacent whitespace not reported (change, RH6003/6006/6007/6011/6012), R2.2 #1040 bugs, R2.3 #1038 Q1/Q3 bugs, R2.4 #1043 bug, R2.5 #1044 Q1 bug, R2.6 #1041 clarification, R2.7 #1064 bug, R2.8 #1059 Q2 sibling braces B (change).
 Still open questions (round 2+): #1000 Q1, #1001 Q1, #1009 Q3, #1010 Q1, #1011 Q2/Q3, #1012 Q1, #1019 Q1–Q4, #1020 Q1, #1021 Q1, #1022 Q1, #1024 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1038 Q1/Q3, #1040 Q1–Q3, #1041 Q1, #1042 Q1, #1043 Q1, #1044 Q1, #1045 Q1, #1046 Q1, #1049 Q1, #1050 Q1, #1058 Q1–Q3, #1059 Q2, #1062 Q1, #1064 Q1, #1065 Q1/Q2.
 
 ## Waiting for maintainer
