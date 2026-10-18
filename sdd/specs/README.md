@@ -171,6 +171,21 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH8017.md](analyzer/RH8017.md) | RH8017 | `RH8017NonPrivateConstructorsMustBeDocumentedAnalyzer` |
 | [analyzer/RH8018.md](analyzer/RH8018.md) | RH8018 | `RH8018PrivateConstructorsMustBeDocumentedAnalyzer` |
 | [analyzer/RH8019.md](analyzer/RH8019.md) | RH8019 | `RH8019DestructorsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8020.md](analyzer/RH8020.md) | RH8020 | `RH8020NonPrivateMethodsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8021.md](analyzer/RH8021.md) | RH8021 | `RH8021PrivateMethodsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8022.md](analyzer/RH8022.md) | RH8022 | `RH8022NonPrivatePropertiesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8023.md](analyzer/RH8023.md) | RH8023 | `RH8023PrivatePropertiesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8024.md](analyzer/RH8024.md) | RH8024 | `RH8024NonPrivateIndexersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8025.md](analyzer/RH8025.md) | RH8025 | `RH8025PrivateIndexersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8026.md](analyzer/RH8026.md) | RH8026 | `RH8026NonPrivateFieldsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8027.md](analyzer/RH8027.md) | RH8027 | `RH8027PrivateFieldsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8028.md](analyzer/RH8028.md) | RH8028 | `RH8028NonPrivateEventsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8029.md](analyzer/RH8029.md) | RH8029 | `RH8029PrivateEventsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8030.md](analyzer/RH8030.md) | RH8030 | `RH8030ElementDocumentationMustHaveSummaryTextAnalyzer` |
+| [analyzer/RH8031.md](analyzer/RH8031.md) | RH8031 | `RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzer` |
+| [analyzer/RH8032.md](analyzer/RH8032.md) | RH8032 | `RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8033.md](analyzer/RH8033.md) | RH8033 | `RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8034.md](analyzer/RH8034.md) | RH8034 | `RH8034OperatorsMustBeDocumentedAnalyzer` |
 | [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationCommentCodeFixUtilities` |
 | [cli/reihitsu-format.md](cli/reihitsu-format.md) | CLI | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
 | [playground/playground.md](playground/playground.md) | PLAY | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundVersion` |

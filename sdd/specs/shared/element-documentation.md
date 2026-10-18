@@ -7,13 +7,13 @@
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
 | Uses | — |
 
-This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, and when documentation rules do not run at all. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
+This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and when documentation rules do not run at all. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
 ## Non-goals
 
 - Which element kind and which group a rule checks, and where its diagnostic is located — each rule's spec.
-- Whether the `<summary>` element has text — RH8030; whether `<inheritdoc>` is used where nothing is inherited — RH8203.
-- The documentation of parameters, type parameters, and return values — RH8101 to RH8111.
+- Which `<summary>` elements are checked for text, and where that diagnostic is located — RH8030 and RH8031; whether `<inheritdoc>` is used where nothing is inherited — RH8203.
+- Which parameters and type parameters a rule checks, and where its diagnostic is located — RH8032, RH8033, and RH8101 to RH8111; the documentation of return values — RH8105 to RH8107.
 - The content, order, and layout of a documentation comment — RH8301 to RH8309.
 
 ## Requirements
@@ -22,7 +22,7 @@ This spec covers the rules that require one kind of element to be documented. It
 
 A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, or enum — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
 
-This requirement covers an element with a single declaration; a partial type or constructor declared in several parts is not covered.
+This requirement covers an element with a single declaration; a partial element declared in several parts — a type, constructor, method, property, indexer, or event — is not covered.
 
 Why: Each element has its own entry in the generated documentation and its own tooltip in the editor. A documented container says nothing about what a nested element is for, and an undocumented container is reported by its own rule.
 
@@ -51,14 +51,14 @@ public class Documented
 
 A declaration MUST belong to exactly one of two groups, decided by its own modifiers and the kind of declaration that directly contains it:
 
-- the private group, when its modifiers include `private` and none of `public`, `internal`, `protected`, and `file`, or when it has none of these five modifiers and is declared directly in a class, struct, record, or record struct;
+- the private group, when its modifiers include `private` and none of `public`, `internal`, `protected`, and `file`, or when it has none of these five modifiers and is declared directly in a class, struct, record, record struct, or extension block;
 - the non-private group otherwise — including a `private protected` declaration, a `file` type, and a declaration without any of these five modifiers in a namespace, at file level, or in an interface.
 
 The accessibility of the containing declarations MUST NOT change the group.
 
 This requirement covers every declaration except a static constructor declared in an interface and a partial type declared in several parts.
 
-Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, or record private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
+Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
 
 Example — RH8001, which checks the non-private group:
 
@@ -131,6 +131,31 @@ public struct S
 {
     class {|RH8002:InStruct|}
     {
+    }
+}
+```
+
+Example — RH8021, which checks the methods of the private group:
+
+```csharp
+/// <summary>
+/// Extensions
+/// </summary>
+public static class Extensions
+{
+    /// <summary>
+    /// Text values
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension(string value)
+    {
+        int {|RH8021:Implicit|}() => 0;
+
+        private int {|RH8021:Explicit|}() => 0;
+
+        public int Visible() => 0;
+
+        internal int Assembly() => 0;
     }
 }
 ```
@@ -232,7 +257,7 @@ public class D
 
 A declaration MUST count as documented when its first documentation comment has a `<summary>` or an `<inheritdoc>` element at its top level, that is, not nested inside another element; an empty element (`<summary/>`) counts. A declaration without documentation comments, and one whose first documentation comment has neither element at its top level, MUST count as undocumented, unless SHARED-DOC-006 or SHARED-DOC-007 applies.
 
-This requirement covers an element with a single declaration whose documentation comments are placed as SHARED-DOC-004 covers and are well-formed XML, with the tag names `summary` and `inheritdoc` written in lower case, without a namespace prefix, and in no XML namespace. A partial type or constructor declared in several parts is not covered.
+This requirement covers an element with a single declaration whose documentation comments are placed as SHARED-DOC-004 covers and are well-formed XML, with the tag names `summary` and `inheritdoc` written in lower case, without a namespace prefix, and in no XML namespace. A partial element declared in several parts — a type, constructor, method, property, indexer, or event — is not covered.
 
 Why: `<summary>` is the element every documentation tool shows, and `<inheritdoc>` takes the whole documentation, summary included, from the element it inherits from. Whether the summary also has text is a separate rule (RH8030). A `<summary>` nested in `<remarks>` or another element is not the element's summary, and other elements such as `<remarks>` alone do not give a reader the one-line description a tooltip shows.
 
@@ -367,3 +392,236 @@ public class C
 ```
 
 is not reported; with the mode `Parse` or `Diagnose`, it is reported on `C`.
+
+### SHARED-DOC-009 — Explicit interface implementations are not checked
+
+A rule that requires the declarations of its element kind to be documented MUST NOT report a method, property, indexer, event, operator, or conversion operator declaration that explicitly implements an interface member — one whose name is qualified by the interface, such as `void IDisposable.Dispose()` — whatever its documentation and whichever type or interface declares it.
+
+Why: An explicit implementation can only be reached through the interface, so the editor and the generated documentation lead the reader to the interface member it implements, and that member carries the description. A summary on the implementation would only repeat it, and it would drift when the interface member changes.
+
+Example — RH8021, which checks the methods of the private group:
+
+```csharp
+using System;
+
+/// <summary>
+/// Resource
+/// </summary>
+public class Resource : IDisposable
+{
+    void IDisposable.Dispose()
+    {
+    }
+
+    void {|RH8021:Release|}()
+    {
+    }
+}
+```
+
+Example — RH8020, which checks the methods of the non-private group:
+
+```csharp
+/// <summary>
+/// Contract
+/// </summary>
+public interface IContract
+{
+    /// <summary>
+    /// Runs the contract
+    /// </summary>
+    void Run();
+}
+
+/// <summary>
+/// Derived contract
+/// </summary>
+public interface IDerived : IContract
+{
+    void IContract.Run()
+    {
+    }
+
+    void {|RH8020:Stop|}();
+}
+```
+
+### SHARED-DOC-010 — A summary without text
+
+A `<summary>` element MUST count as without text when it is an empty element (`<summary/>`) or when its content is only whitespace and line breaks, including the `///` that continues a documentation comment on a new line and whitespace written as a character reference such as `&#32;`. A `<summary>` whose content has a character other than whitespace MUST count as having text.
+
+This requirement covers a `<summary>` whose content is text and character references only; a `<summary>` that contains an XML element, an XML comment, or a CDATA section is not covered.
+
+Why: The summary is the one line the editor's tooltip and the generated documentation show for an element. A summary of whitespace shows nothing, so it leaves the reader exactly where a missing summary would, while it looks as if the element were documented.
+
+Example — RH8030:
+
+```csharp
+/// {|RH8030:<summary></summary>|}
+public class A
+{
+}
+
+/// {|RH8030:<summary/>|}
+public class B
+{
+}
+
+/// {|RH8030:<summary>
+/// </summary>|}
+public class C
+{
+}
+
+/// {|RH8030:<summary>&#32;</summary>|}
+public class D
+{
+}
+
+/// <summary>
+/// Text
+/// </summary>
+public class E
+{
+}
+```
+
+### SHARED-DOC-011 — Parameters are checked only on documentation without `<inheritdoc>`
+
+A rule that requires each parameter or type parameter of an element to be documented MUST NOT report any of them when the element has no documentation comment, as SHARED-DOC-004 defines its documentation comments. It MUST NOT report any of them either when the element's documentation has an `<inheritdoc>` element at its top level, whether in its first documentation comment, in a later one, or in the content that an `<include>` element brings in.
+
+This requirement covers documentation comments placed as SHARED-DOC-004 covers that are well-formed XML, with the tag name `inheritdoc` written in lower case, without a namespace prefix, and in no XML namespace.
+
+Why: An element without documentation is reported by the rule that requires its summary, and one diagnostic there says more than one on every parameter. `<inheritdoc>` takes the descriptions of the parameters from the element it inherits from, together with the rest of the documentation.
+
+Example — RH8032:
+
+```csharp
+/// <summary>
+/// Extensions
+/// </summary>
+public static class Extensions
+{
+    extension(string value)
+    {
+    }
+
+    /// <inheritdoc/>
+    extension(int value)
+    {
+    }
+
+    /// <remarks>
+    /// Remarks
+    /// </remarks>
+
+    /// <inheritdoc/>
+    extension(byte value)
+    {
+    }
+
+    /// <summary>
+    /// Long values
+    /// </summary>
+    extension(long {|RH8032:value|})
+    {
+    }
+}
+```
+
+### SHARED-DOC-012 — A parameter is documented by a top-level element with its name
+
+A parameter MUST count as documented when the element's documentation has a `<param>` element at its top level whose `name` attribute equals the parameter's name, compared character by character and case-sensitively; a type parameter MUST count as documented when it has such a `<typeparam>` element. The element MUST count whether it is in the first documentation comment, in a later one, or in the content that an `<include>` element brings in, and whether or not it has text. An element nested inside another element, and one whose `name` differs from the parameter's name, MUST NOT count.
+
+This requirement covers a parameter or type parameter with a name, and documentation comments placed as SHARED-DOC-004 covers that are well-formed XML, with the tag names `param` and `typeparam` written in lower case, without a namespace prefix, and in no XML namespace. An included file is covered when it is well-formed XML and writes the tag names the same way.
+
+Why: The compiler and documentation tools pair a `<param>` or `<typeparam>` with the parameter whose name it carries, exactly as written. One with a different name, or one inside `<remarks>` or another element, describes nothing that the tooltip shows for the parameter. Whether the description has text is a separate rule.
+
+Example — RH8032 and RH8033:
+
+```csharp
+using System.Collections.Generic;
+
+/// <summary>
+/// Extensions
+/// </summary>
+public static class Extensions
+{
+    /// <summary>
+    /// Text values
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension(string value)
+    {
+    }
+
+    /// <summary>
+    /// Integer values
+    /// </summary>
+    /// <param name="Value">Value</param>
+    extension(int {|RH8032:value|})
+    {
+    }
+
+    /// <summary>
+    /// Long values
+    /// </summary>
+    /// <remarks>
+    /// <param name="value">Value</param>
+    /// </remarks>
+    extension(long {|RH8032:value|})
+    {
+    }
+
+    /// <remarks>
+    /// Remarks
+    /// </remarks>
+
+    /// <summary>
+    /// Lists
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="values">Values</param>
+    extension<T>(List<T> values)
+    {
+    }
+
+    /// <summary>
+    /// Pairs
+    /// </summary>
+    /// <typeparam name="TKey">Key</typeparam>
+    /// <param name="pairs">Pairs</param>
+    extension<TKey, {|RH8033:TValue|}>(Dictionary<TKey, TValue> pairs)
+    {
+    }
+}
+```
+
+Example — RH8032 and RH8033, with a file `docs.xml` next to the source:
+
+```xml
+<doc>
+    <members>
+        <member name="A">
+            <summary>From the file</summary>
+            <typeparam name="T">Element</typeparam>
+            <param name="values">Values</param>
+        </member>
+    </members>
+</doc>
+```
+
+```csharp
+using System.Collections.Generic;
+
+/// <summary>
+/// Extensions
+/// </summary>
+public static class Extensions
+{
+    /// <include file='docs.xml' path='doc/members/member[@name="A"]/*'/>
+    extension<T>(IEnumerable<T> values)
+    {
+    }
+}
+```
