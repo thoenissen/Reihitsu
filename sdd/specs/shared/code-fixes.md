@@ -156,10 +156,14 @@ A code fix MUST NOT be offered when its result would:
 
 The diagnostic is still reported. The second and third condition are bounded as follows:
 
-- **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. Reordering instance fields whose declaration order determines the type's layout, as in a struct with sequential layout, counts. A reorder that changes neither a layout nor the order in which code runs does not.
-- **Comment, directive, and literal text.** Text that a diagnostic of the fix's own rule reports may change. A name in a documentation comment that binds to a symbol the fix renames, such as a `cref` or a `<param name>`, is renamed with the symbol as part of the rename; a word of the comment's text that only reads like the name does not bind to it and stays unchanged. Layout does not count: the whitespace, line breaks, and indentation of a comment or a directive, and the indentation of a raw string literal's lines when the literal's value stays the same. A changed word, or a changed value of a literal, does count.
+- **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. Reordering the instance fields of a type whose field order sets its layout counts. That is a struct, which has sequential layout unless it declares `LayoutKind.Auto` or `LayoutKind.Explicit`, and any other type declared with `[StructLayout(LayoutKind.Sequential)]`. Under `LayoutKind.Explicit`, each field's `[FieldOffset]` sets its offset, so the field order sets no layout. A reorder that changes neither a layout nor the order in which code runs does not count.
+- **Comment, directive, and literal text.** Text that a diagnostic of the fix's own rule reports may change. Two kinds of text change together with a name the fix changes, as part of the rename:
+  - a name in a documentation comment that binds to a symbol the fix renames, such as a `cref` or a `<param name>`; a word of the comment's text that only reads like the name does not bind to it and stays unchanged;
+  - the comment of an `#endregion` that repeats the name of the region the fix renames; an `#endregion` comment that does not repeat that name stays unchanged.
 
-Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. A rename has to reach every place that refers to the symbol, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. A diagnostic without a fix is a supported end state; a broken fix is not.
+  Layout does not count: the whitespace around a comment or a directive and the indentation of its lines; in a documentation comment, also the `///` exterior and the whitespace and line breaks next to an XML tag; and the indentation of a raw string literal's lines when the literal's value stays the same. The text of a comment or a directive is content, including the whitespace and line breaks inside it, such as between two words of a `//` or `/* */` comment or of a directive's message. A change to that text counts, and so does a changed value of a literal.
+
+Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. A rename has to reach every place that refers to the symbol or repeats the region's name, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. A diagnostic without a fix is a supported end state; a broken fix is not.
 
 Example — a compile error, for RH4106:
 
@@ -210,6 +214,36 @@ public class C
 
 Both fields are reported. For `_b`, no code fix is offered: moving it in front of `_a` would run its initializer first, so `_b` would hold `0` instead of `1`. For `_a`, the fix is offered: it crosses only the instance field `_instance`, whose initialization runs at a different time, and moving a static field changes no layout.
 
+Example — a reorder that changes no layout, for RH7109:
+
+```csharp
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+public struct S
+{
+    [FieldOffset(0)]
+    public int _a;
+    [FieldOffset(8)]
+    public readonly long {|RH7109:_b|};
+}
+```
+
+```csharp
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+public struct S
+{
+    [FieldOffset(8)]
+    public readonly long _b;
+    [FieldOffset(0)]
+    public int _a;
+}
+```
+
+The fix is offered: under explicit layout, each field's `[FieldOffset]` sets its offset, and the moved field keeps its attribute, so the struct's layout stays the same. The same holds for a struct declared with `[StructLayout(LayoutKind.Auto)]` and for a class without a `StructLayout` attribute, whose fields the runtime lays out in an order of its own.
+
 Example — a reference in a documentation comment, for RH4106:
 
 ```csharp
@@ -233,6 +267,32 @@ public class C
 ```
 
 The `cref` binds to the field and is renamed with it. The word `Value` at the start of the summary does not bind to anything and stays.
+
+Example — the comment of an `#endregion`, for RH7302:
+
+```csharp
+class C
+{
+    {|RH7302:#region members|}
+    #endregion // members
+
+    {|RH7302:#region values|}
+    #endregion // helpers
+}
+```
+
+```csharp
+class C
+{
+    #region Members
+    #endregion // Members
+
+    #region Values
+    #endregion // helpers
+}
+```
+
+The comment `// members` repeats the name of the region the fix renames and is renamed with it. The comment `// helpers` does not repeat the name `values` and stays.
 
 Example — layout, for RH3202:
 
@@ -271,7 +331,25 @@ public class C
 }
 ```
 
-The fix changes the line breaks and the spacing of the documentation comment of `M`, and the indentation of the raw string literal in `N`; the comment's words and the literal's value stay the same.
+The fix changes the `///` exterior of the documentation comment of `M` and the line breaks next to its XML tags, and the indentation of the raw string literal in `N`; the comment's text and the literal's value stay the same.
+
+Example — whitespace inside a comment's text, for RH5601, where `→` marks a tab character:
+
+```csharp
+class C
+{
+{|RH5601:→|}int x;{|RH5601:→|}// a→b
+}
+```
+
+```csharp
+class C
+{
+    int x;    // a→b
+}
+```
+
+The fix replaces the two tabs its rule reports and keeps the tab inside the comment's text, which is content.
 
 Example — text the rule reports, for RH8107:
 
