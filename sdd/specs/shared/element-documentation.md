@@ -448,7 +448,7 @@ public interface IDerived : IContract
 
 ### SHARED-DOC-010 — A summary without text
 
-A `<summary>` element MUST count as without text when it is an empty element (`<summary/>`) or when its content is only white space and line breaks. The `///` that continues a documentation comment on a new line, and the `*` that continues a `/** */` comment on a new line, MUST count as line breaks, not as text. White space is every character that Unicode classifies as white space — a space, a tab, or a no-break space (`&#160;`) among them — whether written directly or as a character reference such as `&#32;`. A `<summary>` whose content has any other character MUST count as having text, a zero-width space (`&#x200B;`) included.
+A `<summary>` element MUST count as without text when it is an empty element (`<summary/>`) or when its content is only white space and line breaks. The `///` that continues a documentation comment on a new line, and the `*` or run of `*` that starts a line of a `/** */` comment after its leading white space, MUST count as line breaks, not as text; any other `*`, such as one after a space or in the middle of a line, is text. White space is every character that Unicode classifies as white space — a space, a tab, or a no-break space (`&#160;`) among them — whether written directly or as a character reference such as `&#32;`. A `<summary>` whose content has any other character MUST count as having text, a zero-width space (`&#x200B;`) included.
 
 This requirement covers a `<summary>` whose content is text and character references only; a `<summary>` that contains an XML element, an XML comment, a CDATA section, or a processing instruction is not covered.
 
@@ -483,6 +483,19 @@ public class D
  * </summary>|}
  */
 public class E
+{
+}
+
+/**
+ ** {|RH8030:<summary>
+ ** </summary>|}
+ */
+public class J
+{
+}
+
+/** <summary> * </summary> */
+public class K
 {
 }
 
@@ -689,11 +702,13 @@ public static class Extensions
 
 ### SHARED-DOC-013 — Merged extension declarations share their documentation
 
-Extension declarations of one static class whose parameters are declared identically — the same type with the same nullability, the same `ref`, `in`, or `out`, the same name, and the same attributes — and whose type parameters are declared identically — the same names and the same constraints — MUST share one documentation: the documentation comments of all of them, in source order. SHARED-DOC-011 and SHARED-DOC-012 MUST read that shared documentation for each of them. Extension declarations whose parameters or type parameters differ in any of these MUST NOT share their documentation.
+Extension declarations that the compiler merges into one extension — it gives them one documentation ID and writes one documentation entry that joins their documentation comments — MUST share that documentation, and SHARED-DOC-011 and SHARED-DOC-012 MUST read it for each of them. Extension declarations that the compiler does not merge MUST NOT share their documentation.
 
-This requirement covers what SHARED-DOC-011 and SHARED-DOC-012 cover.
+The compiler merges the extension declarations of one static class, in one file or across the files of a partial class, whose parameter and type parameters it treats as the same: the same type, so that `string` and `System.String` merge while `string` and `string?` do not, and tuple types merge only with the same element names; the same parameter name; the same `ref`, `in`, `ref readonly`, and `scoped` modifiers; the same attributes with the same arguments on the parameter and on each type parameter; and the same type-parameter names with the same constraints, in any order.
 
-Why: The compiler merges such declarations into one extension, gives them one documentation ID, and writes one documentation entry for it that joins their comments. A reader sees that one entry, so a `<param>` written on any of the declarations documents the parameter of all of them.
+This requirement covers what SHARED-DOC-011 and SHARED-DOC-012 cover, for the documentation comments of every declaration of the merged extension; a merged extension in which any declaration's documentation comment is not well-formed XML is not covered.
+
+Why: A reader sees the one documentation entry the compiler writes for the merged extension, so a `<param>` written on any of its declarations documents the parameter of all of them. Following the compiler's own grouping keeps the rule from disagreeing with the generated documentation for any of the ways two declarations can differ.
 
 Example — RH8032:
 
@@ -751,6 +766,51 @@ public static class Extensions
 
     /// <inheritdoc/>
     extension(long value)
+    {
+    }
+
+    /// <summary>
+    /// Characters
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension(char value)
+    {
+    }
+
+    /// <summary>
+    /// More characters
+    /// </summary>
+    extension(System.Char value)
+    {
+    }
+
+    /// <summary>
+    /// Pairs
+    /// </summary>
+    /// <param name="pair">Pair</param>
+    extension((int A, int B) pair)
+    {
+    }
+
+    /// <summary>
+    /// Other pairs
+    /// </summary>
+    extension((int C, int D) {|RH8032:pair|})
+    {
+    }
+
+    /// <summary>
+    /// Read-only references
+    /// </summary>
+    /// <param name="number">Number</param>
+    extension(in double number)
+    {
+    }
+
+    /// <summary>
+    /// Writable references
+    /// </summary>
+    extension(ref double {|RH8032:number|})
     {
     }
 }
