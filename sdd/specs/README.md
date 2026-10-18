@@ -21,6 +21,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/blank-line-spacing.md](shared/blank-line-spacing.md) | SHARED-BLANK | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
 | [shared/casing.md](shared/casing.md) | SHARED-CASING | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | [shared/code-fixes.md](shared/code-fixes.md) | SHARED-FIX | — |
+| [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
@@ -90,6 +91,22 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5019.md](analyzer/RH5019.md) | RH5019 | `RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5021.md](analyzer/RH5021.md) | RH5021 | `RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer`, `RH5021LocalDeclarationsShouldBeFollowedByABlankLineCodeFixProvider` |
 | [analyzer/RH5029.md](analyzer/RH5029.md) | RH5029 | `RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer`, `RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5033.md](analyzer/RH5033.md) | RH5033 | `RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer` |
+| [analyzer/RH5034.md](analyzer/RH5034.md) | RH5034 | `RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer` |
+| [analyzer/RH5035.md](analyzer/RH5035.md) | RH5035 | `RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer` |
+| [analyzer/RH5036.md](analyzer/RH5036.md) | RH5036 | `RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer` |
+| [analyzer/RH5037.md](analyzer/RH5037.md) | RH5037 | `RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzer` |
+| [analyzer/RH5038.md](analyzer/RH5038.md) | RH5038 | `RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer` |
+| [analyzer/RH5039.md](analyzer/RH5039.md) | RH5039 | `RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer` |
+| [analyzer/RH5040.md](analyzer/RH5040.md) | RH5040 | `RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer` |
+| [analyzer/RH5041.md](analyzer/RH5041.md) | RH5041 | `RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer` |
+| [analyzer/RH5042.md](analyzer/RH5042.md) | RH5042 | `RH5042CommentsMustNotBePlacedAroundAssignmentOperatorAnalyzer` |
+| [analyzer/RH5043.md](analyzer/RH5043.md) | RH5043 | `RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer` |
+| [analyzer/RH5044.md](analyzer/RH5044.md) | RH5044 | `RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer` |
+| [analyzer/RH5045.md](analyzer/RH5045.md) | RH5045 | `RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzer` |
+| [analyzer/RH5046.md](analyzer/RH5046.md) | RH5046 | `RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer` |
+| [analyzer/RH5047.md](analyzer/RH5047.md) | RH5047 | `RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer` |
+| [analyzer/RH5049.md](analyzer/RH5049.md) | RH5049 | `RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer` |
 | [analyzer/RH5501.md](analyzer/RH5501.md) | RH5501 | `RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer`, `RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5503.md](analyzer/RH5503.md) | RH5503 | `RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer`, `RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5505.md](analyzer/RH5505.md) | RH5505 | `RH5505ClassAttributesMustFollowPlacementRulesAnalyzer`, `RH5505ClassAttributesMustFollowPlacementRulesCodeFixProvider` |
