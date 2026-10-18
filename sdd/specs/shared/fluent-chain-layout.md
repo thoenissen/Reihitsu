@@ -243,7 +243,7 @@ class C
 
 A code fix that lays out a chain MUST give the whole chain — every link, not only the reported one — the line breaks and columns that formatting the document gives it, and MUST NOT split a link operator.
 
-Why: One diagnostic of a chain is usually one of several, and fixing one link at a time could leave the chain in a layout the formatter would change again. Taking the formatted layout keeps fixed code identical to formatted code, so the fix clears every diagnostic the chain had in one application.
+Why: One diagnostic of a chain is usually one of several, and fixing one link at a time could leave the chain in a layout the formatter would change again. Taking the layout the formatter gives the whole chain, instead of a layout of its own, clears every diagnostic the chain had in one application.
 
 Example — the RH5201 fix, applied to the first of two misplaced links:
 
