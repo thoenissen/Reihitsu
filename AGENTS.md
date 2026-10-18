@@ -118,5 +118,5 @@ Formatter transformations are non-destructive: they may rewrite syntax and trivi
 
 ## Instructions
 
-- The repository language is English. All communication, documentation, and code should be in English, even if user input is in another language.
+- The repository language is English. Everything must be in English: code, comments, documentation, commit messages, issues, pull requests, review comments, and every agent's chat replies to the maintainer and contributors — regardless of the language the user writes in.
 - When drafting pull requests, keep the description concise, link related issues explicitly (for example `Closes #123`), and do not include a list of locally executed tests because CI already reports that information.
