@@ -101,8 +101,8 @@ Status: open / running / PR #… / merged.
 | 9 | #985 | D4 documentation layout + comments | #982 | open |
 | 10 | #986 | S1 whitespace/spacing part 1 | — | prompt given 2026-10-18 (parallel) |
 | 11 | #987 | S2 spacing part 2 | #986 | open |
-| 12 | #988 | BL other blank lines | — | open |
-| 13 | #989 | CP comment placement, creates spec | — | open |
+| 12 | #988 | BL other blank lines | — | prompt given 2026-10-18 (parallel) |
+| 13 | #989 | CP comment placement, creates spec | — | prompt given 2026-10-18 (parallel) |
 | 14 | #990 | LB line breaks + alignment (fluent chain) | — | open |
 | 15 | #991 | LA initializers/expressions/braces | — | open |
 | 16 | #992 | LC trailing commas, empty types | — | open |
@@ -114,7 +114,7 @@ Status: open / running / PR #… / merged.
 | 22 | #939 | tag formatter/shared/CLI/Playground tests | — | open |
 | 23 | #998 | opt-out + every test tagged | all above | open |
 
-Phase-3 decisions (maintainer 2026-10-17): #946 does not block — RH5005/RH5006 are in #977, the `await` form is covered by SHARED-STMT-004/SHARED-FIX-001 and fixed later by #946. No parallel runs. Order chosen by coordinator. 2026-10-18: maintainer has budget for 2 parallel squads — run independent batches at once (4 running: #979, #980, #982, #986) (never a batch with its blocker).
+Phase-3 decisions (maintainer 2026-10-17): #946 does not block — RH5005/RH5006 are in #977, the `await` form is covered by SHARED-STMT-004/SHARED-FIX-001 and fixed later by #946. No parallel runs. Order chosen by coordinator. 2026-10-18: maintainer has budget for 2 parallel squads — run independent batches at once (6 running: #979, #980, #982, #986, #988, #989) (never a batch with its blocker).
 #978 question (2026-10-17): `CasingUtilities` used also by RH2001 fix → still code owner of shared casing spec (it implements the naming styles; a consumer outside the family uses the behavior, it is not a general utility). RH2001 spec (#996) references casing IDs under `Uses`; note posted on #996.
 Retiring an existing spec requirement while moving it to a shared spec (RH4106, RH3202, RH8107) = escalate to maintainer (written into #978, #997, #982).
 
