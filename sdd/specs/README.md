@@ -23,6 +23,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
+| [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
 | [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
@@ -50,6 +51,22 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH4108.md](analyzer/RH4108.md) | RH4108 | `RH4108InternalFieldCasingAnalyzer`, `RH4108InternalFieldCasingCodeFixProvider` |
 | [analyzer/RH4109.md](analyzer/RH4109.md) | RH4109 | `RH4109PublicFieldCasingAnalyzer`, `RH4109PublicFieldCasingCodeFixProvider` |
 | [analyzer/RH4110.md](analyzer/RH4110.md) | RH4110 | `RH4110ConstFieldCasingAnalyzer`, `RH4110ConstFieldCasingCodeFixProvider` |
+| [analyzer/RH4111.md](analyzer/RH4111.md) | RH4111 | `RH4111PrivatePropertyCasingAnalyzer`, `RH4111PrivatePropertyCasingCodeFixProvider` |
+| [analyzer/RH4112.md](analyzer/RH4112.md) | RH4112 | `RH4112ProtectedPropertyCasingAnalyzer`, `RH4112ProtectedPropertyCasingCodeFixProvider` |
+| [analyzer/RH4113.md](analyzer/RH4113.md) | RH4113 | `RH4113InternalPropertyCasingAnalyzer`, `RH4113InternalPropertyCasingCodeFixProvider` |
+| [analyzer/RH4114.md](analyzer/RH4114.md) | RH4114 | `RH4114PublicPropertyCasingAnalyzer`, `RH4114PublicPropertyCasingCodeFixProvider` |
+| [analyzer/RH4115.md](analyzer/RH4115.md) | RH4115 | `RH4115LocalVariableCasingAnalyzer`, `RH4115LocalVariableCasingCodeFixProvider` |
+| [analyzer/RH4116.md](analyzer/RH4116.md) | RH4116 | `RH4116TupleElementCasingAnalyzer` |
+| [analyzer/RH4117.md](analyzer/RH4117.md) | RH4117 | `RH4117DeconstructionVariableCasingAnalyzer`, `RH4117DeconstructionVariableCasingCodeFixProvider` |
+| [analyzer/RH4118.md](analyzer/RH4118.md) | RH4118 | `RH4118TupleElementCasingAnalyzer` |
+| [analyzer/RH4120.md](analyzer/RH4120.md) | RH4120 | `RH4120RecordPrimaryConstructorParameterCasingAnalyzer`, `RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider` |
+| [analyzer/RH4121.md](analyzer/RH4121.md) | RH4121 | `RH4121TypeParameterNameCasingAnalyzer`, `RH4121TypeParameterNameCasingCodeFixProvider` |
+| [analyzer/RH4122.md](analyzer/RH4122.md) | RH4122 | `RH4122SingleLetterParameterNamesAnalyzer` |
+| [analyzer/RH4123.md](analyzer/RH4123.md) | RH4123 | `RH4123SingleLetterLocalFunctionParameterNamesAnalyzer` |
+| [analyzer/RH4124.md](analyzer/RH4124.md) | RH4124 | `RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer` |
+| [analyzer/RH4125.md](analyzer/RH4125.md) | RH4125 | `RH4125SingleLetterLocalVariableNamesAnalyzer` |
+| [analyzer/RH4126.md](analyzer/RH4126.md) | RH4126 | `RH4126SingleLetterForeachIterationVariableNamesAnalyzer` |
+| [analyzer/RH4127.md](analyzer/RH4127.md) | RH4127 | `RH4127SingleLetterCatchExceptionVariableNamesAnalyzer` |
 | [analyzer/RH5001.md](analyzer/RH5001.md) | RH5001 | `RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5002.md](analyzer/RH5002.md) | RH5002 | `RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5003.md](analyzer/RH5003.md) | RH5003 | `RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider` |
