@@ -93,7 +93,7 @@ Status: open / running / PR #… / merged.
 | 2 | #978 | N1 naming part 1, creates casing spec (shared/casing.md) | — | merged (PR #1007); filed #1009–#1014 |
 | 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | running (2026-10-18) |
 | 3 | #979 | N2 naming part 2 | #978 | prompt given 2026-10-18 |
-| 4 | #980 | AP attribute placement, creates attribute-target spec | — | open |
+| 4 | #980 | AP attribute placement, creates attribute-target spec | — | prompt given 2026-10-18 (parallel to #979) |
 | 5 | #981 | AS attribute list shape | #980 | open |
 | 6 | #982 | D1 element documentation part 1, creates doc spec | — | open |
 | 7 | #983 | D2 element documentation part 2 | #982 | open |
@@ -114,7 +114,7 @@ Status: open / running / PR #… / merged.
 | 22 | #939 | tag formatter/shared/CLI/Playground tests | — | open |
 | 23 | #998 | opt-out + every test tagged | all above | open |
 
-Phase-3 decisions (maintainer 2026-10-17): #946 does not block — RH5005/RH5006 are in #977, the `await` form is covered by SHARED-STMT-004/SHARED-FIX-001 and fixed later by #946. No parallel runs. Order chosen by coordinator.
+Phase-3 decisions (maintainer 2026-10-17): #946 does not block — RH5005/RH5006 are in #977, the `await` form is covered by SHARED-STMT-004/SHARED-FIX-001 and fixed later by #946. No parallel runs. Order chosen by coordinator. 2026-10-18: maintainer has budget for 2 parallel squads — run two independent batches at once (never a batch with its blocker).
 #978 question (2026-10-17): `CasingUtilities` used also by RH2001 fix → still code owner of shared casing spec (it implements the naming styles; a consumer outside the family uses the behavior, it is not a general utility). RH2001 spec (#996) references casing IDs under `Uses`; note posted on #996.
 Retiring an existing spec requirement while moving it to a shared spec (RH4106, RH3202, RH8107) = escalate to maintainer (written into #978, #997, #982).
 
