@@ -21,6 +21,9 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("RH5113-002")]
+    [Requirement("RH5113-003")]
     public async Task VerifyDiagnosticsForFieldDeclarationWithSemicolonOnNewLine()
     {
         const string testData = """
@@ -52,6 +55,9 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("RH5113-002")]
+    [Requirement("RH5113-003")]
     public async Task VerifyDiagnosticsForConstantFieldDeclarationWithSemicolonOnNewLine()
     {
         const string testData = """
@@ -83,6 +89,9 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("RH5113-002")]
+    [Requirement("RH5113-003")]
     public async Task VerifyDiagnosticsForEventFieldDeclarationWithSemicolonOnNewLine()
     {
         const string testData = """
@@ -114,6 +123,9 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("RH5113-002")]
+    [Requirement("RH5113-003")]
     public async Task VerifyDiagnosticsForDelegateDeclarationWithSemicolonOnNewLine()
     {
         const string testData = """
@@ -145,6 +157,9 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("RH5113-002")]
+    [Requirement("RH5113-003")]
     public async Task VerifyDiagnosticsForFieldDeclarationWithInitializerAndSemicolonOnNewLine()
     {
         const string testData = """
@@ -176,6 +191,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
     public async Task VerifyNoDiagnosticForCompliantFieldDeclaration()
     {
         const string testData = """
@@ -196,6 +212,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
     public async Task VerifyNoDiagnosticForCompliantEventFieldDeclaration()
     {
         const string testData = """
@@ -216,6 +233,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
     public async Task VerifyNoDiagnosticForCompliantDelegateDeclaration()
     {
         const string testData = """
@@ -234,6 +252,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-003")]
     public async Task VerifyCodeFixOfferedWhenUnrelatedCommentPrecedesField()
     {
         const string testData = """
@@ -268,6 +287,8 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenCommentSitsInSemicolonGap()
     {
         const string testData = """
@@ -290,6 +311,8 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenDirectiveSitsInSemicolonGap()
     {
         const string testData = """
@@ -314,6 +337,9 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("RH5113-002")]
+    [Requirement("RH5113-003")]
     public async Task VerifyDiagnosticsForPropertyDeclarationWithSemicolonOnNewLine()
     {
         const string testData = """
@@ -346,6 +372,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5113-001")]
     public async Task VerifyNoDiagnosticForExpressionBodiedPropertyWithSemicolonOnNewLine()
     {
         const string testData = """
@@ -360,6 +387,75 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying no diagnostic is reported when a block comment ends in front of the semicolon on its line, because the
+    /// gap in front of the semicolon holds it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenCommentPrecedesTheSemicolon()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value = 1
+                                        /* note */ ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying no diagnostic is reported when disabled text sits in the gap in front of the semicolon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5113-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenDisabledTextSitsInSemicolonGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value = 1
+                                #if false
+                                        + 2
+                                #endif
+                                        ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying the fix moves the semicolon behind the declaration under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5113-003")]
+    public async Task VerifyFieldDeclarationIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value
+                                        {|#0:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int _value;
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
     }
 
     #endregion // Tests

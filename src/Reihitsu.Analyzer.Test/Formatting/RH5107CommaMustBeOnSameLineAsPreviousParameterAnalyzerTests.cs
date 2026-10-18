@@ -25,6 +25,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -46,6 +47,9 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("RH5107-002")]
+    [Requirement("RH5107-003")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -77,6 +81,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyOneColumnOffsetIsFixedCorrectly()
     {
         const string testData = """
@@ -108,6 +113,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyBaseIndentationOffsetIsFixedCorrectly()
     {
         const string testData = """
@@ -138,6 +144,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyCommaRightOfAlignedColumnIsPulledLeft()
     {
         const string testData = """
@@ -169,6 +176,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyContinuationStaysAlignedWhenFirstParameterIsOnItsOwnLine()
     {
         const string testData = """
@@ -201,6 +209,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyHangingContinuationAlignsWithFirstParameterNotOpeningParenthesis()
     {
         const string testData = """
@@ -232,6 +241,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyMultipleSpacesAfterCommaAreCollapsed()
     {
         const string testData = """
@@ -265,6 +275,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyTabAfterCommaIsCollapsedWithCarriageReturnLineFeedPreserved()
     {
         const string testData = "internal class TestClass\r\n{\r\n    void Method(int first\r\n                ,\tint second)\r\n    {\r\n    }\r\n}";
@@ -283,6 +294,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyEmptyLineIsRemovedWhenCommaIsAloneOnItsLine()
     {
         const string testData = """
@@ -314,6 +326,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyCommentFollowingCommaIsPreservedAndAligned()
     {
         const string testData = """
@@ -343,6 +356,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-003")]
     public async Task VerifyFixAllAlignsEveryContinuationInOneDocument()
     {
         const string testData = """
@@ -385,6 +399,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("RH5107-003")]
     public async Task VerifyContinuationAlignsForConstructor()
     {
         const string testData = """
@@ -414,6 +430,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("RH5107-003")]
     public async Task VerifyContinuationAlignsForLocalFunction()
     {
         const string testData = """
@@ -449,6 +467,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("RH5107-003")]
     public async Task VerifyContinuationAlignsForLambdaParameterList()
     {
         const string testData = """
@@ -486,6 +506,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticAndNoCodeFixWhenDirectivesSeparateConditionalParameter()
     {
         const string testData = """
@@ -530,6 +552,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticAndNoCodeFixWhenCommentPrecedesCommaOnSameLine()
     {
         const string testData = """
@@ -557,6 +581,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticAndNoCodeFixWhenCommentIsPresent()
     {
         const string testData = """
@@ -577,6 +603,145 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                                    root => GetFirstSeparatorLocation(root));
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that every misplaced comma of one parameter list is reported on its own, located on the comma
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("RH5107-002")]
+    public async Task VerifyEveryMisplacedCommaIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                                {|#0:,|} int second
+                                                {|#1:,|}int third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a misplaced comma of an anonymous method's parameter list is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-001")]
+    public async Task VerifyMisplacedCommaOfAnonymousMethodIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Func<int, int, int> anonymous = delegate (int first
+                                            {|#0:,|} int second) { return first; };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misplaced comma of a primary constructor's parameter list is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-001")]
+    public async Task VerifyMisplacedCommaOfPrimaryConstructorIsReported()
+    {
+        const string testData = """
+                                internal class TestClass(int first
+                                    {|#0:,|} int second)
+                                {
+                                    public int Sum => first + second;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a leading comma of an argument list is not reported, because the rule covers parameter lists only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-001")]
+    public async Task VerifyLeadingCommaOfArgumentListIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1
+                                             , 2);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when a comment ends the line of the parameter in front of the comma
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenCommentFollowsThePreviousParameter()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first // note
+                                                , int second)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when disabled text sits in the gap in front of the comma
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenDisabledTextIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                #if false
+                                                , int disabled
+                                #endif
+                                                , int second)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

@@ -21,6 +21,8 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-003")]
     public async Task VerifyNoDiagnosticsWhenIndentationIsConsistent()
     {
         const string testData = """
@@ -52,6 +54,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-004")]
     public async Task VerifyNoDiagnosticsForMultiLineStrings()
     {
         const string testData = """
@@ -73,6 +76,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyMemberIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -131,6 +137,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyNestedStatementIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -162,6 +171,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyAccessorIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -193,6 +205,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-003")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyRegionIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -226,6 +241,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-002")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyCommentIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -277,6 +295,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-002")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyBlockCommentOnOwnLineBelowOpeningBraceIsDetectedAndFixed()
     {
         const string testData = """
@@ -562,6 +583,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-006")]
     public async Task VerifyCodeFixDoesNotFormatIndependentMethod()
     {
         const string testData = """
@@ -603,6 +625,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-003")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyNamespaceLevelRegionIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -640,6 +665,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-003")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyEnumLevelRegionIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -672,6 +700,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-003")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyRegionIndentationInsideSwitchSectionIsDetectedAndFixed()
     {
         const string testData = """
@@ -720,6 +751,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedWhileBody()
     {
         const string testData = """
@@ -741,6 +773,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedForBody()
     {
         const string testData = """
@@ -762,6 +795,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedForEachBody()
     {
         const string testData = """
@@ -783,6 +817,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedUsingBody()
     {
         const string testData = """
@@ -804,6 +839,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedLockBody()
     {
         const string testData = """
@@ -827,6 +863,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedDoWhileBody()
     {
         const string testData = """
@@ -849,6 +886,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedFixedBody()
     {
         const string testData = """
@@ -870,6 +908,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForUnbracedNestedIfBody()
     {
         const string testData = """
@@ -893,6 +932,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
     public async Task VerifyNoDiagnosticsForElseIfChainWithUnbracedBodies()
     {
         const string testData = """
@@ -919,6 +959,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyUnbracedWhileBodyIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -953,6 +996,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyUnbracedFixedBodyIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -990,6 +1036,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyUnbracedNestedWhileBodyIndentationIsDetectedAndFixed()
     {
         const string testData = """
@@ -1057,6 +1106,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-003")]
     public async Task VerifyNoDiagnosticsForRegionDirectivesInsideInactiveBranch()
     {
         const string testData = """
@@ -1081,6 +1131,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-003")]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
     public async Task VerifyRegionIndentationInsideActiveBranchIsDetectedAndFixed()
     {
         const string testData = """
@@ -1111,6 +1164,246 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
         await Verify(testData,
                      fixedData,
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented switch label is reported on its keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    public async Task VerifySwitchLabelIndentationIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void Method(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                              {|#0:case|} 1:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented enum member is reported on its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    public async Task VerifyEnumMemberIndentationIsDetected()
+    {
+        const string testData = """
+                                internal enum Values
+                                {
+                                      {|#0:First|},
+                                    Second,
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented labeled statement is reported on its label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    public async Task VerifyLabeledStatementIndentationIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void Method()
+                                    {
+                                          {|#0:Label|}: return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented else clause and a misindented closing brace are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-005")]
+    public async Task VerifyElseClauseAndClosingBraceIndentationAreDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void Method(bool value)
+                                    {
+                                        if (value)
+                                        {
+                                            return;
+                                        }
+                                          {|#0:else|}
+                                        {
+                                            return;
+                                        }
+                                      {|#1:}|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a closing brace is expected one level deeper than the brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-002")]
+    [Requirement("RH5204-005")]
+    public async Task VerifyCommentInFrontOfClosingBraceIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void Method()
+                                    {
+                                        return;
+                                    {|#0:// end|}
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line whose indentation contains a tab character is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-004")]
+    public async Task VerifyNoDiagnosticsForTabIndentedLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal void Method()
+                                    {
+                                <TAB>       return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData.Replace("<TAB>", "\t"));
+    }
+
+    /// <summary>
+    /// Verifies that a statement inside the block body of a lambda is not reported, because the body aligns to the
+    /// lambda rather than to the scope depth
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-004")]
+    public async Task VerifyNoDiagnosticsInsideLambdaBlockBody()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    internal Action Method()
+                                    {
+                                        return () =>
+                                        {
+                                                    return;
+                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix re-indents a misindented comment in a method body under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-002")]
+    [Requirement("RH5204-006")]
+    public async Task VerifyCommentIndentationIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value;
+
+                                    public void Method()
+                                    {
+                                          {|#0:// first|}
+                                        return;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int _value;
+
+                                     public void Method()
+                                     {
+                                         // first
+                                         return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix re-indents a misindented member by formatting the type around it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("RH5204-006")]
+    public async Task VerifyFieldIndentationIsFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                  {|#0:private|} int _value;
+
+                                    public void Method()
+                                    {
+                                        return;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int _value;
+
+                                     public void Method()
+                                     {
+                                         return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
     }
 
     #endregion // Tests

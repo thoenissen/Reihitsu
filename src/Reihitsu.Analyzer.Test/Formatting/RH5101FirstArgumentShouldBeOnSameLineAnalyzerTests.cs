@@ -23,6 +23,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-001")]
     public async Task VerifyNoDiagnosticsForValidCode()
     {
         const string testData = """
@@ -61,6 +62,9 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-001")]
+    [Requirement("RH5101-002")]
+    [Requirement("RH5101-003")]
     public async Task VerifyFirstArgumentOnNewLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -98,6 +102,9 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-001")]
+    [Requirement("RH5101-002")]
+    [Requirement("RH5101-003")]
     public async Task VerifyFirstArgumentOnNewLineInConstructorCallIsDetectedAndFixed()
     {
         const string testData = """
@@ -138,6 +145,8 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyCommentedArgumentListIsNotFlagged()
     {
         const string testData = """
@@ -197,6 +206,8 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyDirectiveInArgumentGapIsNotFlagged()
     {
         const string testData = """
@@ -224,6 +235,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-004")]
     public async Task VerifyDocumentationCommentedArgumentListIsNotOfferedACodeFix()
     {
         const string codeFixData = """
@@ -258,6 +270,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-001")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsReported()
     {
         const string testData = """
@@ -282,6 +295,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-004")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -339,6 +353,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-004")]
     public async Task VerifyWithoutTrailingCommentIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -372,6 +387,8 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-003")]
+    [Requirement("RH5101-004")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsFixed()
     {
         const string testData = """
@@ -411,6 +428,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-004")]
     public async Task VerifyCommentBeforeTheOpeningParenthesisWithholdsTheCodeFix()
     {
         const string codeFixData = """
@@ -446,6 +464,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5101-004")]
     public async Task VerifyCommentAdjacentToTheClosingParenthesisIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -463,6 +482,333 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
                                    """;
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a first argument below the opening parenthesis of an implicit object creation is reported on
+    /// the first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-001")]
+    [Requirement("RH5101-002")]
+    public async Task VerifyFirstArgumentOnNewLineInImplicitObjectCreationIsReported()
+    {
+        const string testData = """
+                                using System.Text;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        StringBuilder sb = new(
+                                            {|#0:"initial"|});
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a first argument below the opening parenthesis of a constructor initializer is reported on the
+    /// first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-001")]
+    [Requirement("RH5101-002")]
+    public async Task VerifyFirstArgumentOnNewLineInConstructorInitializerIsReported()
+    {
+        const string testData = """
+                                internal class BaseClass
+                                {
+                                    public BaseClass(params int[] values)
+                                    {
+                                    }
+                                }
+
+                                internal class TestClass : BaseClass
+                                {
+                                    public TestClass()
+                                        : base(
+                                            {|#0:1|})
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a first argument below the opening parenthesis of a primary constructor's base type is reported
+    /// on the first argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-001")]
+    [Requirement("RH5101-002")]
+    public async Task VerifyFirstArgumentOnNewLineInPrimaryConstructorBaseTypeIsReported()
+    {
+        const string testData = """
+                                internal class BaseClass
+                                {
+                                    public BaseClass(params int[] values)
+                                    {
+                                    }
+                                }
+
+                                internal class TestClass(int a) : BaseClass(
+                                    {|#0:a|})
+                                {
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix lays out the argument list under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-003")]
+    public async Task VerifyFirstArgumentOnNewLineIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            {|#0:1|},
+                                            2);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2);
+                                      }
+
+                                      void Call(params int[] values)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a comment on a line of its own in front of the first argument keeps the list from being
+    /// reported, because the gap in front of the first argument holds it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyCommentOnOwnLineBeforeFirstArgumentIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            // first
+                                            1,
+                                            2);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a block comment ending in front of the first argument on its line keeps the list from being
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyBlockCommentEndingBeforeFirstArgumentIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            /* first */ 1,
+                                            2);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that disabled text in front of the first argument keeps the list from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyDisabledTextBeforeFirstArgumentIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                #if false
+                                            0,
+                                #endif
+                                            1,
+                                            2);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a comment behind an argument inside the list is reported and withholds the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-004")]
+    public async Task VerifyCommentInsideArgumentListWithholdsTheCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            {|#0:1|}, // first
+                                            2);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a preprocessor directive between two arguments is reported and withholds the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-004")]
+    public async Task VerifyDirectiveInsideArgumentListWithholdsTheCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            {|#0:1|},
+                                #if DEBUG
+                                #endif
+                                            2);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment on the line of the token in front of the opening parenthesis does not withhold the
+    /// code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-004")]
+    public async Task VerifyCommentBehindTokenBeforeOpeningParenthesisIsOfferedACodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y) => x + y;
+
+                                    private static int Use()
+                                    {
+                                        return Add /* note */ (
+                                            {|#0:1|},
+                                            2);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
                                                    RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
                                                    root => root.DescendantNodes()
                                                                .OfType<ArgumentListSyntax>()

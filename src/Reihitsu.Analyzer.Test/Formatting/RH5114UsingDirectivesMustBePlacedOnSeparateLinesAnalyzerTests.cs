@@ -26,6 +26,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
     public async Task NoDiagnosticWhenUsingDirectivesAreOnSeparateLines()
     {
         const string testData = """
@@ -45,6 +46,9 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-002")]
+    [Requirement("RH5114-003")]
     public async Task ZeroGapPairIsDetectedAndFixed()
     {
         const string testData = """
@@ -71,6 +75,9 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-002")]
+    [Requirement("RH5114-003")]
     public async Task SpaceSeparatedPairIsDetectedAndFixed()
     {
         const string testData = """
@@ -97,6 +104,9 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-002")]
+    [Requirement("RH5114-003")]
     public async Task TabSeparatedPairIsDetectedAndFixed()
     {
         const string testData = """
@@ -123,6 +133,9 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-002")]
+    [Requirement("RH5114-003")]
     public async Task BlockCommentStaysWithPreviousDirective()
     {
         const string testData = """
@@ -149,6 +162,9 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-002")]
+    [Requirement("RH5114-003")]
     public async Task ChainOfDirectivesOnOneLineReportsEveryFollowingDirective()
     {
         const string testData = """
@@ -176,6 +192,9 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-003")]
+    [Requirement("SHARED-USING-010")]
     public async Task DirectiveInBlockNamespaceIsMovedToTheScopeIndentation()
     {
         const string testData = """
@@ -208,6 +227,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-003")]
     public async Task DirectiveInFileScopedNamespaceIsDetectedAndFixed()
     {
         const string testData = """
@@ -238,6 +259,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-003")]
     public async Task GlobalDirectivesAreDetectedAndFixed()
     {
         const string testData = """
@@ -264,6 +287,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-003")]
     public async Task StaticDirectivesAreDetectedAndFixed()
     {
         const string testData = """
@@ -290,6 +315,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-003")]
     public async Task AliasDirectivesAreDetectedAndFixed()
     {
         const string testData = """
@@ -316,6 +343,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
     public async Task CrossGroupPairIsDetectedAndSplitWithoutBlankLine()
     {
         const string testData = """
@@ -342,6 +370,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
     public async Task OutOfOrderPairIsSplitWithoutReordering()
     {
         const string testData = """
@@ -368,6 +397,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
+    [Requirement("RH5114-003")]
     public async Task PairInBlockWithPreprocessorDirectiveIsDetectedAndFixed()
     {
         const string testData = """
@@ -400,6 +431,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
     public async Task NoDiagnosticWhenLineCommentEndsThePreviousLine()
     {
         const string testData = """
@@ -419,6 +451,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
     public async Task NoDiagnosticWhenMultiLineBlockCommentSeparatesTheDirectives()
     {
         const string testData = """
@@ -456,6 +489,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
     public async Task NoDiagnosticForDirectivesInDifferentScopes()
     {
         const string testData = """
@@ -475,6 +509,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-001")]
     public async Task NoDiagnosticForSingleDirectiveSharingTheLineOfTheNamespaceBrace()
     {
         const string testData = """
@@ -515,6 +550,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
+    [Requirement("SHARED-USING-010")]
     public async Task DirectiveInSingleLineNamespaceHeaderIsMovedWithoutIndentation()
     {
         const string testData = """
@@ -543,6 +580,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
     public async Task FixUsesTheLineEndingOfTheDocument()
     {
         const string testData = "using System; using System.Linq;\r\n\r\ninternal class TestClass\r\n{\r\n}\r\n";
@@ -559,6 +597,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
     public async Task FormFeedBetweenDirectivesIsRemovedByTheFix()
     {
         const string testData = "using System;\fusing System.Linq;\n\ninternal class TestClass\n{\n}\n";
@@ -574,6 +613,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
     public async Task NoBreakSpaceBetweenDirectivesIsRemovedByTheFix()
     {
         const string testData = "using System;\u00A0using System.Linq;\n\ninternal class TestClass\n{\n}\n";
@@ -639,6 +679,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
+    [Requirement("SHARED-USING-010")]
     public async Task DirectiveBehindCommentedFirstDirectiveIsMovedToTheLineIndentation()
     {
         const string testData = """
@@ -672,6 +714,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
+    [Requirement("SHARED-USING-010")]
     public async Task DirectiveBehindCommentContinuationLineIsMovedWithoutIndentation()
     {
         const string testData = "/* first\n   second */ using System; using System.Linq;\n\ninternal class TestClass\n{\n}\n";
@@ -688,6 +732,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
+    [Requirement("SHARED-USING-010")]
     public async Task DirectiveBehindIndentedCommentContinuationLineIsMovedToTheCommentIndentation()
     {
         const string testData = "namespace Example\n{\n    /* first\n       second */ using System; using System.Linq;\n\n    internal class TestClass\n    {\n    }\n}\n";
@@ -704,6 +750,8 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5114-003")]
+    [Requirement("SHARED-USING-010")]
     public async Task DirectiveBelowUnindentedHeaderCommentIsMovedToTheDirectiveIndentation()
     {
         const string testData = """
