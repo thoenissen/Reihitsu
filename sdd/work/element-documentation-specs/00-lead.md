@@ -41,3 +41,4 @@ Roles now: spec author (done) → skeptic → test implementer → implementer (
 
 - RH8107 reference clauses: maintainer kept them (`squad/decisions/2026-10-18-rh8107-shared-doc-reference-clauses.md`); after the skeptic narrowed SHARED-DOC-004, the maintainer restored RH8107-001 to its `main` text and kept only SHARED-DOC-008 under `Uses` (`squad/decisions/2026-10-18-rh8107-001-keeps-original-text.md`).
 - The five open questions of `03-spec-author.md` are filed as thoenissen/Reihitsu#1037 (`SDD open questions: sdd/specs/shared/element-documentation.md`, sub-issue of thoenissen/Reihitsu#912).
+- Implementer skipped: `04-test-implementer.md` reports every new and tagged test passing against the unchanged analyzers, so there is no production change to make.
