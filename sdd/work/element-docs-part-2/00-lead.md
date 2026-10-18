@@ -32,3 +32,9 @@ RH8020–RH8029 (non-private/private methods, properties, indexers, fields, even
 ## Open-question issues
 
 No open `SDD open questions` issue for `shared/element-documentation.md` exists at the start; the previous one (thoenissen/Reihitsu#1037) is decided and closed.
+
+## Escalation and lane widening
+
+- The spec author edited the text of SHARED-DOC-001, SHARED-DOC-002, and SHARED-DOC-005 (coverage of partial members; extension block as a private container). The maintainer kept all edits: `squad/decisions/2026-10-18-shared-doc-coverage-and-extension-block.md`.
+- That decision record lives under `squad/`, a tooling path, so the lane widened from tests to tooling before the implementer stage (as in the run of thoenissen/Reihitsu#982). The auditor now runs. The implementer stays skipped unless a test fails against the unchanged analyzers, because the run changes no production code.
+- The SHARED-DOC-002 extension-block edit answers thoenissen/Reihitsu#1055 once it has a covering test.
