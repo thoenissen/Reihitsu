@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ATTR |
 | Status | Active |
 | Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase` |
-| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027 |
+| Uses | FMT-PIPE-007, FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027 |
 
 This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a rule decides whether a list is placed on its own line or on the line of what follows it, where the diagnostic is, and what the placement fix produces. Each rule that uses this spec names its target, the declarations that carry it, its placement, and any exception of its own. The formatter's counterpart is FMT-BREAK-027.
 
@@ -13,7 +13,7 @@ This spec covers the rules that check attribute lists by the target the attribut
 
 - Which target a rule checks, whether it requires the list on its own line or on the line of what follows, and its own exceptions — each rule's spec.
 - How many attributes one list holds, and whether lists are split or merged — the attribute list-shape rules of the RH55xx range.
-- Attribute lists of type parameters — no placement rule checks them.
+- Attribute lists that resolve to the type-parameter target — no placement rule checks them.
 - Comments between an attribute list and its declaration — RH5033; comments inside an attribute list — RH5044.
 - The layout of the rest of the declaration the fix touches, such as the accessor list around a reported accessor — the other layout rules and the formatter.
 
@@ -128,7 +128,7 @@ is not reported by RH5515.
 
 A rule MUST compare the line of an attribute list's closing bracket with the line of the first token after it. A rule that requires the list on its own line MUST report the list when both are on the same line. A rule that requires the list on the line of what follows MUST report the list when that token starts on a later line. The first token after the list is the opening bracket of the next attribute list when one follows; for a list that spans several lines, the line of its closing bracket counts.
 
-Why: The placement is about what follows the list: a declaration attribute ends its line so that the declaration it decorates starts on its own line (FMT-BREAK-027), while a parameter attribute stays in front of the parameter it belongs to. Comparing with the next token, even when that is another list, checks every list of a declaration on its own.
+Why: A declaration attribute ends its line so that the declaration it decorates starts on its own line (FMT-BREAK-027), while a parameter attribute stays in front of the parameter it belongs to. Comparing with the next token, even when that is another list, checks every list of a declaration on its own.
 
 Example — RH5513, which requires the list on its own line:
 
@@ -206,7 +206,7 @@ is not reported by RH5523.
 
 ### SHARED-ATTR-006 — Accessor lists of an inline auto-property stay on its line
 
-A rule that requires the list on its own line MUST NOT report an attribute list of an accessor when the property or indexer that owns the accessor is on one line, apart from its own attribute lists, no accessor of it has a body or an expression body, and its accessor list contains no comment or directive. A property attribute list on a line of its own and a comment after the accessor list do not change this. Every other accessor attribute list of the rule's target is checked.
+A rule that requires the list on its own line MUST NOT report an attribute list of an accessor when the property or indexer that owns the accessor is on one line, apart from its own attribute lists, no accessor of it has a body or an expression body, and its accessor list contains no comment or directive. A property attribute list on a line of its own and a comment after the accessor list do not change this.
 
 Why: Such a property is a one-line declaration whose accessor attributes stay as written (FMT-BREAK-024); breaking the line after an accessor attribute would turn it into a multi-line property for a single marker. Once an accessor has a body, or a comment sits between the accessors, the accessor list is laid out over several lines anyway.
 
@@ -242,7 +242,9 @@ Example: see SHARED-ATTR-004.
 
 ### SHARED-ATTR-008 — The separate-line fix breaks the line after the list
 
-The code fix of a rule that requires the list on its own line MUST replace the gap between the list's closing bracket and the first token after it with a line break and indent that token with spaces: four for each namespace, type, enum, block, switch statement, or accessor list whose braces enclose the list, and four more inside the statements of a switch section. The indentation MUST NOT depend on the column of the list or on the indentation of other lines. The list itself stays as written. The inserted line break MUST use the line ending the document already uses.
+The code fix of a rule that requires the list on its own line MUST replace the gap between the list's closing bracket and the first token after it with a line break and indent that token with spaces: four for each namespace, type, enum, block, switch statement, or accessor list whose braces enclose the list, and four more inside the statements of a switch section. The indentation MUST NOT depend on the column of the list or on the indentation of other lines. The inserted line break MUST use the line ending detected as FMT-PIPE-007 specifies for the formatter.
+
+This requirement covers a list outside every initializer and anonymous object (SHARED-ATTR-009) whose innermost enclosing opening brace is itself indented four spaces for each scope that encloses that brace.
 
 Why: The fix makes only the change the diagnostic asks for. The indentation is the one the declaration has at its nesting depth, so a stray space or tab in front of the list is not copied onto the declaration.
 
@@ -295,9 +297,11 @@ namespace N
 }
 ```
 
-### SHARED-ATTR-009 — Inside an object initializer, the fix aligns with the declaration
+### SHARED-ATTR-009 — Inside an initializer, the fix aligns with the declaration
 
-When an object initializer or an anonymous object encloses the attribute list, the code fix of SHARED-ATTR-008 MUST instead indent the first token after the list to the column of the first token of the declaration the list belongs to.
+When an initializer — object, collection, array, `with`, or complex-element initializer — or an anonymous object encloses the attribute list, the code fix of SHARED-ATTR-008 MUST instead indent the first token after the list with spaces to the column of the first token of the declaration the list belongs to.
+
+This requirement covers a declaration whose line holds no tab character in front of its first token.
 
 Why: An initializer is aligned to its anchor rather than indented by nesting depth, so no depth gives the right column there. The declaration's own first token is already where the declaration starts, and aligning to it keeps every list of the declaration and the declaration in one column.
 
@@ -329,6 +333,39 @@ class C
             void L()
             {
             }
+        }
+    };
+}
+```
+
+Example — RH5513, in an array initializer:
+
+```csharp
+class C
+{
+    System.Action[] _a =
+    {
+        () =>
+        {
+                {|RH5513:[A]|} void L()
+                {
+                }
+        }
+    };
+}
+```
+
+```csharp
+class C
+{
+    System.Action[] _a =
+    {
+        () =>
+        {
+                [A]
+                void L()
+                {
+                }
         }
     };
 }
@@ -404,7 +441,7 @@ class C
 
 ### SHARED-ATTR-012 — The separate-line fix is withheld when an enclosing brace is missing
 
-The code fix of a rule that requires the list on its own line MUST NOT be offered when a block, type, namespace, enum, switch statement, accessor list, object initializer, or anonymous object that encloses the attribute list is missing its opening or closing brace. The diagnostic is still reported.
+The code fix of a rule that requires the list on its own line MUST NOT be offered when a block, type, namespace, enum, switch statement, accessor list, initializer of any kind SHARED-ATTR-009 names, or anonymous object whose braces enclose the attribute list is missing its opening or closing brace. The diagnostic is still reported.
 
 Why: The indentation of SHARED-ATTR-008 counts the enclosing braces; a brace the parser could not find drops a level silently, which is common in code that is being typed, and the fix would indent the declaration wrongly.
 
