@@ -20,6 +20,9 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("RH8010-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForPrivateRecordStructWithoutDocumentation()
     {
         const string source = """
@@ -40,6 +43,9 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("RH8010-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForPrivateRecordStructWithRemarksButNoSummary()
     {
         const string source = """
@@ -61,6 +67,9 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("RH8010-002")]
+    [Requirement("SHARED-DOC-001")]
     public async Task VerifyDiagnosticForPrivateRecordStructNestedInsidePrivateClass()
     {
         const string source = """
@@ -80,6 +89,53 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
         await Verify(source, Diagnostics(RH8010PrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented positional private record struct, located on its name without the parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("RH8010-002")]
+    public async Task VerifyDiagnosticForPositionalPrivateRecordStructWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  private record struct {|#0:Hidden|}(int Value);
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8010PrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented generic readonly record struct without an access modifier in a class, located on its name without the type parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("RH8010-002")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticForGenericReadonlyRecordStructWithoutModifierInClass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  readonly record struct {|#0:Pair|}<T>
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8010PrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8010MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -89,6 +145,8 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateRecordStructWithSummary()
     {
         const string source = """
@@ -110,6 +168,8 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateRecordStructWithInheritdoc()
     {
         const string source = """
@@ -132,6 +192,8 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForInternalNestedRecordStruct()
     {
         const string source = """
@@ -152,6 +214,8 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8010-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -159,6 +223,31 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an undocumented private struct and an undocumented private record, which are not record struct declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8010-001")]
+    public async Task VerifyNoDiagnosticForPrivateStructAndRecordDeclarations()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  private struct Plain
+                                  {
+                                  }
+
+                                  private record Entity;
+                              }
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // No-diagnostic cases

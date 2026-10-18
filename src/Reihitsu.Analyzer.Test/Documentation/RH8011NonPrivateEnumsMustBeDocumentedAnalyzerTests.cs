@@ -20,6 +20,9 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("RH8011-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForEnumWithoutDocumentation()
     {
         const string source = """
@@ -39,6 +42,8 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("RH8011-002")]
     public async Task VerifyDiagnosticForPublicEnumWithoutDocumentation()
     {
         const string source = """
@@ -58,6 +63,9 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("RH8011-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForEnumWithRemarksButNoSummary()
     {
         const string source = """
@@ -79,6 +87,9 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("RH8011-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForTopLevelEnumWithNoModifierAndNoDocumentation()
     {
         const string source = """
@@ -99,6 +110,10 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("RH8011-002")]
+    [Requirement("SHARED-DOC-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForNestedProtectedEnumWithoutDocumentation()
     {
         const string source = """
@@ -117,6 +132,27 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
         await Verify(source, Diagnostics(RH8011NonPrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented enum with an underlying type, located on its name without the underlying type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("RH8011-002")]
+    public async Task VerifyDiagnosticForEnumWithUnderlyingTypeWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal enum {|#0:State|} : byte
+                              {
+                                  Open
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8011NonPrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8011MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -126,6 +162,8 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForInternalEnumWithSummary()
     {
         const string source = """
@@ -146,6 +184,8 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPublicEnumWithInheritdoc()
     {
         const string source = """
@@ -167,6 +207,8 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForPurePrivateNestedEnum()
     {
         const string source = """
@@ -190,6 +232,8 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForNestedInternalEnumWithSummary()
     {
         const string source = """
@@ -214,6 +258,8 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8011-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """

@@ -20,6 +20,9 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("RH8002-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForPrivateClassWithoutDocumentation()
     {
         const string source = """
@@ -42,6 +45,9 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("RH8002-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForPrivateClassWithRemarksButNoSummary()
     {
         const string source = """
@@ -65,6 +71,9 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("RH8002-002")]
+    [Requirement("SHARED-DOC-001")]
     public async Task VerifyDiagnosticForPrivateClassNestedInsidePrivateClass()
     {
         const string source = """
@@ -86,6 +95,119 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
         await Verify(source, Diagnostics(RH8002PrivateClassesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8002MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for undocumented private static, abstract, and sealed classes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("RH8002-002")]
+    public async Task VerifyDiagnosticForPrivateStaticAbstractAndSealedClassesWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  private static class {|#0:Helpers|}
+                                  {
+                                  }
+
+                                  private abstract class {|#1:Shape|}
+                                  {
+                                  }
+
+                                  private sealed class {|#2:Circle|} : Shape
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8002PrivateClassesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8002MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented generic class without an access modifier in a class, located on its name without the type parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("RH8002-002")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticForGenericClassWithoutModifierInClass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  class {|#0:Cache|}<T>
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8002PrivateClassesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented class without an access modifier in a struct, which belongs to the private group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticForClassWithoutModifierInStruct()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Value.</summary>
+                              public struct Value
+                              {
+                                  class {|#0:InStruct|}
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8002PrivateClassesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for undocumented classes without an access modifier in a record and a record struct, which belong to the private group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticForClassesWithoutModifierInRecordAndRecordStruct()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Entity.</summary>
+                              public record Entity
+                              {
+                                  class {|#0:InRecord|}
+                                  {
+                                  }
+                              }
+
+                              /// <summary>Entry.</summary>
+                              public record struct Entry
+                              {
+                                  class {|#1:InRecordStruct|}
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8002PrivateClassesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8002MessageFormat, 2));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -95,6 +217,8 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateClassWithSummary()
     {
         const string source = """
@@ -118,6 +242,8 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateClassWithInheritdoc()
     {
         const string source = """
@@ -141,6 +267,8 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForInternalNestedClass()
     {
         const string source = """
@@ -163,6 +291,8 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -170,6 +300,53 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an undocumented private protected class, which belongs to the non-private group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8002-001")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyNoDiagnosticForPrivateProtectedNestedClass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              public class Container
+                              {
+                                  private protected class Shared
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for undocumented private records declared with record or record class, which are not class declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8002-001")]
+    public async Task VerifyNoDiagnosticForPrivateRecordDeclarations()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  private record Entity;
+
+                                  private record class Order;
+                              }
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // No-diagnostic cases

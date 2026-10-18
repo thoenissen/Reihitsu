@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -115,6 +116,43 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
         }
 
         return solution;
+    }
+
+    /// <summary>
+    /// Applies <see cref="DocumentationMode.Parse"/> to the test project parse options
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    protected static Solution ApplyDocumentationModeParseToTestProject(Solution solution, ProjectId projectId)
+    {
+        var project = solution.GetProject(projectId);
+
+        if (project?.ParseOptions is CSharpParseOptions parseOptions)
+        {
+            solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
+        }
+
+        return solution;
+    }
+
+    /// <summary>
+    /// Creates a transform that lets the test project resolve the files that <c>&lt;include&gt;</c> elements of
+    /// documentation comments name, from the given contents instead of from disk
+    /// </summary>
+    /// <param name="path">Path the <c>&lt;include&gt;</c> element names</param>
+    /// <param name="content">Content of the file</param>
+    /// <returns>Transform to add to the test's solution transforms</returns>
+    protected static Func<Solution, ProjectId, Solution> CreateIncludedDocumentationTransform(string path, string content)
+    {
+        var resolver = new InMemoryXmlReferenceResolver(new Dictionary<string, string>
+                                                        {
+                                                            [path] = content
+                                                        });
+
+        return (solution, projectId) => solution.GetProject(projectId)?.CompilationOptions is CompilationOptions compilationOptions
+                                            ? solution.WithProjectCompilationOptions(projectId, compilationOptions.WithXmlReferenceResolver(resolver))
+                                            : solution;
     }
 
     /// <summary>

@@ -20,6 +20,9 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForRecordWithoutDocumentation()
     {
         const string source = """
@@ -36,6 +39,8 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
     public async Task VerifyDiagnosticForPublicRecordWithoutDocumentation()
     {
         const string source = """
@@ -52,6 +57,9 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForRecordWithRemarksButNoSummary()
     {
         const string source = """
@@ -70,6 +78,9 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForTopLevelRecordWithNoModifierAndNoDocumentation()
     {
         const string source = """
@@ -86,6 +97,8 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
     public async Task VerifyDiagnosticForGenericRecordWithoutDocumentation()
     {
         const string source = """
@@ -104,6 +117,9 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForNestedPrivateProtectedRecordWithoutDocumentation()
     {
         const string source = """
@@ -124,12 +140,34 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
     public async Task VerifyDiagnosticForPositionalRecordWithoutDocumentation()
     {
         const string source = """
                               namespace TestNamespace;
                               
                               internal record {|#0:CoordinateRecord|}(double Latitude, double Longitude);
+                              """;
+
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented record declared with record class
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("RH8007-002")]
+    public async Task VerifyDiagnosticForRecordClassWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal record class {|#0:Order|}
+                              {
+                              }
                               """;
 
         await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
@@ -144,6 +182,8 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForInternalRecordWithSummary()
     {
         const string source = """
@@ -161,6 +201,8 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPublicRecordWithInheritdoc()
     {
         const string source = """
@@ -182,6 +224,8 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForPurePrivateNestedRecord()
     {
         const string source = """
@@ -202,6 +246,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
     public async Task VerifyNoDiagnosticForGenericRecordWithSummary()
     {
         const string source = """
@@ -219,6 +264,8 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPartialRecordWithSummary()
     {
         const string source = """
@@ -236,6 +283,8 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8007-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -243,6 +292,27 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an undocumented class and an undocumented record struct, which are not record declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8007-001")]
+    public async Task VerifyNoDiagnosticForClassAndRecordStructDeclarations()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              public class Plain
+                              {
+                              }
+
+                              public record struct Entry;
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // No-diagnostic cases

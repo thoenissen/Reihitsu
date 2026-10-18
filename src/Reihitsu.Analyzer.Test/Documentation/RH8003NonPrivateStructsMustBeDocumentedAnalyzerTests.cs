@@ -20,6 +20,9 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("RH8003-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForStructWithoutDocumentation()
     {
         const string source = """
@@ -38,6 +41,8 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("RH8003-002")]
     public async Task VerifyDiagnosticForPublicStructWithoutDocumentation()
     {
         const string source = """
@@ -56,6 +61,9 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("RH8003-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForStructWithRemarksButNoSummary()
     {
         const string source = """
@@ -76,6 +84,10 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("RH8003-002")]
+    [Requirement("SHARED-DOC-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForNestedProtectedInternalStructWithoutDocumentation()
     {
         const string source = """
@@ -93,6 +105,30 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source, Diagnostics(RH8003NonPrivateStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8003MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for undocumented readonly and generic ref structs, located on the name without the type parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("RH8003-002")]
+    public async Task VerifyDiagnosticForReadonlyAndRefStructsWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly struct {|#0:Size|}
+                              {
+                              }
+
+                              public ref struct {|#1:Buffer|}<T>
+                              {
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8003NonPrivateStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8003MessageFormat, 2));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -102,6 +138,8 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForInternalStructWithSummary()
     {
         const string source = """
@@ -121,6 +159,8 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForStructWithInheritdoc()
     {
         const string source = """
@@ -141,6 +181,8 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForPurePrivateNestedStruct()
     {
         const string source = """
@@ -163,6 +205,8 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8003-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -170,6 +214,23 @@ public class RH8003NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an undocumented record struct, which is not a struct declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8003-001")]
+    public async Task VerifyNoDiagnosticForRecordStructDeclaration()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              public record struct Entry;
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // No-diagnostic cases
