@@ -108,8 +108,9 @@ Bookkeeping done (36 comments; #912 body lists all 45 issues, 15 ticked; follow-
 Pending maintainer confirmation: #1065 Q1 — coordinator recommends reading A (bug in RH5024; RH5032 + SHARED-BLANK-006 + formatter agree the blank stays); same for region part of #1059 Q2 (bug in RH5025). Then add to #1076.
 Round 2 decided (maintainer 2026-10-18): #1065 Q1 A + #1059 Q2 region part → bugs added to #1076; R2.1 a → #1078 (change: spacing rules ignore comment-adjacent whitespace; #1042, #1045, #1046, #1049 Q1, #1050); R2.3 Q3, R2.4, R2.5 → bugs #1079 (#1038 Q3, #1043, #1044 Q1); R2.7 → bug #1080 (#1064); R2.6 + R2.8 a → clarifications #1081 (#1041, #1059 Q2 sibling braces). Closing (agent): #1041, #1042, #1043, #1044, #1045, #1046, #1049, #1050, #1059, #1064.
 Round 2 rest decided: R2.2 b → #1082 (change: formatter drops final line break after trailing directive; RH5603 clarification), #1040 Q2 → added to #1079; R2.3 Q1 b → #1083 (change: tabs in region names replaced; #warning/#error text and directive comments untouched; SHARED-FIX-003 exception, noted on #1068). Closed #1038, #1040. 27 of 45 closed.
-Round 3 next: naming — #1009 Q3, #1010 Q1, #1011 Q2/Q3, #1012 Q1, #1019 Q1–Q4, #1020 Q1, #1021 Q1, #1022 Q1, #1024 Q1.
-Still open questions: #1000 Q1, #1001 Q1, #1009 Q3, #1010 Q1, #1011 Q2/Q3, #1012 Q1, #1019 Q1–Q4, #1020 Q1, #1021 Q1, #1022 Q1, #1024 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
+Round 3 decided (maintainer 2026-10-18): R3.1+R3.2 → bug #1084 (prefix doubling #1010, #1020; Unicode #1009 Q3); R3.3 Q2 + R3.4 → bugs #1085 (#1011 Q2, #1012 Q1); R3.3 Q3 a → change #1086; R3.5 Q1 exempt `_`, Q2 RH4115 stops checking local consts + NEW RULE for local consts (#1088), Q3/Q4 RH4117 owns all deconstruction vars → change #1087; R3.6 a + R3.7 → change #1089; R3.8 → cleanup #1090. Closing (agent): #1009, #1010, #1011, #1012, #1019, #1020, #1021, #1022, #1024 → 36 of 45 closed.
+Round 4 next: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
+Still open questions: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
 
 ## Waiting for maintainer
 
