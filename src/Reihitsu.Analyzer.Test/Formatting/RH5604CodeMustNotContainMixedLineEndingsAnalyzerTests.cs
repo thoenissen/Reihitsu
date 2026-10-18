@@ -232,18 +232,41 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that ties use the first encountered line ending as the predominant style
+    /// Verifies that CRLF is the predominant line ending on a tie when it is also the line ending encountered first,
+    /// so the LF line is reported. <see cref="VerifyCrLfWinsTieWhenLfIsEncounteredFirst"/> separates the CRLF tie
+    /// rule from a "first encountered wins" rule
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5604-001")]
-    public async Task VerifyFirstEncounteredLineEndingWinsWhenCountsAreTied()
+    public async Task VerifyCrLfWinsTieWhenItIsEncounteredFirst()
     {
         const string testData = "internal class TestClass\r\n"
                                 + "{|#0:{\n|}"
                                 + "}";
 
         await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that CRLF is the predominant line ending on a tie even when LF is the line ending encountered first,
+    /// so the first line is reported and the fix converts it to CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-004")]
+    [Requirement("RH5604-005")]
+    public async Task VerifyCrLfWinsTieWhenLfIsEncounteredFirst()
+    {
+        const string testData = "{|#0:internal class TestClass\n|}"
+                                + "{\r\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\r\n"
+                                 + "{\r\n"
+                                 + "}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
     }
 
     /// <summary>
