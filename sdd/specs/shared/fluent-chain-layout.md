@@ -274,11 +274,11 @@ class C
 }
 ```
 
-### SHARED-CHAIN-009 — A chain fix formats the code in front of the chain only when the chain's columns depend on it
+### SHARED-CHAIN-009 — A chain fix formats more than the chain only when the chain's layout depends on it
 
-A code fix that lays out a chain MUST change only the chain when the chain alone, written back into the unchanged code around it, gets the layout of SHARED-CHAIN-008. When it does not — because formatting would change code in front of the chain on its line, such as the spacing of a declaration — the fix MUST also format the statement or member that starts the chain's line.
+A code fix that lays out a chain MUST change only the chain when the chain alone, formatted in the unchanged code around it, gets the same text and starts in the same column as it does when the innermost statement or member declaration that contains the chain and starts a line is formatted. When it does not — for example because formatting changes the spacing of a declaration in front of the chain — the fix MUST write back that formatted statement or member declaration instead.
 
-Why: The columns of a wrapped chain depend on where the chain starts, and the formatter computes them for the code in front of the chain as it will be after formatting. Formatting only the chain keeps unrelated code of the statement as written; formatting the statement as well is needed only when the chain would otherwise be aligned to columns that formatting moves.
+Why: The columns of a wrapped chain depend on where the chain starts, and the formatter computes them for the code in front of the chain as it will be after formatting. Writing back only the chain keeps the rest of the statement as written; the formatted statement is needed only when the chain alone would get other columns than formatting gives it.
 
 Example — the RH5201 fix leaves the code behind the chain as written:
 

@@ -5,7 +5,7 @@
 | ID prefix | SHARED-WS |
 | Status | Active |
 | Code owners | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase`, `CollapseTokenGapCodeFixProviderBase` |
-| Uses | — |
+| Uses | SHARED-JOIN-001 |
 
 This spec covers the code fixes of rules that report whitespace that must not be there — a run of spaces and tabs, a span of blank lines, or the gap in front of a token that belongs on the line of the token before it — and correct it by deleting that whitespace: what the deletion changes, and when a comment or a directive near a run withholds it. Each rule that uses this spec states which whitespace it reports and where its diagnostic is; it names the requirements of this spec its fix follows.
 
@@ -90,7 +90,7 @@ the comment follows the semicolon, outside the gap, and the fix is offered.
 
 A code fix that uses this requirement MUST delete the whole gap between the reported token and the token before it, line breaks and indentation included, so that the reported token directly follows the token before it on that token's line, and MUST NOT change any other text.
 
-Why: The rules that use this requirement report a token that belongs directly behind the token before it, such as the opening parenthesis of a parameter list behind the declaration's name; deleting the gap is the whole correction. These rules do not report a gap that holds a comment, a directive, or disabled text, so the deletion only ever removes whitespace.
+Why: The rules that use this requirement report a token that belongs directly behind the token before it, such as the opening parenthesis of a parameter list behind the declaration's name; deleting the gap is the whole correction. These rules do not report a gap that holds a comment, a directive, or disabled text (SHARED-JOIN-001), so the deletion only ever removes whitespace.
 
 Example — RH5105, which reports an opening parenthesis of a parameter list that starts a line:
 
