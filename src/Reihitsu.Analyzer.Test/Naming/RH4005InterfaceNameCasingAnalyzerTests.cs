@@ -21,6 +21,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -67,6 +69,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
     public async Task VerifyNoDiagnosticsForCorrectInterfaceName()
     {
         const string testCode = """
@@ -86,6 +89,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForLowercaseIPrefixInterface()
     {
         const string testCode = """
@@ -114,6 +119,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForMissingIPrefixInterface()
     {
         const string testCode = """
@@ -142,6 +149,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForGenericInterfaceMissingIPrefix()
     {
         const string testCode = """
@@ -170,6 +179,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
     public async Task VerifyNoDiagnosticsForGenericInterface()
     {
         const string testCode = """
@@ -189,6 +199,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForGenericInterfaceWrongCasing()
     {
         const string testCode = """
@@ -217,6 +229,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForLowercaseWordStartingWithI()
     {
         const string testCode = """
@@ -245,6 +259,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForLowercaseWordStartingWithIWithMultipleLetters()
     {
         const string testCode = """
@@ -273,6 +289,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForPascalCaseWordStartingWithI()
     {
         const string testCode = """
@@ -301,6 +319,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4005-001")]
+    [Requirement("RH4005-002")]
     public async Task VerifyDiagnosticsForPascalCaseWordItem()
     {
         const string testCode = """
@@ -322,6 +342,122 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an I followed by an uppercase letter and a PascalCase name is accepted, and that a lowercase prefix, a missing prefix, a word starting with I, a separator, and a bare I are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4005-001")]
+    public async Task InterfaceNamesAreAcceptedOnlyAsIFollowedByPascalCase()
+    {
+        const string testCode = """
+                                public interface IDocumentReader
+                                {
+                                }
+
+                                public interface IHTTPClient
+                                {
+                                }
+
+                                public interface IRepository<T>
+                                {
+                                }
+
+                                public interface {|RH4005:iDocumentWriter|}
+                                {
+                                }
+
+                                public interface {|RH4005:DocumentStore|}
+                                {
+                                }
+
+                                public interface {|RH4005:Index|}
+                                {
+                                }
+
+                                public interface {|RH4005:IOrder_Line|}
+                                {
+                                }
+
+                                public interface {|RH4005:I|}
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix corrects the case of an existing prefix, adds a missing prefix in front of the whole name, keeps a rest that is already PascalCase, and converts any other rest
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4005-002")]
+    public async Task FixKeepsExistingPrefixAddsMissingPrefixAndKeepsPascalCaseRest()
+    {
+        const string testCode = """
+                                public interface {|RH4005:iDocumentReader|}
+                                {
+                                }
+
+                                public interface {|RH4005:Repository|}<T>
+                                {
+                                }
+
+                                public interface {|RH4005:index|}
+                                {
+                                }
+
+                                public interface {|RH4005:Item|}
+                                {
+                                }
+
+                                public interface {|RH4005:IOrder_Line|}
+                                {
+                                }
+
+                                public interface {|RH4005:URL|}
+                                {
+                                }
+
+                                public interface {|RH4005:Document_STORE|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IDocumentReader
+                                 {
+                                 }
+
+                                 public interface IRepository<T>
+                                 {
+                                 }
+
+                                 public interface IIndex
+                                 {
+                                 }
+
+                                 public interface IItem
+                                 {
+                                 }
+
+                                 public interface IOrderLine
+                                 {
+                                 }
+
+                                 public interface IURL
+                                 {
+                                 }
+
+                                 public interface IDocumentStore
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

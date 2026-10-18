@@ -54,7 +54,7 @@ A handover starts with three lines — `Role`, `Commit` (the commit the role's s
 - never carries an intended fix, a suspected cause, or what the next role should find — a role that receives one ignores it and says so;
 - states what the role established and how, so the next role can try to break the claim instead of redoing the work;
 - refers to issues and PRs by number (`thoenissen/Reihitsu#<N>`), never by a pasted copy;
-- quotes the maintainer's clarifications verbatim when they matter; they override the issue text.
+- summarizes the maintainer's clarifications in English when they matter, never quoting them verbatim; they override the issue text.
 
 `sdd/work/` is committed to the branch, so a run can continue in a later session, and it is deleted before the PR is published.
 

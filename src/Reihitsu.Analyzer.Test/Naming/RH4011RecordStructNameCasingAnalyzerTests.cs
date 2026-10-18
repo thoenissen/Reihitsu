@@ -21,6 +21,8 @@ public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4011-001")]
+    [Requirement("RH4011-002")]
     public async Task VerifyDiagnosticsForRecordStructWrongCasing()
     {
         const string testCode = """
@@ -43,6 +45,7 @@ public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4011-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseRecordStruct()
     {
         const string testCode = """
@@ -59,6 +62,7 @@ public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4011-001")]
     public async Task VerifyNoDiagnosticsForRecord()
     {
         const string testCode = """
@@ -75,6 +79,7 @@ public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4011-001")]
     public async Task VerifyNoDiagnosticsForRecordClass()
     {
         const string testCode = """
@@ -84,6 +89,64 @@ public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<R
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a record struct is reported, and records declared as record or record class are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4011-001")]
+    public async Task RecordStructsAreCheckedAndRecordClassesAreNot()
+    {
+        const string testCode = """
+                                public record struct CurrencyValue(decimal Amount);
+
+                                public record struct {|RH4011:currencyvalue|}(decimal Amount);
+
+                                public record orderLine(int Value);
+
+                                public record class customerAggregate(int Value);
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames each record struct to PascalCase together with its use as a property type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4011-002")]
+    public async Task FixRenamesRecordStructAndEveryReference()
+    {
+        const string testCode = """
+                                public record struct {|RH4011:pointRecord|}(int X, int Y);
+
+                                public record struct {|RH4011:sizeRecord|}(int Width, int Height);
+
+                                public class C
+                                {
+                                    public pointRecord Location { get; set; }
+
+                                    public sizeRecord Size { get; set; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public record struct PointRecord(int X, int Y);
+
+                                 public record struct SizeRecord(int Width, int Height);
+
+                                 public class C
+                                 {
+                                     public PointRecord Location { get; set; }
+
+                                     public SizeRecord Size { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

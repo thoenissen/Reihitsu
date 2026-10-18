@@ -725,6 +725,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task TopLevelTypeCollisionAcrossDocumentsIsRefused()
     {
         const string source = "internal class badName { }";
@@ -746,6 +747,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task TopLevelTypeRenameIgnoresUnrelatedDocumentError()
     {
         const string source = "internal class badName { }";
@@ -768,6 +770,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task TopLevelTypeRenameAllowsDifferentArity()
     {
         const string source = "internal class badName<T> { }";
@@ -789,6 +792,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task TopLevelTypeRenameAllowsFileLocalTargetInAnotherDocument()
     {
         const string source = "internal class badName { }";
@@ -810,6 +814,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task TopLevelTypeRenameToNamespaceAcrossDocumentsIsRefused()
     {
         const string source = "internal class badName { }";
@@ -831,6 +836,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task TopLevelTypeCollisionAcrossDocumentsIsRefusedByProjectFixAll()
     {
         const string source = "internal class badName { }";
@@ -852,6 +858,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task NamedNamespaceTypeCollisionAcrossDocumentsIsRefused()
     {
         const string source = "namespace Common;\ninternal class badName { }";
@@ -873,6 +880,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task NamedNamespaceTypeCollisionAcrossDocumentsIsRefusedByProjectFixAll()
     {
         const string source = "namespace Common;\ninternal class badName { }";
@@ -894,6 +902,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task NamedNamespaceTypeRenameIgnoresUnrelatedDocumentError()
     {
         const string source = "namespace Common;\ninternal class badName { }";
@@ -916,6 +925,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task NamedNamespaceTypeRenameAllowsDifferentArity()
     {
         const string source = "namespace Common;\ninternal class badName<T> { }";
@@ -937,6 +947,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task NamedNamespaceTypeRenameAllowsFileLocalTargetInAnotherDocument()
     {
         const string source = "namespace Common;\ninternal class badName { }";
@@ -958,6 +969,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-009")]
     public async Task NamedNamespaceTypeRenameToNamespaceAcrossDocumentsIsRefused()
     {
         const string source = "namespace Common;\ninternal class badName { }";
@@ -1106,6 +1118,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-010")]
     public async Task DuplicateNormalizedTargetsInSiblingScopesRemainFixableTogether()
     {
         const string testCode = """

@@ -21,6 +21,8 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4101-001")]
+    [Requirement("RH4101-002")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -75,6 +77,7 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4101-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseEnumMembers()
     {
         const string testCode = """
@@ -97,6 +100,8 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4101-001")]
+    [Requirement("RH4101-002")]
     public async Task VerifyDiagnosticsForMultipleWrongCasingMembers()
     {
         const string testCode = """
@@ -131,6 +136,8 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4101-001")]
+    [Requirement("RH4101-002")]
     public async Task VerifyDiagnosticsForEnumMemberWithUnderscorePrefix()
     {
         const string testCode = """
@@ -161,6 +168,7 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4101-001")]
     public async Task VerifyNoDiagnosticsForFlagsEnumMembers()
     {
         const string testCode = """
@@ -179,6 +187,66 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a lowercase member, a member with a separator, and a member with a leading underscore are each reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4101-001")]
+    public async Task EachEnumMemberThatIsNotPascalCaseIsReported()
+    {
+        const string testCode = """
+                                public enum Status
+                                {
+                                    {|RH4101:active|},
+                                    Valid,
+                                    {|RH4101:in_progress|},
+                                    {|RH4101:_readAccess|}
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames each enum member to PascalCase together with its use in a member access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4101-002")]
+    public async Task FixRenamesEnumMembersAndEveryReference()
+    {
+        const string testCode = """
+                                public enum OrderState
+                                {
+                                    {|RH4101:created|},
+                                    {|RH4101:in_progress|},
+                                    {|RH4101:_readAccess|}
+                                }
+
+                                public class C
+                                {
+                                    public OrderState State = OrderState.created;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public enum OrderState
+                                 {
+                                     Created,
+                                     InProgress,
+                                     ReadAccess
+                                 }
+
+                                 public class C
+                                 {
+                                     public OrderState State = OrderState.Created;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

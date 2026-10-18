@@ -17,7 +17,7 @@ One file per escalation the maintainer answered: `yyyy-mm-dd-<slug>.md`, dated b
 
 ## Answer
 
-<the maintainer's answer, quoted where it matters>
+<the maintainer's answer, summarized in English; never a verbatim quote>
 
 ## Reason
 
