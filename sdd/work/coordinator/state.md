@@ -90,6 +90,19 @@ Patterns found by coordinator (2026-10-18), proposed as principle decisions firs
 - Rest per issue: #1000 (documented limitation in RH5103.md → likely stated exception), #1001, #1009 Q3, #1011 Q2/Q3, #1012 Q1.
 Possible AGENTS.md change: make "Code-fix coverage" point to SHARED-FIX-003 or state the unsafe-fix classes explicitly so squads file them as bugs, not questions.
 
+## Question round (started 2026-10-18)
+
+Inventory of all 78 questions (45 issues): `sdd/work/coordinator/inventory/{naming,spacing,blank,attr-doc}.md` (issue, Q, input/output, pattern, duplicates, suggested kind).
+Principles put to maintainer (round 1, awaiting answer):
+- P1 unsafe fix → SHARED-FIX-003 (no new compile error, no runtime change, no edit of comment/directive/literal text, no stale inactive code). Instances: #1009 Q1/Q4/Q5, #1013 Q2, fix part of #1013 Q1/#1014/#1025–#1027, #1038 Q1, #1059 Q1, #1060 Q1, #1061 Q2.
+- P2 externally dictated names not reported → SHARED-CASING-011. #1013 Q1/Q2, #1014, #1023, #1025, #1026, #1027.
+- P3 identifiers compared by value (no `@`, no trivia) → SHARED-DIAG-002; fix withheld when derived name is a reserved keyword. #1009 Q2, #1011 Q1, #1012 Q2.
+- P4 formatted code is not reported by layout/spacing rules → FMT-PIPE-013. ~20 E instances (spacing family, #1029, #1030 Q2, #1064, #1065).
+- P5 only literal/comment text is exempt; holes and surrounding whitespace are code → SHARED-DIAG-003. #1038 Q2/Q4, #1039, #1047, #1048, #1059 Q1, #1060 Q1, #1061 Q2, #1065 Q2.
+- P6 `/** */` not before a documentable declaration = ordinary block comment (extends #915 Q4) → SHARED-DOC. #1044 Q2, #1049 Q2, #1051, #1052.
+- P7 convergence: SHARED-FIX-001 per rule (#1066 reading A); new SHARED-FIX-004 fixes of two rules never undo each other; SHARED-FIX-005 an offered fix changes the document. #1059 Q2, #1060 Q1, #1061 Q1, #1063, #1065 Q1, #1066.
+- Later (round 2): naming cross-rule coverage (#1019, #1022, #1024), prefix doubling (#1010, #1020), doc-vs-compiler (#1037), attribute separate-line family (#1029–#1031).
+
 ## Waiting for maintainer
 
 - question round started 2026-10-18 (new chat). All six batches + #1008 merged. 45 open question issues: #1000, #1001, #1009–#1014, #1019–#1027, #1029–#1031, #1037–#1052, #1058–#1066. Inventory in progress.
