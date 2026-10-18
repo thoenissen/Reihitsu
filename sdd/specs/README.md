@@ -22,6 +22,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/casing.md](shared/casing.md) | SHARED-CASING | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | [shared/code-fixes.md](shared/code-fixes.md) | SHARED-FIX | — |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
+| [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
@@ -105,6 +106,25 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5530.md](analyzer/RH5530.md) | RH5530 | `RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer`, `RH5530AccessorAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH6002.md](analyzer/RH6002.md) | RH6002 | `RH6002CommasMustBeSpacedCorrectlyAnalyzer`, `RH6002CommasMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH7103.md](analyzer/RH7103.md) | RH7103 | `RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer`, `RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider` |
-| [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
+| [analyzer/RH8001.md](analyzer/RH8001.md) | RH8001 | `RH8001NonPrivateClassesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8002.md](analyzer/RH8002.md) | RH8002 | `RH8002PrivateClassesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8003.md](analyzer/RH8003.md) | RH8003 | `RH8003NonPrivateStructsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8004.md](analyzer/RH8004.md) | RH8004 | `RH8004PrivateStructsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8005.md](analyzer/RH8005.md) | RH8005 | `RH8005NonPrivateInterfacesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8006.md](analyzer/RH8006.md) | RH8006 | `RH8006PrivateInterfacesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8007.md](analyzer/RH8007.md) | RH8007 | `RH8007NonPrivateRecordsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8008.md](analyzer/RH8008.md) | RH8008 | `RH8008PrivateRecordsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8009.md](analyzer/RH8009.md) | RH8009 | `RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8010.md](analyzer/RH8010.md) | RH8010 | `RH8010PrivateRecordStructsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8011.md](analyzer/RH8011.md) | RH8011 | `RH8011NonPrivateEnumsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8012.md](analyzer/RH8012.md) | RH8012 | `RH8012PrivateEnumsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8013.md](analyzer/RH8013.md) | RH8013 | `RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8014.md](analyzer/RH8014.md) | RH8014 | `RH8014PrivateEnumMembersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8015.md](analyzer/RH8015.md) | RH8015 | `RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8016.md](analyzer/RH8016.md) | RH8016 | `RH8016PrivateDelegatesMustBeDocumentedAnalyzer` |
+| [analyzer/RH8017.md](analyzer/RH8017.md) | RH8017 | `RH8017NonPrivateConstructorsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8018.md](analyzer/RH8018.md) | RH8018 | `RH8018PrivateConstructorsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8019.md](analyzer/RH8019.md) | RH8019 | `RH8019DestructorsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationCommentCodeFixUtilities` |
 | [cli/reihitsu-format.md](cli/reihitsu-format.md) | CLI | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
 | [playground/playground.md](playground/playground.md) | PLAY | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundVersion` |
