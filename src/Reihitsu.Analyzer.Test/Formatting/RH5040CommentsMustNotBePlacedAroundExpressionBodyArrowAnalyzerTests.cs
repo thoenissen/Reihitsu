@@ -20,6 +20,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-001")]
     public async Task VerifyCommentBeforePropertyArrowIsReported()
     {
         const string testData = """
@@ -39,6 +40,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-001")]
     public async Task VerifyCommentAfterPropertyArrowIsReported()
     {
         const string testData = """
@@ -58,6 +60,8 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-001")]
+    [Requirement("SHARED-COMMENT-003")]
     public async Task VerifyCommentAroundMethodArrowIsReported()
     {
         const string testData = """
@@ -75,6 +79,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-001")]
     public async Task VerifyCommentAroundAccessorArrowIsReported()
     {
         const string testData = """
@@ -99,6 +104,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeExpressionBodiedMember()
     {
         const string testData = """
@@ -117,6 +123,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-002")]
     public async Task VerifyNoDiagnosticForLocalFunctionArrow()
     {
         const string testData = """
@@ -143,6 +150,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-002")]
     public async Task VerifyNoDiagnosticForLambdaArrow()
     {
         const string testData = """
@@ -170,6 +178,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5040-002")]
     public async Task VerifyNoDiagnosticForSwitchArmArrow()
     {
         const string testData = """
@@ -209,6 +218,148 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment around the arrow of an expression-bodied constructor is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5040-001")]
+    public async Task VerifyCommentAroundConstructorArrowIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value;
+
+                                    public TestClass()
+                                        {|#0:// initialize|}
+                                        => _value = 1;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment around the arrow of an expression-bodied finalizer is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5040-001")]
+    public async Task VerifyCommentAroundFinalizerArrowIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _value;
+
+                                    ~TestClass() =>
+                                        {|#0:// reset|}
+                                        _value = 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment around the arrow of an expression-bodied operator is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5040-001")]
+    public async Task VerifyCommentAroundOperatorArrowIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public static TestClass operator +(TestClass left, TestClass right)
+                                        {|#0:// left wins|}
+                                        => left;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment around the arrow of an expression-bodied conversion operator is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5040-001")]
+    public async Task VerifyCommentAroundConversionOperatorArrowIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public static implicit operator int(TestClass value) => {|#0:/* none */|} 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment around the arrow of an expression-bodied indexer is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5040-001")]
+    public async Task VerifyCommentAroundIndexerArrowIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int this[int index]
+                                        {|#0:// identity|}
+                                        => index;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment elsewhere in an expression body is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5040-001")]
+    public async Task VerifyNoDiagnosticForCommentElsewhereInExpressionBody()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Sum => 1
+                                                      // offset
+                                                      + 2;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the arrow of an expression-bodied property is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5040-001")]
+    public async Task VerifyCommentBeforePropertyArrowIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Value
+                                        {|#0:// computed|}
+                                        => 42;
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
     }
 
     #endregion // Tests

@@ -20,6 +20,9 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5044-001")]
+    [Requirement("SHARED-COMMENT-004")]
+    [Requirement("SHARED-COMMENT-005")]
     public async Task VerifyCommentBeforeFirstAttributeIsReported()
     {
         const string testData = """
@@ -42,6 +45,9 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5044-001")]
+    [Requirement("SHARED-COMMENT-003")]
+    [Requirement("SHARED-COMMENT-005")]
     public async Task VerifyCommentBeforeClosingBracketIsReported()
     {
         const string testData = """
@@ -61,6 +67,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5044-001")]
     public async Task VerifyCommentInAttributeArgumentsIsReported()
     {
         const string testData = """
@@ -85,6 +92,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5044-001")]
     public async Task VerifyCommentInAssemblyAttributeListIsReported()
     {
         const string testData = """
@@ -105,6 +113,8 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5044-001")]
+    [Requirement("SHARED-COMMENT-004")]
     public async Task VerifyNoDiagnosticForCommentBeforeAttributeList()
     {
         const string testData = """
@@ -144,6 +154,8 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5044-001")]
+    [Requirement("SHARED-COMMENT-004")]
     public async Task VerifyNoDiagnosticForCommentAfterAttributeList()
     {
         const string testData = """
@@ -157,6 +169,75 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in a module attribute list is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5044-001")]
+    public async Task VerifyCommentInModuleAttributeListIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                [module: {|#0:/* compliance */|} CLSCompliant(false)]
+
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment before a binary operator in an attribute argument is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5044-001")]
+    [Requirement("SHARED-COMMENT-008")]
+    public async Task VerifyNoDiagnosticForCommentBeforeBinaryOperatorInAttributeArgument()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    [Obsolete("Use "
+                                        // version
+                                        + "V2")]
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the first attribute of a list is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5044-001")]
+    public async Task VerifyCommentBeforeFirstAttributeIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                using System;
+
+                                [
+                                    {|#0:// serialization|}
+                                    Serializable]
+                                public class Data
+                                {
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
     }
 
     #endregion // Tests

@@ -20,6 +20,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-002")]
     public async Task VerifyCommentBeforeAccessorListIsReported()
     {
         const string testData = """
@@ -39,6 +40,8 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-001")]
+    [Requirement("SHARED-COMMENT-005")]
     public async Task VerifyCommentBeforeAutoAccessorIsReported()
     {
         const string testData = """
@@ -61,6 +64,9 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-001")]
+    [Requirement("SHARED-COMMENT-003")]
+    [Requirement("SHARED-COMMENT-005")]
     public async Task VerifyCommentBeforeClosingBraceIsReported()
     {
         const string testData = """
@@ -78,6 +84,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-001")]
     public async Task VerifyCommentInAbstractPropertyAccessorListIsReported()
     {
         const string testData = """
@@ -95,6 +102,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-001")]
     public async Task VerifyCommentInInterfaceIndexerAccessorListIsReported()
     {
         const string testData = """
@@ -116,6 +124,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-001")]
     public async Task VerifyNoDiagnosticForAccessorWithBody()
     {
         const string testData = """
@@ -140,6 +149,8 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-001")]
+    [Requirement("RH5047-002")]
     public async Task VerifyNoDiagnosticForAccessorWithExpressionBody()
     {
         const string testData = """
@@ -159,6 +170,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-002")]
     public async Task VerifyNoDiagnosticForCommentAfterAccessorList()
     {
         const string testData = """
@@ -179,6 +191,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5047-002")]
     public async Task VerifyNoDiagnosticForCommentBeforeProperty()
     {
         const string testData = """
@@ -190,6 +203,96 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the accessor list of an event is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5047-001")]
+    public async Task VerifyNoDiagnosticForCommentInEventAccessorList()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    public event Action Changed
+                                    {
+                                        // subscribe
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside an accessor list whose accessor has an expression body is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5047-001")]
+    public async Task VerifyNoDiagnosticForCommentInsideAccessorListWithExpressionBody()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Computed
+                                    {
+                                        // computed
+                                        get => 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the accessor list of an interface property is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5047-002")]
+    public async Task VerifyCommentBeforeAccessorListOfInterfacePropertyIsReported()
+    {
+        const string testData = """
+                                public interface IStore
+                                {
+                                    int Value
+                                        {|#0:// storage|}
+                                        { get; set; }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment before an auto accessor is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5047-001")]
+    public async Task VerifyCommentBeforeAutoAccessorIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Other
+                                    {
+                                        {|#0:// read|}
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
     }
 
     #endregion // Tests

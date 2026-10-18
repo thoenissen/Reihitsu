@@ -20,6 +20,7 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5045-001")]
     public async Task VerifyCommentsBeforeConditionalOperatorsAreReported()
     {
         const string testData = """
@@ -47,6 +48,7 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5045-001")]
     public async Task VerifyCommentAfterQuestionMarkIsReported()
     {
         const string testData = """
@@ -72,6 +74,8 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5045-001")]
+    [Requirement("SHARED-COMMENT-003")]
     public async Task VerifyCommentAfterColonIsReported()
     {
         const string testData = """
@@ -95,6 +99,7 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5045-001")]
     public async Task VerifyNoDiagnosticForCommentInsideOperand()
     {
         const string testData = """
@@ -120,6 +125,7 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5045-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeConditionalAccess()
     {
         const string testData = """
@@ -145,6 +151,7 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5045-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeNamedArgumentColon()
     {
         const string testData = """
@@ -166,6 +173,7 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5045-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeConditionalExpression()
     {
         const string testData = """
@@ -207,6 +215,54 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzerTes
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment next to an operator of a conditional expression nested in a branch is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5045-001")]
+    public async Task VerifyCommentInNestedConditionalExpressionIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b)
+                                    {
+                                        var value = a ? 1 : b
+                                            {|#0:// second case|}
+                                            ? 2 : 3;
+                                        _ = value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzer.DiagnosticId, AnalyzerResources.RH5045MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment after the question mark is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5045-001")]
+    public async Task VerifyCommentAfterQuestionMarkIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a)
+                                    {
+                                        var text = a ?
+                                            {|#0:// valid case|}
+                                            "ok" : "error";
+                                        _ = text;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzer.DiagnosticId, AnalyzerResources.RH5045MessageFormat));
     }
 
     #endregion // Tests
