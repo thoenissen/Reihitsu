@@ -21,6 +21,8 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4004-001")]
+    [Requirement("RH4004-002")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -67,6 +69,7 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4004-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseEnum()
     {
         const string testCode = """
@@ -86,6 +89,8 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4004-001")]
+    [Requirement("RH4004-002")]
     public async Task VerifyDiagnosticsForInternalEnumWrongCasing()
     {
         const string testCode = """
@@ -114,6 +119,7 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4004-001")]
     public async Task VerifyNoDiagnosticsForInternalEnum()
     {
         const string testCode = """
@@ -133,6 +139,8 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4004-001")]
+    [Requirement("RH4004-002")]
     public async Task VerifyDiagnosticsForFlagsEnumWrongCasing()
     {
         const string testCode = """
@@ -167,6 +175,8 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4004-001")]
+    [Requirement("RH4004-002")]
     public async Task VerifyDiagnosticsForNestedEnumWrongCasing()
     {
         const string testCode = """
@@ -194,6 +204,72 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4004MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a flags enum and a nested internal enum are checked and reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4004-001")]
+    public async Task EnumsAreCheckedWhateverTheirAccessibilityAttributesOrNesting()
+    {
+        const string testCode = """
+                                using System;
+
+                                public enum Direction
+                                {
+                                }
+
+                                [Flags]
+                                public enum {|RH4004:accessMode|}
+                                {
+                                }
+
+                                public class C
+                                {
+                                    internal enum {|RH4004:errorKind|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the enum to PascalCase together with its use as a field type and in a member access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4004-002")]
+    public async Task FixRenamesEnumAndEveryReference()
+    {
+        const string testCode = """
+                                public enum {|RH4004:orderState|}
+                                {
+                                    Open
+                                }
+
+                                public class C
+                                {
+                                    public orderState State = orderState.Open;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public enum OrderState
+                                 {
+                                     Open
+                                 }
+
+                                 public class C
+                                 {
+                                     public OrderState State = OrderState.Open;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

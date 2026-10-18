@@ -189,6 +189,31 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that a private property is checked, while an explicit interface property implementation belongs to no accessibility group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-004")]
+    public async Task ExplicitInterfacePropertyImplementationBelongsToNoAccessibilityGroup()
+    {
+        const string testCode = """
+                                public interface I
+                                {
+                                    int value { get; }
+                                }
+
+                                public class C : I
+                                {
+                                    private int {|RH4111:count|} { get; set; }
+
+                                    int I.value => 0;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

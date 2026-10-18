@@ -30,6 +30,9 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-002")]
+    [Requirement("RH4001-004")]
     public async Task TypeNameMismatch()
     {
         const string testCode = """
@@ -52,21 +55,21 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task TypeNameMatch()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class Order
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class Test0
-                                    {
-                                    }
                                 }
                                 """;
 
-        await Verify(testCode);
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Order.cs", testCode));
+                     });
     }
 
     /// <summary>
@@ -74,6 +77,8 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-004")]
     public async Task EnumNameMismatch()
     {
         const string testCode = """
@@ -96,6 +101,8 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-004")]
     public async Task StructNameMismatch()
     {
         const string testCode = """
@@ -118,6 +125,8 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-004")]
     public async Task DelegateNameMismatch()
     {
         const string testCode = """
@@ -138,6 +147,8 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-004")]
     public async Task InterfaceNameMismatch()
     {
         const string testCode = """
@@ -160,6 +171,8 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-004")]
     public async Task RecordNameMismatch()
     {
         const string testCode = """
@@ -180,29 +193,18 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-005")]
     public async Task CodeFixRenamesFile()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class {|RH4001:Order|}
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class {|#0:TestClass|}
-                                    {
-                                    }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 namespace TestNamespace
+                                 public class Order
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public class TestClass
-                                     {
-                                     }
                                  }
                                  """;
 
@@ -210,9 +212,10 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      null,
                      test =>
                      {
-                         test.FixedState.Sources.Add(("/0/TestClass.cs", fixedCode));
-                     },
-                     Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Order.cs", fixedCode));
+                     });
     }
 
     /// <summary>
@@ -220,29 +223,19 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-003")]
+    [Requirement("RH4001-005")]
     public async Task CodeFixRenamesFileForGenericType()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class {|RH4001:Order|}<T>
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class {|#0:TestClass|}<T>
-                                    {
-                                    }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 namespace TestNamespace
+                                 public class Order<T>
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public class TestClass<T>
-                                     {
-                                     }
                                  }
                                  """;
 
@@ -250,9 +243,10 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      null,
                      test =>
                      {
-                         test.FixedState.Sources.Add(("/0/TestClass{T}.cs", fixedCode));
-                     },
-                     Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Order{T}.cs", fixedCode));
+                     });
     }
 
     /// <summary>
@@ -260,17 +254,12 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task RazorCodeBehindMatch()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class Order
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class Test0
-                                    {
-                                    }
                                 }
                                 """;
 
@@ -278,7 +267,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
+                         test.TestState.Sources.Add(("/0/Order.razor.cs", testCode));
                      });
     }
 
@@ -287,6 +276,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task RazorCodeBehindMismatch()
     {
         const string testCode = """
@@ -315,29 +305,18 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-005")]
     public async Task CodeFixRenamesRazorFile()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class {|RH4001:OrderView|}
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class {|#0:TestComponent|}
-                                    {
-                                    }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 namespace TestNamespace
+                                 public class OrderView
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public class TestComponent
-                                     {
-                                     }
                                  }
                                  """;
 
@@ -346,10 +325,9 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
-                         test.FixedState.Sources.Add(("/0/TestComponent.razor.cs", fixedCode));
-                     },
-                     Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+                         test.TestState.Sources.Add(("/0/Invoice.razor.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/OrderView.razor.cs", fixedCode));
+                     });
     }
 
     /// <summary>
@@ -357,17 +335,12 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task XamlCodeBehindMatch()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class Order
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class Test0
-                                    {
-                                    }
                                 }
                                 """;
 
@@ -375,7 +348,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.xaml.cs", testCode));
+                         test.TestState.Sources.Add(("/0/Order.xaml.cs", testCode));
                      });
     }
 
@@ -384,17 +357,12 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task SplitPartialFileMatch()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class Order
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public partial class Test0
-                                    {
-                                    }
                                 }
                                 """;
 
@@ -402,7 +370,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.Part1.cs", testCode));
+                         test.TestState.Sources.Add(("/0/Order.Part1.cs", testCode));
                      });
     }
 
@@ -411,29 +379,18 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-005")]
     public async Task CodeFixPreservesDottedFileSuffix()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public partial class {|RH4001:Order|}
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public partial class {|#0:TestComponent|}
-                                    {
-                                    }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 namespace TestNamespace
+                                 public partial class Order
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public partial class TestComponent
-                                     {
-                                     }
                                  }
                                  """;
 
@@ -442,10 +399,9 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.Part1.cs", testCode));
-                         test.FixedState.Sources.Add(("/0/TestComponent.Part1.cs", fixedCode));
-                     },
-                     Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+                         test.TestState.Sources.Add(("/0/Invoice.Part1.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Order.Part1.cs", fixedCode));
+                     });
     }
 
     /// <summary>
@@ -453,6 +409,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task TimestampPrefixedFileMatch()
     {
         const string testCode = """
@@ -480,17 +437,12 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task NonDigitPrefixWithUnderscoreIsNotStripped()
     {
         const string testCode = """
-                                namespace TestNamespace
+                                public class V2021050108374_Order
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class A2345678901234_Something
-                                    {
-                                    }
                                 }
                                 """;
 
@@ -498,7 +450,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/A2345678901234_Something.cs", testCode));
+                         test.TestState.Sources.Add(("/0/V2021050108374_Order.cs", testCode));
                      });
     }
 
@@ -507,6 +459,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-002")]
     public async Task TimestampPrefixedFileMismatch()
     {
         const string testCode = """
@@ -536,20 +489,21 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-006")]
     public async Task CodeFixNotOfferedWhenTargetFileAlreadyExists()
     {
         const string mismatchedSource = """
-                                        namespace TestNamespace
+                                        namespace Sales
                                         {
-                                            public class TestClass
+                                            public class Order
                                             {
                                             }
                                         }
                                         """;
         const string existingTargetSource = """
-                                            namespace OtherNamespace
+                                            namespace Archive
                                             {
-                                                public class TestClass
+                                                public class Order
                                                 {
                                                 }
                                             }
@@ -562,8 +516,8 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
             var existingTargetDocumentId = DocumentId.CreateNewId(projectId);
             var solution = workspace.CurrentSolution
                                     .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp)
-                                    .AddDocument(mismatchedDocumentId, "Mismatched.cs", SourceText.From(mismatchedSource), filePath: "/0/Mismatched.cs")
-                                    .AddDocument(existingTargetDocumentId, "TestClass.cs", SourceText.From(existingTargetSource), filePath: "/0/TestClass.cs");
+                                    .AddDocument(mismatchedDocumentId, "Invoice.cs", SourceText.From(mismatchedSource), filePath: "/0/Invoice.cs")
+                                    .AddDocument(existingTargetDocumentId, "Order.cs", SourceText.From(existingTargetSource), filePath: "/0/Order.cs");
             var document = solution.GetDocument(mismatchedDocumentId)
                                ?? throw new InvalidOperationException("Failed to resolve the mismatched test document.");
             var root = await document.GetSyntaxRootAsync(CancellationToken.None)
@@ -590,29 +544,31 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-005")]
     public async Task LaterSiblingNamespaceTypeIsDetectedAndFileIsRenamed()
     {
         const string testCode = """
-                                namespace EmptyNamespace
+                                namespace Billing
                                 {
                                 }
 
-                                namespace PopulatedNamespace
+                                namespace Sales
                                 {
-                                    internal class {|#0:LaterType|}
+                                    internal class {|RH4001:Order|}
                                     {
                                     }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 namespace EmptyNamespace
+                                 namespace Billing
                                  {
                                  }
 
-                                 namespace PopulatedNamespace
+                                 namespace Sales
                                  {
-                                     internal class LaterType
+                                     internal class Order
                                      {
                                      }
                                  }
@@ -623,10 +579,273 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Mismatched.cs", testCode));
-                         test.FixedState.Sources.Add(("/0/LaterType.cs", fixedCode));
-                     },
-                     Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Order.cs", fixedCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that only the first type of a file is compared, so a nested type and a later type do not cause a report
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-001")]
+    public async Task NestedAndLaterTypesAreNotComparedWithTheFileName()
+    {
+        const string testCode = """
+                                public class Outer
+                                {
+                                    public class Inner
+                                    {
+                                    }
+                                }
+
+                                public class Customer
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Outer.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a delegate declared first is the type compared with the file name, located on its identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-001")]
+    [Requirement("RH4001-004")]
+    public async Task DelegateDeclaredBeforeTheMatchingTypeIsComparedWithTheFileName()
+    {
+        const string testCode = """
+                                public delegate void {|RH4001:Handler|}();
+
+                                public class Order
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Order.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a file that declares only a namespace is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-001")]
+    public async Task FileWithoutTypeIsNotReported()
+    {
+        const string testCode = """
+                                namespace Sales { }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Order.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a file name that differs from the type name only in casing is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-002")]
+    public async Task TypeNameIsComparedWithTheFileNameCaseSensitively()
+    {
+        const string testCode = """
+                                public class {|RH4001:Order|}
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/order.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a generic type matches a file name that lists its type parameters in braces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-003")]
+    public async Task GenericTypeMatchesFileNameWithTypeParametersInBraces()
+    {
+        const string testCode = """
+                                public class Cache<TKey, TValue>
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Cache{TKey,TValue}.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a generic type is reported in a file named after the type without its type parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-003")]
+    public async Task GenericTypeIsReportedInFileNamedWithoutTypeParameters()
+    {
+        const string testCode = """
+                                public class {|RH4001:Cache|}<TKey, TValue>
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Cache.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the mismatch is still reported but no file rename is offered when the folder already contains a document with the new file name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-006")]
+    public async Task NoFixIsOfferedWhenDocumentWithTheNewFileNameExists()
+    {
+        const string testCode = """
+                                namespace Sales
+                                {
+                                    public class {|RH4001:Order|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string existingTargetCode = """
+                                          namespace Archive
+                                          {
+                                              public class Order
+                                              {
+                                              }
+                                          }
+                                          """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.TestState.Sources.Add(("/0/Order.cs", existingTargetCode));
+                         test.FixedState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Order.cs", existingTargetCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the existing file names are compared case-insensitively, so no file rename is offered when the new file name exists in other casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-006")]
+    public async Task NoFixIsOfferedWhenDocumentWithTheNewFileNameInOtherCasingExists()
+    {
+        const string testCode = """
+                                namespace Sales
+                                {
+                                    public class {|RH4001:Order|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string existingTargetCode = """
+                                          namespace Archive
+                                          {
+                                              public class order
+                                              {
+                                              }
+                                          }
+                                          """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.TestState.Sources.Add(("/0/order.cs", existingTargetCode));
+                         test.FixedState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/order.cs", existingTargetCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a document with the new file name in another folder does not withhold the fix, which renames the file in its own folder
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-006")]
+    [Requirement("RH4001-005")]
+    public async Task FixIsOfferedWhenDocumentWithTheNewFileNameIsInAnotherFolder()
+    {
+        const string testCode = """
+                                namespace Sales
+                                {
+                                    public class {|RH4001:Order|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Sales
+                                 {
+                                     public class Order
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        const string archivedCode = """
+                                    namespace Archive
+                                    {
+                                        public class Order
+                                        {
+                                        }
+                                    }
+                                    """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.TestState.Sources.Add(("/0/Archive/Order.cs", archivedCode));
+                         test.FixedState.Sources.Add(("/0/Archive/Order.cs", archivedCode));
+                         test.FixedState.Sources.Add(("/0/Order.cs", fixedCode));
+                     });
     }
 
     #endregion // Tests

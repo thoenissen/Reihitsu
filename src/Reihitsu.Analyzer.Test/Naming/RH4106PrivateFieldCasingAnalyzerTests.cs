@@ -29,6 +29,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     [Requirement("RH4106-003")]
     [Requirement("RH4106-004")]
     [Requirement("RH4106-005")]
+    [Requirement("SHARED-CASING-007")]
     public async Task VerifyDiagnosticsForPrivateFieldAndReferenceAreFixed()
     {
         const string testCode = """
@@ -70,6 +71,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH4106-002")]
+    [Requirement("SHARED-CASING-003")]
     public async Task VerifyNoDiagnosticsForUnderlineCamelCasePrivateField()
     {
         const string testCode = """
@@ -155,6 +157,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH4106-001")]
+    [Requirement("SHARED-CASING-004")]
     public async Task VerifyNoDiagnosticsForPrivateProtectedField()
     {
         const string testCode = """
@@ -176,6 +179,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH4106-006")]
+    [Requirement("SHARED-CASING-008")]
     public async Task NoCodeFixForLetterlessPrivateField()
     {
         const string testCode = """
@@ -206,6 +210,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     [TestMethod]
     [Requirement("RH4106-001")]
     [Requirement("RH4106-004")]
+    [Requirement("SHARED-CASING-004")]
     public async Task VerifyImplicitlyPrivateFieldIsDetectedAndFixed()
     {
         const string testCode = """
@@ -225,6 +230,282 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
         await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that _camelCase accepts a bare underscore and an underscore followed by a camelCase name, and rejects a second underscore, an uppercase letter, and a digit after the prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-003")]
+    [Requirement("RH4106-002")]
+    public async Task UnderlineCamelCaseAcceptsBareUnderscoreAndRejectsOtherPrefixesAndUppercaseOrDigitStarts()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _;
+                                    private int _value2;
+                                    private int {|RH4106:__double|};
+                                    private int {|RH4106:_Value|};
+                                    private int {|RH4106:_1st|};
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field without accessibility modifier belongs to the private group in a class, struct, and record, and to the public group in an interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-004")]
+    [Requirement("RH4106-001")]
+    public async Task FieldsWithoutAccessibilityModifierBelongToThePrivateGroupOutsideInterfaces()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    int {|RH4106:a|};
+                                    private int {|RH4106:b|};
+                                }
+
+                                public struct S
+                                {
+                                    int {|RH4106:a|};
+                                }
+
+                                public record R
+                                {
+                                    int {|RH4106:a|};
+                                }
+
+                                public interface I
+                                {
+                                    static int a;
+                                    private static int {|RH4106:b|};
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that private, implicitly private, and static readonly fields are checked, while constants and fields of the protected group are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4106-001")]
+    public async Task PrivateFieldsThatAreNotConstantsAreChecked()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:MyField|};
+                                    int {|RH4106:my_field2|};
+                                    private static readonly int {|RH4106:MaxValue|} = 1;
+                                    private const int Limit = 2;
+                                    protected int Prot;
+                                    private protected int PrivProt;
+
+                                    public int Run() => MyField + my_field2 + MaxValue + Limit;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a checked field is reported when its name lacks the underscore prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4106-002")]
+    public async Task CheckedFieldsThatAreNotUnderlineCamelCaseAreReported()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _total;
+                                    private int {|RH4106:total2|};
+                                    private int {|RH4106:Count|};
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that each non-conforming declarator of one field declaration gets its own diagnostic on its identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4106-003")]
+    public async Task EachNonConformingDeclaratorIsReportedOnItsIdentifier()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _ok, {|RH4106:Bad|}, {|RH4106:worse|};
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an implicitly private field and a static readonly field to _camelCase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4106-004")]
+    public async Task FixRenamesImplicitlyPrivateAndStaticReadonlyFieldsToUnderlineCamelCase()
+    {
+        const string testCode = """
+                                internal class C
+                                {
+                                    int {|RH4106:cacheCount|};
+                                    private static readonly int {|RH4106:cacheLimit|} = 10;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class C
+                                 {
+                                     int _cacheCount;
+                                     private static readonly int _cacheLimit = 10;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix derives the _camelCase name from PascalCase, shouted, m_-prefixed, double-underscore, and acronym names, and keeps an uppercase letter inside the first word
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4106-004")]
+    public async Task FixDerivesUnderlineCamelCaseFromTheWordsOfTheOldName()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:FirstName|};
+                                    private int {|RH4106:LAST_NAME|};
+                                    private int {|RH4106:m_value|};
+                                    private int {|RH4106:__double|};
+                                    private int {|RH4106:URL|};
+                                    private int {|RH4106:iPhone|};
+
+                                    public int Sum => FirstName + LAST_NAME + m_value + __double + URL + iPhone;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _firstName;
+                                     private int _lastName;
+                                     private int _mValue;
+                                     private int _double;
+                                     private int _url;
+                                     private int _iPhone;
+
+                                     public int Sum => _firstName + _lastName + _mValue + _double + _url + _iPhone;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a reference inside a nameof expression together with the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    [Requirement("RH4106-005")]
+    public async Task FixRenamesFieldReferencedInNameof()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    public string Name => nameof(Value);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _value;
+
+                                     public string Name => nameof(_value);
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field without letters or digits is still reported, but no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4106-006")]
+    public async Task NoFixIsOfferedForFieldWithoutLetterOrDigit()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:__|};
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field whose derived name is its old name is still reported, but no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4106-006")]
+    public async Task NoFixIsOfferedWhenTheDerivedNameIsTheOldName()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:_1st|};
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field whose new name is already declared in the same type is still reported, but no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("RH4106-006")]
+    public async Task NoFixIsOfferedWhenTheNewNameIsTaken()
+    {
+        const string testCode = """
+                                public class D
+                                {
+                                    private int {|RH4106:Value|};
+                                    private int _value;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -232,6 +513,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     /// <inheritdoc/>
     [TestMethod]
     [Requirement("RH4106-007")]
+    [Requirement("SHARED-CASING-010")]
     public override async Task FixAllCorrectsEveryDiagnostic()
     {
         await base.FixAllCorrectsEveryDiagnostic();

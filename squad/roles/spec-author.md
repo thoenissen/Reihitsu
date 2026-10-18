@@ -14,7 +14,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 ## Inputs
 
-- The issue, by number, through the GitHub MCP server, and the maintainer's clarifications quoted in `00-lead.md`.
+- The issue, by number, through the GitHub MCP server, and the maintainer's clarifications summarized in `00-lead.md`.
 - The specs the issue touches (`sdd/specs/README.md` maps code owners to specs) and the `shared/` specs they use.
 - `documentation/rules/RH####.md` when a rule is in scope; it is derived from the spec.
 

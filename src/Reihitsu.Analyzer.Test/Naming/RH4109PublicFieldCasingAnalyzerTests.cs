@@ -22,6 +22,8 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4109-001")]
+    [Requirement("RH4109-002")]
     public async Task VerifyDiagnosticsForPublicFieldAndReferenceAreFixed()
     {
         const string testCode = """
@@ -62,6 +64,7 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4109-001")]
     public async Task VerifyNoDiagnosticsForPascalCasePublicField()
     {
         const string testCode = """
@@ -82,6 +85,8 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4109-001")]
+    [Requirement("RH4109-002")]
     public async Task VerifyDiagnosticsForPublicReadonlyFieldWrongCasing()
     {
         const string testCode = """
@@ -112,6 +117,8 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4109-001")]
+    [Requirement("SHARED-CASING-004")]
     public async Task VerifyNoDiagnosticsForImplicitlyPrivateField()
     {
         const string testCode = """
@@ -122,6 +129,103 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a public field of a nested private class and a static interface field without modifier belong to the public group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-004")]
+    [Requirement("RH4109-001")]
+    public async Task ContainingTypeDoesNotChangeTheAccessibilityGroup()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private class Nested
+                                    {
+                                        public int {|RH4109:value|};
+                                    }
+                                }
+
+                                public interface I
+                                {
+                                    static int {|RH4109:shared|};
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that every declarator of public, public readonly, and public static fields is checked, while constants and implicitly private fields are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4109-001")]
+    public async Task FieldsOfThePublicGroupThatAreNotConstantsAreChecked()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int CacheCount;
+                                    public int {|RH4109:itemCount|}, {|RH4109:pageSize|};
+                                    public readonly int {|RH4109:cacheLimit|} = 10;
+                                    public static int {|RH4109:instances|};
+                                    public const int limit = 2;
+                                    int cacheValue;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a public field to PascalCase together with its use, and is withheld for a field whose new name is already taken
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4109-002")]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesPublicFieldAndWithholdsTheFixWhenTheNewNameIsTaken()
+    {
+        const string testCode = """
+                                public class Invoice
+                                {
+                                    public int Amount;
+
+                                    public int {|RH4109:amount|};
+
+                                    public int {|RH4109:taxRate|};
+
+                                    public int Total => Amount + amount + taxRate;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Invoice
+                                 {
+                                     public int Amount;
+
+                                     public int {|RH4109:amount|};
+
+                                     public int TaxRate;
+
+                                     public int Total => Amount + amount + TaxRate;
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostic that keeps no fix is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+
+                         // The withheld field keeps the Fix All loop running for a second pass that changes nothing
+                         test.NumberOfFixAllIterations = -2;
+                     });
     }
 
     #endregion // Tests

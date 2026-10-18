@@ -21,6 +21,8 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4104-001")]
+    [Requirement("RH4104-002")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -77,6 +79,7 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4104-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseLocalFunction()
     {
         const string testCode = """
@@ -102,6 +105,8 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4104-001")]
+    [Requirement("RH4104-002")]
     public async Task VerifyDiagnosticsForAsyncLocalFunctionWrongCasing()
     {
         const string testCode = """
@@ -148,6 +153,7 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4104-001")]
     public async Task VerifyNoDiagnosticsForAsyncLocalFunction()
     {
         const string testCode = """
@@ -176,6 +182,8 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4104-001")]
+    [Requirement("RH4104-002")]
     public async Task VerifyDiagnosticsForStaticLocalFunctionWrongCasing()
     {
         const string testCode = """
@@ -216,6 +224,8 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4104-001")]
+    [Requirement("RH4104-002")]
     public async Task VerifyDiagnosticsForNestedLocalFunctionWrongCasing()
     {
         const string testCode = """
@@ -262,6 +272,8 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4104-001")]
+    [Requirement("RH4104-002")]
     public async Task VerifyDiagnosticsForGenericLocalFunctionWrongCasing()
     {
         const string testCode = """
@@ -299,6 +311,100 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4104LocalFunctionNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4104MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that async, static, generic, and nested local functions are reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4104-001")]
+    public async Task LocalFunctionsAreCheckedIncludingAsyncStaticGenericAndNestedOnes()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                public class C
+                                {
+                                    public void M()
+                                    {
+                                        void ProcessItem()
+                                        {
+                                        }
+
+                                        async Task {|RH4104:loadItem|}()
+                                        {
+                                            await Task.CompletedTask;
+                                        }
+
+                                        static void {|RH4104:processAll|}()
+                                        {
+                                            void {|RH4104:innerLocal|}()
+                                            {
+                                            }
+                                        }
+
+                                        T {|RH4104:createValue|}<T>()
+                                            where T : new()
+                                        {
+                                            return new T();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an outer and a nested local function to PascalCase together with their calls
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4104-002")]
+    public async Task FixRenamesNestedLocalFunctionsAndEveryCall()
+    {
+        const string testCode = """
+                                public class Runner
+                                {
+                                    public int Run(int value)
+                                    {
+                                        int {|RH4104:outerHelper|}(int input)
+                                        {
+                                            int {|RH4104:innerHelper|}(int nested)
+                                            {
+                                                return nested + 1;
+                                            }
+
+                                            return innerHelper(input);
+                                        }
+
+                                        return outerHelper(value);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Runner
+                                 {
+                                     public int Run(int value)
+                                     {
+                                         int OuterHelper(int input)
+                                         {
+                                             int InnerHelper(int nested)
+                                             {
+                                                 return nested + 1;
+                                             }
+
+                                             return InnerHelper(input);
+                                         }
+
+                                         return OuterHelper(value);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

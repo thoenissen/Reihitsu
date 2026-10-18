@@ -16,6 +16,7 @@ public class CasingUtilitiesTests
     /// <param name="input">The string to convert to PascalCase</param>
     /// <param name="expected">The expected PascalCase string</param>
     [TestMethod]
+    [Requirement("SHARED-CASING-006")]
     [DataRow("FirstName", "FirstName")]
     [DataRow("first_name", "FirstName")]
     [DataRow("FIRST_NAME", "FirstName")]
@@ -42,6 +43,7 @@ public class CasingUtilitiesTests
     /// <param name="input">The string to convert to camelCase</param>
     /// <param name="expected">The expected camelCase string</param>
     [TestMethod]
+    [Requirement("SHARED-CASING-006")]
     [DataRow("FirstName", "firstName")]
     [DataRow("first_name", "firstName")]
     [DataRow("FIRST_NAME", "firstName")]
@@ -122,6 +124,7 @@ public class CasingUtilitiesTests
     /// <param name="input">The string to convert to _camelCase</param>
     /// <param name="expected">The expected _camelCase string</param>
     [TestMethod]
+    [Requirement("SHARED-CASING-006")]
     [DataRow("FirstName", "_firstName")]
     [DataRow("first_name", "_firstName")]
     [DataRow("FIRST_NAME", "_firstName")]

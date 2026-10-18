@@ -21,6 +21,8 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4003-001")]
+    [Requirement("RH4003-002")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -67,6 +69,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4003-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseStruct()
     {
         const string testCode = """
@@ -86,6 +89,8 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4003-001")]
+    [Requirement("RH4003-002")]
     public async Task VerifyDiagnosticsForReadonlyStructWrongCasing()
     {
         const string testCode = """
@@ -114,6 +119,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4003-001")]
     public async Task VerifyNoDiagnosticsForReadonlyStruct()
     {
         const string testCode = """
@@ -133,6 +139,8 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4003-001")]
+    [Requirement("RH4003-002")]
     public async Task VerifyDiagnosticsForGenericStructWrongCasing()
     {
         const string testCode = """
@@ -161,6 +169,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4003-001")]
     public async Task VerifyNoDiagnosticsForGenericStruct()
     {
         const string testCode = """
@@ -180,6 +189,8 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4003-001")]
+    [Requirement("RH4003-002")]
     public async Task VerifyDiagnosticsForRefStructWrongCasing()
     {
         const string testCode = """
@@ -201,6 +212,68 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4003MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that readonly, ref, and generic structs are checked and reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4003-001")]
+    public async Task StructsAreCheckedIncludingReadonlyRefAndGenericStructs()
+    {
+        const string testCode = """
+                                public struct Coordinate
+                                {
+                                }
+
+                                public readonly struct {|RH4003:immutablePoint|}
+                                {
+                                }
+
+                                public ref struct {|RH4003:bufferView|}
+                                {
+                                }
+
+                                public struct {|RH4003:valuePair|}<T1, T2>
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames each struct to PascalCase together with its use as a field type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4003-002")]
+    public async Task FixRenamesStructAndEveryReference()
+    {
+        const string testCode = """
+                                public struct {|RH4003:pointValue|}
+                                {
+                                    public rangeValue Range;
+                                }
+
+                                public struct {|RH4003:rangeValue|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public struct PointValue
+                                 {
+                                     public RangeValue Range;
+                                 }
+
+                                 public struct RangeValue
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

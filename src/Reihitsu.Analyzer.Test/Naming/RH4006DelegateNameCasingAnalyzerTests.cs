@@ -21,6 +21,8 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4006-001")]
+    [Requirement("RH4006-002")]
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
@@ -59,6 +61,7 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4006-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseDelegate()
     {
         const string testCode = """
@@ -76,6 +79,8 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4006-001")]
+    [Requirement("RH4006-002")]
     public async Task VerifyDiagnosticsForDelegateWithReturnValueWrongCasing()
     {
         const string testCode = """
@@ -100,6 +105,7 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4006-001")]
     public async Task VerifyNoDiagnosticsForGenericDelegate()
     {
         const string testCode = """
@@ -117,6 +123,8 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4006-001")]
+    [Requirement("RH4006-002")]
     public async Task VerifyDiagnosticsForGenericDelegateWrongCasing()
     {
         const string testCode = """
@@ -141,6 +149,8 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4006-001")]
+    [Requirement("RH4006-002")]
     public async Task VerifyDiagnosticsForInternalDelegateWrongCasing()
     {
         const string testCode = """
@@ -158,6 +168,56 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4006MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that delegates with a return value, type parameters, or internal accessibility are checked and reported on their identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4006-001")]
+    public async Task DelegatesAreCheckedWhateverTheirReturnTypeTypeParametersOrAccessibility()
+    {
+        const string testCode = """
+                                public delegate void MessageHandler(string message);
+
+                                public delegate int {|RH4006:computeResult|}(int x, int y);
+
+                                public delegate void {|RH4006:transformAction|}<T>(T item);
+
+                                internal delegate void {|RH4006:messageCallback|}(string msg);
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the delegate to PascalCase together with its use as a field type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4006-002")]
+    public async Task FixRenamesDelegateAndEveryReference()
+    {
+        const string testCode = """
+                                public delegate void {|RH4006:orderHandler|}(int orderId);
+
+                                public class C
+                                {
+                                    public orderHandler Handler;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public delegate void OrderHandler(int orderId);
+
+                                 public class C
+                                 {
+                                     public OrderHandler Handler;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

@@ -20,6 +20,8 @@ public class RH4008NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH4008Namesp
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4008-001")]
+    [Requirement("SHARED-CASING-005")]
     public async Task VerifyDiagnosticsForLowercaseNamespaceSegments()
     {
         const string testCode = """
@@ -36,6 +38,7 @@ public class RH4008NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH4008Namesp
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4008-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseNamespace()
     {
         const string testCode = """
@@ -52,6 +55,8 @@ public class RH4008NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH4008Namesp
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4008-001")]
+    [Requirement("SHARED-CASING-005")]
     public async Task VerifyDiagnosticsForMixedNamespaceSegments()
     {
         const string testCode = """
@@ -61,6 +66,45 @@ public class RH4008NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH4008Namesp
                                 """;
 
         await Verify(testCode, Diagnostics(RH4008NamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4008MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that every segment of a block-scoped namespace that is not PascalCase is reported, and a PascalCase namespace is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4008-001")]
+    public async Task EachBlockScopedNamespaceSegmentThatIsNotPascalCaseIsReported()
+    {
+        const string testCode = """
+                                namespace Company.{|RH4008:product|}.Data.{|RH4008:access|}
+                                {
+                                }
+
+                                namespace Company.Product
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a lowercase segment and a segment with a separator are reported on their own identifiers, while the PascalCase segment between them is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-005")]
+    [Requirement("RH4008-001")]
+    public async Task NamespaceSegmentsAreReportedOnTheirOwnIdentifier()
+    {
+        const string testCode = """
+                                namespace {|RH4008:company|}.Product.{|RH4008:data_access|}
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests
