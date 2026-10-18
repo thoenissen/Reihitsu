@@ -40,3 +40,8 @@ Roles list open questions found in passing in their handover, drafted for the `S
 ## Lead rulings
 
 - Same-line "comment, whitespace, checked token" cases (RH6014–RH6017, SHARED-GAP-001) are covered by thoenissen/Reihitsu#1078, whose body defines the scope as whitespace between a comment and the token a spacing rule checks (its RH6006 instance is entirely on one line). They are left out of the specs and noted on #1078.
+
+## Filed
+
+- Open questions: thoenissen/Reihitsu#1106 (`shared/operator-spacing.md`: Q1 whole-node reformatting incl. skeptic N4; Q2 no-op fix, P7/SHARED-FIX-005, incl. N3; Q3 Fix All vs SHARED-FIX-002), thoenissen/Reihitsu#1107 (`analyzer/RH6016.md`: Q1 explicit-interface dot, P4; Q2 Fix All vs SHARED-FIX-002), thoenissen/Reihitsu#1108 (`analyzer/RH6021.md`: Q1 colon before comment, P4). All sub-issues of thoenissen/Reihitsu#912.
+- One-line comments on thoenissen/Reihitsu#1078, #1079, #1077 naming the rules of this batch.
