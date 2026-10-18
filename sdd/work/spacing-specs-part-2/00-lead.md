@@ -36,3 +36,7 @@ Verdict: lane claimed
 ## Open questions
 
 Roles list open questions found in passing in their handover, drafted for the `SDD open questions: <spec path>` issue; only the lead files them on GitHub.
+
+## Lead rulings
+
+- Same-line "comment, whitespace, checked token" cases (RH6014–RH6017, SHARED-GAP-001) are covered by thoenissen/Reihitsu#1078, whose body defines the scope as whitespace between a comment and the token a spacing rule checks (its RH6006 instance is entirely on one line). They are left out of the specs and noted on #1078.
