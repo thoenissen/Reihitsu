@@ -39,3 +39,23 @@ Plus: new IDs in `sdd/specs/requirement-ids.txt`, new specs in `sdd/specs/README
 After the spec author's third pass, `scripts/lane-check.sh tests --head worktree` reported a mismatch: the lead's decisions entry `squad/decisions/2026-10-18-rh6002-003-why-left-unchanged.md` (required by `squad/decisions/README.md` for every answered escalation) is classified as tooling. `scripts/lane-check.sh tooling --head worktree` confirms. The implementer had not started, so the lane widens along docs → tests → tooling.
 
 Roles now: spec author (ran), skeptic (ran), test implementer → cleaner → spec checker → auditor → validator. The implementer is skipped: the run changes no production or tooling code; the only tooling path is the lead's decisions entry.
+
+# Repair round (auditor `09-auditor.md`, audited head 96ed3201fb5c23998e8d73d0557664b7f6e5bc28)
+
+All nine findings concern text this PR introduced (spec requirements and one test tag), so all stay in this PR. Owners:
+
+| # | Finding (see 09-auditor.md) | Owner |
+|---|---|---|
+| 1 | RH5601-001 claims unreported tabs (continuation `///` indentation; tab after a mid-line `/** */` before a literal) | spec author |
+| 2 | RH6001-002 contradicts the code for a `/** */` comment between keyword and `(` | spec author |
+| 3 | RH6004-002 contradicts the code for `# region` / `# endregion` and settles thoenissen/Reihitsu#1043 | spec author |
+| 4 | RH6001-001, RH6005-001, RH6011-001 claim the `/** */` case and a false Why | spec author |
+| 5 | RH5603-001's `//` branch admits a final directive line with a trailing comment (thoenissen/Reihitsu#1040's shape) | spec author |
+| 6 | RH5601-002, RH5602-001 wording on interpolation holes | spec author |
+| 7 | RH6003-001, RH6008-001, RH6012-001 Whys miss FMT-SPACE-014 | spec author |
+| 8 | RH6009-001, RH6010-001 wording reads as claiming `/** y */{` | spec author |
+| 9 | `VerifyFirstEncounteredLineEndingWinsWhenCountsAreTied` tagged RH5604-001 although its input cannot tell the tie rules apart | test implementer |
+
+Behavior left out of a spec by this round is an open question. Questions for a spec that already has an issue (thoenissen/Reihitsu#1038–#1051) are added there by the lead; others get a new issue. The auditor's non-blocking hints are out of scope (follow-up candidates for the maintainer).
+
+After the owners: cleaner → spec checker → auditor (repair only) → validator. A second block is escalation 7.
