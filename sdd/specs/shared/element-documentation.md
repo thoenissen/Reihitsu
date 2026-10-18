@@ -13,14 +13,14 @@ This spec covers the rules that require one kind of element to be documented. It
 
 - Which element kind and which group a rule checks, and where its diagnostic is located — each rule's spec.
 - Which `<summary>` elements are checked for text, and where that diagnostic is located — RH8030 and RH8031; whether `<inheritdoc>` is used where nothing is inherited — RH8203.
-- Which parameters and type parameters a rule checks, and where its diagnostic is located — RH8032, RH8033, and RH8101 to RH8111; the documentation of return values — RH8105 to RH8107.
+- Which parameters and type parameters a rule checks, and where its diagnostic is located — RH8032, RH8033, RH8101 to RH8104, and RH8108 to RH8111; the documentation of return values — RH8105 to RH8107.
 - The content, order, and layout of a documentation comment — RH8301 to RH8309.
 
 ## Requirements
 
 ### SHARED-DOC-001 — Every declaration of the rule's element kind is checked
 
-A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, or enum — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
+A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, enum, or extension block — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
 
 This requirement covers an element with a single declaration; a partial element declared in several parts — a type, constructor, method, property, indexer, or event — is not covered.
 
@@ -448,9 +448,9 @@ public interface IDerived : IContract
 
 ### SHARED-DOC-010 — A summary without text
 
-A `<summary>` element MUST count as without text when it is an empty element (`<summary/>`) or when its content is only whitespace and line breaks, including the `///` that continues a documentation comment on a new line and whitespace written as a character reference such as `&#32;`. A `<summary>` whose content has a character other than whitespace MUST count as having text.
+A `<summary>` element MUST count as without text when it is an empty element (`<summary/>`) or when its content is only white space and line breaks. The `///` that continues a documentation comment on a new line, and the `*` that continues a `/** */` comment on a new line, MUST count as line breaks, not as text. White space is every character that Unicode classifies as white space — a space, a tab, or a no-break space (`&#160;`) among them — whether written directly or as a character reference such as `&#32;`. A `<summary>` whose content has any other character MUST count as having text, a zero-width space (`&#x200B;`) included.
 
-This requirement covers a `<summary>` whose content is text and character references only; a `<summary>` that contains an XML element, an XML comment, or a CDATA section is not covered.
+This requirement covers a `<summary>` whose content is text and character references only; a `<summary>` that contains an XML element, an XML comment, a CDATA section, or a processing instruction is not covered.
 
 Why: The summary is the one line the editor's tooltip and the generated documentation show for an element. A summary of whitespace shows nothing, so it leaves the reader exactly where a missing summary would, while it looks as if the element were documented.
 
@@ -478,17 +478,44 @@ public class D
 {
 }
 
+/**
+ * {|RH8030:<summary>
+ * </summary>|}
+ */
+public class E
+{
+}
+
+/// {|RH8030:<summary>&#160;</summary>|}
+public class F
+{
+}
+
 /// <summary>
 /// Text
 /// </summary>
-public class E
+public class G
+{
+}
+
+/**
+ * <summary>
+ * Text
+ * </summary>
+ */
+public class H
+{
+}
+
+/// <summary>&#x200B;</summary>
+public class I
 {
 }
 ```
 
 ### SHARED-DOC-011 — Parameters are checked only on documentation without `<inheritdoc>`
 
-A rule that requires each parameter or type parameter of an element to be documented MUST NOT report any of them when the element has no documentation comment, as SHARED-DOC-004 defines its documentation comments. It MUST NOT report any of them either when the element's documentation has an `<inheritdoc>` element at its top level, whether in its first documentation comment, in a later one, or in the content that an `<include>` element brings in.
+A rule that requires each parameter or type parameter of an element to be documented MUST NOT report any of them when the element's declaration has no documentation comment, as SHARED-DOC-004 defines its documentation comments. It MUST NOT report any of them either when the element's documentation has an `<inheritdoc>` element at its top level, whether in its first documentation comment, in a later one, in the content that an `<include>` element brings in, or, for an extension declaration, in the documentation it shares as SHARED-DOC-013 specifies.
 
 This requirement covers documentation comments placed as SHARED-DOC-004 covers that are well-formed XML, with the tag name `inheritdoc` written in lower case, without a namespace prefix, and in no XML namespace.
 
@@ -531,11 +558,11 @@ public static class Extensions
 
 ### SHARED-DOC-012 — A parameter is documented by a top-level element with its name
 
-A parameter MUST count as documented when the element's documentation has a `<param>` element at its top level whose `name` attribute equals the parameter's name, compared character by character and case-sensitively; a type parameter MUST count as documented when it has such a `<typeparam>` element. The element MUST count whether it is in the first documentation comment, in a later one, or in the content that an `<include>` element brings in, and whether or not it has text. An element nested inside another element, and one whose `name` differs from the parameter's name, MUST NOT count.
+A parameter MUST count as documented when the element's documentation has a `<param>` element at its top level whose `name` attribute equals the parameter's name, compared character by character and case-sensitively; a type parameter MUST count as documented when it has such a `<typeparam>` element. The name of a parameter declared with a verbatim identifier is the identifier without its `@`: `name="class"` documents `@class`, and `name="@class"` does not. The element MUST count whether it is in the first documentation comment, in a later one, in the content that an `<include>` element brings in, or, for an extension declaration, in the documentation it shares as SHARED-DOC-013 specifies, and whether or not it has text. An element nested inside another element, and one whose `name` differs from the parameter's name, MUST NOT count.
 
-This requirement covers a parameter or type parameter with a name, and documentation comments placed as SHARED-DOC-004 covers that are well-formed XML, with the tag names `param` and `typeparam` written in lower case, without a namespace prefix, and in no XML namespace. An included file is covered when it is well-formed XML and writes the tag names the same way.
+This requirement covers a parameter or type parameter with a name, a `name` attribute without white space before or after the name, and documentation comments placed as SHARED-DOC-004 covers that are well-formed XML, with the tag names `param` and `typeparam` written in lower case, without a namespace prefix, and in no XML namespace. An included file is covered when it is well-formed XML and writes the tag names the same way.
 
-Why: The compiler and documentation tools pair a `<param>` or `<typeparam>` with the parameter whose name it carries, exactly as written. One with a different name, or one inside `<remarks>` or another element, describes nothing that the tooltip shows for the parameter. Whether the description has text is a separate rule.
+Why: The compiler and documentation tools pair a `<param>` or `<typeparam>` with the parameter whose name it carries, and that name is the identifier's value, without the `@` that only lets a keyword be used as a name. One with a different name, or one inside `<remarks>` or another element, describes nothing that the tooltip shows for the parameter. Whether the description has text is a separate rule.
 
 Example — RH8032 and RH8033:
 
@@ -594,6 +621,40 @@ public static class Extensions
     extension<TKey, {|RH8033:TValue|}>(Dictionary<TKey, TValue> pairs)
     {
     }
+
+    /// <summary>
+    /// Bytes
+    /// </summary>
+    /// <param name="class">Value</param>
+    extension(byte @class)
+    {
+    }
+
+    /// <summary>
+    /// Characters
+    /// </summary>
+    /// <param name="@class">Value</param>
+    extension(char {|RH8032:@class|})
+    {
+    }
+
+    /// <summary>
+    /// Arrays
+    /// </summary>
+    /// <typeparam name="T">Element</typeparam>
+    /// <param name="items">Items</param>
+    extension<@T>(T[] items)
+    {
+    }
+
+    /// <summary>
+    /// Sets
+    /// </summary>
+    /// <typeparam name="@T">Element</typeparam>
+    /// <param name="items">Items</param>
+    extension<{|RH8033:@T|}>(HashSet<T> items)
+    {
+    }
 }
 ```
 
@@ -621,6 +682,75 @@ public static class Extensions
 {
     /// <include file='docs.xml' path='doc/members/member[@name="A"]/*'/>
     extension<T>(IEnumerable<T> values)
+    {
+    }
+}
+```
+
+### SHARED-DOC-013 — Merged extension declarations share their documentation
+
+Extension declarations of one static class whose parameters are declared identically — the same type with the same nullability, the same `ref`, `in`, or `out`, the same name, and the same attributes — and whose type parameters are declared identically — the same names and the same constraints — MUST share one documentation: the documentation comments of all of them, in source order. SHARED-DOC-011 and SHARED-DOC-012 MUST read that shared documentation for each of them. Extension declarations whose parameters or type parameters differ in any of these MUST NOT share their documentation.
+
+This requirement covers what SHARED-DOC-011 and SHARED-DOC-012 cover.
+
+Why: The compiler merges such declarations into one extension, gives them one documentation ID, and writes one documentation entry for it that joins their comments. A reader sees that one entry, so a `<param>` written on any of the declarations documents the parameter of all of them.
+
+Example — RH8032:
+
+```csharp
+#nullable enable
+
+/// <summary>
+/// Extensions
+/// </summary>
+public static class Extensions
+{
+    /// <summary>
+    /// Text values
+    /// </summary>
+    extension(string value)
+    {
+    }
+
+    /// <summary>
+    /// More text values
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension(string value)
+    {
+    }
+
+    /// <summary>
+    /// Nullable text values
+    /// </summary>
+    extension(string? {|RH8032:value|})
+    {
+    }
+
+    /// <summary>
+    /// Integer values
+    /// </summary>
+    /// <param name="value">Value</param>
+    extension(int value)
+    {
+    }
+
+    /// <summary>
+    /// More integer values
+    /// </summary>
+    extension(int {|RH8032:other|})
+    {
+    }
+
+    /// <summary>
+    /// Long values
+    /// </summary>
+    extension(long value)
+    {
+    }
+
+    /// <inheritdoc/>
+    extension(long value)
     {
     }
 }
