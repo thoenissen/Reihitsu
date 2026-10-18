@@ -120,7 +120,7 @@ Still open questions: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #10
 
 ## Waiting for maintainer
 
-- maintainer: choose next batches / whether to run #1068, #1069 now
+- maintainer: running 6 squads (prompts given 2026-10-18): #1068, #1069, #981, #983, #987, #990
 
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
@@ -133,16 +133,16 @@ Status: open / running / PR #… / merged.
 | 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | merged (PR #1017) |
 | 3 | #979 | N2 naming part 2 | #978 | merged (PR #1018); filed #1019–#1027 |
 | 4 | #980 | AP attribute placement, creates attribute-target spec | — | merged (PR #1028); filed #1029–#1031 |
-| 5 | #981 | AS attribute list shape | #980 | open |
+| 5 | #981 | AS attribute list shape | #980 | prompt given 2026-10-18 |
 | 6 | #982 | D1 element documentation part 1, creates doc spec | — | merged (PR #1035); filed #1037 |
-| 7 | #983 | D2 element documentation part 2 | #982 | open |
+| 7 | #983 | D2 element documentation part 2 | #982 | prompt given 2026-10-18 |
 | 8 | #984 | D3 parameter/return/typeparam/inheritdoc docs | #982 | open |
 | 9 | #985 | D4 documentation layout + comments | #982 | open |
 | 10 | #986 | S1 whitespace/spacing part 1 | — | merged (PR #1036); filed #1038–#1052 |
-| 11 | #987 | S2 spacing part 2 | #986 | open |
+| 11 | #987 | S2 spacing part 2 | #986 | prompt given 2026-10-18 |
 | 12 | #988 | BL other blank lines | — | merged (PR #1057); filed #1059–#1066 |
 | 13 | #989 | CP comment placement, creates spec | — | merged (PR #1056); filed #1058 |
-| 14 | #990 | LB line breaks + alignment (fluent chain) | — | open |
+| 14 | #990 | LB line breaks + alignment (fluent chain) | — | prompt given 2026-10-18 |
 | 15 | #991 | LA initializers/expressions/braces | — | open |
 | 16 | #992 | LC trailing commas, empty types | — | open |
 | 17 | #993 | O1 file layout, member/modifier ordering | — | open |
