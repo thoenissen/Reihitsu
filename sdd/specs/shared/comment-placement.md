@@ -79,9 +79,9 @@ is not reported.
 
 ### SHARED-COMMENT-003 — Each comment is reported on its own
 
-A rule MUST report one diagnostic for each comment in a position it reports, located on that comment, whether the comment stands on a line of its own or shares a line with code. Two comments in the same gap MUST be reported separately.
+A rule MUST report one diagnostic for each comment in a position it reports, located on that comment, whether the comment stands on a line of its own or shares a line with code. Two comments in the same gap MUST be reported separately. A comment in a position that several rules report MUST be reported by each of them, each rule deciding on its own.
 
-Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line.
+Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs.
 
 Example — RH5038:
 
@@ -97,6 +97,26 @@ class C
     }
 }
 ```
+
+Example — RH5038 and RH5039, which both report the comment:
+
+```csharp
+class C
+{
+    int M(params object[] values) => 0;
+
+    void N()
+    {
+        if (M(
+            {|RH5038:// value|}
+            1) > 0)
+        {
+        }
+    }
+}
+```
+
+RH5039 reports the same comment, because the argument list is part of the `if` header.
 
 ### SHARED-COMMENT-004 — A comment inside a region is reported
 
@@ -164,7 +184,18 @@ class C
 
 ### SHARED-COMMENT-006 — A gap that a nested construct lays out belongs to that construct
 
-A comment in any other gap inside a region MUST NOT be reported when the token after the comment is a token of a construct, nested in the region, that lays out the lines of its own content: a block or another brace-delimited body, an accessor list, an object, collection, or array initializer, an anonymous object, a switch expression, a property, positional, list, or parenthesized pattern, an interpolation, the clauses of a query after its first `from` clause, or a collection expression. Every token of such a construct counts, its first token included, except the opening bracket of a collection expression. The region that decides is the innermost region of the rule whose gap contains the comment, so a comment inside a region nested in such a construct is reported for that nested region.
+A comment in any other gap inside a region MUST NOT be reported when the token after the comment is a token of a construct, nested in the region, that lays out the lines of its own content. These constructs, and the tokens of each that count, are:
+
+- a block or another brace-delimited body, an accessor list, an object, collection, or array initializer, a list pattern, a parenthesized pattern, and an interpolation — every token, from the opening delimiter on;
+- a collection expression — every token after its own opening bracket; the opening bracket of a collection expression nested in it is one of its tokens;
+- the clauses of a query after its first `from` clause — every token;
+- an anonymous object — every token from its `{` on;
+- a switch expression — every token from its `switch` keyword on;
+- a property or positional pattern — every token from its `{` or `(` on.
+
+The region that decides is the innermost region of the rule whose gap contains the comment, so a comment inside a region nested in such a construct is reported for that nested region.
+
+This requirement and SHARED-COMMENT-004 do not cover a comment directly before the `new` of an anonymous object, before a token of the expression a switch expression switches on, or before a token of the type in front of a property or positional pattern, unless that token starts an element of the region (SHARED-COMMENT-005).
 
 Why: A nested construct with its own lines, such as a lambda block, is laid out on its own terms; a comment above a statement in it describes that statement, not the region around it. A lambda's expression body, a type test, or an operand of an operator lays out no lines of its own, so a comment there still splits the element.
 
@@ -178,7 +209,7 @@ class C
 {
     int M(params object[] values) => 0;
 
-    void N(object o, int[] items)
+    void N(object o, int[] items, int[][] jagged)
     {
         M((Func<int>)(() =>
         {
@@ -215,6 +246,9 @@ class C
         M(items ??
             {|RH5038:// fallback|}
             [1]);
+        M(jagged ?? [
+            // inner
+            [1]]);
         M((Func<int, int>)(value =>
             {|RH5038:// projection|}
             value));
@@ -224,7 +258,9 @@ class C
 
 ### SHARED-COMMENT-007 — What counts as a binary operator
 
-A token MUST count as a binary operator exactly when it is the operator of a binary expression: an arithmetic, shift, relational, equality, bitwise, logical, or null-coalescing operator, and the `is` of a type test and the `as` of a conversion. The `is` of a pattern match and the operators inside a pattern, such as `and`, `or`, `not`, and `>`, MUST NOT count.
+A token MUST count as a binary operator exactly when it is the operator of a binary expression: an arithmetic, shift, relational, equality, bitwise, logical, or null-coalescing operator, and the `is` of a type test and the `as` of a conversion. The `is` of a pattern match, the operators inside a pattern, such as `and`, `or`, `not`, and `>`, and the `..` of a range MUST NOT count.
+
+This requirement does not cover an `is` followed by a name that denotes a constant rather than a type, such as an enum member.
 
 Why: A binary expression joins two operands, and a wrapped one breaks before its operator, so the operator starts the line of the operand it introduces. A pattern is not an operand, so its operators are not wrapped this way.
 
@@ -255,13 +291,16 @@ class C
         M(o is int
             {|RH5038:// or long|}
             or long);
+        M(x
+            {|RH5038:// end|}
+            ..2);
     }
 }
 ```
 
 ### SHARED-COMMENT-008 — Inside a region, a comment before a binary operator stays valid
 
-A rule that checks a region MUST NOT report a comment directly before a binary operator, as SHARED-COMMENT-007 defines it. A comment directly after a binary operator MUST still be reported.
+A rule that checks a region MUST NOT report a comment directly before a binary operator, as SHARED-COMMENT-007 defines it. A comment directly after a binary operator is not kept valid by this requirement; SHARED-COMMENT-004 and SHARED-COMMENT-006 decide it like any other comment of the region.
 
 Why: A wrapped binary expression starts each continuation line with its operator, so a comment above that line describes the operand that follows it, the same way a comment above a statement describes the statement.
 
@@ -289,9 +328,9 @@ class C
 
 ### SHARED-COMMENT-009 — Inside a region, a comment before a later call of a chain stays valid
 
-A rule that checks a region MUST NOT report a comment directly before a later call of a member-access chain: a member access that is invoked, written with `.`, `?.`, or `!.`, and preceded in its chain by another invoked member access. The comment is directly before its `.`, its `?`, or its `!`. A comment before the chain's first call MUST still be reported, and so MUST a comment before a later member access that is not invoked, or before an element access.
+A rule that checks a region MUST NOT report a comment directly before a later call of a member-access chain: a member access that is invoked, written with `.`, `?.`, or `!.`, and preceded in its chain by another invoked member access. The comment is directly before the first character of the operator: the `.`, the `?` of `?.`, or the `!` of `!.`. A comment between the `!` and the `.` of `!.`, a comment before the chain's first call, a comment before a later member access that is not invoked, and a comment before an element access are not kept valid by this requirement; SHARED-COMMENT-004 and SHARED-COMMENT-006 decide them like any other comment of the region.
 
-This requirement and SHARED-COMMENT-004 cover a comment inside a member-access chain only when every conditional access of the chain in front of the comment, and a conditional access directly after it, is followed by a call, as in `?.Where(…)`, and the comment is not directly before the `!` of a `!?.` link.
+This requirement and SHARED-COMMENT-004 cover a comment inside a member-access chain only when every conditional access of the chain in front of the comment, and a conditional access directly after it, is followed by a call, as in `?.Where(…)`, and the comment is not directly before the `!` of a `!?.` link. They do not cover a comment directly before or directly after a postfix `++` or `--` that a member access follows, nor a comment before a member access written with `->`.
 
 Why: A wrapped fluent chain starts each later call on its own line, so a comment above that line describes the call that follows it. The first call stays on the line of the receiver, and a property read or an element access is part of the element before it, so a comment in front of them still splits the chain.
 
@@ -315,6 +354,9 @@ class C
         M(o.ToString()
            // text
            !.Trim());
+        M(o.ToString()!
+            {|RH5038:// text|}
+            .Trim());
         M(items
             {|RH5038:// only positive|}
             .Where(value => value > 0)
@@ -328,3 +370,38 @@ class C
     }
 }
 ```
+
+### SHARED-COMMENT-010 — What a statement header is
+
+The header of an `if`, `while`, `for`, `foreach`, `using`, `lock`, or `fixed` statement MUST run from the statement keyword — or from the `await` keyword of an `await foreach` or `await using` statement — to the closing parenthesis, and the statement's embedded statement MUST count as its body. A `foreach` statement that deconstructs its element counts too. Other statements and clauses MUST NOT count as having a header, such as a `switch` statement, a `catch` clause, the `while` of a `do` statement, `else`, `try`, `finally`, `checked`, and `unchecked`.
+
+Why: These statements put a condition, a loop declaration, or a resource between a keyword and an embedded statement, and that pair reads as one line of thought. The other statements either have no header, or follow it with something other than an embedded statement, such as the sections of a `switch` or the block of a `catch`.
+
+Example — RH5039, which checks the header, and RH5036, which checks the gap between header and body:
+
+```csharp
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task M(bool a, IAsyncEnumerable<int> values, (int, int)[] pairs)
+    {
+        await {|RH5039:/* each */|} foreach (var value in values) {|RH5036:// body|}
+        {
+        }
+
+        foreach (var (first, second) in pairs) {|RH5036:// body|}
+        {
+        }
+
+        switch (/* value */ a) // body
+        {
+            default:
+                break;
+        }
+    }
+}
+```
+
+The comments of the `switch` statement are not reported.
