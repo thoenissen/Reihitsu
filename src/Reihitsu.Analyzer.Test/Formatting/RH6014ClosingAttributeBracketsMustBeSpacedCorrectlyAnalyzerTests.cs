@@ -25,6 +25,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6014-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -42,6 +43,10 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6014-001")]
+    [Requirement("RH6014-002")]
+    [Requirement("RH6014-003")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -65,6 +70,9 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6014-001")]
+    [Requirement("RH6014-003")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyTabBeforeClosingAttributeBracketIsDetectedAndFixed()
     {
         const string testData = """
@@ -228,6 +236,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6014-001")]
     public async Task VerifyContinuationLineClosingAttributeBracketDoesNotProduceDiagnostic()
     {
         const string testData = """
@@ -247,6 +256,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6014-001")]
     public async Task VerifyContinuationLineClosingAttributeBracketDoesNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -266,6 +276,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6014-001")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingAttributeBracketDoNotProduceDiagnostic()
     {
         const string testData = """
@@ -285,6 +296,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6014-001")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingAttributeBracketDoNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -297,6 +309,145 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
                                 """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that whitespace before a closing attribute bracket on the line of the token before it is reported once
+    /// per bracket on every attribute target, and that a bracket that starts its line is not reported, also after a
+    /// comment, a directive, or disabled text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6014-001")]
+    [Requirement("RH6014-002")]
+    public async Task VerifyWhitespaceBeforeSameLineClosingAttributeBracketIsReportedOnEveryAttributeTarget()
+    {
+        const string testData = """
+                                using System;
+                                using System.Runtime.InteropServices;
+
+                                [Obsolete{|RH6014: |}]
+                                class C
+                                {
+                                    [Obsolete{|RH6014:→|}]
+                                    [return: MarshalAs(UnmanagedType.I4){|RH6014:  |}]
+                                    int M([In{|RH6014: |}] int a)
+                                    {
+                                        return a;
+                                    }
+
+                                    [Obsolete
+                                        ]
+                                    void O()
+                                    {
+                                    }
+
+                                    [Obsolete // note
+                                        ]
+                                    void P()
+                                    {
+                                    }
+
+                                    [Obsolete
+                                #if DEBUG
+                                #endif
+                                        ]
+                                    void Q()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyWhitespaceBeforeSameLineClosingAttributeBracketIsReportedOnEveryAttributeTarget"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6014-001")]
+    [Requirement("RH6014-002")]
+    public async Task VerifyWhitespaceBeforeSameLineClosingAttributeBracketIsReportedOnEveryAttributeTargetCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                using System;
+                                using System.Runtime.InteropServices;
+
+                                [Obsolete{|RH6014: |}]
+                                class C
+                                {
+                                    [Obsolete{|RH6014:→|}]
+                                    [return: MarshalAs(UnmanagedType.I4){|RH6014:  |}]
+                                    int M([In{|RH6014: |}] int a)
+                                    {
+                                        return a;
+                                    }
+
+                                    [Obsolete
+                                        ]
+                                    void O()
+                                    {
+                                    }
+
+                                    [Obsolete // note
+                                        ]
+                                    void P()
+                                    {
+                                    }
+
+                                    [Obsolete
+                                #if DEBUG
+                                #endif
+                                        ]
+                                    void Q()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that the fix deletes spaces and a tab before a closing attribute bracket
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6014-003")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesWhitespaceBeforeClosingAttributeBracket()
+    {
+        const string testData = """
+                                using System;
+                                using System.Runtime.InteropServices;
+
+                                [Obsolete{|RH6014: |}]
+                                class C
+                                {
+                                    [Obsolete{|RH6014:→|}]
+                                    int M([In{|RH6014: |}] int a)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+                                 using System.Runtime.InteropServices;
+
+                                 [Obsolete]
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     int M([In] int a)
+                                     {
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), fixedData);
     }
 
     #endregion // Tests

@@ -65,6 +65,18 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
     }
 
     /// <summary>
+    /// Replaces the whitespace markers that spec examples use with the characters they stand for: <c>→</c> marks a
+    /// tab and <c>·</c> a space, so whitespace at the end of a line stays visible in the test source
+    /// </summary>
+    /// <param name="text">Text with whitespace markers</param>
+    /// <returns>The text with tabs and spaces in place of the markers</returns>
+    protected static string ExpandWhitespaceMarkers(string text)
+    {
+        return text.Replace('→', '\t')
+                   .Replace('·', ' ');
+    }
+
+    /// <summary>
     /// Verifies the analyzer produces the specified diagnostics for the given source text
     /// </summary>
     /// <param name="source">The source text to test, which may include markup syntax</param>
