@@ -56,9 +56,9 @@ A declaration MUST belong to exactly one of two groups, decided by its own modif
 
 The accessibility of the containing declarations MUST NOT change the group.
 
-This requirement covers every declaration except a static constructor declared in an interface.
+This requirement covers every declaration except a static constructor declared in an interface and a partial type declared in several parts.
 
-Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, or record private, and one declared in a namespace or an interface internal or public; a static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
+Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, or record private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
 
 Example — RH8001, which checks the non-private group:
 
@@ -232,7 +232,7 @@ public class D
 
 A declaration MUST count as documented when its first documentation comment has a `<summary>` or an `<inheritdoc>` element at its top level, that is, not nested inside another element; an empty element (`<summary/>`) counts. A declaration without documentation comments, and one whose first documentation comment has neither element at its top level, MUST count as undocumented, unless SHARED-DOC-006 or SHARED-DOC-007 applies.
 
-This requirement covers an element with a single declaration whose documentation comments are placed as SHARED-DOC-004 covers and are well-formed XML, with the tag names `summary` and `inheritdoc` written in lower case. A partial type or constructor declared in several parts is not covered.
+This requirement covers an element with a single declaration whose documentation comments are placed as SHARED-DOC-004 covers and are well-formed XML, with the tag names `summary` and `inheritdoc` written in lower case, without a namespace prefix, and in no XML namespace. A partial type or constructor declared in several parts is not covered.
 
 Why: `<summary>` is the element every documentation tool shows, and `<inheritdoc>` takes the whole documentation, summary included, from the element it inherits from. Whether the summary also has text is a separate rule (RH8030). A `<summary>` nested in `<remarks>` or another element is not the element's summary, and other elements such as `<remarks>` alone do not give a reader the one-line description a tooltip shows.
 
@@ -316,7 +316,7 @@ public class {|RH8001:B|}
 
 A `<summary>` or an `<inheritdoc>` element that an `<include>` element of the documentation brings in at the top level MUST count as SHARED-DOC-005 specifies. An `<include>` element whose file the compilation cannot resolve, or whose selected content has neither element at the top level, MUST NOT make the declaration documented.
 
-This requirement covers what SHARED-DOC-005 covers, and an included file that is well-formed XML.
+This requirement covers what SHARED-DOC-005 covers, and an included file that is well-formed XML and writes the tag names `summary` and `inheritdoc` as SHARED-DOC-005 covers them: in lower case, without a namespace prefix, and in no XML namespace.
 
 Why: An `<include>` element is replaced by the selected content of the file when the compiler builds the documentation, so the summary in that file is the element's summary.
 
