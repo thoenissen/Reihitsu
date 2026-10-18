@@ -1,6 +1,6 @@
 Role: Lead
 Commit: 53990ed5df40c0cb8ce6673ce31cefa2089ee59d
-Verdict: lane claimed — tests
+Verdict: lane claimed — tests, widened to tooling
 
 # Run: thoenissen/Reihitsu#1069
 
@@ -17,10 +17,10 @@ Verdict: lane claimed — tests
 | Spec author | yes | writes the two requirements |
 | Skeptic | yes | checks the spec diff against the code |
 | Test implementer | yes | covering tests |
-| Implementer | no | lane runs no implementer |
+| Implementer | no | no production change; only runs if a covering test fails against the unchanged code |
 | Cleaner | yes | |
 | Spec checker | yes | |
-| Auditor | no | lane runs no auditor |
+| Auditor | yes | added by the widening to tooling |
 | Validator | yes | |
 
 ## Maintainer clarifications (summarized)
@@ -34,3 +34,12 @@ Verdict: lane claimed — tests
 - Must not change production code or any other spec, nor touch `sdd/work/coordinator/`. No issues besides open questions without maintainer approval.
 - Concurrent runs: #1068, #981, #983, #987, #990. The only shared file is `sdd/specs/requirement-ids.txt` — expect merge conflicts there only.
 - The P3 part about casing fixes withholding `@keyword` names is a behavior change tracked elsewhere and is not part of this run.
+
+## Lane widening
+
+`scripts/lane-check.sh tests --head worktree` reported `mismatch — claimed tests, diff needs tooling` after the lead committed two maintainer decision records under `squad/decisions/`, which the script classifies as tooling (known gap, thoenissen/Reihitsu#1054). Before the implementer stage, so the lane widens tests → tooling, as in thoenissen/Reihitsu#1035. The tooling lane adds the auditor; the spec author and skeptic keep running because the run writes a spec.
+
+## Escalations
+
+1. SHARED-DIAG-003 and rules whose subject is comment text — answered: reading B, worded generally (a rule whose subject is the text of a comment or directive, such as RH3201, RH7301, or a documentation rule RH8###, checks that text as its subject; the requirement restricts only rules that check code). Record: `squad/decisions/2026-10-18-shared-diag-003-comment-subject-rules.md`.
+2. Using-directive rules RH7201/RH7203/RH7207 compare names by spelling — already filed as bug thoenissen/Reihitsu#1105; no open-questions issue; the case stays out of the spec; the PR lists #1105 under follow-up work. Record: `squad/decisions/2026-10-18-using-rules-name-by-value-filing.md`.
