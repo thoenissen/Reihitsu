@@ -21,6 +21,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6010-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -43,6 +44,9 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6010-001")]
+    [Requirement("RH6010-003")]
+    [Requirement("RH6010-004")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -66,6 +70,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6010-002")]
     public async Task VerifyInterpolatedStringBracesDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -75,6 +80,85 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                     {
                                         var text = $"{value}";
                                     }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the closing brace of an array initializer and of an empty brace pair glued to the character
+    /// before them are reported on the brace and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6010-001")]
+    [Requirement("RH6010-003")]
+    [Requirement("RH6010-004")]
+    public async Task VerifyClosingBracesOfInitializersAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var x = new int[] { 1{|#0:}|};
+                                        var e = new int[] {{|#1:}|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         var x = new int[] { 1 };
+                                         var e = new int[] { };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a closing brace directly after a block comment is reported, and that the fix inserts the space
+    /// between the comment and the brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6010-001")]
+    [Requirement("RH6010-004")]
+    public async Task VerifyClosingBraceAfterBlockCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Property { get; set; /* note */{|#0:}|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Property { get; set; /* note */ }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a closing brace preceded by several spaces is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6010-001")]
+    public async Task VerifyClosingBracePrecededBySeveralSpacesIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Property { get; set;  }
                                 }
                                 """;
 

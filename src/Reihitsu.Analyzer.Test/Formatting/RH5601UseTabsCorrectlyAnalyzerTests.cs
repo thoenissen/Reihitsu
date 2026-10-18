@@ -45,6 +45,9 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-003")]
+    [Requirement("RH5601-004")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = "internal class TestClass\r\n{\r\n{|#0:\t|}void Method()\r\n    {\r\n    }\r\n}";
@@ -58,6 +61,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInMultiLineRawStringLiteral()
     {
         const string testData = "internal class TestClass\r\n{\r\n    private const string Value = \"\"\"\r\n        col1\tcol2\r\n        \"\"\";\r\n}";
@@ -70,6 +74,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInSingleLineRawStringLiteral()
     {
         const string testData = "internal class TestClass\r\n{\r\n    private const string Value = \"\"\"col1\tcol2\"\"\";\r\n}";
@@ -82,6 +87,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInUtf8StringLiteral()
     {
         const string testData = "internal class TestClass\r\n{\r\n    private static System.ReadOnlySpan<byte> Value => \"col1\tcol2\"u8;\r\n}";
@@ -94,6 +100,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInUtf8RawStringLiteral()
     {
         const string testData = "internal class TestClass\r\n{\r\n    private static System.ReadOnlySpan<byte> Value => \"\"\"\r\n        col1\tcol2\r\n        \"\"\"u8;\r\n}";
@@ -124,6 +131,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInSingleLineComment()
     {
         const string testData = "internal class TestClass\r\n{\r\n    // col\tumn\r\n}";
@@ -136,6 +144,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInMultiLineComment()
     {
         const string testData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n        /* col\tumn */\r\n    }\r\n}";
@@ -148,6 +157,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInSingleLineDocumentationComment()
     {
         const string testData = "internal class TestClass\r\n{\r\n    /// <summary>\r\n    /// col\tumn\r\n    /// </summary>\r\n    void Method()\r\n    {\r\n    }\r\n}";
@@ -160,6 +170,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInMultiLineDocumentationComment()
     {
         const string testData = "internal class TestClass\r\n{\r\n    /** col\tumn */\r\n    void Method()\r\n    {\r\n    }\r\n}";
@@ -172,6 +183,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-002")]
     public async Task VerifyNoDiagnosticsForTabInDisabledText()
     {
         const string testData = "internal class TestClass\r\n{\r\n#if false\r\n\tvoid Disabled()\r\n\t{\r\n\t}\r\n#endif\r\n}";
@@ -204,12 +216,74 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
     public async Task VerifyIssueIsDetectedAndFixedForTabInPragmaDirective()
     {
         const string testData = "internal class TestClass\r\n{\r\n#pragma{|#0:\t|}warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n#pragma    warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
 
         await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that tabs between two tokens and in front of a trailing comment are reported and each replaced with
+    /// four spaces, whatever column the tab starts in
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabsBetweenTokensAndBeforeTrailingCommentAreDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\n{\n    int{|#0:\t|}x;{|#1:\t|}// note\n}";
+        const string fixedData = "internal class TestClass\n{\n    int    x;    // note\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a tab between the tokens of a <c>#define</c> directive is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabInDefineDirectiveIsDetectedAndFixed()
+    {
+        const string testData = "#define{|#0:\t|}FEATURE\ninternal class TestClass\n{\n}";
+        const string fixedData = "#define    FEATURE\ninternal class TestClass\n{\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that consecutive tabs between two tokens are reported one by one, each on its own character
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-003")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyConsecutiveTabsAreReportedOneByOne()
+    {
+        const string testData = "internal class TestClass\n{\n    int{|#0:\t|}{|#1:\t|}x;\n}";
+        const string fixedData = "internal class TestClass\n{\n    int        x;\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that tabs inside regular, verbatim, and interpolated string literals and inside a character literal
+    /// are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-002")]
+    public async Task VerifyNoDiagnosticsForTabInRegularVerbatimInterpolatedAndCharacterLiterals()
+    {
+        const string testData = "internal class TestClass\n{\n    string s = \"a\tb\";\n    char t = '\t';\n    string u = $\"{1}\t\";\n    string v = @\"a\tb\";\n}";
+
+        await Verify(testData);
     }
 
     #endregion // Tests

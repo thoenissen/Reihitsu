@@ -38,6 +38,10 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6004-001")]
+    [Requirement("RH6004-003")]
+    [Requirement("RH6004-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -61,6 +65,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6004-002")]
     public async Task VerifyRegionsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -84,6 +89,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6004-002")]
     public async Task VerifyRawStringContentDoesNotProduceDiagnostics()
     {
         const string testData = """"
@@ -104,6 +110,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6004-002")]
     public async Task VerifyMultiLineCommentContentDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -123,6 +130,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6004-002")]
     public async Task VerifyInactiveDirectiveDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -130,6 +138,96 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
                                 {
                                 #if false
                                     #pragma warning disable CS0168
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that indented conditional directives inside a method, including the active <c>#else</c> after an
+    /// inactive branch, and a directive indented with a tab are each reported once and moved to column 0
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6004-001")]
+    [Requirement("RH6004-003")]
+    [Requirement("RH6004-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyIndentedConditionalDirectivesAndTabIndentationAreDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    void Method(int x)\n"
+                                + "    {\n"
+                                + "{|#0:        |}#if FEATURE\n"
+                                + "        x++;\n"
+                                + "{|#1:        |}#else\n"
+                                + "        x--;\n"
+                                + "{|#2:        |}#endif\n"
+                                + "{|#3:\t|}#pragma warning disable CS0168\n"
+                                + "    }\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    void Method(int x)\n"
+                                 + "    {\n"
+                                 + "#if FEATURE\n"
+                                 + "        x++;\n"
+                                 + "#else\n"
+                                 + "        x--;\n"
+                                 + "#endif\n"
+                                 + "#pragma warning disable CS0168\n"
+                                 + "    }\n"
+                                 + "}";
+
+        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that an indented <c>#define</c> directive is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6004-001")]
+    [Requirement("RH6004-004")]
+    public async Task VerifyIndentedDefineDirectiveIsDetectedAndFixed()
+    {
+        const string testData = """
+                                {|#0:  |}#define FEATURE
+                                internal class TestClass
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 #define FEATURE
+                                 internal class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that directive-like text inside a verbatim string literal and nested directives inside an inactive
+    /// branch are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6004-002")]
+    public async Task VerifyVerbatimStringContentAndNestedInactiveDirectivesDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string _value = @"
+                                        #if FEATURE";
+
+                                #if NEVER
+                                    #if NESTED
+                                    #endif
                                 #endif
                                 }
                                 """;

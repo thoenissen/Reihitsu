@@ -41,6 +41,9 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5602-001")]
+    [Requirement("RH5602-003")]
+    [Requirement("RH5602-004")]
     public async Task VerifyTrailingWhitespaceIsDetectedAndFixed()
     {
         const string testData = """
@@ -70,6 +73,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5602-002")]
     public async Task VerifyRawStringsDoNotProduceDiagnostics()
     {
         const string testData = """"
@@ -89,6 +93,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5602-002")]
     public async Task VerifyVerbatimStringsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -171,6 +176,8 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5602-001")]
+    [Requirement("RH5602-004")]
     public async Task VerifyTrailingWhitespaceAfterMultiLineCommentIsStillFlagged()
     {
         const string testData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n        var value = 0; /* note */{|#0:   |}\r\n    }\r\n}";
@@ -191,6 +198,65 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
         const string fixedData = "internal class TestClass\r\n{\r\n#pragma warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
 
         await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that trailing whitespace after an opening brace, after a statement, and after a character literal
+    /// is reported once per line and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5602-001")]
+    [Requirement("RH5602-003")]
+    [Requirement("RH5602-004")]
+    public async Task VerifyTrailingWhitespaceAfterBraceStatementAndCharacterLiteralIsDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\n{{|#0:   |}\n    int x;{|#1:\t|}\n    char c = 'a';{|#2:  |}\n}";
+        const string fixedData = "internal class TestClass\n{\n    int x;\n    char c = 'a';\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that a line of whitespace only is reported as a whole and becomes an empty line that stays in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5602-001")]
+    [Requirement("RH5602-003")]
+    [Requirement("RH5602-004")]
+    public async Task VerifyWhitespaceOnlyLineIsReportedAsAWholeAndBecomesEmpty()
+    {
+        const string testData = "internal class TestClass\n{\n    int x;\n{|#0:        |}\n    int y;\n}";
+        const string fixedData = "internal class TestClass\n{\n    int x;\n\n    int y;\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that whitespace inside a line, followed by more code on the same line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5602-001")]
+    public async Task VerifyWhitespaceInsideALineIsNotReported()
+    {
+        const string testData = "internal class TestClass\n{\n    int z;  int w;\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace at the end of a line inside an interpolated verbatim string literal is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5602-002")]
+    public async Task VerifyInterpolatedVerbatimStringsDoNotProduceDiagnostics()
+    {
+        const string testData = "internal class TestClass\n{\n    string Property => $@\"{1}   \nAnother\";\n}";
+
+        await Verify(testData);
     }
 
     #endregion // Tests
