@@ -1,5 +1,5 @@
 Role: spec author
-Commit: 053b069
+Commit: e23cb83
 Verdict: spec written
 
 Issue thoenissen/Reihitsu#987, lane *specs and tests for existing behavior*. No change doc: every requirement states current behavior. No rule page under `documentation/rules/` changes, because no documented behavior changes. My prompt carried no intended fix, suspected cause, or hoped-for verdict.
@@ -15,20 +15,20 @@ All added:
 - RH6013-003 — The fix deletes the whitespace unless a comment is in the gap
 - RH6014-001 — Whitespace before a closing attribute bracket on the same line is reported
 - RH6014-002 — One diagnostic per bracket
-- RH6014-003 — The fix deletes the whitespace unless a comment is in the gap
+- RH6014-003 — The fix deletes the whitespace
 - RH6015-001 — Whitespace before a nullable `?` on the same line is reported
 - RH6015-002 — A `?` that is not a nullable type, and documentation references, are not reported
 - RH6015-003 — One diagnostic per `?`
-- RH6015-004 — The fix deletes the whitespace unless a comment is in the gap
+- RH6015-004 — The fix deletes the whitespace
 - RH6016-001 — Whitespace next to a member-access symbol on the same line is reported
 - RH6016-002 — A side across a line break and other `?` symbols are not reported
 - RH6016-003 — One diagnostic per symbol
 - RH6016-004 — The fix removes the whitespace on each reported side
-- RH6016-005 — A comment in a rewritten gap withholds the fix
+- RH6016-005 — A comment on a side the fix does not change keeps the fix
 - RH6017-001 — Whitespace before a postfix `++` or `--` on the same line is reported
 - RH6017-002 — Prefix operators and operator declarations are not reported
 - RH6017-003 — One diagnostic per operator
-- RH6017-004 — The fix deletes the whitespace unless a comment is in the gap
+- RH6017-004 — The fix deletes the whitespace
 - RH6018-001 — Whitespace after a unary minus is reported
 - RH6018-002 — The space that keeps two minus signs apart is not reported
 - RH6018-003 — One diagnostic per sign
@@ -59,10 +59,10 @@ All added:
 
 How shared behavior is used:
 
-- RH6013, RH6014, RH6015, RH6017, RH6018, RH6019, RH6020, and RH6022 use SHARED-WS-001 and SHARED-WS-002 (their fixes derive from `RemoveWhitespaceRunCodeFixProviderBase`).
+- RH6013, RH6018, RH6019, RH6020, and RH6022 use SHARED-WS-001 and SHARED-WS-002, and RH6014, RH6015, and RH6017 use SHARED-WS-001 only (all their fixes derive from `RemoveWhitespaceRunCodeFixProviderBase`). For a rule that checks the run in front of a token, a comment in the gap always touches the reported run, so after the lead's ruling (below) none of their in-spec inputs reaches SHARED-WS-002.
 - RH6016 and RH6021 use SHARED-GAP-001. Their fixes rewrite one or both gaps around the token, and only a comment in a gap that is rewritten withholds the fix. SHARED-WS-002 does not fit them: it checks the whole gap around one deleted run, and RH6021 inserts whitespace, which is a non-goal of `shared/whitespace-removal-fixes.md`. Both specs depend on that one requirement, so it is shared, as the issue asks.
 - RH6023 and RH6024 use SHARED-OPSPACE-001 to SHARED-OPSPACE-004.
-- Formatter policies are referenced, not restated: FMT-SPACE-004/005/006/007/009/010/012/013/014 and FMT-CLEAN-001.
+- Formatter policies are referenced, not restated: FMT-SPACE-004/005/006/007/009/010/012 and FMT-CLEAN-001.
 
 How the statements were established:
 
@@ -72,7 +72,7 @@ How the statements were established:
   - every before/after pair matched;
   - Fix All matched the sequential result in every block;
   - no example has a compile error, except RH6020-002's `& &a`, which the spec says does not compile.
-- `scripts/test.sh --project architecture` filtered to `SpecConsistencyTests`, `SpecStructureTests`, and `RuleDocumentation*` passes (26 tests). `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails only on the 49 new IDs listed above, because no test is tagged yet.
+- After the ruling's edits, I re-ran the harness over the edited specs; every span and pair still matches. `scripts/test.sh --project architecture` filtered to `SpecConsistencyTests`, `SpecStructureTests`, and `RuleDocumentation*` passes. `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered` fails only on the 49 new IDs listed above, because no test is tagged yet.
 
 Note for the skeptic: the gap check that SHARED-OPSPACE-001/002 specify is implemented by `FormattingTextAnalysisUtilities.HasOperatorSpacingViolation`. That type is already a code owner of `shared/blank-line-spacing.md`, so it is not listed here, and no spec owns this method's behavior on its own. `OperatorSpacingCodeFixProviderBase` is the only owner of SHARED-OPSPACE.
 
@@ -88,7 +88,7 @@ Every requirement above has an example from which a test can be derived. Most ca
 - RH6021 tab sides, enum/record/struct/primary-constructor base lists, and other colons not reported.
 - RH6023 enum member, property initializer, parameter default, `using` alias, `with`, `??=`, and interpolation hole.
 - RH6024 `>>>`, `??`, `a- -b`, interpolation hole, `is` patterns, and relational patterns.
-- SHARED-GAP-001: both blocks, for each of RH6016 and RH6021.
+- SHARED-GAP-001: the withheld block (RH6021) and the offered block, for each of RH6016 and RH6021.
 - SHARED-OPSPACE-001 to SHARED-OPSPACE-004: these are enforced through `Uses`, so each needs a tagged test, for example on RH6024.
 
 ## Open questions to file
@@ -184,10 +184,22 @@ thoenissen/Reihitsu#1078. The shape: whitespace between the checked token and a 
 - RH6020: `int t = * /* c */ p;`
 - RH6022: `var f = new /* c */ [] { 1 };`
 
-One classification for the lead to check: a comment, then whitespace, then the checked token, all on one line. Examples are `[Obsolete /* c */ ]`, `int /* c */ ? a`, `a /* c */ ++`, and `s /* c */ .Length`.
-- I specified these as reported without a fix. RH6003-001 and RH6008-001 do the same, and the formatter removes that whitespace (FMT-SPACE-013/014).
-- #1078's list of rules does not include RH6008, whose merged spec has exactly this shape.
-- If the lead reads #1078 as covering it too, these examples come out of RH6014-001/003, RH6015-001/004, RH6016-001/005, RH6017-001/004, and SHARED-GAP-001.
+By the lead's ruling, these same-line cases (a comment, whitespace, then the checked token, all on one line) are #1078 cases too. They were in the first draft and are now removed from requirement text, examples, Why, and `Uses` (FMT-SPACE-013, FMT-SPACE-014, and for RH6014/RH6015/RH6017 SHARED-WS-002). Each one is reported today, and no fix is offered:
+
+- RH6014: `[Obsolete /* note */ ]`
+- RH6015: `int /* note */ ? _a;`
+- RH6016: `return s /* note */ .Length;`
+- RH6017: `a /* note */ ++;`
+
+A fact about the ruling's premise: the RH6003 instance it cites (`int value = 1⏎    /* keep */ ;`) has a line break between `1` and the comment, so it is not all on one line. The removal follows the ruling and the maintainer's note in `00-lead.md`. The merged RH6003-001, RH6008-001 and SHARED-WS-002 examples still hold this shape, and I did not touch them.
+
+Kept in the specs, because no whitespace sits between the comment and the checked token. The lead should confirm these:
+
+- RH6021-001 and RH6021-005, and the withheld block of SHARED-GAP-001: `class E /* note */: B`. The missing space between the comment and the colon is reported, and no fix is offered. The formatter inserts that space (FMT-SPACE-013).
+- RH6016-002: `s /* note */.Length` is not reported.
+- RH6016-005 and the offered block of SHARED-GAP-001: `s /* note */. Length`. Only the side after the dot is reported, and it is fixed.
+
+No requirement was left with nothing to state, so no ID was dropped from `requirement-ids.txt`.
 
 thoenissen/Reihitsu#1079. The shape: a rule that requires exactly one space accepts more (like RH6005's `operator  -`).
 
