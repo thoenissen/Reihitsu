@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -1141,19 +1139,7 @@ public class RH8001NonPrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               """;
 
         await Verify(source,
-                     test => test.SolutionTransforms.Add(ApplyParseDocumentationMode));
-
-        static Solution ApplyParseDocumentationMode(Solution solution, ProjectId projectId)
-        {
-            var project = solution.GetProject(projectId);
-
-            if (project?.ParseOptions is CSharpParseOptions parseOptions)
-            {
-                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
-            }
-
-            return solution;
-        }
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
     }
 
     /// <summary>
@@ -1174,19 +1160,7 @@ public class RH8001NonPrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               """;
 
         await Verify(source,
-                     test => test.SolutionTransforms.Add(ApplyParseDocumentationMode));
-
-        static Solution ApplyParseDocumentationMode(Solution solution, ProjectId projectId)
-        {
-            var project = solution.GetProject(projectId);
-
-            if (project?.ParseOptions is CSharpParseOptions parseOptions)
-            {
-                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
-            }
-
-            return solution;
-        }
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
     }
 
     /// <summary>
