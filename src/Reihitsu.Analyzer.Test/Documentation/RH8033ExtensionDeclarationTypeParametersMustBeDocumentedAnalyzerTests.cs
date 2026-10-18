@@ -235,6 +235,23 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                                   extension<{|#1:@T|}>(HashSet<T> items)
                                   {
                                   }
+
+                                  /// <summary>
+                                  /// Unsigned values
+                                  /// </summary>
+                                  /// <param name="a">Value</param>
+                                  extension(ushort \u0061)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Queues
+                                  /// </summary>
+                                  /// <typeparam name="U">Element</typeparam>
+                                  /// <param name="queue">Queue</param>
+                                  extension<\u0055>(Queue<U> queue)
+                                  {
+                                  }
                               }
                               """;
 
@@ -736,6 +753,41 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               """;
 
         await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies a type parameter declared with a Unicode escape sequence is documented by a typeparam element with the decoded name, and is reported on its identifier when the name differs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8033-001")]
+    [Requirement("RH8033-002")]
+    [Requirement("SHARED-DOC-012")]
+    public async Task VerifyTypeParameterDeclaredWithUnicodeEscapeIsDocumentedByItsDecodedName()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              /// <summary>Extensions</summary>
+                              public static class Extensions
+                              {
+                                  /// <summary>Lists</summary>
+                                  /// <typeparam name="U">Element</typeparam>
+                                  /// <param name="items">Items</param>
+                                  extension<\u0055>(List<U> items)
+                                  {
+                                  }
+
+                                  /// <summary>Stacks</summary>
+                                  /// <typeparam name="U">Element</typeparam>
+                                  /// <param name="items">Items</param>
+                                  extension<{|#0:\u0056|}>(Stack<V> items)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
     }
 
     #endregion // Tests

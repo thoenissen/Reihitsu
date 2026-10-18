@@ -314,6 +314,23 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                                   extension<@T>(HashSet<T> items)
                                   {
                                   }
+
+                                  /// <summary>
+                                  /// Unsigned values
+                                  /// </summary>
+                                  /// <param name="a">Value</param>
+                                  extension(ushort \u0061)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Queues
+                                  /// </summary>
+                                  /// <typeparam name="U">Element</typeparam>
+                                  /// <param name="queue">Queue</param>
+                                  extension<\u0055>(Queue<U> queue)
+                                  {
+                                  }
                               }
                               """;
 
@@ -967,6 +984,37 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               """;
 
         await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies a parameter declared with a Unicode escape sequence is documented by a param element with the decoded name, and is reported on its identifier when the name differs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8032-001")]
+    [Requirement("RH8032-002")]
+    [Requirement("SHARED-DOC-012")]
+    public async Task VerifyParameterDeclaredWithUnicodeEscapeIsDocumentedByItsDecodedName()
+    {
+        const string source = """
+                              /// <summary>Extensions</summary>
+                              public static class Extensions
+                              {
+                                  /// <summary>Bytes</summary>
+                                  /// <param name="a">Value</param>
+                                  extension(byte \u0061)
+                                  {
+                                  }
+
+                                  /// <summary>Signed bytes</summary>
+                                  /// <param name="a">Value</param>
+                                  extension(sbyte {|#0:\u0062|})
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
     }
 
     #endregion // Tests

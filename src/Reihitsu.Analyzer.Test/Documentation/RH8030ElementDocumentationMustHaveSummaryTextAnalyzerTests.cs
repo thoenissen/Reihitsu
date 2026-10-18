@@ -386,7 +386,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies summaries that contain only Unicode white space, written directly or as character references, are reported
+    /// Verifies summaries that contain only Unicode white space, written as character references, are reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
