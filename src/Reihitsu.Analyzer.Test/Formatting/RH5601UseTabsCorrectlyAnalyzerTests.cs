@@ -286,6 +286,35 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the fix replaces the tabs its rule reports in front of a line and in front of a trailing comment,
+    /// and keeps a tab inside the comment's text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyCodeFixKeepsTabInsideTheTextOfATrailingComment()
+    {
+        const string testData = "class C\n{\n{|RH5601:\t|}int x;{|RH5601:\t|}// a\tb\n}";
+        const string fixedData = "class C\n{\n    int x;    // a\tb\n}";
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a tab inside the text of a trailing comment under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyCodeFixKeepsTabInsideTheTextOfATrailingCommentUnderCarriageReturnLineFeed()
+    {
+        const string testData = "class C\r\n{\r\n{|RH5601:\t|}int x;{|RH5601:\t|}// a\tb\r\n}";
+        const string fixedData = "class C\r\n{\r\n    int x;    // a\tb\r\n}";
+
+        await Verify(testData, fixedData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

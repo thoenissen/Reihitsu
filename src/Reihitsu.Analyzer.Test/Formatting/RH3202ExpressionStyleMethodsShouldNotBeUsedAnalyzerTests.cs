@@ -242,6 +242,53 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that the fix changes only the layout of a documentation comment and of a raw string literal in the
+    /// methods it converts, and keeps the comment's text and the literal's value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyFixChangesOnlyTheLayoutOfDocumentationCommentsAndRawStringLiterals()
+    {
+        const string testData = """"
+                                public class C
+                                {
+                                    ///<summary>runs</summary>
+                                    ///<returns>one</returns>
+                                    public int M() {|RH3202:=> 1|};
+
+                                    public string N() {|RH3202:=>
+                                        """
+                                        a
+                                        """|};
+                                }
+                                """";
+
+        const string resultData = """"
+                                  public class C
+                                  {
+                                      /// <summary>
+                                      /// runs
+                                      /// </summary>
+                                      /// <returns>one</returns>
+                                      public int M()
+                                      {
+                                          return 1;
+                                      }
+
+                                      public string N()
+                                      {
+                                          return """
+                                                 a
+                                                 """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

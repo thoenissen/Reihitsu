@@ -426,6 +426,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     [TestMethod]
     [Requirement("SHARED-CASING-007")]
     [Requirement("RH4106-005")]
+    [Requirement("SHARED-FIX-003")]
     public async Task FixRenamesFieldReferencedInNameof()
     {
         const string testCode = """
@@ -504,6 +505,166 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                 """;
 
         await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field whose renamed declaration would collide with another field, and so not compile, is
+    /// still reported, but no code action is registered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeActionIsRegisteredWhenTheRenameWouldCauseACompileError()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+                                    private int _value;
+                                }
+                                """;
+
+        await Verify(testCode);
+
+        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|RH4106:", string.Empty).Replace("|}", string.Empty),
+                                                   RH4106PrivateFieldCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "Value")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the field of the compile-error case is renamed once no other field takes its new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixIsOfferedWhenTheRenameCausesNoCompileError()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _value;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a documentation-comment reference that binds to the field, and keeps a word of
+    /// the comment's text that only reads like the field's name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixRenamesTheBoundDocumentationReferenceAndKeepsTheCommentText()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    /// <summary>Value is <see cref="Value"/>.</summary>
+                                    private int {|RH4106:Value|};
+
+                                    public int Get() => Value;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     /// <summary>Value is <see cref="_value"/>.</summary>
+                                     private int _value;
+
+                                     public int Get() => _value;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when an excluded <c>#if</c> branch does not name the field, and leaves that
+    /// branch unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixLeavesAnExcludedBranchThatDoesNotNameTheFieldUnchanged()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    public int M()
+                                    {
+                                #if NEVER
+                                        return 0;
+                                #else
+                                        return Value;
+                                #endif
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _value;
+
+                                     public int M()
+                                     {
+                                 #if NEVER
+                                         return 0;
+                                 #else
+                                         return _value;
+                                 #endif
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field whose derived name equals its old name is still reported, but no code action is
+    /// registered for it, because the action could not change the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-005")]
+    public async Task NoCodeActionIsRegisteredWhenTheFixWouldNotChangeTheDocument()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:_1st|};
+                                }
+                                """;
+
+        await Verify(testCode);
+
+        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|RH4106:", string.Empty).Replace("|}", string.Empty),
+                                                   RH4106PrivateFieldCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "_1st")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

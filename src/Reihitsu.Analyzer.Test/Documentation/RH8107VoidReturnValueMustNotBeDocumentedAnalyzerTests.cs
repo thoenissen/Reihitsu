@@ -605,6 +605,38 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies the code fix changes the words of the documentation comment only in the element its diagnostic
+    /// reports, and removes the space in front of that element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyCodeFixChangesOnlyTheReportedElementOfTheDocumentationComment()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  /// <summary>Runs</summary> {|RH8107:<returns>Nothing</returns>|}
+                                  public void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       /// <summary>Runs</summary>
+                                       public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

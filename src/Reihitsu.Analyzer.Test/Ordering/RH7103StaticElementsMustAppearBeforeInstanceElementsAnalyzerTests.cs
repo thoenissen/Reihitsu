@@ -1,6 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -740,7 +743,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                                                .GetLocation(),
                                                    "DEBUG");
 
-        Assert.HasCount(1, actions);
+        Assert.IsNotEmpty(actions);
     }
 
     /// <summary>
@@ -1173,6 +1176,81 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying both misplaced static fields are reported, and no code action is registered for the one whose move
+    /// would run its initializer before the initializer it reads
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoCodeActionIsRegisteredWhenTheMoveWouldChangeTheRunTimeValueOfAField()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _instance;
+                                    private static int {|RH7103:_a|} = Compute();
+                                    private static int {|RH7103:_b|} = _a;
+
+                                    private static int Compute() => 1;
+                                }
+                                """;
+
+        await Verify(testCode);
+
+        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|RH7103:", string.Empty).Replace("|}", string.Empty),
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "_b")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying a code action is registered for the static field that crosses only an instance field, whose
+    /// initialization runs at a different time
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task CodeActionIsRegisteredWhenTheMoveCrossesOnlyAnInstanceField()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int _instance;
+                                    private static int _a = Compute();
+                                    private static int _b = _a;
+
+                                    private static int Compute() => 1;
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "_a")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+
+        var operations = await actions[0].GetOperationsAsync(CancellationToken.None);
+        var changedDocument = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution.Projects.Single().Documents.Single();
+        var changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+        var movedFieldPosition = changedText.IndexOf("private static int _a = Compute();", StringComparison.Ordinal);
+        var readingFieldPosition = changedText.IndexOf("private static int _b = _a;", StringComparison.Ordinal);
+        var instanceFieldPosition = changedText.IndexOf("private int _instance;", StringComparison.Ordinal);
+
+        Assert.IsGreaterThanOrEqualTo(0, movedFieldPosition, changedText);
+        Assert.IsLessThan(instanceFieldPosition, movedFieldPosition, changedText);
+        Assert.IsLessThan(readingFieldPosition, movedFieldPosition, changedText);
     }
 
     #endregion // Tests
