@@ -28,3 +28,10 @@ Roles skipped: implementer (no production change in this lane), auditor (not par
 - Running at the same time: thoenissen/Reihitsu#1068, #1069, #981, #983, #987. Expect requirement-ID and `sdd/specs/README.md` merge conflicts; keep both sides.
 - Done: every rule of the batch has its spec; SHARED-CHAIN is reused (a new shared spec only for behavior more than one spec relies on); every requirement has a covering test; open questions are filed; CI is green; the PR says `Closes #990`.
 - Must not: change production behavior; retire an existing requirement without asking the maintainer; touch `sdd/work/coordinator/`; create issues other than open questions without the maintainer's approval.
+
+## Run log
+
+- Spec author (01): spec written. Skeptic (02): proceed narrower; findings A–C routed back to the same spec author. Spec author (03): spec written; supersedes 01.
+- Open questions filed from 03 as sub-issues of thoenissen/Reihitsu#912: #1111 (formatter/line-breaks.md), #1112 (formatter/pipeline.md), #1113 (shared/code-fixes.md), #1114 (RH5101), #1115 (RH5102), #1116 (RH5103), #1117 (RH5104), #1118 (RH5108), #1119 (RH5110), #1120 (RH5111), #1121 (RH5113), #1122 (RH5114), #1123 (RH5203), #1124 (RH5204), #1125 (RH5206).
+- One-line comments posted on thoenissen/Reihitsu#956 and #953.
+- The skeptic's note on the thoenissen/Reihitsu#1097 premise (RH5048 reports the gap before the first link, not the first call) goes to the maintainer in the session, not to the issue.
