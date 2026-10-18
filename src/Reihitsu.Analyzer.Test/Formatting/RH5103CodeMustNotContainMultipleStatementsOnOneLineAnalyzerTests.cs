@@ -189,7 +189,6 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5103-003")]
     public async Task SwitchSectionChainInsideObjectInitializerFixAllKeepsLabelRelativeIndentation()
     {
         const string testData = """
@@ -255,7 +254,6 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5103-003")]
     public async Task SwitchSectionChainWithoutAnchorScopeUsesCanonicalIndentationRegardlessOfLabelsOwnColumn()
     {
         const string testData = """
@@ -984,6 +982,65 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that statements split off a line in a switch section outside an anchor scope get the section's
+    /// statement column, whether the preceding statement starts its line, shares the line of its own label, or shares
+    /// a line that starts with a comment, with another section's label, or with another section's statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-001")]
+    [Requirement("RH5103-003")]
+    public async Task VerifyStatementsInSwitchSectionsAreFixedToTheSectionStatementColumn()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int value)
+                                    {
+                                        Method(value); {|#0:Method(value);|}
+                                        switch (value)
+                                        {
+                                            case 1: Method(value); {|#1:break;|}
+                                            case 2:
+                                                Method(value); {|#2:break;|}
+                                            /* three */ case 3: Method(value); {|#3:break;|}
+                                            case 4: break; case 5: Method(value); {|#4:break;|}
+                                            case 6:
+                                                break; case 7: Method(value); {|#5:break;|}
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int value)
+                                     {
+                                         Method(value);
+                                         Method(value);
+                                         switch (value)
+                                         {
+                                             case 1: Method(value);
+                                                 break;
+                                             case 2:
+                                                 Method(value);
+                                                 break;
+                                             /* three */ case 3: Method(value);
+                                                 break;
+                                             case 4: break; case 5: Method(value);
+                                                 break;
+                                             case 6:
+                                                 break; case 7: Method(value);
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 6));
     }
 
     #endregion // Tests

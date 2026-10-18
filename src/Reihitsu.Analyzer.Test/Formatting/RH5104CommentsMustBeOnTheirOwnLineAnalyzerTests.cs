@@ -638,6 +638,39 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
         await Verify(testData, fixedData, Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a block comment followed by code on its line is moved together with the whitespace behind it, so
+    /// the whitespace in front of it stays on the line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5104-001")]
+    [Requirement("RH5104-004")]
+    public async Task VerifyBlockCommentInFrontOfClosingParenthesisKeepsTheWhitespaceInFrontOfIt()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int value)
+                                    {
+                                        Method(value {|#0:/* value */|});
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int value)
+                                     {
+                                         /* value */
+                                         Method(value );
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
