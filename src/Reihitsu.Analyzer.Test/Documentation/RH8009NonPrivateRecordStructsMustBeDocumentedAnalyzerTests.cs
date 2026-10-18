@@ -20,6 +20,9 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("RH8009-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForRecordStructWithoutDocumentation()
     {
         const string source = """
@@ -36,6 +39,8 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("RH8009-002")]
     public async Task VerifyDiagnosticForPublicRecordStructWithoutDocumentation()
     {
         const string source = """
@@ -52,6 +57,9 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("RH8009-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForRecordStructWithRemarksButNoSummary()
     {
         const string source = """
@@ -70,6 +78,10 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("RH8009-002")]
+    [Requirement("SHARED-DOC-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForNestedProtectedInternalRecordStructWithoutDocumentation()
     {
         const string source = """
@@ -90,12 +102,34 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("RH8009-002")]
     public async Task VerifyDiagnosticForGenericRecordStructWithoutDocumentation()
     {
         const string source = """
                               namespace TestNamespace;
                               
                               internal record struct {|#0:Pair|}<T>(T First, T Second);
+                              """;
+
+        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented readonly record struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("RH8009-002")]
+    public async Task VerifyDiagnosticForReadonlyRecordStructWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal readonly record struct {|#0:Size|}
+                              {
+                              }
                               """;
 
         await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
@@ -110,6 +144,8 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForInternalRecordStructWithSummary()
     {
         const string source = """
@@ -127,6 +163,8 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForRecordStructWithInheritdoc()
     {
         const string source = """
@@ -145,6 +183,8 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForPurePrivateNestedRecordStruct()
     {
         const string source = """
@@ -165,6 +205,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
     public async Task VerifyNoDiagnosticForGenericRecordStructWithSummary()
     {
         const string source = """
@@ -182,6 +223,8 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8009-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -189,6 +232,27 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an undocumented struct and an undocumented record, which are not record struct declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8009-001")]
+    public async Task VerifyNoDiagnosticForStructAndRecordDeclarations()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              public struct Plain
+                              {
+                              }
+
+                              public record Entity;
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // No-diagnostic cases

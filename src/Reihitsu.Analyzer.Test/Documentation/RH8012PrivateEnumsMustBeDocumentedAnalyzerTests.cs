@@ -20,6 +20,9 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("RH8012-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForPrivateEnumWithoutDocumentation()
     {
         const string source = """
@@ -43,6 +46,9 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("RH8012-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForPrivateEnumWithRemarksButNoSummary()
     {
         const string source = """
@@ -67,6 +73,9 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("RH8012-002")]
+    [Requirement("SHARED-DOC-001")]
     public async Task VerifyDiagnosticForPrivateEnumNestedInsidePrivateClass()
     {
         const string source = """
@@ -89,6 +98,32 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
         await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8012MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented enum without an access modifier and with an underlying type in a class, located on its name without the underlying type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("RH8012-002")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticForEnumWithoutModifierAndWithUnderlyingTypeInClass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  enum {|#0:State|} : byte
+                                  {
+                                      Open
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8012MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -98,6 +133,8 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateEnumWithSummary()
     {
         const string source = """
@@ -122,6 +159,8 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateEnumWithInheritdoc()
     {
         const string source = """
@@ -147,6 +186,8 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForInternalNestedEnum()
     {
         const string source = """
@@ -170,6 +211,8 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8012-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
