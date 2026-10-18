@@ -27,3 +27,13 @@ Roles: spec author → skeptic → test implementer → cleaner → spec checker
 ## Open-question issues of touched specs
 
 `SDD open questions: sdd/specs/shared/attribute-targets.md` (thoenissen/Reihitsu#1030) and `sdd/specs/analyzer/RH5530.md` (thoenissen/Reihitsu#1029) are closed and decided; no undecided questions block the run.
+
+## Filed on GitHub
+
+- Open questions on `shared/attribute-targets.md`: thoenissen/Reihitsu#1109 (Q1, split fix changes text outside the reported list; former Q2 folded in). New issue, sub-issue of #912, because #1030 was decided and closed.
+- Open questions on `shared/code-fixes.md`: thoenissen/Reihitsu#1110 (Fix All of split rules needs two passes, violates SHARED-FIX-002). New issue, sub-issue of #912, because #1066 was decided and closed.
+- One-line comment on thoenissen/Reihitsu#1093 with the further list-shape instances.
+
+## Restart
+
+The first spec-author agent was lost in a container restart during its second repair; a fresh spec author continued from the committed handovers (05-spec-author.md). This used the one allowed restart of the spec-author role.
