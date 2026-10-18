@@ -23,6 +23,9 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-003")]
+    [Requirement("RH5011-004")]
     public async Task VerifyDiagnosticForBreakStatementWithoutFollowingBlankLine()
     {
         const string testCode = """
@@ -71,6 +74,8 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("SHARED-BLANK-001")]
     public async Task VerifyNoDiagnosticForBreakStatementWithFollowingBlankLine()
     {
         const string testCode = """
@@ -100,6 +105,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-002")]
     public async Task VerifyNoDiagnosticForBreakStatementBeforeClosingBrace()
     {
         const string testCode = """
@@ -124,6 +130,9 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-004")]
+    [Requirement("SHARED-BLANK-001")]
     public async Task VerifyDiagnosticForBreakStatementWhenCommentLineDirectlyFollowsIt()
     {
         const string testCode = """
@@ -175,6 +184,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-002")]
     public async Task VerifyNoDiagnosticForBreakStatementFollowedByDirective()
     {
         const string testCode = """
@@ -205,6 +215,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-005")]
     public async Task SameLineBreakFixSeparatesAndConverges()
     {
         const string testCode = """
@@ -258,6 +269,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-005")]
     public async Task SameLineFixPreservesExactTabIndentationAndConverges()
     {
         const string testCode = "internal class RH5011\n{\n\tpublic void Execute()\n\t{\n\t\twhile (true)\n\t\t{\n\t\t\t{|#0:break|}; Consume();\n\t\t}\n\t}\n\n\tprivate void Consume()\n\t{\n\t}\n}";
@@ -273,6 +285,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-004")]
     public async Task SeparateLineFixPreservesCarriageReturnLineFeedAndConverges()
     {
         const string testCode = """
@@ -343,6 +356,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5011-006")]
     public async Task SameLineFixIsNotOfferedAcrossComment()
     {
         const string testCode = """
@@ -401,6 +415,176 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
                                                    "FEATURE");
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies a break statement is reported when a statement or the next switch section follows it without a blank
+    /// line, including a following comment line, a trailing comment, a same-line statement, and an embedded break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-003")]
+    public async Task VerifyBreakFollowedByStatementOrSwitchSectionIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+                                                {|RH5011:break|};
+                                            case 2:
+                                                break;
+
+                                            default:
+                                                break;
+                                        }
+
+                                        while (true)
+                                        {
+                                            if (a > 0)
+                                                {|RH5011:break|};
+                                            a++;
+                                            {|RH5011:break|};
+                                            // note
+                                            a++;
+                                            {|RH5011:break|}; // note
+                                            a++;
+                                            {|RH5011:break|}; a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement is not reported when a closing brace or a preprocessor directive follows it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-002")]
+    public async Task VerifyBreakBeforeClosingBraceOrDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                break;
+                                        }
+
+                                        while (true)
+                                        {
+                                            break;
+                                #pragma warning disable CS0168
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix inserts the blank line directly below the break line, keeping a trailing comment on that line
+    /// and a comment on the following line directly above its code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-004")]
+    public async Task VerifySeparateLineFixInsertsBlankLineBelowBreakLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+                                                {|RH5011:break|};
+                                            default:
+                                                break;
+                                        }
+
+                                        while (true)
+                                        {
+                                            {|RH5011:break|};
+                                            // note
+                                            a++;
+                                            {|RH5011:break|}; // note
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         switch (a)
+                                         {
+                                             case 1:
+                                                 a++;
+                                                 break;
+
+                                             default:
+                                                 break;
+                                         }
+
+                                         while (true)
+                                         {
+                                             break;
+
+                                             // note
+                                             a++;
+                                             break; // note
+
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement followed by a comment and a statement on its own line is reported and left unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-006")]
+    public async Task VerifyCommentBetweenBreakAndSameLineStatementIsReportedWithoutFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            {|RH5011:break|}; /* note */ a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
     }
 
     #endregion // Tests

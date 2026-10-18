@@ -43,6 +43,10 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5022-001")]
+    [Requirement("RH5022-003")]
+    [Requirement("RH5022-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -73,6 +77,7 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5022-002")]
     public async Task VerifyRawStringsDoNotProduceDiagnostics()
     {
         const string testData = """"
@@ -94,6 +99,7 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5022-002")]
     public async Task VerifyMultiLineCommentOpeningBraceDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -120,6 +126,7 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5022-002")]
     public async Task VerifyDisabledCodeOpeningBraceDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -139,6 +146,119 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the blank line below the opening brace of a type, an initializer, and a member body is reported once
+    /// per brace, from the line's start to the end of its line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-001")]
+    [Requirement("RH5022-003")]
+    public async Task VerifyBlankLineBelowOpeningBraceOfTypeInitializerAndMemberIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                {|RH5022:
+                                |}    int[] _a = new[]
+                                    {
+                                {|RH5022:
+                                |}        1,
+                                    };
+
+                                    void M()
+                                    {
+                                {|RH5022:
+                                |}        _a[0]++;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a brace in a raw string, in a multi-line comment, or in disabled code is not considered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-002")]
+    public async Task VerifyBraceInStringCommentOrDisabledCodeIsNotConsidered()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    string _s = """
+                                        {
+
+                                        """;
+
+                                    /* {
+
+                                    */
+                                #if NEVER
+                                    void M()
+                                    {
+
+                                    }
+                                #endif
+                                }
+                                """";
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix deletes each reported blank line and nothing else
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesBlankLinesBelowOpeningBraces()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                {|RH5022:
+                                |}    int[] _a = new[]
+                                    {
+                                {|RH5022:
+                                |}        1,
+                                    };
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int[] _a = new[]
+                                     {
+                                         1,
+                                     };
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a whitespace-only line below an opening brace is reported and deleted together with its CRLF line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-001")]
+    [Requirement("RH5022-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesWhitespaceOnlyLineBelowOpeningBraceWithCarriageReturnLineFeed()
+    {
+        const string testCode = "class C\n{\n    void M()\n    {\n        \n        M();\n    }\n}\n";
+        const string fixedCode = "class C\n{\n    void M()\n    {\n        M();\n    }\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests

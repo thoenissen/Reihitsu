@@ -21,6 +21,8 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
     public async Task VerifyNoDiagnosticsWhenDirectivesArePrecededByBlankLines()
     {
         const string testData = """
@@ -42,6 +44,8 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
     public async Task VerifyNoDiagnosticsWhenRegionHugsOpeningBrace()
     {
         const string testData = """
@@ -62,6 +66,12 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("RH5031-002")]
+    [Requirement("RH5031-003")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("SHARED-REGION-001")]
+    [Requirement("SHARED-REGION-002")]
     public async Task VerifyMissingBlankLineBeforeRegionIsDetectedAndFixed()
     {
         const string testData = """
@@ -96,6 +106,12 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("RH5031-002")]
+    [Requirement("RH5031-003")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("SHARED-REGION-001")]
+    [Requirement("SHARED-REGION-002")]
     public async Task VerifyMissingBlankLineBeforeEndRegionIsDetectedAndFixed()
     {
         const string testData = """
@@ -126,6 +142,8 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-007")]
     public async Task VerifyDisabledCodeRegionDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -149,6 +167,10 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("RH5031-003")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("SHARED-REGION-002")]
     public async Task VerifyFormattableLiteralAndCommentAdjacencyIsDetected()
     {
         const string testData = """
@@ -203,6 +225,160 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies a region or endregion directive is reported on its whole text when the line above is code or a comment,
+    /// and not when it follows the opening brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("RH5031-002")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("SHARED-REGION-001")]
+    public async Task VerifyRegionDirectiveWithoutBlankLineAboveIsReportedOnItsText()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    #region Fields
+                                    private int _x;
+                                    {|RH5031:#endregion // Fields|}
+                                    int _a;
+                                    // header
+                                    {|RH5031:#region R|}
+
+                                    int _b;
+
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a trailing comment on the opening brace line removes the brace exemption and region directives inside a
+    /// skipped branch are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-001")]
+    [Requirement("SHARED-BLANK-005")]
+    [Requirement("SHARED-BLANK-007")]
+    public async Task VerifyTrailingBraceCommentRemovesExemptionAndDisabledDirectivesAreNotReported()
+    {
+        const string testCode = """
+                                class C
+                                { // trailing
+                                    {|RH5031:#region R|}
+                                    int _x;
+
+                                    #endregion // R
+                                #if NEVER
+                                    int _y;
+                                    #region D
+                                    int _z;
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix inserts one empty line directly above each reported directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-003")]
+    [Requirement("SHARED-REGION-002")]
+    public async Task VerifyFixInsertsEmptyLineAboveDirective()
+    {
+        const string testCode = """
+                                class C
+                                { // trailing
+                                    {|RH5031:#region R|}
+                                    int _x;
+                                    {|RH5031:#endregion // R|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 { // trailing
+
+                                     #region R
+                                     int _x;
+
+                                     #endregion // R
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix inserts the empty line between a comment directly above the directive and the directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-003")]
+    [Requirement("SHARED-REGION-002")]
+    public async Task VerifyFixKeepsCommentAboveDirectiveInPlace()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    #region Fields
+                                    private int _x;
+                                    {|RH5031:#endregion // Fields|}
+                                    int _a;
+                                    // header
+                                    {|RH5031:#region R|}
+
+                                    int _b;
+
+                                    #endregion // R
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     #region Fields
+                                     private int _x;
+
+                                     #endregion // Fields
+                                     int _a;
+                                     // header
+
+                                     #region R
+
+                                     int _b;
+
+                                     #endregion // R
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the inserted empty line uses the document's CRLF line ending and carries no indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5031-003")]
+    [Requirement("SHARED-REGION-002")]
+    public async Task VerifyFixInsertsCarriageReturnLineFeedEmptyLineAboveDirective()
+    {
+        const string testCode = "class C\n{\n    int _a;\n    #region R\n\n    int _b;\n\n    #endregion\n}\n";
+        const string fixedCode = "class C\n{\n    int _a;\n\n    #region R\n\n    int _b;\n\n    #endregion\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests

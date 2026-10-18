@@ -43,6 +43,10 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5026-001")]
+    [Requirement("RH5026-003")]
+    [Requirement("RH5026-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -176,6 +180,151 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above else, else if, catch, and finally is reported once per keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-001")]
+    [Requirement("RH5026-003")]
+    public async Task VerifyBlankLineAboveChainedKeywordIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool flag)
+                                    {
+                                        if (flag)
+                                        {
+                                        }
+                                {|RH5026:
+                                |}        else if (flag)
+                                        {
+                                        }
+                                {|RH5026:
+                                |}        else
+                                        {
+                                        }
+
+                                        try
+                                        {
+                                        }
+                                {|RH5026:
+                                |}        catch
+                                        {
+                                        }
+                                {|RH5026:
+                                |}        finally
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line is not reported above a keyword behind a closing brace, above an identifier that begins with
+    /// a keyword, or above a keyword in a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-002")]
+    public async Task VerifyKeywordThatDoesNotBeginItsLineIsNotConsidered()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool flag)
+                                    {
+                                        if (flag)
+                                        {
+                                            flag = false;
+
+                                        } else
+                                        {
+                                        }
+
+                                        var elseValue = 1;
+
+                                        /*
+
+                                        else */
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix deletes each reported blank line and nothing else
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesBlankLinesAboveChainedKeywords()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        try
+                                        {
+                                        }
+                                {|RH5026:
+                                |}        catch
+                                        {
+                                        }
+                                {|RH5026:
+                                |}        finally
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         try
+                                         {
+                                         }
+                                         catch
+                                         {
+                                         }
+                                         finally
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a whitespace-only line above a chained keyword is reported and deleted together with its CRLF line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-001")]
+    [Requirement("RH5026-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesWhitespaceOnlyLineAboveChainedKeywordWithCarriageReturnLineFeed()
+    {
+        const string testCode = "class C\n{\n    void M(bool flag)\n    {\n        if (flag)\n        {\n        }\n        \n        else\n        {\n        }\n    }\n}\n";
+        const string fixedCode = "class C\n{\n    void M(bool flag)\n    {\n        if (flag)\n        {\n        }\n        else\n        {\n        }\n    }\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests

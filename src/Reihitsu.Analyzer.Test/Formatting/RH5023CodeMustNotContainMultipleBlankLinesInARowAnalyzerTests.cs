@@ -47,6 +47,10 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5023-001")]
+    [Requirement("RH5023-003")]
+    [Requirement("RH5023-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -81,6 +85,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5023-002")]
     public async Task VerifyRawStringsDoNotProduceDiagnostics()
     {
         const string testData = """"
@@ -103,6 +108,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5023-002")]
     public async Task VerifyVerbatimStringsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -124,6 +130,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5023-002")]
     public async Task VerifyMultiLineCommentBlankLinesDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -149,6 +156,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5023-002")]
     public async Task VerifyDisabledCodeBlankLinesDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -223,6 +231,132 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
                                                    });
 
         Assert.HasCount(1, actions);
+    }
+
+    /// <summary>
+    /// Verifies every blank line after the first of a run is reported on its own and deleted, so the run shrinks to one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    [Requirement("RH5023-003")]
+    [Requirement("RH5023-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyEachBlankLineAfterFirstOfRunIsReportedAndDeleted()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = 1;
+
+                                {|RH5023:
+                                |}{|RH5023:
+                                |}        a++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = 1;
+
+                                         a++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies lines of a multi-line comment, of disabled code, and of a verbatim string are neither reported nor
+    /// counted as blank, so only the second blank line below the block comment is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-002")]
+    public async Task VerifyLinesOfCommentsDisabledCodeAndStringsAreNotCounted()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = 1;
+                                        /* one
+
+
+                                           two */
+
+                                {|RH5023:
+                                |}        a++;
+                                #if NEVER
+                                        a++;
+
+
+                                #endif
+                                        var s = @"x
+
+
+                                y";
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies blank lines inside an interpolated raw string and an interpolated verbatim string are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-002")]
+    public async Task VerifyBlankLinesInsideInterpolatedStringsAreNotReported()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    string M(int x)
+                                    {
+                                        var a = $"""
+                                            a
+
+
+                                            {x}
+                                            """;
+
+                                        return a + $@"a
+
+
+                                {x}";
+                                    }
+                                }
+                                """";
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a whitespace-only line that follows a blank line is reported and deleted together with its CRLF line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    [Requirement("RH5023-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesWhitespaceOnlySecondBlankLineWithCarriageReturnLineFeed()
+    {
+        const string testCode = "class C\n{\n    void M()\n    {\n        var a = 1;\n\n        \n        a++;\n    }\n}\n";
+        const string fixedCode = "class C\n{\n    void M()\n    {\n        var a = 1;\n\n        a++;\n    }\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests

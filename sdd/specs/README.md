@@ -25,10 +25,11 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
+| [shared/region-directive-blank-lines.md](shared/region-directive-blank-lines.md) | SHARED-REGION | `RegionDirectiveBlankLineAnalyzerBase`, `RegionDirectiveBlankLineCodeFixProviderBase` |
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
 | [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
-| [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase` |
+| [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
 | [analyzer/RH1003.md](analyzer/RH1003.md) | RH1003 | `RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer` |
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
@@ -80,6 +81,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5008.md](analyzer/RH5008.md) | RH5008 | `RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5008ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5009.md](analyzer/RH5009.md) | RH5009 | `RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5009GotoStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5010.md](analyzer/RH5010.md) | RH5010 | `RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5010BreakStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5011.md](analyzer/RH5011.md) | RH5011 | `RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer`, `RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider`, `StatementShouldBeFollowedByABlankLineAnalyzerBase<TStatement>` |
 | [analyzer/RH5012.md](analyzer/RH5012.md) | RH5012 | `RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5012ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5013.md](analyzer/RH5013.md) | RH5013 | `RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5013ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5014.md](analyzer/RH5014.md) | RH5014 | `RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5014SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider` |
@@ -88,8 +90,19 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5017.md](analyzer/RH5017.md) | RH5017 | `RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5017FixedStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5018.md](analyzer/RH5018.md) | RH5018 | `RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5018LockStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5019.md](analyzer/RH5019.md) | RH5019 | `RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5020.md](analyzer/RH5020.md) | RH5020 | `RH5020CommentsShouldBePrecededByABlankLineAnalyzer`, `RH5020CommentsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5021.md](analyzer/RH5021.md) | RH5021 | `RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer`, `RH5021LocalDeclarationsShouldBeFollowedByABlankLineCodeFixProvider` |
+| [analyzer/RH5022.md](analyzer/RH5022.md) | RH5022 | `RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer`, `RH5022OpeningBraceMustNotBeFollowedByBlankLineCodeFixProvider` |
+| [analyzer/RH5023.md](analyzer/RH5023.md) | RH5023 | `RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer`, `RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider` |
+| [analyzer/RH5024.md](analyzer/RH5024.md) | RH5024 | `RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer`, `RH5024ClosingBraceMustNotBePrecededByBlankLineCodeFixProvider` |
+| [analyzer/RH5025.md](analyzer/RH5025.md) | RH5025 | `RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer`, `RH5025OpeningBraceMustNotBePrecededByBlankLineCodeFixProvider` |
+| [analyzer/RH5026.md](analyzer/RH5026.md) | RH5026 | `RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer`, `RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider` |
+| [analyzer/RH5027.md](analyzer/RH5027.md) | RH5027 | `RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer`, `RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider` |
+| [analyzer/RH5028.md](analyzer/RH5028.md) | RH5028 | `RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer`, `RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider` |
 | [analyzer/RH5029.md](analyzer/RH5029.md) | RH5029 | `RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer`, `RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5030.md](analyzer/RH5030.md) | RH5030 | `RH5030BlankLineAfterClosingBraceAnalyzer`, `RH5030BlankLineAfterClosingBraceCodeFixProvider` |
+| [analyzer/RH5031.md](analyzer/RH5031.md) | RH5031 | `RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer`, `RH5031RegionDirectivesShouldBePrecededByABlankLineCodeFixProvider` |
+| [analyzer/RH5032.md](analyzer/RH5032.md) | RH5032 | `RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer`, `RH5032RegionDirectivesShouldBeFollowedByABlankLineCodeFixProvider` |
 | [analyzer/RH5501.md](analyzer/RH5501.md) | RH5501 | `RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer`, `RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5503.md](analyzer/RH5503.md) | RH5503 | `RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer`, `RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5505.md](analyzer/RH5505.md) | RH5505 | `RH5505ClassAttributesMustFollowPlacementRulesAnalyzer`, `RH5505ClassAttributesMustFollowPlacementRulesCodeFixProvider` |
