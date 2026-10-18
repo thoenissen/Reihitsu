@@ -26,3 +26,16 @@ Roles skipped: implementer (no production change in this lane), auditor (not par
 - Done means: one spec per listed rule (16), existing tests tagged with `[Requirement]`, a focused test only where a requirement has no covering test, every example verified against a test or by running it, open questions filed per `sdd/README.md`, CI green, PR based on `main` without `sdd/work/`.
 - Must not: write current-but-defective behavior into a spec; change an existing requirement of `shared/casing.md` or any other spec without asking the maintainer. Adding a new shared casing requirement for behavior these rules share is allowed.
 - Open questions may be filed as the rulebook says (sub-issues of thoenissen/Reihitsu#912). Spec author: list open questions with their exact input and real output in your handover; the lead files them. No other issue is created without the maintainer's approval.
+
+# Open questions filed (lead)
+
+From `03-spec-author.md`, all as sub-issues of thoenissen/Reihitsu#912:
+
+- Q1–Q4 → thoenissen/Reihitsu#1019 (RH4115)
+- Q5 → thoenissen/Reihitsu#1020 (RH4121)
+- Q6 → thoenissen/Reihitsu#1021 (RH4118)
+- Q7 → thoenissen/Reihitsu#1022 (RH4124)
+- Q8 → thoenissen/Reihitsu#1025 (RH4114), thoenissen/Reihitsu#1026 (RH4112), thoenissen/Reihitsu#1027 (RH4113)
+- Q9 → new question Q5 in thoenissen/Reihitsu#1009, added as a comment (shared casing)
+- Q10 → thoenissen/Reihitsu#1023 (RH4116)
+- Q11 → thoenissen/Reihitsu#1024 (RH4122)
