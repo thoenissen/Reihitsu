@@ -44,6 +44,10 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5027-001")]
+    [Requirement("RH5027-003")]
+    [Requirement("RH5027-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -97,6 +101,124 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Batc
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a do statement's footer is reported when the footer begins its line and when it
+    /// follows the body's closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    [Requirement("RH5027-003")]
+    public async Task VerifyBlankLineAboveDoStatementFooterIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+                                        }
+                                {|RH5027:
+                                |}        while (a < 3);
+
+                                        do
+                                        {
+                                            a++;
+                                {|RH5027:
+                                |}        } while (a < 4);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the blank line above a while statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-002")]
+    public async Task VerifyBlankLineAboveWhileStatementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+
+                                        while (a < 5)
+                                        {
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix deletes the reported blank line and nothing else
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesBlankLineAboveDoStatementFooter()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+                                        }
+                                {|RH5027:
+                                |}        while (a < 3);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         do
+                                         {
+                                             a++;
+                                         }
+                                         while (a < 3);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a whitespace-only line above a do statement's footer is reported and deleted together with its CRLF line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-001")]
+    [Requirement("RH5027-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesWhitespaceOnlyLineAboveDoStatementFooterWithCarriageReturnLineFeed()
+    {
+        const string testCode = "class C\n{\n    void M(int a)\n    {\n        do\n        {\n            a++;\n        }\n        \n        while (a < 3);\n    }\n}\n";
+        const string fixedCode = "class C\n{\n    void M(int a)\n    {\n        do\n        {\n            a++;\n        }\n        while (a < 3);\n    }\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests
