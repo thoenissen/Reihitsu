@@ -45,6 +45,10 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6008-001")]
+    [Requirement("RH6008-002")]
+    [Requirement("RH6008-003")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -77,6 +81,9 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6008-001")]
+    [Requirement("RH6008-003")]
+    [Requirement("SHARED-WS-002")]
     public async Task VerifyFixIsNotOfferedForSameLineClosingBracketWithPrecedingComment()
     {
         const string testData = """
@@ -115,6 +122,9 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6008-001")]
+    [Requirement("RH6008-003")]
+    [Requirement("SHARED-WS-002")]
     public async Task VerifyFixIsNotOfferedForSameLineClosingBracketWithPrecedingCommentCarriageReturnLineFeed()
     {
         const string testData = """
@@ -201,6 +211,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6008-001")]
     public async Task VerifyCollectionExpressionsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -216,6 +227,67 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                             2,
                                             3,
                                         ];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace before the closing bracket of a rank specifier, a collection expression, and an array
+    /// creation is reported once per bracket and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6008-001")]
+    [Requirement("RH6008-002")]
+    [Requirement("RH6008-003")]
+    public async Task VerifyWhitespaceBeforeOtherClosingSquareBracketsIsDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    void Method()\n"
+                                + "    {\n"
+                                + "        int[,{|#0: |}] g = null;\n"
+                                + "        int[] e = [1, 2{|#1:\t|}];\n"
+                                + "        var y = new int[2{|#2: |}];\n"
+                                + "    }\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    void Method()\n"
+                                 + "    {\n"
+                                 + "        int[,] g = null;\n"
+                                 + "        int[] e = [1, 2];\n"
+                                 + "        var y = new int[2];\n"
+                                 + "    }\n"
+                                 + "}";
+
+        await Verify(testData, fixedData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that the closing bracket of an attribute list and a closing bracket that starts its line, also after a
+    /// trailing comment, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6008-001")]
+    public async Task VerifyAttributeListAndClosingBracketStartingItsLineAreNotReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    [Obsolete ]
+                                    void Method(int[] arr)
+                                    {
+                                        var w = arr[0
+                                            ];
+                                        var v = arr[0 // note
+                                            ];
                                     }
                                 }
                                 """;

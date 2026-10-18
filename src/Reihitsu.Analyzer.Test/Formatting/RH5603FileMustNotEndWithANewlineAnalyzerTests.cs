@@ -21,6 +21,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5603-002")]
     public async Task VerifyNoDiagnosticsWhenFileDoesNotEndWithNewline()
     {
         const string testData = """
@@ -37,6 +38,9 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
     public async Task VerifyTrailingNewlineIsDetectedAndFixed()
     {
         const string testData = """
@@ -54,6 +58,81 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         await Verify(testData,
                      fixedData,
                      Diagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan(3, 2, 4, 1).WithMessage(AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that several line breaks at the end of the file are one diagnostic and are all deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
+    public async Task VerifySeveralTrailingLineBreaksAreOneDiagnosticAndAreDeleted()
+    {
+        const string testData = "internal class TestClass\n{\n}{|#0:\n\n|}";
+        const string fixedData = "internal class TestClass\n{\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that trailing CRLF line breaks are detected and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyTrailingCarriageReturnLineFeedsAreDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n}{|#0:\r\n\r\n|}";
+        const string fixedData = "internal class TestClass\r\n{\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a mix of CRLF and LF line breaks at the end of the file is detected and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyMixedTrailingLineBreaksAreDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n}{|#0:\r\n\n|}";
+        const string fixedData = "internal class TestClass\r\n{\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line break after a comment on the last line is detected and deleted like one after code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyTrailingLineBreakAfterFinalCommentIsDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\n{\n}\n\n// end{|#0:\n|}";
+        const string fixedData = "internal class TestClass\n{\n}\n\n// end";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a file ending with a comment is not reported, and neither are the blank lines before its last line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-002")]
+    public async Task VerifyNoDiagnosticsWhenFileEndsWithCommentAfterBlankLines()
+    {
+        const string testData = "internal class TestClass\n{\n}\n\n// end";
+
+        await Verify(testData);
     }
 
     #endregion // Tests

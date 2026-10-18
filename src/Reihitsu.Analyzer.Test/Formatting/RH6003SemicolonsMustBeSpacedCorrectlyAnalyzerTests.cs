@@ -49,6 +49,10 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-001")]
+    [Requirement("RH6003-003")]
+    [Requirement("RH6003-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -78,6 +82,8 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-001")]
+    [Requirement("RH6003-004")]
     public async Task VerifyTabBeforeSemicolonIsDetectedAndFixed()
     {
         const string testData = """
@@ -107,6 +113,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-002")]
     public async Task VerifyContinuationLineIndentationDoesNotProduceDiagnostic()
     {
         const string testData = """
@@ -128,6 +135,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-002")]
     public async Task VerifyContinuationLineIndentationDoesNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -149,6 +157,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-002")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineSemicolonDoNotProduceDiagnostic()
     {
         const string testData = """
@@ -172,6 +181,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-002")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineSemicolonDoNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -213,6 +223,9 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-001")]
+    [Requirement("RH6003-004")]
+    [Requirement("SHARED-WS-002")]
     public async Task VerifyFixIsNotOfferedForSameLineSemicolonWithPrecedingComment()
     {
         const string testData = """
@@ -250,6 +263,9 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6003-001")]
+    [Requirement("RH6003-004")]
+    [Requirement("SHARED-WS-002")]
     public async Task VerifyFixIsNotOfferedForSameLineSemicolonWithPrecedingCommentCarriageReturnLineFeed()
     {
         const string testData = """
@@ -412,6 +428,114 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTe
                                                    });
 
         Assert.HasCount(1, actions);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace before the semicolon of a field, of a <c>return</c> statement, and of each clause of a
+    /// <c>for</c> header, also an empty one, is reported and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6003-001")]
+    [Requirement("RH6003-003")]
+    [Requirement("RH6003-004")]
+    public async Task VerifyFieldReturnAndForHeaderSemicolonsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int _a{|#0: |};
+
+                                    void Method(int a)
+                                    {
+                                        for (int i = 0{|#1: |}; i < a{|#2: |}; i++)
+                                        {
+                                        }
+
+                                        for (;{|#3: |};)
+                                        {
+                                        }
+
+                                        return{|#4: |};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int _a;
+
+                                     void Method(int a)
+                                     {
+                                         for (int i = 0; i < a; i++)
+                                         {
+                                         }
+
+                                         for (;;)
+                                         {
+                                         }
+
+                                         return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifies that a semicolon that starts its line after a line comment is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6003-002")]
+    public async Task VerifySemicolonStartingItsLineAfterALineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int a)
+                                    {
+                                        Method(a) // note
+                                            ;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment after the semicolon, outside the token gap, does not withhold the fix, which deletes
+    /// exactly the reported whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6003-004")]
+    [Requirement("SHARED-WS-001")]
+    [Requirement("SHARED-WS-002")]
+    public async Task VerifyFixIsOfferedWhenACommentFollowsTheSemicolon()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int a)
+                                    {
+                                        Method(a){|#0:  |}; // note
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int a)
+                                     {
+                                         Method(a); // note
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
     }
 
     #endregion // Tests

@@ -21,6 +21,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6005-002")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -38,6 +39,9 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6005-001")]
+    [Requirement("RH6005-003")]
+    [Requirement("RH6005-004")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -63,6 +67,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6005-002")]
     public async Task VerifyOperatorReferenceInsideCrefIsIgnored()
     {
         const string testData = """
@@ -72,6 +77,55 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
                                     /// See <see cref="operator+(TestClass, TestClass)"/>.
                                     /// </summary>
                                     public static TestClass operator +(TestClass left, TestClass right) => left;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment alone after the <c>operator</c> keyword of an operator and of a conversion operator
+    /// does not separate it, and that the fix inserts the space directly after the keyword, in front of the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6005-001")]
+    [Requirement("RH6005-003")]
+    [Requirement("RH6005-004")]
+    public async Task VerifyCommentAloneAfterOperatorKeywordIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public static TestClass {|#0:operator|}/* note */-(TestClass left, TestClass right) => left;
+
+                                    public static explicit {|#1:operator|}/* note */long(TestClass value) => 0;
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     public static TestClass operator /* note */-(TestClass left, TestClass right) => left;
+
+                                     public static explicit operator /* note */long(TestClass value) => 0;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the <c>operator</c> keyword of a conversion operator followed by one space is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6005-002")]
+    public async Task VerifyConversionOperatorFollowedBySpaceIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public static implicit operator int(TestClass value) => 0;
                                 }
                                 """;
 
