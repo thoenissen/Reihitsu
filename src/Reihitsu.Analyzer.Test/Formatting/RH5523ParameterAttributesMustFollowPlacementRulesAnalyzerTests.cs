@@ -23,6 +23,10 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("RH5523-002")]
+    [Requirement("RH5523-003")]
+    [Requirement("SHARED-ATTR-010")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -61,6 +65,7 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -84,6 +89,8 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -132,6 +139,8 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-005")]
     public async Task VerifyNoDiagnosticWhenCommentBlocksJoin()
     {
         const string testData = """
@@ -154,6 +163,8 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-005")]
     public async Task VerifyNoDiagnosticWhenTrailingCommentBlocksJoin()
     {
         const string testData = """
@@ -175,6 +186,7 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-ATTR-005")]
     public async Task VerifyNoCodeFixWhenTrailingCommentBlocksJoin()
     {
         const string testData = """
@@ -204,6 +216,8 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-005")]
     public async Task VerifyNoDiagnosticWhenDirectiveBlocksJoin()
     {
         const string testData = """
@@ -230,6 +244,9 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("RH5523-003")]
+    [Requirement("SHARED-ATTR-003")]
     public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeOnRecordParameter()
     {
         const string testData = """
@@ -268,6 +285,8 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-003")]
     public async Task VerifyNoDiagnosticForPropertyTargetedAttributeOnRecordParameterLine()
     {
         const string testData = """
@@ -291,6 +310,7 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-ATTR-005")]
     public async Task VerifyNoDiagnosticForPropertyTargetedAttributeFollowedByLineComment()
     {
         const string testData = """
@@ -303,6 +323,178 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : Ba
                                 {
                                 }
                                 sealed class ThirdAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a primary constructor parameter is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForPrimaryConstructorParameter()
+    {
+        const string testData = """
+                                internal class Example({|#0:[First]|}
+                                                       int value)
+                                {
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example([First] int value)
+                                 {
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a lambda parameter is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForLambdaParameter()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        System.Func<int, int> f = ({|#0:[First]|}
+                                                                   int value) => value;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M()
+                                     {
+                                         System.Func<int, int> f = ([First] int value) => value;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that only the property-targeted list of a record parameter that is separated from its parameter is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-003")]
+    [Requirement("SHARED-ATTR-004")]
+    public async Task VerifyDiagnosticAndCodeFixForPropertyTargetedAttributeInMultiParameterRecord()
+    {
+        const string testData = """
+                                internal sealed record Example({|#0:[property: First]|}
+                                                               int Id, [property: First] int Code);
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal sealed record Example([property: First] int Id, [property: First] int Code);
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces line breaks and blank lines between the lists and the parameter with single spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5523-003")]
+    [Requirement("SHARED-ATTR-010")]
+    public async Task VerifyCodeFixJoinsListsSeparatedByBlankLine()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M({|#0:[First]|}
+
+                                                    {|#1:[Second]|}
+                                                    int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M([First] [Second] int value) { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when disabled text lies between the attribute list and the parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5523-001")]
+    [Requirement("SHARED-ATTR-005")]
+    public async Task VerifyNoDiagnosticWhenDisabledTextBlocksJoin()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M([First]
+                                    #if FEATURE
+                                                    [Second]
+                                    #endif
+                                                    int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
                                 {
                                 }
                                 """;

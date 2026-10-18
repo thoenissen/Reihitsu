@@ -23,6 +23,9 @@ public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5509-001")]
+    [Requirement("RH5509-002")]
+    [Requirement("RH5509-003")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -55,6 +58,7 @@ public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5509-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -76,6 +80,8 @@ public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5509-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """

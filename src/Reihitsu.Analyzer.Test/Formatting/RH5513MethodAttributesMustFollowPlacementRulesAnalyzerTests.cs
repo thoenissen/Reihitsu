@@ -23,6 +23,9 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("RH5513-003")]
+    [Requirement("RH5513-004")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -63,6 +66,8 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-009")]
     public async Task VerifyCodeFixAlignsToAttributeListColumnInsideObjectInitializer()
     {
         const string testData = """
@@ -121,6 +126,8 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-009")]
     public async Task VerifyCodeFixAlignsToAttributeListColumnInsideAnonymousObject()
     {
         const string testData = """
@@ -169,6 +176,7 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5513-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -193,6 +201,8 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5513-005")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -231,6 +241,544 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a local function is checked and the fix indents at the block's depth
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-001")]
+    [Requirement("SHARED-ATTR-008")]
+    public async Task VerifyDiagnosticAndCodeFixForLocalFunction()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        {|#0:[First]|} void Local() { }
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M()
+                                     {
+                                         [First]
+                                         void Local() { }
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a lambda is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForLambda()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        System.Func<int> f = {|#0:[First]|} () => 1;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M()
+                                     {
+                                         System.Func<int> f = [First]
+                                         () => 1;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of an operator is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForOperator()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First]|} public static Example operator +(Example left, Example right) => left;
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     public static Example operator +(Example left, Example right) => left;
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a conversion operator is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForConversionOperator()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First]|} public static implicit operator int(Example value) => 0;
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     public static implicit operator int(Example value) => 0;
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a destructor is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForDestructor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First]|} ~Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     ~Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list with the type specifier on a method resolves to the method target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForTypeSpecifier()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[type: First]|} internal void M() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [type: First]
+                                     internal void M() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list with the method specifier on a property resolves to the method target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyDiagnosticAndCodeFixForMethodSpecifierOnProperty()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[method: First]|} internal int Value { get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [method: First]
+                                     internal int Value { get; set; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list with a specifier that is not an attribute target is not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyNoDiagnosticForUnknownSpecifier()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    [unknown: First] internal void M() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of an accessor is not checked, even though it resolves to the method target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-002")]
+    public async Task VerifyNoDiagnosticForAccessorAttributeList()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal int Value
+                                    {
+                                        [First] get;
+                                        set;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix indents at the nesting depth of a namespace and a type, and fixes every list of the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-003")]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-004")]
+    [Requirement("SHARED-ATTR-007")]
+    [Requirement("SHARED-ATTR-008")]
+    public async Task VerifyDiagnosticAndCodeFixForTwoListsInsideNamespace()
+    {
+        const string testData = """
+                                namespace Sample
+                                {
+                                    internal class Example
+                                    {
+                                        {|#0:[First]|} {|#1:[Second]|} internal void M() { }
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace Sample
+                                 {
+                                     internal class Example
+                                     {
+                                         [First]
+                                         [Second]
+                                         internal void M() { }
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix indents one level more inside the statements of a switch section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-008")]
+    public async Task VerifyCodeFixIndentsInsideSwitchSection()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {|#0:[First]|} void Local() { }
+                                                break;
+                                        }
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 [First]
+                                                 void Local() { }
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix indents one level more inside a block of a switch section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-008")]
+    public async Task VerifyCodeFixIndentsInsideBlockOfSwitchSection()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    {|#0:[First]|} void Local() { }
+                                                    break;
+                                                }
+                                        }
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 {
+                                                     [First]
+                                                     void Local() { }
+                                                     break;
+                                                 }
+                                         }
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix aligns with the declaration inside an array initializer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-009")]
+    public async Task VerifyCodeFixAlignsToDeclarationColumnInsideArrayInitializer()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private readonly System.Action[] _actions =
+                                    {
+                                        () =>
+                                        {
+                                                {|#0:[First]|} void Local()
+                                                {
+                                                }
+                                        }
+                                    };
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private readonly System.Action[] _actions =
+                                     {
+                                         () =>
+                                         {
+                                                 [First]
+                                                 void Local()
+                                                 {
+                                                 }
+                                         }
+                                     };
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment in front of the attribute list does not withhold the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-011")]
+    public async Task VerifyDiagnosticAndCodeFixWithDocumentationCommentInFrontOfList()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    /// <summary>M</summary>
+                                    {|#0:[First]|} internal void M() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /// <summary>M</summary>
+                                     [First]
+                                     internal void M() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
     }
 
     #endregion // Tests
