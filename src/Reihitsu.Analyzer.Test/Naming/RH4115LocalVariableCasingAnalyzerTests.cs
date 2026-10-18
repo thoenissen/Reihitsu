@@ -35,6 +35,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticsForLocalVariableAndReferenceAreFixed()
     {
         const string testCode = """
@@ -75,6 +77,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
     public async Task VerifyNoDiagnosticsForCamelCaseLocalVariable()
     {
         const string testCode = """
@@ -100,6 +103,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
     public async Task VerifyDiagnosticsForMultipleLocalVariables()
     {
         const string testCode = """
@@ -123,6 +127,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticForForEachVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -174,6 +180,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticForForInitializerVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -215,6 +223,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticForUsingStatementVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -262,6 +272,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticForFixedStatementVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -307,6 +319,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticForOutVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -347,6 +361,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticForPatternVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -393,6 +409,8 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-003")]
     public async Task VerifyDiagnosticForCatchVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -447,6 +465,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4115-002")]
     public async Task VerifyNoDiagnosticsForDeconstructionVariables()
     {
         const string testCode = """
@@ -1210,6 +1229,207 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                      fixedCode,
                      static config => config.NumberOfFixAllIterations = 1,
                      Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies every local declaration form of the rule is reported once per variable, while camelCase names and a catch clause without a variable are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-001")]
+    public async Task LocalVariablesOfEveryDeclarationFormAreChecked()
+    {
+        const string testCode = """
+                                using System;
+                                using System.IO;
+
+                                class C
+                                {
+                                    unsafe void M(object input, int[] values, (int, int) pair)
+                                    {
+                                        int {|RH4115:Count|} = 1, total = 2;
+                                        using var {|RH4115:Stream|} = new MemoryStream();
+
+                                        for (int {|RH4115:Index|} = 0; Index < 1; Index++)
+                                        {
+                                        }
+
+                                        foreach (var {|RH4115:Item|} in values)
+                                        {
+                                        }
+
+                                        using (var {|RH4115:Reader|} = new StringReader(""))
+                                        {
+                                        }
+
+                                        fixed (int* {|RH4115:Pointer|} = values)
+                                        {
+                                        }
+
+                                        int.TryParse("1", out var {|RH4115:Parsed|});
+
+                                        if (input is int {|RH4115:Number|})
+                                        {
+                                        }
+
+                                        if (input is string { Length: var {|RH4115:Size|} })
+                                        {
+                                        }
+
+                                        if (input is string { Length: > 0 } {|RH4115:Text|})
+                                        {
+                                        }
+
+                                        if (pair is (1, 2) {|RH4115:Both|})
+                                        {
+                                        }
+
+                                        if (values is [_, _] {|RH4115:Items|})
+                                        {
+                                        }
+
+                                        try
+                                        {
+                                        }
+                                        catch (Exception {|RH4115:Error|})
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies designations in switch cases, switch expression arms, slice patterns, await foreach, and field and constructor initializers are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-001")]
+    public async Task DesignationsInSwitchesInitializersAndSlicePatternsAreChecked()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Threading.Tasks;
+
+                                class Base
+                                {
+                                    public Base(int value)
+                                    {
+                                    }
+                                }
+
+                                class C : Base
+                                {
+                                    private static bool _parsed = int.TryParse("1", out var {|RH4115:Parsed|});
+
+                                    C()
+                                        : base(int.TryParse("2", out var {|RH4115:Initial|}) ? Initial : 0)
+                                    {
+                                    }
+
+                                    async Task M(object input, int[] values, IAsyncEnumerable<int> stream)
+                                    {
+                                        switch (input)
+                                        {
+                                            case long {|RH4115:Big|}:
+                                                break;
+                                        }
+
+                                        var text = input switch
+                                                   {
+                                                       int {|RH4115:Number|} => Number.ToString(),
+                                                       _ => string.Empty,
+                                                   };
+
+                                        await foreach (var {|RH4115:Element|} in stream)
+                                        {
+                                        }
+
+                                        if (values is [_, .. var {|RH4115:Rest|}])
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the variables of a var deconstruction are not reported, both as the target of an assignment and in a foreach statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-002")]
+    public async Task VariablesOfVarDeconstructionsAreNotChecked()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M((int, int) pair, List<(int, int)> pairs)
+                                    {
+                                        var (First, Second) = pair;
+
+                                        foreach (var (Key, Value) in pairs)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames local variables and every reference to them to the derived camelCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-003")]
+    public async Task FixRenamesLocalVariablesAndTheirReferencesToCamelCase()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int[] values)
+                                    {
+                                        var {|RH4115:Total|} = 0;
+
+                                        foreach (var {|RH4115:Current_Value|} in values)
+                                        {
+                                            Total += Current_Value;
+                                        }
+
+                                        return Total;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int[] values)
+                                     {
+                                         var total = 0;
+
+                                         foreach (var currentValue in values)
+                                         {
+                                             total += currentValue;
+                                         }
+
+                                         return total;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

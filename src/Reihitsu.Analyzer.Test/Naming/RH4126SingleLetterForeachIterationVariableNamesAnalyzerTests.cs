@@ -20,6 +20,8 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-SINGLE-002")]
+    [Requirement("RH4126-001")]
     public async Task VerifyDiagnosticForForeachIterationVariable()
     {
         const string testCode = """
@@ -44,6 +46,8 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-SINGLE-002")]
+    [Requirement("RH4126-001")]
     public async Task VerifyDiagnosticsForDeconstructedForeachIterationVariables()
     {
         const string testCode = """
@@ -68,6 +72,8 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-SINGLE-001")]
+    [Requirement("RH4126-001")]
     public async Task VerifyNoDiagnosticsForDescriptiveNameAndDiscardIdentifier()
     {
         const string testCode = """
@@ -96,6 +102,7 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4126-002")]
     public async Task VerifyNoDiagnosticsForRegularLocalVariables()
     {
         const string testCode = """
@@ -118,6 +125,8 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-SINGLE-002")]
+    [Requirement("RH4126-002")]
     public async Task VerifyNoDiagnosticsForDesignationsInForeachBody()
     {
         const string testCode = """
@@ -133,6 +142,111 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
                                             {
                                             }
                                         }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies single-letter iteration variables, including each variable of a deconstructing foreach statement, are reported, while descriptive names and discards are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4126-001")]
+    public async Task SingleLetterIterationVariablesAreReported()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(int[] values, List<(int, int)> pairs)
+                                    {
+                                        foreach (var {|RH4126:x|} in values)
+                                        {
+                                        }
+
+                                        foreach (var ({|RH4126:k|}, {|RH4126:v|}) in pairs)
+                                        {
+                                        }
+
+                                        foreach (var (key, _) in pairs)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the single variable, the variables of a var deconstruction, of a parenthesized deconstruction, and of a nested deconstruction of a foreach statement all count as iteration variables
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-SINGLE-002")]
+    [Requirement("RH4126-001")]
+    public async Task IterationVariablesOfEveryForeachFormAtAnyNestingDepthAreReported()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(List<(int, int)> pairs, List<(int, (int, int))> nested, int[] values)
+                                    {
+                                        foreach (var {|RH4126:x|} in values)
+                                        {
+                                        }
+
+                                        foreach (var ({|RH4126:k|}, {|RH4126:v|}) in pairs)
+                                        {
+                                        }
+
+                                        foreach ((var {|RH4126:a|}, var {|RH4126:b|}) in pairs)
+                                        {
+                                        }
+
+                                        foreach ((int {|RH4126:c|}, var ({|RH4126:d|}, {|RH4126:e|})) in nested)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies ordinary locals and variables declared in the collection expression or the body of a foreach statement are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4126-002")]
+    [Requirement("SHARED-SINGLE-002")]
+    public async Task LocalsOutsideTheIterationVariablesAreNotChecked()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = 0;
+
+                                        foreach (var item in Get(out var z))
+                                        {
+                                            var y = item;
+                                        }
+                                    }
+
+                                    int[] Get(out int count)
+                                    {
+                                        count = 0;
+
+                                        return [];
                                     }
                                 }
                                 """;

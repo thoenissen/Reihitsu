@@ -21,6 +21,8 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4114-001")]
+    [Requirement("RH4114-002")]
     public async Task VerifyDiagnosticsForPublicPropertyAndReferenceAreFixed()
     {
         const string testCode = """
@@ -61,6 +63,7 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4114-001")]
     public async Task VerifyNoDiagnosticsForPascalCasePublicProperty()
     {
         const string testCode = """
@@ -81,6 +84,8 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4114-001")]
+    [Requirement("RH4114-002")]
     public async Task VerifyDiagnosticsForExpressionBodiedPublicPropertyWrongCasing()
     {
         const string testCode = """
@@ -111,6 +116,8 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4114-001")]
+    [Requirement("RH4114-002")]
     public async Task VerifyImplicitlyPublicInterfacePropertyIsDetectedAndFixed()
     {
         const string testCode = """
@@ -135,6 +142,7 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4114-001")]
     public async Task VerifyNoDiagnosticsForImplicitClassProperty()
     {
         const string testCode = """
@@ -152,6 +160,8 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4114-001")]
+    [Requirement("RH4114-002")]
     public async Task VerifyInterfacePropertyOwnsExplicitImplementationCasing()
     {
         const string testCode = """
@@ -179,6 +189,185 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies interface, static interface, public, and static public properties are reported, while PascalCase names, explicit implementations, and other accessibility groups are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4114-001")]
+    public async Task PublicPropertiesOfEveryKindAreCheckedWhileOtherGroupsAreNot()
+    {
+        const string testCode = """
+                                public interface I
+                                {
+                                    int {|RH4114:value|} { get; }
+                                    static int {|RH4114:shared|} { get; set; }
+                                }
+
+                                public class C : I
+                                {
+                                    public int {|RH4114:count|} { get; set; }
+                                    public static int {|RH4114:instance_count|} => 0;
+                                    public int Limit { get; set; }
+                                    int I.value => 0;
+                                    int total { get; set; }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies abstract and virtual public properties are reported, and so are overrides and implicit interface implementations whose original definition is declared in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4114-001")]
+    public async Task AbstractVirtualOverridingAndImplementingPublicPropertiesAreChecked()
+    {
+        const string testCode = """
+                                public interface I
+                                {
+                                    int {|RH4114:size|} { get; }
+                                }
+
+                                public abstract class C
+                                {
+                                    public abstract int {|RH4114:row_count|} { get; }
+                                    public virtual int {|RH4114:column_count|} => 0;
+                                }
+
+                                public class D : C, I
+                                {
+                                    public override int {|RH4114:row_count|} => 1;
+                                    public int {|RH4114:size|} => 2;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies each part of a partial public property gets its own diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4114-001")]
+    public async Task PartialPublicPropertyIsReportedOnEachPart()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    public partial int {|RH4114:count|} { get; }
+                                }
+
+                                public partial class C
+                                {
+                                    public partial int {|RH4114:count|} => 0;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames public properties, every reference to them, and the explicit implementations of an interface property to the derived PascalCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4114-002")]
+    public async Task FixRenamesPublicPropertiesTheirReferencesAndExplicitImplementationsToPascalCase()
+    {
+        const string testCode = """
+                                public interface IResourceSettings
+                                {
+                                    int {|RH4114:resourceCount|} { get; }
+                                }
+
+                                public class ResourceSettings : IResourceSettings
+                                {
+                                    int IResourceSettings.resourceCount => 42;
+
+                                    public string {|RH4114:display_name|} { get; set; }
+
+                                    public int Length => display_name.Length;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IResourceSettings
+                                 {
+                                     int ResourceCount { get; }
+                                 }
+
+                                 public class ResourceSettings : IResourceSettings
+                                 {
+                                     int IResourceSettings.ResourceCount => 42;
+
+                                     public string DisplayName { get; set; }
+
+                                     public int Length => DisplayName.Length;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies renaming a public property also renames its implicit implementation or interface property and its overridden or overriding property in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4114-002")]
+    public async Task FixRenamesImplicitImplementationsAndOverridesOfPublicPropertiesInSource()
+    {
+        const string testCode = """
+                                public interface I
+                                {
+                                    int {|RH4114:value|} { get; }
+                                }
+
+                                public class C : I
+                                {
+                                    public int {|RH4114:value|} => 0;
+                                }
+
+                                public class B
+                                {
+                                    public virtual int {|RH4114:size|} => 0;
+                                }
+
+                                public class D : B
+                                {
+                                    public override int {|RH4114:size|} => 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface I
+                                 {
+                                     int Value { get; }
+                                 }
+
+                                 public class C : I
+                                 {
+                                     public int Value => 0;
+                                 }
+
+                                 public class B
+                                 {
+                                     public virtual int Size => 0;
+                                 }
+
+                                 public class D : B
+                                 {
+                                     public override int Size => 1;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
