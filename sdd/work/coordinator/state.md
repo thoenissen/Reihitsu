@@ -111,6 +111,8 @@ Round 2 rest decided: R2.2 b → #1082 (change: formatter drops final line break
 Round 3 decided (maintainer 2026-10-18): R3.1+R3.2 → bug #1084 (prefix doubling #1010, #1020; Unicode #1009 Q3); R3.3 Q2 + R3.4 → bugs #1085 (#1011 Q2, #1012 Q1); R3.3 Q3 a → change #1086; R3.5 Q1 exempt `_`, Q2 RH4115 stops checking local consts + NEW RULE for local consts (#1088), Q3/Q4 RH4117 owns all deconstruction vars → change #1087; R3.6 a + R3.7 → change #1089; R3.8 → cleanup #1090. Closing (agent): #1009, #1010, #1011, #1012, #1019, #1020, #1021, #1022, #1024 → 36 of 45 closed.
 Round 3 bookkeeping done (comments, 9 closed, #912 ticked, follow-up list posted). 36 of 45 closed.
 Round 4 put to maintainer (2026-10-18): P8 doc = what compiler produces (#1037 Q1/Q2/Q3a/Q5), R4.2 #1037 Q3b bug + Q4 static ctor private (change), R4.3 #1030 Q1=#1031 Q1 reading A, R4.4 #1029 align, R4.5 #1030 Q2–Q4 bugs, R4.6 #1058 Q1 a, Q2 b (+formatter), Q3 a clarification, R4.7 #1001 B (change), #1000 bug, #1062 bug, #1065 Q2 bug.
+Round 4 decided (maintainer 2026-10-18): P8 ok → #1091; #1037 Q3b bug + Q4 change → #1092; R4.3+R4.4 → #1093; R4.5 → #1094; #1001 B → #1095; #1000 + #1065 Q2 → #1096; #1062 → added to #1075. Closing (agent): #1000, #1001, #1029, #1030, #1031, #1037, #1062, #1065 → 44 of 45. Batches #983–#985 told about P8.
+Pending: R4.6 #1058 — maintainer asked for code examples (Q1+add, Q2, Q3).
 Round 4 issues: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
 Still open questions: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
 
