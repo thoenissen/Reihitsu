@@ -9,6 +9,7 @@ Inputs: thoenissen/Reihitsu#979, `00-lead.md`, `01-spec-author.md`, `02-skeptic.
 What was established:
 - All 36 new IDs are covered: `scripts/test.sh --project architecture --configuration Debug` → 72 passed, including `RequirementCoverageTests.EveryRequirementOfAnEnforcedSpecIsCovered`, which failed with all 36 IDs before this commit (see `01-spec-author.md`).
 - `scripts/test.sh --project analyzer --configuration Debug --filter "FullyQualifiedName~Naming.RH41"` → 327 passed, 0 failed.
+- `scripts/test.sh --project analyzer --configuration Debug` (whole project) → 4329 passed, 0 failed.
 - Every example block of every requirement of the 16 specs and of the shared spec has its own test (one test per example; one extra test where the requirement names a case its examples omit). Each "is not reported" block is a `Verify(source)` with no markup; each before/after pair is a `Verify(source, fixedSource)`, which also checks Fix All and re-analysis.
 - Sanity check of the markup approach: removing one marker from `IterationVariablesOfEveryForeachFormAtAnyNestingDepthAreReported` made it fail with "expected 7 actual 8" diagnostics; restored.
 - `scripts/format.sh` over the 16 files: formatted 0 of 16.
