@@ -112,13 +112,15 @@ Round 3 decided (maintainer 2026-10-18): R3.1+R3.2 → bug #1084 (prefix doublin
 Round 3 bookkeeping done (comments, 9 closed, #912 ticked, follow-up list posted). 36 of 45 closed.
 Round 4 put to maintainer (2026-10-18): P8 doc = what compiler produces (#1037 Q1/Q2/Q3a/Q5), R4.2 #1037 Q3b bug + Q4 static ctor private (change), R4.3 #1030 Q1=#1031 Q1 reading A, R4.4 #1029 align, R4.5 #1030 Q2–Q4 bugs, R4.6 #1058 Q1 a, Q2 b (+formatter), Q3 a clarification, R4.7 #1001 B (change), #1000 bug, #1062 bug, #1065 Q2 bug.
 Round 4 decided (maintainer 2026-10-18): P8 ok → #1091; #1037 Q3b bug + Q4 change → #1092; R4.3+R4.4 → #1093; R4.5 → #1094; #1001 B → #1095; #1000 + #1065 Q2 → #1096; #1062 → added to #1075. Closing (agent): #1000, #1001, #1029, #1030, #1031, #1037, #1062, #1065 → 44 of 45. Batches #983–#985 told about P8.
-Pending: R4.6 #1058 — maintainer asked for code examples (Q1+add, Q2, Q3).
+R4.6 #1058 decided: Q1 anchor model option 1 (any link anchors; comment between receiver and first link reported; links . ?. !. !?. ->; ?[0] not a link; postfix ++ not a link, RH5038 covers it, no new rule); Q3 is/as never binary operators (before: region rules report, after: RH5049); + && exemption stays → #1097. Q2 (b) extended: construct owns only inside braces/arms, incl. before `{`/`switch` reported, formatter FMT-BREAK-015 too → #1098. #1058 closed.
+QUESTION ROUND COMPLETE 2026-10-18: all 45 closed; follow-ups #1068–#1098; summary https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6254444639. Principles P1–P3, P5–P8 told to batches.
+Next: resume phase 4 batches (#981, #983, #984, #985, #987, #990–#997 unblocked; #939, #998 later) and run #1068, #1069 (spec issues the bug follow-ups depend on).
 Round 4 issues: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
 Still open questions: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1058 Q1–Q3, #1062 Q1, #1065 Q2.
 
 ## Waiting for maintainer
 
-- question round started 2026-10-18 (new chat). All six batches + #1008 merged. 45 open question issues: #1000, #1001, #1009–#1014, #1019–#1027, #1029–#1031, #1037–#1052, #1058–#1066. Inventory in progress.
+- maintainer: choose next batches / whether to run #1068, #1069 now
 
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
