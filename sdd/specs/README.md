@@ -25,10 +25,12 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
+| [shared/operator-spacing.md](shared/operator-spacing.md) | SHARED-OPSPACE | `OperatorSpacingCodeFixProviderBase` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
 | [shared/region-directive-blank-lines.md](shared/region-directive-blank-lines.md) | SHARED-REGION | `RegionDirectiveBlankLineAnalyzerBase`, `RegionDirectiveBlankLineCodeFixProviderBase` |
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
 | [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
+| [shared/token-gap-fixes.md](shared/token-gap-fixes.md) | SHARED-GAP | `CommentSafeSpanReplacementCodeFixProviderBase` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
 | [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
@@ -151,6 +153,18 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH6010.md](analyzer/RH6010.md) | RH6010 | `RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer`, `RH6010ClosingBracesMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH6011.md](analyzer/RH6011.md) | RH6011 | `RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH6012.md](analyzer/RH6012.md) | RH6012 | `RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6012ClosingGenericBracketsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6013.md](analyzer/RH6013.md) | RH6013 | `RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6014.md](analyzer/RH6014.md) | RH6014 | `RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6015.md](analyzer/RH6015.md) | RH6015 | `RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer`, `RH6015NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider` |
+| [analyzer/RH6016.md](analyzer/RH6016.md) | RH6016 | `RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer`, `RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6017.md](analyzer/RH6017.md) | RH6017 | `RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer`, `RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6018.md](analyzer/RH6018.md) | RH6018 | `RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer`, `RH6018NegativeSignsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6019.md](analyzer/RH6019.md) | RH6019 | `RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer`, `RH6019PositiveSignsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6020.md](analyzer/RH6020.md) | RH6020 | `RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer`, `RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6021.md](analyzer/RH6021.md) | RH6021 | `RH6021ColonsMustBeSpacedCorrectlyAnalyzer`, `RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6022.md](analyzer/RH6022.md) | RH6022 | `RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer`, `RH6022NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider` |
+| [analyzer/RH6023.md](analyzer/RH6023.md) | RH6023 | `RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer`, `RH6023AssignmentOperatorsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6024.md](analyzer/RH6024.md) | RH6024 | `RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer`, `RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH7103.md](analyzer/RH7103.md) | RH7103 | `RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer`, `RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider` |
 | [analyzer/RH8001.md](analyzer/RH8001.md) | RH8001 | `RH8001NonPrivateClassesMustBeDocumentedAnalyzer` |
 | [analyzer/RH8002.md](analyzer/RH8002.md) | RH8002 | `RH8002PrivateClassesMustBeDocumentedAnalyzer` |
