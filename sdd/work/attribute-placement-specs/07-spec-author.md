@@ -40,3 +40,21 @@ None. No requirement changed.
 _None._
 
 Note for the lead: question 1 in thoenissen/Reihitsu#1029 cites the RH5530 page's old *Exceptions* text ("A property whose declaration is single line … is never reported") as documented support for reading (b). That sentence is no longer on the page. The issue may want a comment saying the page now stays silent on that case until the question is decided, and that reading (b) would bring the sentence back.
+
+## Amendment (same repair round)
+
+At the coordinator's direction, the RH5530 page's single-line exemption is restored. Removing it was out of scope.
+
+Why it belongs on the page:
+- Finding 1 asked only for the accessor kinds in the Description.
+- The removed sentence was a true statement of current behavior.
+- thoenissen/Reihitsu#1029 cites it.
+- `sdd/README.md` keeps open cases out of the spec, not out of a correct user page. A page that states a case the spec leaves unstated does not contradict the spec.
+
+Final state of `documentation/rules/RH5530.md`:
+- **Description:** keeps the finding-1 fix, naming properties, indexers, and events and `get`, `set`, `init`, `add`, and `remove`. It again ends with the single-line sentence, widened from "a property" to "a property, indexer, or event" and from "property-level attribute list" to "attribute list of its own". That matches current behavior: `IsAttributeListOnSingleLinePropertyAccessor` covers every `BasePropertyDeclarationSyntax`. The single-line indexer and event shapes are confirmed by the RH5530 tests `VerifyNoDiagnosticForSingleLineIndexerAccessorAttributeWithPropertyAttribute` and `VerifyNoDiagnosticForSingleLineEventAccessorAttributeWithPropertyAttribute`, and by the probes in 02 and 03.
+- **Exceptions:** restored with the original text, as one bullet, with the same widening.
+
+The RH5527 Exceptions section stays as written. The note for the lead about #1029 above no longer applies, because the cited sentence is back.
+
+`RuleDocumentationConventionTests` and `RuleDocumentationExampleTests`: Passed, 5 of 5.
