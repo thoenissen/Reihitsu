@@ -28,3 +28,9 @@ Roles skipped: implementer (no production code in this lane), auditor (the lane 
 ## Open-question issues on touched specs
 
 None open for `sdd/specs/formatter/line-breaks.md` (thoenissen/Reihitsu#918 is closed); the shared spec and the 15 analyzer specs are new.
+
+## Run log
+
+- 01 spec author: spec written. 02 skeptic: proceed narrower, six findings routed back to the spec author. 03 spec author: all findings resolved by clarification; no requirement ID changed.
+- Open questions filed as sub-issues of thoenissen/Reihitsu#912: thoenissen/Reihitsu#1029 (`sdd/specs/analyzer/RH5530.md`, Q1), thoenissen/Reihitsu#1030 (`sdd/specs/shared/attribute-targets.md`, Q1–Q4), thoenissen/Reihitsu#1031 (`sdd/specs/formatter/line-breaks.md`, Q1).
+- Follow-up candidates (not created; need maintainer approval): the scope of `HasIncompleteEnclosingScope`; `AttributeTargetUtilities` as a code owner of the shared spec; the LineBreakPhase/IndentationPhase back-and-forth on a lambda attribute in `scripts/trace.sh`.
