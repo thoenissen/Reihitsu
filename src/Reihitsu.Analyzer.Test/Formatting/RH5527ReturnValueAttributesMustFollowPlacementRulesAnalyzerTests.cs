@@ -23,6 +23,10 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("RH5527-002")]
+    [Requirement("RH5527-003")]
+    [Requirement("SHARED-ATTR-002")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -63,6 +67,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-003")]
+    [Requirement("SHARED-ATTR-009")]
     public async Task VerifyCodeFixAlignsToAttributeListColumnInsideObjectInitializer()
     {
         const string testData = """
@@ -115,6 +121,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -139,6 +146,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -184,6 +193,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessor()
     {
         const string testData = """
@@ -207,6 +218,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorCrLf()
     {
         const string testData = """
@@ -230,6 +243,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLineInterfacePropertyAccessor()
     {
         const string testData = """
@@ -253,6 +268,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithInitializer()
     {
         const string testData = """
@@ -276,6 +293,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithTrailingComment()
     {
         const string testData = """
@@ -299,6 +318,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorBelowPropertyAttributeList()
     {
         const string testData = """
@@ -323,6 +344,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithExpressionBody()
     {
         const string testData = """
@@ -361,6 +384,8 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyDiagnosticForReturnSpecifierOnSingleLinePropertyAccessorWithCommentInsideAccessorList()
     {
         const string testData = """
@@ -399,6 +424,10 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("RH5527-003")]
+    [Requirement("SHARED-ATTR-006")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyDiagnosticForReturnSpecifierOnMultiLinePropertyAccessor()
     {
         const string testData = """
@@ -468,6 +497,158 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a return-value attribute list of a local function is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyDiagnosticAndCodeFixForLocalFunction()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        {|#0:[return: First]|} int Local() => 1;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M()
+                                     {
+                                         [return: First]
+                                         int Local() => 1;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a return-value attribute list of a lambda is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyDiagnosticAndCodeFixForLambda()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M()
+                                    {
+                                        System.Func<int> f = {|#0:[return: First]|} () => 1;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void M()
+                                     {
+                                         System.Func<int> f = [return: First]
+                                         () => 1;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a return-value attribute list of a delegate is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyDiagnosticAndCodeFixForDelegate()
+    {
+        const string testData = """
+                                {|#0:[return: First]|} internal delegate int ExampleDelegate();
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [return: First]
+                                 internal delegate int ExampleDelegate();
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a method attribute list without the return specifier is left to the method rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyNoDiagnosticForMethodAttributeWithoutReturnSpecifier()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    [First] internal int M() => 0;
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a return specifier on a parameter is not checked, because a list of a parameter resolves to the parameter target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5527-001")]
+    [Requirement("SHARED-ATTR-003")]
+    public async Task VerifyNoDiagnosticForReturnSpecifierOnParameter()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M([return: First] int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

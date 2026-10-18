@@ -20,6 +20,9 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("RH8016-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForPrivateDelegateWithoutDocumentation()
     {
         const string source = """
@@ -40,6 +43,9 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("RH8016-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForPrivateDelegateWithRemarksButNoSummary()
     {
         const string source = """
@@ -61,6 +67,8 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("RH8016-002")]
     public async Task VerifyDiagnosticForPrivateGenericDelegateWithoutDocumentation()
     {
         const string source = """
@@ -81,6 +89,8 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("RH8016-002")]
     public async Task VerifyDiagnosticForPrivateDelegateWithParametersWithoutDocumentation()
     {
         const string source = """
@@ -96,6 +106,29 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
         await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8016MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented generic delegate without an access modifier in a class, located on its name without the type parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("RH8016-002")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticForGenericDelegateWithoutModifierInClass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  delegate T {|#0:Factory|}<T>();
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8016MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -105,6 +138,8 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateDelegateWithSummary()
     {
         const string source = """
@@ -126,6 +161,8 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateDelegateWithInheritdoc()
     {
         const string source = """
@@ -153,6 +190,8 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForUndocumentedInternalDelegate()
     {
         const string source = """
@@ -169,6 +208,8 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8016-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """

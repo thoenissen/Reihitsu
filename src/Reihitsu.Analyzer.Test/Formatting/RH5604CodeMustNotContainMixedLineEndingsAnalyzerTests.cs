@@ -1,6 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -22,6 +28,9 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-004")]
+    [Requirement("RH5604-005")]
     public async Task VerifyMixedLineEndingsAreDetectedAndFixed()
     {
         const string testData = "internal class TestClass\r\n{\n    void Method()\r\n    {\r\n    }\r\n}";
@@ -35,6 +44,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     public async Task VerifyMixedLineEndingsInsideXmlDocumentationAreDetectedAndFixed()
     {
         const string testData = "{|#0:/// <summary>\r\n|}"
@@ -62,6 +73,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     public async Task VerifyLfInsideXmlDocumentationIsDetectedWhenCrLfIsPredominant()
     {
         const string testData = "{|#0:/// <summary>\n|}"
@@ -114,6 +127,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     public async Task VerifyCrLfWinsTieIncludingXmlDocumentationLineEnding()
     {
         const string testData = "{|#0:/// Documentation\n|}"
@@ -131,6 +146,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-002")]
     public async Task VerifyNoDiagnosticsWhenOnlyXmlDocumentationLineEndingsAreUniform()
     {
         const string testData = "/// <summary>\n"
@@ -146,6 +162,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-002")]
     public async Task VerifyNoDiagnosticsWhenFileUsesLfOnly()
     {
         const string testData = "internal class TestClass\n"
@@ -163,6 +180,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-002")]
     public async Task VerifyNoDiagnosticsWhenFileUsesCrLfOnly()
     {
         const string testData = "internal class TestClass\r\n"
@@ -180,6 +198,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-004")]
     public async Task VerifyCrLfLineEndingsAreDetectedWhenLfIsPredominant()
     {
         const string testData = "{|#0:internal class TestClass\r\n|}"
@@ -197,6 +217,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-004")]
     public async Task VerifyLfLineEndingsAreDetectedWhenCrLfIsPredominant()
     {
         const string testData = "internal class TestClass\r\n"
@@ -210,11 +232,14 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that ties use the first encountered line ending as the predominant style
+    /// Verifies that CRLF is the predominant line ending on a tie when it is also the line ending encountered first,
+    /// so the LF line is reported. <see cref="VerifyCrLfWinsTieWhenLfIsEncounteredFirst"/> separates the CRLF tie
+    /// rule from a "first encountered wins" rule
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFirstEncounteredLineEndingWinsWhenCountsAreTied()
+    [Requirement("RH5604-001")]
+    public async Task VerifyCrLfWinsTieWhenItIsEncounteredFirst()
     {
         const string testData = "internal class TestClass\r\n"
                                 + "{|#0:{\n|}"
@@ -224,10 +249,32 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
+    /// Verifies that CRLF is the predominant line ending on a tie even when LF is the line ending encountered first,
+    /// so the first line is reported and the fix converts it to CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-004")]
+    [Requirement("RH5604-005")]
+    public async Task VerifyCrLfWinsTieWhenLfIsEncounteredFirst()
+    {
+        const string testData = "{|#0:internal class TestClass\n|}"
+                                + "{\r\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\r\n"
+                                 + "{\r\n"
+                                 + "}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that line endings embedded in verbatim strings do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-003")]
     public async Task VerifyLineEndingsInsideVerbatimStringsDoNotProduceDiagnostics()
     {
         const string testData = "internal class TestClass\r\n"
@@ -243,6 +290,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-003")]
     public async Task VerifyLineEndingsInsideRawStringsDoNotProduceDiagnostics()
     {
         const string testData = "internal class TestClass\r\n"
@@ -297,6 +345,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     public async Task VerifyMixedLineEndingsInsideDelimitedXmlDocumentationAreDetectedAndFixed()
     {
         const string testData = "/** <summary>\n"
@@ -353,6 +403,91 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
                                 + "}";
 
         await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the line break that ends a directive is counted and reported like any other line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-004")]
+    public async Task VerifyLfAtTheEndOfADirectiveIsDetectedWhenCrLfIsPredominant()
+    {
+        const string testData = "internal class TestClass\r\n"
+                                + "{\r\n"
+                                + "{|#0:#pragma warning disable CS0168\n|}"
+                                + "    int _value;\r\n"
+                                + "#pragma warning restore CS0168\r\n"
+                                + "}";
+
+        await Verify(testData,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that line breaks in the text of an interpolated verbatim string literal are neither reported nor counted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-003")]
+    public async Task VerifyLineEndingsInsideInterpolatedVerbatimStringsDoNotProduceDiagnostics()
+    {
+        const string testData = "internal class TestClass\r\n"
+                                + "{\r\n"
+                                + "    string Value = $@\"line1\n{1}\nline3\n\";\r\n"
+                                + "}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that one application of the code fix converts every differing line ending of the file — between
+    /// tokens and inside documentation comments — to the predominant one, whichever diagnostic it is applied to,
+    /// and leaves the line breaks inside a string literal unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-005")]
+    public async Task VerifyCodeFixConvertsEveryLineEndingWhicheverDiagnosticItIsAppliedTo()
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\r\n"
+                                + "    int _value;\n"
+                                + "    /// <summary>\r\n"
+                                + "    /// Gets the value.\n"
+                                + "    /// </summary>\n"
+                                + "    int Value => _value;\n"
+                                + "    string _text = @\"a\r\nb\";\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    int _value;\n"
+                                 + "    /// <summary>\n"
+                                 + "    /// Gets the value.\n"
+                                 + "    /// </summary>\n"
+                                 + "    int Value => _value;\n"
+                                 + "    string _text = @\"a\r\nb\";\n"
+                                 + "}";
+
+        var firstLineStart = testData.IndexOf("{\r\n", StringComparison.Ordinal);
+        var secondLineStart = testData.IndexOf("    /// <summary>\r\n", StringComparison.Ordinal);
+
+        foreach (var span in new[] { new TextSpan(firstLineStart, "{\r\n".Length), new TextSpan(secondLineStart, "    /// <summary>\r\n".Length) })
+        {
+            var actions = await GetCodeFixActionsAsync(testData,
+                                                       RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId,
+                                                       root => Location.Create(root.SyntaxTree, span));
+
+            Assert.HasCount(1, actions);
+
+            var operations = await actions[0].GetOperationsAsync(CancellationToken.None);
+            var changedDocument = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution.Projects.Single().Documents.Single();
+            var changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+
+            Assert.AreEqual(fixedData, changedText, $"Applying the fix to the diagnostic at {span} must convert every differing line ending of the file.");
+        }
     }
 
     #endregion // Tests

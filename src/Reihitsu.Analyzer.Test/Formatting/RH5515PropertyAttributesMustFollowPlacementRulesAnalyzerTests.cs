@@ -23,6 +23,9 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5515-001")]
+    [Requirement("RH5515-002")]
+    [Requirement("RH5515-003")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -61,6 +64,7 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5515-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -85,6 +89,8 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5515-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -130,6 +136,8 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5515-001")]
+    [Requirement("SHARED-ATTR-003")]
     public async Task VerifyNoDiagnosticForPropertyTargetedAttributeOnRecordParameter()
     {
         const string testData = """
@@ -153,6 +161,8 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5515-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForPropertySpecifierOnSingleLinePropertyAccessor()
     {
         const string testData = """
@@ -169,6 +179,40 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of an indexer is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5515-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForIndexer()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First]|} internal int this[int index] => index;
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     internal int this[int index] => index;
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5515PropertyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5515MessageFormat));
     }
 
     #endregion // Tests

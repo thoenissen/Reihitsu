@@ -21,6 +21,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6009-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -43,6 +44,9 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6009-001")]
+    [Requirement("RH6009-003")]
+    [Requirement("RH6009-004")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -66,6 +70,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6009-002")]
     public async Task VerifyInterpolatedStringsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -75,6 +80,85 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                     {
                                         return $"Value: {value}";
                                     }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the opening braces of a method body, an array initializer, a property pattern, and a switch
+    /// expression glued to the character before them are reported on the brace and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6009-001")]
+    [Requirement("RH6009-003")]
+    [Requirement("RH6009-004")]
+    public async Task VerifyOpeningBracesOfOtherConstructsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(object o, int a){|#0:{|}
+                                        var x = new int[]{|#1:{|}1 };
+                                        var b = o is TestClass{|#2:{|} };
+                                        var c = a switch{|#3:{|} _ => 1 };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(object o, int a) {
+                                         var x = new int[] {1 };
+                                         var b = o is TestClass { };
+                                         var c = a switch { _ => 1 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that an opening brace directly after a block comment is reported, and that the fix inserts the space
+    /// between the comment and the brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6009-001")]
+    [Requirement("RH6009-004")]
+    public async Task VerifyOpeningBraceAfterBlockCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Property/* note */{|#0:{|} get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Property/* note */ { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an opening brace preceded by several spaces is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6009-001")]
+    public async Task VerifyOpeningBracePrecededBySeveralSpacesIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Property  { get; set; }
                                 }
                                 """;
 

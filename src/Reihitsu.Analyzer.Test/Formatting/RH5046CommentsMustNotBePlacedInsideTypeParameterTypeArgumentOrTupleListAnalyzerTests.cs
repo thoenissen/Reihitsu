@@ -20,6 +20,8 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5046-001")]
+    [Requirement("SHARED-COMMENT-005")]
     public async Task VerifyCommentInTypeArgumentListIsReported()
     {
         const string testData = """
@@ -48,6 +50,8 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5046-001")]
+    [Requirement("SHARED-COMMENT-005")]
     public async Task VerifyCommentInTypeParameterListIsReported()
     {
         const string testData = """
@@ -67,6 +71,8 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5046-001")]
+    [Requirement("SHARED-COMMENT-003")]
     public async Task VerifyCommentInTupleTypeIsReported()
     {
         const string testData = """
@@ -84,6 +90,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5046-001")]
     public async Task VerifyCommentInMethodTypeArgumentListIsReported()
     {
         const string testData = """
@@ -108,6 +115,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5046-001")]
     public async Task VerifyNoDiagnosticForTupleExpression()
     {
         const string testData = """
@@ -133,6 +141,8 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5046-001")]
+    [Requirement("SHARED-COMMENT-004")]
     public async Task VerifyNoDiagnosticForCommentBeforeTypeArgumentList()
     {
         const string testData = """
@@ -159,6 +169,8 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5046-001")]
+    [Requirement("SHARED-COMMENT-004")]
     public async Task VerifyNoDiagnosticForCommentBeforeConstraintClause()
     {
         const string testData = """
@@ -170,6 +182,33 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in a type argument list is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5046-001")]
+    public async Task VerifyCommentInTypeArgumentListIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var map = new Dictionary<
+                                            {|#0:// key|}
+                                            string,
+                                            int>();
+                                        _ = map;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
     }
 
     #endregion // Tests

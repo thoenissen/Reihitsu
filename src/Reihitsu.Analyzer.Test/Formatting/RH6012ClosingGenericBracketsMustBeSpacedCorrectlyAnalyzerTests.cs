@@ -46,6 +46,10 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
+    [Requirement("RH6012-003")]
+    [Requirement("RH6012-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -77,6 +81,8 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
+    [Requirement("RH6012-004")]
     public async Task VerifyTypeParameterListIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -104,6 +110,8 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
+    [Requirement("RH6012-004")]
     public async Task VerifyTabBeforeClosingGenericBracketIsDetectedAndFixed()
     {
         const string testData = """
@@ -130,6 +138,10 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
+    [Requirement("RH6012-003")]
+    [Requirement("RH6012-004")]
+    [Requirement("SHARED-WS-002")]
     public async Task VerifyFixIsNotOfferedForSameLineClosingGenericBracketWithPrecedingComment()
     {
         const string testData = """
@@ -165,6 +177,10 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
+    [Requirement("RH6012-003")]
+    [Requirement("RH6012-004")]
+    [Requirement("SHARED-WS-002")]
     public async Task VerifyFixIsNotOfferedForSameLineClosingGenericBracketWithPrecedingCommentCarriageReturnLineFeed()
     {
         const string testData = """
@@ -272,6 +288,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
     public async Task VerifyContinuationLineClosingGenericBracketDoesNotProduceDiagnostic()
     {
         const string testData = """
@@ -291,6 +308,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
     public async Task VerifyContinuationLineClosingGenericBracketDoesNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -310,6 +328,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingGenericBracketDoNotProduceDiagnostic()
     {
         const string testData = """
@@ -332,6 +351,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-001")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineClosingGenericBracketDoNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -356,6 +376,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6012-002")]
     public async Task VerifySpaceBeforeClosingGenericBracketInsideCrefIsIgnored()
     {
         const string testData = """
@@ -374,6 +395,43 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace before the closing bracket of a nested type argument list and of an unbound generic
+    /// type is reported once per bracket and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6012-001")]
+    [Requirement("RH6012-003")]
+    [Requirement("RH6012-004")]
+    public async Task VerifyNestedAndUnboundGenericClosingBracketsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class TestClass
+                                {
+                                    void Method(List<List<int>{|#0: |}> values)
+                                    {
+                                        var type = typeof(Dictionary<,{|#1: |}>);
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class TestClass
+                                 {
+                                     void Method(List<List<int>> values)
+                                     {
+                                         var type = typeof(Dictionary<,>);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat, 2));
     }
 
     #endregion // Tests

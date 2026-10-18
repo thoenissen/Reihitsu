@@ -23,6 +23,9 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5507-001")]
+    [Requirement("RH5507-002")]
+    [Requirement("RH5507-003")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -55,6 +58,7 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5507-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -76,6 +80,8 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5507-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -108,6 +114,34 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : Batch
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a record struct is checked as a struct attribute list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5507-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForRecordStruct()
+    {
+        const string testData = """
+                                {|#0:[First]|} internal record struct Example;
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [First]
+                                 internal record struct Example;
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5507StructAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5507MessageFormat));
     }
 
     #endregion // Tests

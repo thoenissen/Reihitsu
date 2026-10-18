@@ -20,6 +20,7 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5037-001")]
     public async Task VerifyCommentBeforeElseIsReported()
     {
         const string testData = """
@@ -48,6 +49,7 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5037-001")]
     public async Task VerifyCommentBeforeCatchIsReported()
     {
         const string testData = """
@@ -78,6 +80,7 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5037-001")]
     public async Task VerifyCommentBeforeFinallyIsReported()
     {
         const string testData = """
@@ -106,6 +109,7 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5037-001")]
     public async Task VerifyCommentBeforeDoWhileIsReported()
     {
         const string testData = """
@@ -132,6 +136,8 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5037-001")]
+    [Requirement("SHARED-COMMENT-003")]
     public async Task VerifySameLineCommentBeforeElseIsReported()
     {
         const string testData = """
@@ -159,6 +165,7 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5037-001")]
     public async Task VerifyNoDiagnosticForCommentInsideElseBlock()
     {
         const string testData = """
@@ -188,6 +195,7 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5037-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeFollowingStatement()
     {
         const string testData = """
@@ -236,6 +244,118 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzerTests 
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the else of an else-if chain is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5037-001")]
+    public async Task VerifyCommentBeforeElseIfIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b)
+                                    {
+                                        if (a)
+                                        {
+                                        }
+                                        {|#0:// otherwise|}
+                                        else if (b)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzer.DiagnosticId, AnalyzerResources.RH5037MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment after the else keyword is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5037-001")]
+    public async Task VerifyNoDiagnosticForCommentAfterElseKeyword()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a)
+                                    {
+                                        if (a)
+                                        {
+                                        }
+                                        else /* otherwise */
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment before the second catch clause is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5037-001")]
+    public async Task VerifyCommentBeforeSecondCatchIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        catch (InvalidOperationException)
+                                        {
+                                        }
+                                        {|#0:// any other failure|}
+                                        catch (Exception)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzer.DiagnosticId, AnalyzerResources.RH5037MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment before else is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5037-001")]
+    public async Task VerifyCommentBeforeElseIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a)
+                                    {
+                                        if (a)
+                                        {
+                                        }
+                                        {|#0:// otherwise|}
+                                        else
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzer.DiagnosticId, AnalyzerResources.RH5037MessageFormat));
     }
 
     #endregion // Tests

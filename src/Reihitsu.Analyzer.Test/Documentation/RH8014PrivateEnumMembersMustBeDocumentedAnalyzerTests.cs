@@ -20,6 +20,9 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("RH8014-002")]
+    [Requirement("SHARED-DOC-003")]
     public async Task VerifyDiagnosticForEnumMemberInPrivateEnumWithoutDocumentation()
     {
         const string source = """
@@ -42,6 +45,9 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("RH8014-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForEnumMemberInPrivateEnumWithRemarksButNoSummary()
     {
         const string source = """
@@ -66,6 +72,8 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("RH8014-002")]
     public async Task VerifyDiagnosticForMultipleUndocumentedMembersInPrivateEnum()
     {
         const string source = """
@@ -91,6 +99,9 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("RH8014-002")]
+    [Requirement("SHARED-DOC-003")]
     public async Task VerifyDiagnosticForEnumMemberInDeeplyNestedPrivateEnum()
     {
         const string source = """
@@ -113,6 +124,56 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
         await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented enum member with a value in a private enum, located on its name without the value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("RH8014-002")]
+    public async Task VerifyDiagnosticForEnumMemberWithValueInPrivateEnum()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  private enum Hidden
+                                  {
+                                      {|#0:Second|} = 2,
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented member of an enum without an access modifier in a class, which belongs to the private group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("SHARED-DOC-003")]
+    public async Task VerifyDiagnosticForMemberOfEnumWithoutModifierInClass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  enum Implicit
+                                  {
+                                      {|#0:Value|},
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -122,6 +183,8 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForEnumMemberWithSummaryInPrivateEnum()
     {
         const string source = """
@@ -146,6 +209,8 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForEnumMemberWithInheritdocInPrivateEnum()
     {
         const string source = """
@@ -176,6 +241,8 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("SHARED-DOC-003")]
     public async Task VerifyNoDiagnosticForUndocumentedMemberInInternalEnum()
     {
         const string source = """
@@ -199,6 +266,8 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8014-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """

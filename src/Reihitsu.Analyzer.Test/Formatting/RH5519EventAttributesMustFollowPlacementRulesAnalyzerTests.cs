@@ -23,6 +23,9 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5519-001")]
+    [Requirement("RH5519-002")]
+    [Requirement("RH5519-003")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -61,6 +64,7 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5519-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -85,6 +89,8 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5519-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -130,6 +136,8 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5519-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForEventSpecifierOnSingleLinePropertyAccessor()
     {
         const string testData = """
@@ -146,6 +154,56 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of an event with accessors is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5519-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForEventWithAccessors()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First]|} internal event System.Action Changed
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     internal event System.Action Changed
+                                     {
+                                         add
+                                         {
+                                         }
+                                         remove
+                                         {
+                                         }
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5519MessageFormat));
     }
 
     #endregion // Tests

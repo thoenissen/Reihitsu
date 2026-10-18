@@ -20,6 +20,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4124-001")]
     public async Task VerifyDiagnosticForSimpleLambdaParameter()
     {
         const string testCode = """
@@ -44,6 +45,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4124-001")]
     public async Task VerifyDiagnosticsForParenthesizedLambdaAndAnonymousMethodParameters()
     {
         const string testCode = """
@@ -69,6 +71,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4124-001")]
     public async Task VerifyNoDiagnosticsForDescriptiveNamesAndDiscardIdentifier()
     {
         const string testCode = """
@@ -94,6 +97,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4124-002")]
     public async Task VerifyNoDiagnosticsForOtherParameterKinds()
     {
         const string testCode = """
@@ -104,6 +108,54 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzerTes
                                     public void Process(int p)
                                     {
                                         static int Double(int n) => n * 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies single-letter parameters of simple lambdas, parenthesized lambdas, and anonymous methods are reported, while discards and descriptive names are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4124-001")]
+    public async Task SingleLetterLambdaAndAnonymousMethodParametersAreReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> f = {|RH4124:x|} => x;
+                                        Func<int, int, int> g = ({|RH4124:a|}, {|RH4124:B|}) => a + B;
+                                        Action<int> h = delegate (int {|RH4124:v|}) { };
+                                        Func<int, int, int> i = (_, _) => 0;
+                                        Func<int, int> j = value => value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies single-letter parameters of a method and a local function are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4124-002")]
+    public async Task MethodAndLocalFunctionParametersAreNotChecked()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        int Local(int b) => b;
                                     }
                                 }
                                 """;

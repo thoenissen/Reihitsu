@@ -20,6 +20,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentInForHeaderIsReported()
     {
         const string testData = """
@@ -46,6 +48,9 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-003")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentBetweenIfKeywordAndConditionIsReported()
     {
         const string testData = """
@@ -70,6 +75,9 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-004")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentInWhileHeaderIsReported()
     {
         const string testData = """
@@ -97,6 +105,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentInForeachHeaderIsReported()
     {
         const string testData = """
@@ -121,6 +131,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentInUsingHeaderIsReported()
     {
         const string testData = """
@@ -149,6 +161,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentInLockHeaderIsReported()
     {
         const string testData = """
@@ -173,6 +187,7 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-008")]
     public async Task VerifyCommentAfterBinaryOperatorInHeaderIsReported()
     {
         const string testData = """
@@ -199,6 +214,7 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-007")]
     public async Task VerifyCommentBeforePatternIsKeywordIsReported()
     {
         const string testData = """
@@ -225,6 +241,7 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-007")]
     public async Task VerifyCommentBeforePatternCombinatorIsReported()
     {
         const string testData = """
@@ -251,6 +268,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-007")]
+    [Requirement("SHARED-COMMENT-008")]
     public async Task VerifyNoDiagnosticForCommentBeforeBinaryOperatorInHeader()
     {
         const string testData = """
@@ -277,6 +296,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-007")]
+    [Requirement("SHARED-COMMENT-008")]
     public async Task VerifyNoDiagnosticForCommentBeforeTypeTestInHeader()
     {
         const string testData = """
@@ -303,6 +324,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyNoDiagnosticForCommentInSwitchHeader()
     {
         const string testData = """
@@ -331,6 +354,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-004")]
     public async Task VerifyNoDiagnosticForCommentBeforeIfStatement()
     {
         const string testData = """
@@ -356,6 +381,7 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-006")]
     public async Task VerifyNoDiagnosticForStatementInLambdaBlockInHeader()
     {
         const string testData = """
@@ -386,6 +412,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyNoDiagnosticForCommentInBody()
     {
         const string testData = """
@@ -412,6 +440,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentBetweenAwaitAndForeachIsReported()
     {
         const string testData = """
@@ -437,6 +467,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentBetweenAwaitAndUsingIsReported()
     {
         const string testData = """
@@ -462,6 +494,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
     public async Task VerifyCommentInFixedHeaderIsReported()
     {
         const string testData = """
@@ -484,6 +518,8 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-004")]
     public async Task VerifyNoDiagnosticForCommentBetweenHeaderAndBody()
     {
         const string testData = """
@@ -509,6 +545,7 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-006")]
     public async Task VerifyNoDiagnosticForCommentBeforeLambdaBlockInHeader()
     {
         const string testData = """
@@ -539,6 +576,7 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-COMMENT-005")]
     public async Task VerifyCommentBeforeConditionStartingWithSwitchExpressionIsReported()
     {
         const string testData = """
@@ -561,6 +599,137 @@ public class RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzerTests : A
                                 """;
 
         await Verify(testData, Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the parentheses of a catch clause is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
+    public async Task VerifyNoDiagnosticForCommentInCatchDeclaration()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        catch (/* any */ Exception)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the condition of a do statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
+    public async Task VerifyNoDiagnosticForCommentInDoWhileCondition()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a)
+                                    {
+                                        do
+                                        {
+                                        }
+                                        while (/* again */ a);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the header of a deconstructing foreach statement is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5039-001")]
+    [Requirement("SHARED-COMMENT-010")]
+    public async Task VerifyCommentInDeconstructingForeachHeaderIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method((int, int)[] pairs)
+                                    {
+                                        foreach (var (first, {|#0:/* second */|} second) in pairs)
+                                        {
+                                            _ = first + second;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in an argument list inside a statement header is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-003")]
+    public async Task VerifyCommentInArgumentListInsideHeaderIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (Run(
+                                            {|#0:// value|}
+                                            1) > 0)
+                                        {
+                                        }
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in a for header is reported with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5039-001")]
+    public async Task VerifyCommentInHeaderIsReportedWithCrLfLineEndings()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        for (
+                                            {|#0:// start|}
+                                            var index = 0; index < 1; index++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5039CommentsMustNotBePlacedInsideStatementHeaderAnalyzer.DiagnosticId, AnalyzerResources.RH5039MessageFormat));
     }
 
     #endregion // Tests

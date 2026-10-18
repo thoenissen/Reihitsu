@@ -21,6 +21,8 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4111-001")]
+    [Requirement("RH4111-002")]
     public async Task VerifyDiagnosticsForPrivatePropertyAndReferenceAreFixed()
     {
         const string testCode = """
@@ -61,6 +63,7 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4111-001")]
     public async Task VerifyNoDiagnosticsForPascalCasePrivateProperty()
     {
         const string testCode = """
@@ -81,6 +84,8 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4111-001")]
+    [Requirement("RH4111-002")]
     public async Task VerifyDiagnosticsForExpressionBodiedPrivatePropertyWrongCasing()
     {
         const string testCode = """
@@ -111,6 +116,7 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4111-001")]
     public async Task VerifyNoDiagnosticsForPrivateProtectedProperty()
     {
         const string testCode = """
@@ -131,6 +137,8 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4111-001")]
+    [Requirement("RH4111-002")]
     public async Task VerifyImplicitlyPrivateClassPropertyIsDetectedAndFixed()
     {
         const string testCode = """
@@ -155,6 +163,7 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4111-001")]
     public async Task VerifyNoDiagnosticsForImplicitInterfaceProperty()
     {
         const string testCode = """
@@ -172,6 +181,7 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4111-001")]
     public async Task VerifyNoDiagnosticsForExplicitInterfacePropertyImplementation()
     {
         const string testCode = """
@@ -195,6 +205,7 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-004")]
+    [Requirement("RH4111-001")]
     public async Task ExplicitInterfacePropertyImplementationBelongsToNoAccessibilityGroup()
     {
         const string testCode = """
@@ -212,6 +223,95 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies static, expression-bodied, implicitly private, struct, and interface private properties are reported, while PascalCase names and other accessibility groups are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4111-001")]
+    public async Task PrivatePropertiesOfEveryKindAreCheckedWhileOtherGroupsAreNot()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4111:count|} { get; set; }
+                                    int {|RH4111:total|} => 0;
+                                    private static int {|RH4111:cache_size|} { get; set; }
+                                    private int Limit { get; set; }
+                                    private protected int offset { get; set; }
+                                    protected internal int scale { get; set; }
+                                }
+
+                                public struct S
+                                {
+                                    int {|RH4111:value|} { get; set; }
+                                }
+
+                                public interface I
+                                {
+                                    private int {|RH4111:hidden|} => 0;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies each part of a partial private property gets its own diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4111-001")]
+    public async Task PartialPrivatePropertyIsReportedOnEachPart()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    private partial int {|RH4111:count|} { get; }
+                                }
+
+                                public partial class C
+                                {
+                                    private partial int {|RH4111:count|} => 0;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames private properties and every reference to them to the derived PascalCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4111-002")]
+    public async Task FixRenamesPrivatePropertiesAndTheirReferencesToPascalCase()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4111:count|} { get; set; }
+
+                                    private int {|RH4111:max_size|} => 10;
+
+                                    public int Sum => count + max_size;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int Count { get; set; }
+
+                                     private int MaxSize => 10;
+
+                                     public int Sum => Count + MaxSize;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

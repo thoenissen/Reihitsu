@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -22,6 +20,10 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("RH8013-002")]
+    [Requirement("SHARED-DOC-001")]
+    [Requirement("SHARED-DOC-003")]
     public async Task VerifyDiagnosticForEnumMemberInNonPrivateEnumWithoutDocumentation()
     {
         const string source = """
@@ -41,6 +43,9 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("RH8013-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForPublicEnumMemberWithoutDocumentation()
     {
         const string source = """
@@ -62,6 +67,9 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("RH8013-002")]
+    [Requirement("SHARED-DOC-003")]
     public async Task VerifyDiagnosticForProtectedEnumMemberWithoutDocumentation()
     {
         const string source = """
@@ -87,6 +95,9 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("RH8013-002")]
+    [Requirement("SHARED-DOC-003")]
     public async Task VerifyDiagnosticForEnumMemberInImplicitInternalEnumWithoutDocumentation()
     {
         const string source = """
@@ -107,6 +118,9 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("RH8013-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForEnumMemberWithRemarksButNoSummary()
     {
         const string source = """
@@ -129,6 +143,8 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("RH8013-002")]
     public async Task VerifyDiagnosticForMultipleUndocumentedMembersInPublicEnum()
     {
         const string source = """
@@ -146,6 +162,168 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
         await Verify(source, Diagnostics(RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8013MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented enum member with a value, located on its name without the value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("RH8013-002")]
+    public async Task VerifyDiagnosticForEnumMemberWithValueWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  {|#0:Green|} = 2,
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8013MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an enum member whose summary is nested in a remarks element instead of at the top level
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-005")]
+    public async Task VerifyDiagnosticForEnumMemberWithSummaryNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <remarks><summary>Nested.</summary></remarks>
+                                  {|#0:Red|},
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8013MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an enum member whose documentation comment follows its attribute list, because that comment does not belong to the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-004")]
+    public async Task VerifyDiagnosticForEnumMemberDocumentedAfterAttributeList()
+    {
+        const string source = """
+                              using System;
+
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  [Obsolete]
+                                  /// <summary>After the attribute.</summary>
+                                  {|#0:Red|},
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8013MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an enum member with two documentation comments, separated by a blank line, of which neither has a summary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-006")]
+    public async Task VerifyDiagnosticForEnumMemberWhenNoDocumentationCommentHasSummary()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <remarks>First.</remarks>
+
+                                  /// <remarks>Second.</remarks>
+                                  {|#0:Red|},
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8013MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an enum member whose included documentation has no summary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-007")]
+    public async Task VerifyDiagnosticForEnumMemberWithIncludedFileWithoutSummary()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="B"]/*'/>
+                                  {|#0:Red|},
+                              }
+                              """;
+
+        const string documentation = """
+                                     <doc>
+                                         <members>
+                                             <member name="A">
+                                                 <summary>From the file.</summary>
+                                             </member>
+                                             <member name="B">
+                                                 <remarks>Only remarks.</remarks>
+                                             </member>
+                                             <member name="C">
+                                                 <remarks>
+                                                     <summary>Nested.</summary>
+                                                 </remarks>
+                                             </member>
+                                             <member name="D">
+                                                 <inheritdoc/>
+                                             </member>
+                                         </members>
+                                     </doc>
+                                     """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8013MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented enum member when the documentation mode is parse
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-008")]
+    public async Task VerifyDiagnosticForUndocumentedEnumMemberInParseMode()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  {|#0:Red|},
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8013MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -155,6 +333,8 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForEnumMemberWithSummary()
     {
         const string source = """
@@ -176,6 +356,8 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForEnumMemberWithInheritdoc()
     {
         const string source = """
@@ -197,6 +379,8 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForAllMembersDocumentedInInternalEnum()
     {
         const string source = """
@@ -216,6 +400,197 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for an enum member documented with an empty summary element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-005")]
+    public async Task VerifyNoDiagnosticForEnumMemberWithEmptySummaryElement()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <summary/>
+                                  Red,
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an enum member documented with a block documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-004")]
+    [Requirement("SHARED-DOC-005")]
+    public async Task VerifyNoDiagnosticForEnumMemberWithBlockDocumentationComment()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /** <summary>Block comment.</summary> */
+                                  Red,
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an enum member whose documentation comment precedes its attribute list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-004")]
+    public async Task VerifyNoDiagnosticForEnumMemberDocumentedBeforeAttributeList()
+    {
+        const string source = """
+                              using System;
+
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <summary>Before the attribute.</summary>
+                                  [Obsolete]
+                                  Red,
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an enum member whose documentation comment is followed by a conditional directive before the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-004")]
+    public async Task VerifyNoDiagnosticForEnumMemberDocumentationFollowedByConditionalDirective()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <summary>Documented.</summary>
+                              #if DEBUG
+                              #endif
+                                  Red,
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an enum member whose documentation comment is followed by an ordinary comment before the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-004")]
+    public async Task VerifyNoDiagnosticForEnumMemberDocumentationFollowedByOrdinaryComment()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <summary>Documented.</summary>
+                                  // Ordinary comment
+                                  Red,
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an enum member whose summary is in the second of two documentation comments separated by a blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-006")]
+    public async Task VerifyNoDiagnosticForEnumMemberWithSummaryInLaterDocumentationComment()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <remarks>Remarks.</remarks>
+
+                                  /// <summary>Summary.</summary>
+                                  Red,
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an enum member whose included documentation has a top-level summary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-007")]
+    public async Task VerifyNoDiagnosticForEnumMemberWithSummaryFromIncludedFile()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Color.</summary>
+                              public enum Color
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="A"]/*'/>
+                                  Red,
+                              }
+                              """;
+
+        const string documentation = """
+                                     <doc>
+                                         <members>
+                                             <member name="A">
+                                                 <summary>From the file.</summary>
+                                             </member>
+                                             <member name="B">
+                                                 <remarks>Only remarks.</remarks>
+                                             </member>
+                                             <member name="C">
+                                                 <remarks>
+                                                     <summary>Nested.</summary>
+                                                 </remarks>
+                                             </member>
+                                             <member name="D">
+                                                 <inheritdoc/>
+                                             </member>
+                                         </members>
+                                     </doc>
+                                     """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)));
+    }
+
     #endregion // No-diagnostic cases
 
     #region Access-boundary cases
@@ -227,6 +602,8 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-003")]
     public async Task VerifyNoDiagnosticForUndocumentedMemberInPrivateEnum()
     {
         const string source = """
@@ -268,19 +645,7 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
                               """;
 
         await Verify(source,
-                     test => test.SolutionTransforms.Add(ApplyParseDocumentationMode));
-
-        static Solution ApplyParseDocumentationMode(Solution solution, ProjectId projectId)
-        {
-            var project = solution.GetProject(projectId);
-
-            if (project?.ParseOptions is CSharpParseOptions parseOptions)
-            {
-                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
-            }
-
-            return solution;
-        }
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
     }
 
     /// <summary>
@@ -288,6 +653,8 @@ public class RH8013NonPrivateEnumMembersMustBeDocumentedAnalyzerTests : Analyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8013-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """

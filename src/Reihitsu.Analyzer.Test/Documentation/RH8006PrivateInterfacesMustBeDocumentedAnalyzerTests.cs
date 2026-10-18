@@ -20,6 +20,9 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8006-001")]
+    [Requirement("RH8006-002")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyDiagnosticForPrivateInterfaceWithoutDocumentation()
     {
         const string source = """
@@ -42,6 +45,9 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8006-001")]
+    [Requirement("RH8006-002")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyDiagnosticForPrivateInterfaceWithRemarksButNoSummary()
     {
         const string source = """
@@ -60,6 +66,31 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8006MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented generic interface without an access modifier in a class, located on its name without the type parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8006-001")]
+    [Requirement("RH8006-002")]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticForGenericInterfaceWithoutModifierInClass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              internal class Container
+                              {
+                                  interface {|#0:IHelper|}<T>
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8006MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases
@@ -69,6 +100,8 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8006-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateInterfaceWithSummary()
     {
         const string source = """
@@ -92,6 +125,8 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8006-001")]
+    [Requirement("SHARED-DOC-005")]
     public async Task VerifyNoDiagnosticForPrivateInterfaceWithInheritdoc()
     {
         const string source = """
@@ -115,6 +150,7 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8006-001")]
     public async Task VerifyNoDiagnosticForPrivateGenericInterfaceWithSummary()
     {
         const string source = """
@@ -138,6 +174,8 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8006-001")]
+    [Requirement("SHARED-DOC-002")]
     public async Task VerifyNoDiagnosticForInternalNestedInterface()
     {
         const string source = """
@@ -160,6 +198,8 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8006-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """

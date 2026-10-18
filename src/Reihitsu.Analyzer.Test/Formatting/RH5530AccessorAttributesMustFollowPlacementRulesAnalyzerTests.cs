@@ -23,6 +23,10 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("RH5530-003")]
+    [Requirement("RH5530-004")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -63,6 +67,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -88,6 +93,8 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForSingleLinePropertyAccessorAttribute()
     {
         const string testData = """
@@ -111,6 +118,8 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForSingleLinePropertyAccessorAttributeWithPropertyAttribute()
     {
         const string testData = """
@@ -137,6 +146,8 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("RH5530-004")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolationWithPropertyAttribute()
     {
         const string testData = """
@@ -185,6 +196,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-002")]
     public async Task VerifyNoDiagnosticForMethodAttributes()
     {
         const string testData = """
@@ -205,6 +217,8 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-005")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -254,6 +268,8 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("SHARED-ATTR-005")]
     public async Task VerifyNoDiagnosticWhenCommentSitsBetweenAttributeListAndAccessor()
     {
         const string testData = """
@@ -331,6 +347,8 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForSingleLineInterfaceMemberAccessorAttributeWithPropertyAttribute()
     {
         const string testData = """
@@ -348,6 +366,98 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list with the method specifier on an init accessor is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyDiagnosticAndCodeFixForMethodSpecifierOnInitAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal int Value
+                                    {
+                                        get;
+                                        {|#0:[method: First]|} init;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal int Value
+                                     {
+                                         get;
+                                         [method: First]
+                                         init;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of an event's add accessor is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5530-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForAddAccessor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal event System.Action Changed
+                                    {
+                                        {|#0:[First]|} add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal event System.Action Changed
+                                     {
+                                         [First]
+                                         add
+                                         {
+                                         }
+                                         remove
+                                         {
+                                         }
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
     }
 
     #endregion // Tests

@@ -21,6 +21,10 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-002")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsIfBlockWithoutBlankLine()
     {
         const string testCode = """
@@ -68,6 +72,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsWhileBlockWithoutBlankLine()
     {
         const string testCode = """
@@ -125,6 +132,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsTryBlockWithoutBlankLine()
     {
         const string testCode = """
@@ -178,6 +188,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementInSwitchSectionFollowsBlockWithoutBlankLine()
     {
         const string testCode = """
@@ -246,6 +259,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenStatementFollowsEndRegionDirectiveWithoutBlankLine()
     {
         const string testCode = """
@@ -297,6 +313,8 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyNoDiagnosticWhenBlankLineAlreadyPresent()
     {
         const string testCode = """
@@ -326,6 +344,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
     public async Task VerifyNoDiagnosticWhenElseFollowsClosingBrace()
     {
         const string testCode = """
@@ -357,6 +376,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
     public async Task VerifyNoDiagnosticWhenCatchFollowsClosingBrace()
     {
         const string testCode = """
@@ -388,6 +408,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
     public async Task VerifyNoDiagnosticWhenFinallyFollowsClosingBrace()
     {
         const string testCode = """
@@ -419,6 +440,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
     public async Task VerifyNoDiagnosticWhenDoWhileWhileFollowsClosingBrace()
     {
         const string testCode = """
@@ -452,6 +474,8 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyNoDiagnosticWhenClosingBraceIsLastStatement()
     {
         const string testCode = """
@@ -479,6 +503,8 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("SHARED-BLANK-004")]
     public async Task VerifyNoDiagnosticWhenBreakFollowsMainBlockInSwitchCase()
     {
         const string testCode = """
@@ -511,6 +537,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-004")]
     public async Task VerifyDiagnosticAndFixForBreakAfterClosingBraceInsideBracedSwitchSection()
     {
         const string testCode = """
@@ -581,6 +610,8 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyNoDiagnosticAfterRH5010FixInsideBracedSwitchSection()
     {
         const string testCode = """
@@ -623,6 +654,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyDiagnosticWhenCommentLineSeparatesClosingBraceFromNextStatement()
     {
         const string testCode = """
@@ -678,6 +712,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-004")]
     public async Task VerifyDiagnosticAndFixForBreakStatementAfterClosingBraceOutsideSwitchSection()
     {
         const string testCode = """
@@ -735,6 +772,8 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyNoDiagnosticAfterRH5010FixInsertsBlankLineBeforeBreak()
     {
         const string testCode = """
@@ -767,6 +806,8 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("SHARED-BLANK-003")]
     public async Task VerifyNoDiagnosticForSameLineBreakInsideBracedSwitchSection()
     {
         const string testCode = """
@@ -800,6 +841,9 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-004")]
     public async Task VerifyDiagnosticAndFixForNonTerminalDirectBreakAfterClosingBrace()
     {
         const string testCode = """
@@ -856,6 +900,142 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
         await Verify(testCode,
                      fixedCode,
                      Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a statement that ends with a closing brace is reported on that brace when another statement follows it
+    /// without a blank line, also across a comment line or a directive, but not on one line or before a terminal break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-001")]
+    [Requirement("RH5030-002")]
+    [Requirement("SHARED-BLANK-003")]
+    [Requirement("SHARED-BLANK-004")]
+    public async Task VerifyStatementAfterClosingBraceWithoutBlankLineIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|}
+                                        a++;
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} // note
+                                        // next
+                                        a++;
+                                        if (a > 0)
+                                        {
+                                        {|RH5030:}|}
+                                #pragma warning disable CS0168
+                                        a++;
+                                        if (a > 0) { } a++;
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                {
+                                                    a++;
+                                                }
+                                                break;
+                                            case 2:
+                                                {
+                                                    a++;
+                                                {|RH5030:}|}
+                                                a++;
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix inserts the blank line directly above the next statement, below a comment that precedes it, and
+    /// behind a directive that follows the brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    [Requirement("SHARED-BLANK-003")]
+    public async Task VerifyFixInsertsBlankLineDirectlyBeforeNextStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|}
+                                        a++;
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        {|RH5030:}|} // note
+                                        // next
+                                        a++;
+                                        if (a > 0)
+                                        {
+                                        {|RH5030:}|}
+                                #pragma warning disable CS0168
+                                        a++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+
+                                         a++;
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         } // note
+
+                                         // next
+                                         a++;
+                                         if (a > 0)
+                                         {
+                                         }
+                                 #pragma warning disable CS0168
+
+                                         a++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the inserted line break uses the document's CRLF line ending
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5030-003")]
+    public async Task VerifyFixInsertsCarriageReturnLineFeedBlankLineBeforeNextStatement()
+    {
+        const string testCode = "class C\n{\n    void M(int a)\n    {\n        if (a > 0)\n        {\n        }\n        a++;\n    }\n}\n";
+        const string fixedCode = "class C\n{\n    void M(int a)\n    {\n        if (a > 0)\n        {\n        }\n\n        a++;\n    }\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests

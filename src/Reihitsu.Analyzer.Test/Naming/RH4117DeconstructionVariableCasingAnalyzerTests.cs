@@ -21,6 +21,8 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4117-001")]
+    [Requirement("RH4117-002")]
     public async Task VerifyDiagnosticsForDeconstructionVariableAndReferenceAreFixed()
     {
         const string testCode = """
@@ -61,6 +63,7 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4117-001")]
     public async Task VerifyDiagnosticsForMultipleDeconstructionVariables()
     {
         const string testCode = """
@@ -84,6 +87,8 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4117-001")]
+    [Requirement("RH4117-002")]
     public async Task VerifyDiagnosticForNestedDeconstructionVariableAndReferenceIsFixed()
     {
         const string testCode = """
@@ -124,6 +129,7 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4117-001")]
     public async Task VerifyNoDiagnosticsForCamelCaseDeconstructionVariables()
     {
         const string testCode = """
@@ -140,6 +146,68 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the variables of a nested var deconstruction and of a deconstructing foreach statement are reported once each, while camelCase names are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4117-001")]
+    public async Task VariablesOfVarDeconstructionsAreCheckedInAssignmentsAndForeachStatements()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M((int, (int, int)) value, List<(int, int)> pairs)
+                                    {
+                                        var (count, ({|RH4117:Total|}, {|RH4117:item_count|})) = value;
+
+                                        foreach (var ({|RH4117:Key|}, entry) in pairs)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames deconstruction variables and every reference to them to the derived camelCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4117-002")]
+    public async Task FixRenamesDeconstructionVariablesAndTheirReferencesToCamelCase()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M((int, (int, int)) value)
+                                    {
+                                        var ({|RH4117:First|}, ({|RH4117:Second_Value|}, third)) = value;
+
+                                        return First + Second_Value + third;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M((int, (int, int)) value)
+                                     {
+                                         var (first, (secondValue, third)) = value;
+
+                                         return first + secondValue + third;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
