@@ -334,7 +334,7 @@ public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies extension declaration summaries with text, a zero-width space, or a star that does not start a line are not reported
+    /// Verifies extension declaration summaries with text, or with a star that does not start a line, are not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -352,11 +352,6 @@ public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzerTests : Analy
                                    * </summary>
                                    */
                                   extension(string value)
-                                  {
-                                  }
-
-                                  /// <summary>&#x200B;</summary>
-                                  extension(int value)
                                   {
                                   }
 

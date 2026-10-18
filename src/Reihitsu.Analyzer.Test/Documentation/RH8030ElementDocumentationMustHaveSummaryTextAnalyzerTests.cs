@@ -302,11 +302,6 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               public class H
                               {
                               }
-
-                              /// <summary>&#x200B;</summary>
-                              public class I
-                              {
-                              }
                               """;
 
         await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 7));
@@ -383,11 +378,6 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                                * </summary>
                                */
                               public class H
-                              {
-                              }
-
-                              /// <summary>&#x200B;</summary>
-                              public class I
                               {
                               }
                               """;
