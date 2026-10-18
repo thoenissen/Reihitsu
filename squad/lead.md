@@ -22,7 +22,7 @@ Every commit of the run ends its subject with `[skip ci]`, except the single tri
 
 ## 3. Claim the lane
 
-Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. Write `00-lead.md`: issue, slug, lane and reason, the roles the lane runs and skips, and the maintainer's relevant clarifications quoted verbatim.
+Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; scripts, CI, build settings, agent instructions, or repository tooling are tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone is docs, and the spec author writes it — you edit nothing yourself. Write `00-lead.md`: issue, slug, lane and reason, the roles the lane runs and skips, and the maintainer's relevant clarifications, summarized in English — never quoted verbatim.
 
 Run `scripts/lane-check.sh <lane> --head worktree` after each writing role. A mismatch before the implementer has started: widen the lane along the orders in `README.md`, record why in `00-lead.md`, and run the roles the new lane adds. After that, a mismatch or a "no lane" verdict is escalation 10.
 
@@ -75,7 +75,7 @@ Watch the published PR until its CI is green. A failure caused by the PR is a fi
 
 ## Escalating
 
-Stop all role work. Ask with the facts the maintainer needs to answer without scrolling back: the question, the options with a concrete example each, and your recommendation. Record the answer in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)) before continuing.
+Stop all role work. Ask with the facts the maintainer needs to answer without scrolling back: the question, the options with a concrete example each, and your recommendation. Record the answer, summarized in English, in `squad/decisions/` (see [`decisions/README.md`](decisions/README.md)) before continuing.
 
 ## Follow-ups
 
