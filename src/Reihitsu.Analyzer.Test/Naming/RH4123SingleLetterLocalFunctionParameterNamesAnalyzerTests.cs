@@ -20,6 +20,7 @@ public class RH4123SingleLetterLocalFunctionParameterNamesAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4123-001")]
     public async Task VerifyDiagnosticForLocalFunctionParameter()
     {
         const string testCode = """
@@ -44,6 +45,7 @@ public class RH4123SingleLetterLocalFunctionParameterNamesAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4123-001")]
     public async Task VerifyNoDiagnosticsForDescriptiveNameAndDiscardIdentifier()
     {
         const string testCode = """
@@ -69,6 +71,7 @@ public class RH4123SingleLetterLocalFunctionParameterNamesAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4123-002")]
     public async Task VerifyNoDiagnosticsForOtherParameterKinds()
     {
         const string testCode = """
@@ -82,6 +85,52 @@ public class RH4123SingleLetterLocalFunctionParameterNamesAnalyzerTests : Analyz
                                     {
                                         Func<int, int> lambda = n => n;
                                         Func<int, int> anonymousMethod = delegate(int a) { return a; };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies single-letter parameters of static and non-static local functions are reported, while descriptive names and an underscore are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4123-001")]
+    public async Task SingleLetterParametersOfLocalFunctionsAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int Add(int {|RH4123:a|}, int value, int _) => a + value;
+                                        static int Twice(int {|RH4123:x|}) => x * 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies single-letter parameters of a method, a lambda, and an anonymous method are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4123-002")]
+    public async Task MethodLambdaAndAnonymousMethodParametersAreNotChecked()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        Func<int, int> f = b => b;
+                                        Action<int> g = delegate (int c) { };
                                     }
                                 }
                                 """;

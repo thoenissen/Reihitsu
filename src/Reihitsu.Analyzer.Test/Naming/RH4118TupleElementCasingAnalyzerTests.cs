@@ -20,6 +20,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4118-001")]
     public async Task VerifyDiagnosticsForTupleExpressionElementWrongCasing()
     {
         const string testCode = """
@@ -43,6 +44,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4118-001")]
     public async Task VerifyDiagnosticsForMultipleTupleExpressionElements()
     {
         const string testCode = """
@@ -66,6 +68,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4118-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseTupleExpressionElements()
     {
         const string testCode = """
@@ -89,6 +92,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4118-001")]
     public async Task VerifyNoDiagnosticsForUnnamedTupleExpressionElements()
     {
         const string testCode = """
@@ -100,6 +104,50 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
                                         {
                                             return (1, 2);
                                         }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies names written in a tuple expression are reported, including those of a nested tuple expression, while unnamed elements and names inferred from a variable are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4118-001")]
+    public async Task WrittenTupleExpressionElementNamesAreChecked()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int count)
+                                    {
+                                        var a = ({|RH4118:count|}: 1, Total: 2, 3);
+                                        var b = (count, Total: count);
+                                        var c = ({|RH4118:outer|}: ({|RH4118:inner|}: 1, Other: 2), 3);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a name written as a verbatim identifier in a tuple expression is reported, with the verbatim prefix inside the location
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4118-001")]
+    public async Task TupleExpressionElementNamedWithVerbatimIdentifierIsReportedIncludingThePrefix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = ({|RH4118:@value|}: 1, Total: 2);
                                     }
                                 }
                                 """;

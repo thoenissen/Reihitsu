@@ -21,6 +21,8 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4113-001")]
+    [Requirement("RH4113-002")]
     public async Task VerifyDiagnosticsForInternalPropertyAndReferenceAreFixed()
     {
         const string testCode = """
@@ -61,6 +63,7 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4113-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseInternalProperty()
     {
         const string testCode = """
@@ -81,6 +84,8 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4113-001")]
+    [Requirement("RH4113-002")]
     public async Task VerifyDiagnosticsForExpressionBodiedInternalPropertyWrongCasing()
     {
         const string testCode = """
@@ -111,6 +116,8 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4113-001")]
+    [Requirement("RH4113-002")]
     public async Task VerifyDiagnosticsForProtectedInternalPropertyWrongCasing()
     {
         const string testCode = """
@@ -141,6 +148,7 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4113-001")]
     public async Task VerifyNoDiagnosticsForImplicitProperties()
     {
         const string testCode = """
@@ -156,6 +164,144 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies internal, protected internal, and static internal properties are reported, while PascalCase names and other accessibility groups are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4113-001")]
+    public async Task InternalPropertiesOfEveryKindAreCheckedWhileOtherGroupsAreNot()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    internal int {|RH4113:count|} { get; set; }
+                                    protected internal int {|RH4113:scale|} { get; set; }
+                                    internal static int {|RH4113:instance_count|} => 0;
+                                    internal int Limit { get; set; }
+                                    private protected int offset { get; set; }
+                                    int total { get; set; }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies abstract and virtual internal properties are reported, and so is an override whose original definition is declared in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4113-001")]
+    public async Task AbstractAndVirtualInternalPropertiesAreChecked()
+    {
+        const string testCode = """
+                                public abstract class C
+                                {
+                                    internal abstract int {|RH4113:row_count|} { get; }
+                                    internal virtual int {|RH4113:column_count|} => 0;
+                                }
+
+                                public class D : C
+                                {
+                                    internal override int {|RH4113:row_count|} => 1;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies each part of a partial internal property gets its own diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4113-001")]
+    public async Task PartialInternalPropertyIsReportedOnEachPart()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    internal partial int {|RH4113:count|} { get; }
+                                }
+
+                                public partial class C
+                                {
+                                    internal partial int {|RH4113:count|} => 0;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames internal properties and every reference to them to the derived PascalCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4113-002")]
+    public async Task FixRenamesInternalPropertiesAndTheirReferencesToPascalCase()
+    {
+        const string testCode = """
+                                public class Settings
+                                {
+                                    internal int {|RH4113:retry_count|} { get; set; }
+
+                                    protected internal int {|RH4113:timeout|} => 0;
+
+                                    public int Sum => retry_count + timeout;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Settings
+                                 {
+                                     internal int RetryCount { get; set; }
+
+                                     protected internal int Timeout => 0;
+
+                                     public int Sum => RetryCount + Timeout;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies renaming an internal property also renames the property it overrides and the property that overrides it in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4113-002")]
+    public async Task FixRenamesOverriddenAndOverridingInternalPropertiesInSource()
+    {
+        const string testCode = """
+                                public class BaseStore
+                                {
+                                    internal virtual int {|RH4113:row_count|} => 0;
+                                }
+
+                                public class FileStore : BaseStore
+                                {
+                                    internal override int {|RH4113:row_count|} => 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class BaseStore
+                                 {
+                                     internal virtual int RowCount => 0;
+                                 }
+
+                                 public class FileStore : BaseStore
+                                 {
+                                     internal override int RowCount => 1;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
