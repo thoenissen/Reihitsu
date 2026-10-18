@@ -36,3 +36,5 @@ Verdict: lane claimed
 ## Log
 
 - Spec author (01): spec written at b7ac7ae. The open question it found is filed as thoenissen/Reihitsu#1058, a sub-issue of thoenissen/Reihitsu#912. The shared spec also lists `CommentPositionUtilities` and `FluentChainAnalysisHelper` as code owners: outside their own files, only this batch's base classes use them. This is reported to the maintainer in the run report.
+- Skeptic (02): proceed narrower. Its findings were routed to the spec author.
+- Spec author (03): spec revised at 8df308f. Q1 addition, Q2 and Q3 added to thoenissen/Reihitsu#1058.
