@@ -81,7 +81,7 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Waiting for maintainer
 
-- maintainer: run #978 (prompt given); decision round for #1000 (shared/statement-blank-lines) and #1001 (RH5029) pending — offered to maintainer
+- maintainer: run #979 (prompt given); decision round pending for open-question issues #1000, #1001, #1009 (shared/casing), #1010–#1014 — offered
 
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
@@ -90,9 +90,9 @@ Status: open / running / PR #… / merged.
 | Order | Issue | Batch | Blocked by | Status |
 |---|---|---|---|---|
 | 1 | #977 | ST statement blank lines (incl. RH5005/RH5006) | — | merged (PR #999); filed #1000, #1001 |
-| 2 | #978 | N1 naming part 1, creates casing spec | — | prompt given 2026-10-17 |
-| 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | open |
-| 3 | #979 | N2 naming part 2 | #978 | open |
+| 2 | #978 | N1 naming part 1, creates casing spec (shared/casing.md) | — | merged (PR #1007); filed #1009–#1014 |
+| 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | running (2026-10-18) |
+| 3 | #979 | N2 naming part 2 | #978 | prompt given 2026-10-18 |
 | 4 | #980 | AP attribute placement, creates attribute-target spec | — | open |
 | 5 | #981 | AS attribute list shape | #980 | open |
 | 6 | #982 | D1 element documentation part 1, creates doc spec | — | open |
