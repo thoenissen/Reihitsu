@@ -27,6 +27,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
 | [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
+| [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
 | [analyzer/RH1003.md](analyzer/RH1003.md) | RH1003 | `RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer` |
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
@@ -103,7 +104,22 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5525.md](analyzer/RH5525.md) | RH5525 | `RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer`, `RH5525DelegateAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5527.md](analyzer/RH5527.md) | RH5527 | `RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer`, `RH5527ReturnValueAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5530.md](analyzer/RH5530.md) | RH5530 | `RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer`, `RH5530AccessorAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5601.md](analyzer/RH5601.md) | RH5601 | `RH5601UseTabsCorrectlyAnalyzer`, `RH5601UseTabsCorrectlyCodeFixProvider` |
+| [analyzer/RH5602.md](analyzer/RH5602.md) | RH5602 | `RH5602CodeMustNotContainTrailingWhitespaceAnalyzer`, `RH5602CodeMustNotContainTrailingWhitespaceCodeFixProvider` |
+| [analyzer/RH5603.md](analyzer/RH5603.md) | RH5603 | `RH5603FileMustNotEndWithANewlineAnalyzer`, `RH5603FileMustNotEndWithANewlineCodeFixProvider` |
+| [analyzer/RH5604.md](analyzer/RH5604.md) | RH5604 | `RH5604CodeMustNotContainMixedLineEndingsAnalyzer`, `RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider` |
+| [analyzer/RH6001.md](analyzer/RH6001.md) | RH6001 | `RH6001KeywordsMustBeSpacedCorrectlyAnalyzer`, `RH6001KeywordsMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH6002.md](analyzer/RH6002.md) | RH6002 | `RH6002CommasMustBeSpacedCorrectlyAnalyzer`, `RH6002CommasMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6003.md](analyzer/RH6003.md) | RH6003 | `RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer`, `RH6003SemicolonsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6004.md](analyzer/RH6004.md) | RH6004 | `RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer`, `RH6004PreprocessorKeywordsMustNotBePrecededBySpaceCodeFixProvider` |
+| [analyzer/RH6005.md](analyzer/RH6005.md) | RH6005 | `RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer`, `RH6005OperatorKeywordMustBeFollowedBySpaceCodeFixProvider` |
+| [analyzer/RH6006.md](analyzer/RH6006.md) | RH6006 | `RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer`, `RH6006OpeningParenthesisMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6007.md](analyzer/RH6007.md) | RH6007 | `RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6007OpeningSquareBracketsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6008.md](analyzer/RH6008.md) | RH6008 | `RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6008ClosingSquareBracketsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6009.md](analyzer/RH6009.md) | RH6009 | `RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer`, `RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6010.md](analyzer/RH6010.md) | RH6010 | `RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer`, `RH6010ClosingBracesMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6011.md](analyzer/RH6011.md) | RH6011 | `RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider` |
+| [analyzer/RH6012.md](analyzer/RH6012.md) | RH6012 | `RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer`, `RH6012ClosingGenericBracketsMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH7103.md](analyzer/RH7103.md) | RH7103 | `RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer`, `RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider` |
 | [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
 | [cli/reihitsu-format.md](cli/reihitsu-format.md) | CLI | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
