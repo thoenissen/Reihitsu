@@ -80,7 +80,7 @@ An analyzer rule MUST treat the text of a literal or of a comment as content: it
 - the whitespace before and after a literal is code, so the spaces at the end of the line `string s = "a";` are trailing whitespace like after any other token;
 - an interpolation hole is code apart from the text of its format clause: its expression and its alignment clause, such as the braces of `new int[]{1}` in `$"{new int[]{1}.Length}"`.
 
-A rule whose subject is a comment itself, such as RH3201, which reports a comment without text, or a documentation rule (RH8###), checks the comment's text as that subject; this requirement does not restrict it.
+This requirement restricts only rules that check code. A rule whose subject is the text of a comment or of a directive, such as RH3201, RH7301, or a documentation rule (RH8###), checks that text as its subject.
 
 Why: The text of a literal is the program's data, and the text of a comment is the author's prose; their characters — spaces, empty lines, commas, braces — carry a meaning that a rule about code cannot judge, and changing them changes what the program does or what the comment says. Everything else is code the compiler reads as tokens. Exempting it because a literal is next to it, or because it is written inside an interpolated string, would leave ordinary code unchecked only for where it stands.
 
@@ -139,3 +139,13 @@ class C
 ```
 
 is reported neither by RH5023 nor by RH6021.
+
+Example — RH3201's subject is the text of a comment, so it checks that text and reports the comment that has none:
+
+```csharp
+class C
+{
+    {|RH3201://|}
+    int x;
+}
+```
