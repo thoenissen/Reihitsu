@@ -93,15 +93,20 @@ Possible AGENTS.md change: make "Code-fix coverage" point to SHARED-FIX-003 or s
 ## Question round (started 2026-10-18)
 
 Inventory of all 78 questions (45 issues): `sdd/work/coordinator/inventory/{naming,spacing,blank,attr-doc}.md` (issue, Q, input/output, pattern, duplicates, suggested kind).
-Principles put to maintainer (round 1, awaiting answer):
-- P1 unsafe fix → SHARED-FIX-003 (no new compile error, no runtime change, no edit of comment/directive/literal text, no stale inactive code). Instances: #1009 Q1/Q4/Q5, #1013 Q2, fix part of #1013 Q1/#1014/#1025–#1027, #1038 Q1, #1059 Q1, #1060 Q1, #1061 Q2.
-- P2 externally dictated names not reported → SHARED-CASING-011. #1013 Q1/Q2, #1014, #1023, #1025, #1026, #1027.
-- P3 identifiers compared by value (no `@`, no trivia) → SHARED-DIAG-002; fix withheld when derived name is a reserved keyword. #1009 Q2, #1011 Q1, #1012 Q2.
-- P4 formatted code is not reported by layout/spacing rules → FMT-PIPE-013. ~20 E instances (spacing family, #1029, #1030 Q2, #1064, #1065).
-- P5 only literal/comment text is exempt; holes and surrounding whitespace are code → SHARED-DIAG-003. #1038 Q2/Q4, #1039, #1047, #1048, #1059 Q1, #1060 Q1, #1061 Q2, #1065 Q2.
-- P6 `/** */` not before a documentable declaration = ordinary block comment (extends #915 Q4) → SHARED-DOC. #1044 Q2, #1049 Q2, #1051, #1052.
-- P7 convergence: SHARED-FIX-001 per rule (#1066 reading A); new SHARED-FIX-004 fixes of two rules never undo each other; SHARED-FIX-005 an offered fix changes the document. #1059 Q2, #1060 Q1, #1061 Q1, #1063, #1065 Q1, #1066.
-- Later (round 2): naming cross-rule coverage (#1019, #1022, #1024), prefix doubling (#1010, #1020), doc-vs-compiler (#1037), attribute separate-line family (#1029–#1031).
+Round 1 decided (maintainer 2026-10-18): P1 a, P2 a, P3 a, P4 c (no principle, case by case), P5 ok, P6 ok, P7 ok. Posted: https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6253795346
+- P1 unsafe fix → SHARED-FIX-003 + AGENTS.md sentence (#1068)
+- P2 externally dictated names not reported → SHARED-CASING-011, behavior change (#1070)
+- P3 compare by value → SHARED-DIAG-002 (#1069); bugs #1071 (RH4001/RH4009); reserved-keyword fix withheld = change #1072
+- P4 no principle
+- P5 literal/comment text only is content → SHARED-DIAG-003 (#1069); bugs #1074 (spacing), #1075 (blank lines, with P1)
+- P6 `/** */` documenting nothing = block comment → #1077
+- P7 SHARED-FIX-001 per rule, SHARED-FIX-004 no undo, SHARED-FIX-005 no no-op (#1068); bugs #1076
+- Casing unsafe renames (#1009 Q1/Q4/Q5) → #1073
+- Order: #1068, #1069 first (spec issues); bug issues are blocked by them. No bug urgent.
+- Batch issues told: mark instances `Decided by principle Pn (#912)`.
+Closed as fully decided (agent, 2026-10-18): #1013, #1014, #1023, #1025, #1026, #1027, #1039, #1047, #1048, #1051, #1052, #1060, #1061, #1063, #1066.
+Pending maintainer confirmation: #1065 Q1 — coordinator recommends reading A (bug in RH5024; RH5032 + SHARED-BLANK-006 + formatter agree the blank stays); same for region part of #1059 Q2 (bug in RH5025). Then add to #1076.
+Still open questions (round 2+): #1000 Q1, #1001 Q1, #1009 Q3, #1010 Q1, #1011 Q2/Q3, #1012 Q1, #1019 Q1–Q4, #1020 Q1, #1021 Q1, #1022 Q1, #1024 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #1037 Q1–Q5, #1038 Q1/Q3, #1040 Q1–Q3, #1041 Q1, #1042 Q1, #1043 Q1, #1044 Q1, #1045 Q1, #1046 Q1, #1049 Q1, #1050 Q1, #1058 Q1–Q3, #1059 Q2, #1062 Q1, #1064 Q1, #1065 Q1/Q2.
 
 ## Waiting for maintainer
 
