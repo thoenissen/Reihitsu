@@ -33,3 +33,9 @@ Plus: new IDs in `sdd/specs/requirement-ids.txt`, new specs in `sdd/specs/README
 - No existing requirement of another spec (including FMT-SPACE, FMT-CLEAN, RH6002) is changed without the maintainer's approval — report it as a finding instead.
 - Other squads (thoenissen/Reihitsu#979, #980, #982) edit `sdd/specs/README.md` and `sdd/specs/requirement-ids.txt` concurrently; on a merge both sides' rows are kept.
 - Done: 15 specs, tagged tests, focused tests only where needed, examples verified, open questions filed, CI green, PR based on main without `sdd/work/`.
+
+# Lane widened — tooling
+
+After the spec author's third pass, `scripts/lane-check.sh tests --head worktree` reported a mismatch: the lead's decisions entry `squad/decisions/2026-10-18-rh6002-003-why-left-unchanged.md` (required by `squad/decisions/README.md` for every answered escalation) is classified as tooling. `scripts/lane-check.sh tooling --head worktree` confirms. The implementer had not started, so the lane widens along docs → tests → tooling.
+
+Roles now: spec author (ran), skeptic (ran), test implementer → cleaner → spec checker → auditor → validator. The implementer is skipped: the run changes no production or tooling code; the only tooling path is the lead's decisions entry.
