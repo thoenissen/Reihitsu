@@ -22,6 +22,8 @@ This spec covers the rules that require one kind of element to be documented. It
 
 A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, or enum — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
 
+This requirement covers an element with a single declaration; a partial type or constructor declared in several parts is not covered.
+
 Why: Each element has its own entry in the generated documentation and its own tooltip in the editor. A documented container says nothing about what a nested element is for, and an undocumented container is reported by its own rule.
 
 Example — RH8001:
@@ -54,7 +56,9 @@ A declaration MUST belong to exactly one of two groups, decided by its own modif
 
 The accessibility of the containing declarations MUST NOT change the group.
 
-Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, or record private, and one declared in a namespace or an interface internal or public; a static constructor, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
+This requirement covers every declaration except a static constructor declared in an interface.
+
+Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, or record private, and one declared in a namespace or an interface internal or public; a static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
 
 Example — RH8001, which checks the non-private group:
 
@@ -179,7 +183,9 @@ public class Outer
 
 ### SHARED-DOC-004 — The documentation comments of a declaration precede it
 
-The documentation comments of a declaration MUST be the `///` and `/** */` comments in its leading trivia, which comes before its first attribute list, modifier, or keyword; the first of them is the declaration's documentation comment. A documentation comment between an attribute list and the rest of the declaration MUST NOT belong to the declaration. Ordinary comments and preprocessor directives between a documentation comment and the declaration MUST NOT separate them.
+The documentation comments of a declaration MUST be the `///` and `/** */` comments in its leading trivia, which comes before the declaration's first token — its first attribute list, modifier, keyword, or name. A documentation comment between an attribute list and the rest of the declaration MUST NOT belong to the declaration. Ordinary comments, preprocessor directives, and disabled text between the last documentation comment and the declaration MUST NOT separate them.
+
+This requirement covers leading trivia in which nothing but whitespace and line breaks stands between two documentation comments; leading trivia in which an ordinary comment, a preprocessor directive, or disabled text separates two documentation comments is not covered.
 
 Why: The compiler attaches the documentation comments that precede a declaration, attributes included, and ignores one that follows an attribute list as misplaced. A rule that read a different comment would disagree with the documentation the compiler generates.
 
@@ -224,9 +230,9 @@ public class D
 
 ### SHARED-DOC-005 — A top-level `<summary>` or `<inheritdoc>` documents the element
 
-A declaration MUST count as documented when its documentation comment has a `<summary>` or an `<inheritdoc>` element at its top level, that is, not nested inside another element. The tag name MUST be matched case-insensitively, and an empty element (`<summary/>`) and an element without an end tag count. A declaration without a documentation comment, and one whose documentation comment has neither element at its top level, MUST count as undocumented, unless SHARED-DOC-006 or SHARED-DOC-007 applies.
+A declaration MUST count as documented when its first documentation comment has a `<summary>` or an `<inheritdoc>` element at its top level, that is, not nested inside another element; an empty element (`<summary/>`) counts. A declaration without documentation comments, and one whose first documentation comment has neither element at its top level, MUST count as undocumented, unless SHARED-DOC-006 or SHARED-DOC-007 applies.
 
-This requirement covers an element with a single declaration; a partial type declared in several parts is not covered.
+This requirement covers an element with a single declaration whose documentation comments are placed as SHARED-DOC-004 covers and are well-formed XML, with the tag names `summary` and `inheritdoc` written in lower case. A partial type or constructor declared in several parts is not covered.
 
 Why: `<summary>` is the element every documentation tool shows, and `<inheritdoc>` takes the whole documentation, summary included, from the element it inherits from. Whether the summary also has text is a separate rule (RH8030). A `<summary>` nested in `<remarks>` or another element is not the element's summary, and other elements such as `<remarks>` alone do not give a reader the one-line description a tooltip shows.
 
@@ -245,50 +251,40 @@ public class B : A
 {
 }
 
-/// <Summary>Upper case</Summary>
+/// <summary/>
 public class C
 {
 }
 
-/// <summary/>
+/** <summary>Block comment</summary> */
 public class D
 {
 }
 
-/** <summary>Block comment</summary> */
-public class E
-{
-}
-
-public class {|RH8001:F|}
+public class {|RH8001:E|}
 {
 }
 
 /// <remarks>
 /// <summary>Nested</summary>
 /// </remarks>
-public class {|RH8001:G|}
+public class {|RH8001:F|}
 {
 }
 
 /// Plain text
-public class {|RH8001:H|}
-{
-}
-
-/// <summary>No end tag
-public class I
+public class {|RH8001:G|}
 {
 }
 ```
 
 ### SHARED-DOC-006 — A later documentation comment counts too
 
-When a declaration has more than one documentation comment, a `<summary>` or an `<inheritdoc>` element at the top level of a later one MUST count as well, as SHARED-DOC-005 specifies for the first.
+When a declaration has more than one documentation comment, a `<summary>` or an `<inheritdoc>` element at the top level of a later one MUST count as well, as SHARED-DOC-005 specifies for the first. When none of them has either element at its top level, the declaration MUST count as undocumented.
 
-This requirement covers a later documentation comment that is well-formed XML, of an element with a single declaration.
+This requirement covers what SHARED-DOC-005 covers.
 
-Why: The compiler joins every documentation comment that precedes a declaration into the element's documentation, so a summary in the second comment is part of it.
+Why: The compiler joins documentation comments that are separated only by whitespace and line breaks into one documentation of the element, so a summary in the second comment is part of it.
 
 Example — RH8001:
 
@@ -296,22 +292,31 @@ Example — RH8001:
 /// <remarks>
 /// Remarks
 /// </remarks>
-// Separator
+
 /// <summary>
 /// Summary
 /// </summary>
-public class C
+public class A
+{
+}
+
+/// <remarks>
+/// First
+/// </remarks>
+
+/// <remarks>
+/// Second
+/// </remarks>
+public class {|RH8001:B|}
 {
 }
 ```
-
-is not reported.
 
 ### SHARED-DOC-007 — An included documentation file counts
 
 A `<summary>` or an `<inheritdoc>` element that an `<include>` element of the documentation brings in at the top level MUST count as SHARED-DOC-005 specifies. An `<include>` element whose file the compilation cannot resolve, or whose selected content has neither element at the top level, MUST NOT make the declaration documented.
 
-This requirement covers an element with a single declaration, and an included file that is well-formed XML.
+This requirement covers what SHARED-DOC-005 covers, and an included file that is well-formed XML.
 
 Why: An `<include>` element is replaced by the selected content of the file when the compiler builds the documentation, so the summary in that file is the element's summary.
 
