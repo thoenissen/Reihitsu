@@ -191,7 +191,7 @@ namespace {|RH4008:company|}.Product.{|RH4008:data_access|}
 
 A rule's code fix MUST derive the new name from an old name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` as follows. It splits the old name into words at every `_`, and drops the underscores. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words, which gives the new name for a PascalCase target. For a camelCase target, the first character of the joined words is written in lowercase, and for a `_camelCase` target, that camelCase name gets a `_` in front.
 
-This requirement covers an old name whose first word, the first non-empty part between underscores, starts with a letter that has both an uppercase and a lowercase form. A first word that starts with a digit, or with a letter without case such as `注`, is not covered.
+This requirement covers an old name whose first word, the first non-empty part between underscores, starts with a letter whose one-character uppercase and lowercase mappings, in the invariant culture, differ from each other. A first word that starts with a digit, with a letter without case such as `注`, or with a letter such as `ß` that has no one-character uppercase mapping, is not covered.
 
 For a camelCase or `_camelCase` target, it further covers only an old name whose first word does not start with two uppercase letters, or consists of uppercase letters only.
 
