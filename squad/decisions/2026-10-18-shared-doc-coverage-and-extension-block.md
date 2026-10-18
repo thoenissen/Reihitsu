@@ -17,3 +17,11 @@ Keep all edits.
 ## Reason
 
 None given.
+
+## Follow-up question
+
+After the skeptic's review, the run also needed the extension block in SHARED-DOC-001's list of containers in which declarations are checked, because five of the new rule specs rely on it for extension-block members; behavior and ID unchanged. Options: add it to SHARED-DOC-001, or state it in each affected rule spec.
+
+## Follow-up answer
+
+Add the extension block to SHARED-DOC-001.
