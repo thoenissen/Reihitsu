@@ -541,9 +541,11 @@ The code fix of a rule that requires one attribute per list MUST replace the rep
 
 This requirement covers a list for which all of the following hold:
 
-- the list starts its line, the line ends directly after its closing bracket or after a comment that follows it, and the first token after the list starts the next line;
-- no preprocessor directive lies between the code before the list and the list, every comment there starts at the list's column, and no line there ends in whitespace;
-- the list, the line after it, and every opening brace that encloses the list are indented with spaces only, four for each namespace, type, enum, block, switch statement, accessor list, initializer, or anonymous object whose braces enclose them, and four more inside the statements of a switch section.
+- the list is the first token on its line, after its closing bracket that line holds nothing or only comments, and the first token after the list starts a later line;
+- every other line between the code before the list, or the start of the file, and the first token after the list is either empty, without even a space, or holds only comments and has its first character other than a space at the list's column; each line of a `///` documentation comment counts as a line of its own, while the continuation lines of a `/* */` or `/** */` comment may start at any column;
+- no preprocessor directive or disabled text lies between the code before the list and the first token after the list;
+- no line from the line of the code before the list to the line before the first token after the list ends in a space or tab that is not part of a comment;
+- the list, the first token after it, and the line of every opening brace that encloses the list are indented with spaces only, four for each namespace, type, enum, block, switch statement, accessor list, initializer, or anonymous object whose braces enclose them, and four more inside the statements of a switch section.
 
 Why: The fix makes only the change the diagnostic asks for: the attributes keep their order and their target, and each gets the line the rule requires.
 
