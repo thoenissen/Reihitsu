@@ -92,7 +92,7 @@ Possible AGENTS.md change: make "Code-fix coverage" point to SHARED-FIX-003 or s
 
 ## Waiting for maintainer
 
-- maintainer: running batches #979, #980, #982, #986, #988, #989 (+ #1008); then question round in a new chat (restart prompt given 2026-10-18)
+- question round started 2026-10-18 (new chat). All six batches + #1008 merged. 45 open question issues: #1000, #1001, #1009–#1014, #1019–#1027, #1029–#1031, #1037–#1052, #1058–#1066. Inventory in progress.
 
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
@@ -102,18 +102,18 @@ Status: open / running / PR #… / merged.
 |---|---|---|---|---|
 | 1 | #977 | ST statement blank lines (incl. RH5005/RH5006) | — | merged (PR #999); filed #1000, #1001 |
 | 2 | #978 | N1 naming part 1, creates casing spec (shared/casing.md) | — | merged (PR #1007); filed #1009–#1014 |
-| 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | running (2026-10-18) |
-| 3 | #979 | N2 naming part 2 | #978 | prompt given 2026-10-18 |
-| 4 | #980 | AP attribute placement, creates attribute-target spec | — | prompt given 2026-10-18 (parallel to #979) |
+| 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | merged (PR #1017) |
+| 3 | #979 | N2 naming part 2 | #978 | merged (PR #1018); filed #1019–#1027 |
+| 4 | #980 | AP attribute placement, creates attribute-target spec | — | merged (PR #1028); filed #1029–#1031 |
 | 5 | #981 | AS attribute list shape | #980 | open |
-| 6 | #982 | D1 element documentation part 1, creates doc spec | — | prompt given 2026-10-18 (parallel) |
+| 6 | #982 | D1 element documentation part 1, creates doc spec | — | merged (PR #1035); filed #1037 |
 | 7 | #983 | D2 element documentation part 2 | #982 | open |
 | 8 | #984 | D3 parameter/return/typeparam/inheritdoc docs | #982 | open |
 | 9 | #985 | D4 documentation layout + comments | #982 | open |
-| 10 | #986 | S1 whitespace/spacing part 1 | — | prompt given 2026-10-18 (parallel) |
+| 10 | #986 | S1 whitespace/spacing part 1 | — | merged (PR #1036); filed #1038–#1052 |
 | 11 | #987 | S2 spacing part 2 | #986 | open |
-| 12 | #988 | BL other blank lines | — | prompt given 2026-10-18 (parallel) |
-| 13 | #989 | CP comment placement, creates spec | — | prompt given 2026-10-18 (parallel) |
+| 12 | #988 | BL other blank lines | — | merged (PR #1057); filed #1059–#1066 |
+| 13 | #989 | CP comment placement, creates spec | — | merged (PR #1056); filed #1058 |
 | 14 | #990 | LB line breaks + alignment (fluent chain) | — | open |
 | 15 | #991 | LA initializers/expressions/braces | — | open |
 | 16 | #992 | LC trailing commas, empty types | — | open |
