@@ -591,11 +591,11 @@ public static class Extensions
 
 ### SHARED-DOC-012 — A parameter is documented by a top-level element with its name
 
-A parameter MUST count as documented when the element's documentation has a `<param>` element at its top level whose `name` attribute equals the parameter's name, compared character by character and case-sensitively; a type parameter MUST count as documented when it has such a `<typeparam>` element. The name of a parameter declared with a verbatim identifier is the identifier without its `@`: `name="class"` documents `@class`, and `name="@class"` does not. The element MUST count whether it is in the first documentation comment, in a later one, in the content that an `<include>` element brings in, or, for an extension declaration, in the documentation it shares as SHARED-DOC-013 specifies, and whether or not it has text. An element nested inside another element, and one whose `name` differs from the parameter's name, MUST NOT count.
+A parameter MUST count as documented when the element's documentation has a `<param>` element at its top level whose `name` attribute equals the parameter's name, compared character by character and case-sensitively; a type parameter MUST count as documented when it has such a `<typeparam>` element. The parameter's name is the value of its identifier: without the `@` of a verbatim identifier, and with a Unicode escape sequence decoded. So `name="class"` documents `@class` and `name="@class"` does not, and `name="a"` documents a parameter declared as `\u0061`. The element MUST count whether it is in the first documentation comment, in a later one, in the content that an `<include>` element brings in, or, for an extension declaration, in the documentation it shares as SHARED-DOC-013 specifies, and whether or not it has text. An element nested inside another element, and one whose `name` differs from the parameter's name, MUST NOT count.
 
-This requirement covers a parameter or type parameter with a name, a `name` attribute without white space before or after the name, and documentation comments placed as SHARED-DOC-004 covers that are well-formed XML, with the tag names `param` and `typeparam` written in lower case, without a namespace prefix, and in no XML namespace. An included file is covered when it is well-formed XML and writes the tag names the same way.
+This requirement covers a parameter or type parameter with a name, a `name` attribute without white space before or after the name and without a C# Unicode escape sequence (such as `\u0061`) or a format character (Unicode category Cf, such as `&#x200B;`) in it, and documentation comments placed as SHARED-DOC-004 covers that are well-formed XML, with the tag names `param` and `typeparam` written in lower case, without a namespace prefix, and in no XML namespace. An included file is covered when it is well-formed XML and writes the tag names the same way.
 
-Why: The compiler and documentation tools pair a `<param>` or `<typeparam>` with the parameter whose name it carries, and that name is the identifier's value, without the `@` that only lets a keyword be used as a name. One with a different name, or one inside `<remarks>` or another element, describes nothing that the tooltip shows for the parameter. Whether the description has text is a separate rule.
+Why: The compiler and documentation tools pair a `<param>` or `<typeparam>` with the parameter whose name it carries, and that name is the identifier's value, without the `@` that only lets a keyword be used as a name and with its escape sequences decoded. One with a different name, or one inside `<remarks>` or another element, describes nothing that the tooltip shows for the parameter. Whether the description has text is a separate rule.
 
 Example — RH8032 and RH8033:
 
@@ -686,6 +686,23 @@ public static class Extensions
     /// <typeparam name="@T">Element</typeparam>
     /// <param name="items">Items</param>
     extension<{|RH8033:@T|}>(HashSet<T> items)
+    {
+    }
+
+    /// <summary>
+    /// Unsigned values
+    /// </summary>
+    /// <param name="a">Value</param>
+    extension(ushort \u0061)
+    {
+    }
+
+    /// <summary>
+    /// Queues
+    /// </summary>
+    /// <typeparam name="U">Element</typeparam>
+    /// <param name="queue">Queue</param>
+    extension<\u0055>(Queue<U> queue)
     {
     }
 }
