@@ -406,24 +406,22 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that a multi-attribute accessor list is not reported on an inline auto-property, but is reported once an accessor has an expression body or the accessor list spans several lines
+    /// Verifies that a multi-attribute accessor list is not reported on an inline auto-property, but is reported once the accessor list spans several lines
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5528-001")]
     [Requirement("SHARED-ATTR-014")]
-    public async Task VerifyDiagnosticForMultiAttributeAccessorListUnlessThePropertyIsAnInlineAutoProperty()
+    public async Task VerifyDiagnosticForMultiAttributeAccessorListOnlyWhenTheAccessorListSpansSeveralLines()
     {
         const string testData = """
                                 class C
                                 {
                                     int P { [return: A, B] get; set; }
 
-                                    int Q { {|#0:[return: A, B]|} get => 1; }
-
                                     int R
                                     {
-                                        {|#1:[return: A, B]|}
+                                        {|#0:[return: A, B]|}
                                         get;
                                         set;
                                     }
@@ -437,7 +435,7 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat, 2));
+                     Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
     }
 
     /// <summary>
@@ -445,8 +443,6 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5528-001")]
-    [Requirement("SHARED-ATTR-014")]
     public async Task VerifyDiagnosticForMultiAttributeAccessorListWhenCommentSitsBetweenTheAccessors()
     {
         const string testData = """

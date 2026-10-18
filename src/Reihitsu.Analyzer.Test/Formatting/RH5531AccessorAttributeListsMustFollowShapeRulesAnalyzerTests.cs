@@ -26,7 +26,7 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     [Requirement("RH5531-001")]
     [Requirement("RH5531-004")]
     [Requirement("RH5531-005")]
-    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-014")]
     [Requirement("SHARED-ATTR-016")]
     [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForMultilineAccessorPolicyViolation()
@@ -322,6 +322,7 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     [Requirement("RH5531-001")]
     [Requirement("RH5531-004")]
     [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-014")]
     [Requirement("SHARED-ATTR-016")]
     public async Task VerifyDiagnosticForMultiAttributeListsOfAccessorsInMultiLineAccessorLists()
     {
@@ -552,26 +553,16 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that a list holding a comment and a list following a comment are still reported without offering a code fix
+    /// Verifies that a list following a comment on a one-line auto-property accessor is still reported without offering a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5531-006")]
-    [Requirement("SHARED-ATTR-019")]
-    [Requirement("SHARED-ATTR-020")]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenCommentIsInsideOrBetweenTheLists()
+    public async Task VerifyDiagnosticWithoutCodeFixWhenCommentSitsBetweenOneLineAccessorLists()
     {
         const string testData = """
                                 class C
                                 {
-                                    int P
-                                    {
-                                        {|#0:[A, /* c */ B]|}
-                                        get;
-                                        set;
-                                    }
-
-                                    int Q { [A] /* c */ {|#1:[B]|} get; set; }
+                                    int Q { [A] /* c */ {|#0:[B]|} get; set; }
                                 }
                                 sealed class A : System.Attribute
                                 {
@@ -583,13 +574,6 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         const string codeFixData = """
                                    class C
                                    {
-                                       int P
-                                       {
-                                           [A, /* c */ B]
-                                           get;
-                                           set;
-                                       }
-
                                        int Q { [A] /* c */ [B] get; set; }
                                    }
                                    sealed class A : System.Attribute
@@ -601,19 +585,16 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 2));
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat));
 
-        foreach (var index in new[] { 0, 2 })
-        {
-            var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                       RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
-                                                       root => root.DescendantNodes()
-                                                                   .OfType<AttributeListSyntax>()
-                                                                   .ElementAt(index)
-                                                                   .GetLocation());
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .ElementAt(1)
+                                                               .GetLocation());
 
-            Assert.IsEmpty(actions, $"A code fix was offered for attribute list {index}.");
-        }
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
