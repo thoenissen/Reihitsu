@@ -36,3 +36,8 @@ None open for `analyzer/RH8107.md` or any element-documentation shared spec at t
 After the spec author, the lead recorded the maintainer's answer on the RH8107 reference clauses in `squad/decisions/2026-10-18-rh8107-shared-doc-reference-clauses.md` (answer: keep the clauses and `Uses`). `scripts/lane-check.sh tests --head worktree` then reported `mismatch — claimed tests, diff needs tooling`, because `squad/` is a tooling path. The implementer had not started, so the lane widens along tests → tooling. The run still has no production change; the spec author's work remains in scope as the tests-lane part of the diff.
 
 Roles now: spec author (done) → skeptic → test implementer → implementer (only if a handed-over test fails against current code; otherwise skipped, since there is no production change to make) → cleaner → spec checker → auditor → validator.
+
+## Escalations and filings so far
+
+- RH8107 reference clauses: maintainer kept them (`squad/decisions/2026-10-18-rh8107-shared-doc-reference-clauses.md`); after the skeptic narrowed SHARED-DOC-004, the maintainer restored RH8107-001 to its `main` text and kept only SHARED-DOC-008 under `Uses` (`squad/decisions/2026-10-18-rh8107-001-keeps-original-text.md`).
+- The five open questions of `03-spec-author.md` are filed as thoenissen/Reihitsu#1037 (`SDD open questions: sdd/specs/shared/element-documentation.md`, sub-issue of thoenissen/Reihitsu#912).
