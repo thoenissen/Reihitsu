@@ -24,6 +24,9 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-004")]
+    [Requirement("RH5020-005")]
     public async Task VerifyDiagnosticForCommentWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -67,6 +70,9 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-003")]
+    [Requirement("RH5020-005")]
     public async Task VerifyDiagnosticForCommentBlockWithoutPrecedingBlankLine()
     {
         const string testCode = """
@@ -112,6 +118,8 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("SHARED-BLANK-001")]
     public async Task VerifyNoDiagnosticForCommentWithPrecedingBlankLine()
     {
         const string testCode = """
@@ -139,6 +147,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-002")]
     public async Task VerifyNoDiagnosticForFirstCommentInBlock()
     {
         const string testCode = """
@@ -164,6 +173,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-002")]
     public async Task VerifyNoDiagnosticForFirstCommentInFile()
     {
         const string testCode = """
@@ -181,6 +191,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-002")]
     public async Task VerifyNoDiagnosticForFirstCommentInSwitchSection()
     {
         const string testCode = """
@@ -211,6 +222,8 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-002")]
+    [Requirement("RH5020-003")]
     public async Task VerifyNoDiagnosticForAdjacentCommentLines()
     {
         const string testCode = """
@@ -238,6 +251,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-005")]
     public async Task VerifyInsertedBlankLineUsesDetectedCarriageReturnLineFeedEndOfLine()
     {
         const string testData = """
@@ -267,6 +281,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-003")]
     public async Task VerifyNoDiagnosticForCommentDirectlyAfterPreprocessorDirective()
     {
         const string testCode = """
@@ -298,6 +313,8 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-005")]
     public async Task VerifyDiagnosticWhenPrecedingLineIsStringContentStartingWithHash()
     {
         const string testCode = """
@@ -343,6 +360,8 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-005")]
     public async Task VerifyFourSlashCommentIsDetectedAndFixed()
     {
         const string testCode = """
@@ -377,6 +396,9 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-005")]
+    [Requirement("SHARED-BLANK-002")]
     public async Task VerifyOwnLineBlockCommentIsDetectedButInlineCommentIsExcluded()
     {
         const string testCode = """
@@ -411,6 +433,9 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-003")]
+    [Requirement("RH5020-005")]
     public async Task VerifyMixedConsecutiveCommentsProduceOneDiagnostic()
     {
         const string testCode = """
@@ -440,6 +465,198 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies every kind of ordinary comment that starts its line is reported on its text when the line above is not
+    /// blank, while a comment behind code, also behind the end of a multi-line comment, is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-004")]
+    [Requirement("SHARED-BLANK-002")]
+    public async Task VerifyOwnLineCommentsWithoutPrecedingBlankLineAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+                                    {|RH5020:// line comment|}
+                                    int _b;
+                                    {|RH5020:/* block comment */|}
+                                    int _c;
+                                    {|RH5020://// four slashes|}
+                                    int _d; // trailing
+                                    {|RH5020:// after a trailing comment|}
+                                    int _e;
+
+                                    void M(int a)
+                                    {
+                                        var x = 1; /* a
+                                        b */ // behind code
+                                        a++;
+                                        {|RH5020:// before the closing brace|}
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the first comment of a file, a type, a block, a case section, and a default section is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    public async Task VerifyFirstCommentOfFileTypeBlockOrSwitchSectionIsNotReported()
+    {
+        const string testCode = """
+                                // first in file
+                                class C
+                                {
+                                    // first in type
+                                    int _a;
+
+                                    void M(int a)
+                                    {
+                                        // first in block
+                                        a++;
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                // first in section
+                                                break;
+                                            default:
+                                                // first in default
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment is not reported when a comment or a directive that comes after the line break behind the
+    /// preceding token stands directly in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-003")]
+    [Requirement("SHARED-BLANK-002")]
+    public async Task VerifyCommentFollowingCommentOrDirectiveAfterLineBreakIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    // first line
+                                    // second line
+                                    /* third line */
+                                    int _b;
+                                #pragma warning disable CS0169
+                                    // after directive
+                                    int _c;
+
+                                    void M(int a)
+                                    {
+                                        a++;
+
+                                        /* a
+                                        b */ // c
+                                        // d
+                                        a++;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment is reported when the comments in front of it start on the line of the preceding token and
+    /// end before the first line break outside a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-003")]
+    [Requirement("SHARED-BLANK-002")]
+    public async Task VerifyCommentFollowingCommentsOnPrecedingTokenLineIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++; /* a
+                                        b */ // c
+                                        {|RH5020:// d|}
+                                        a++;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix inserts one empty line directly above each reported comment and changes nothing else
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-005")]
+    public async Task VerifyFixInsertsEmptyLineAboveEachComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+                                    {|RH5020:// line comment|}
+                                    int _b;
+                                    {|RH5020:/* block comment */|}
+                                    int _c; // trailing
+                                    {|RH5020:// after a trailing comment|}
+                                    int _d;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     // line comment
+                                     int _b;
+
+                                     /* block comment */
+                                     int _c; // trailing
+
+                                     // after a trailing comment
+                                     int _d;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the inserted empty line uses the document's CRLF line ending and carries no indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-005")]
+    public async Task VerifyFixInsertsCarriageReturnLineFeedEmptyLineAboveComment()
+    {
+        const string testCode = "class C\n{\n    int _a;\n    // note\n    int _b;\n}\n";
+        const string fixedCode = "class C\n{\n    int _a;\n\n    // note\n    int _b;\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests

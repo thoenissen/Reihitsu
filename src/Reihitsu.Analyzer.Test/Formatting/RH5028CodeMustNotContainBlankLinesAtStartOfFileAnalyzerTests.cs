@@ -21,6 +21,7 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5028-002")]
     public async Task VerifyNoDiagnosticsWhenFileStartsWithContent()
     {
         const string testData = """
@@ -37,6 +38,9 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5028-001")]
+    [Requirement("RH5028-003")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyLeadingBlankLinesAreDetectedAndFixed()
     {
         const string testData = """
@@ -55,6 +59,122 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Batc
         await Verify(testData,
                      fixedData,
                      Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan(1, 1, 3, 1).WithMessage(AnalyzerResources.RH5028MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the blank lines in front of the first content line are reported with one diagnostic and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5028-001")]
+    [Requirement("RH5028-003")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyBlankLinesInFrontOfFirstContentLineAreReportedAsOneSpan()
+    {
+        const string testCode = """
+                                {|RH5028:
+
+
+                                |}class C
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a file that holds nothing but whitespace and line breaks is reported over the whole file and emptied
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5028-001")]
+    [Requirement("RH5028-003")]
+    public async Task VerifyWhitespaceOnlyFileIsReportedOverWholeFileAndEmptied()
+    {
+        const string testCode = "{|RH5028:  \n\t\n    |}";
+
+        await Verify(testCode, string.Empty);
+    }
+
+    /// <summary>
+    /// Verifies an empty file is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5028-002")]
+    public async Task VerifyEmptyFileIsNotReported()
+    {
+        await Verify(string.Empty);
+    }
+
+    /// <summary>
+    /// Verifies a file whose first line holds a comment is not reported, even when a blank line follows it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5028-002")]
+    public async Task VerifyFileStartingWithCommentFollowedByBlankLineIsNotReported()
+    {
+        const string testCode = """
+                                // header
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies blank lines in front of a first line that holds a directive are reported and deleted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5028-001")]
+    [Requirement("RH5028-003")]
+    public async Task VerifyBlankLinesInFrontOfDirectiveAreReportedAndDeleted()
+    {
+        const string testCode = """
+                                {|RH5028:
+
+                                |}#nullable enable
+                                class C
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 #nullable enable
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies leading whitespace-only lines with CRLF line breaks are deleted up to the first comment line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5028-001")]
+    [Requirement("RH5028-003")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesLeadingBlankLinesWithCarriageReturnLineFeed()
+    {
+        const string testCode = "  \n\n// header\nclass C\n{\n}\n";
+        const string fixedCode = "// header\nclass C\n{\n}\n";
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
     #endregion // Tests
