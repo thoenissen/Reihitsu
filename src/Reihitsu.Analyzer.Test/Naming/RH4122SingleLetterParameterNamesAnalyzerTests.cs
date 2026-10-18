@@ -397,5 +397,24 @@ public class RH4122SingleLetterParameterNamesAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies single-letter primary constructor parameters of a readonly record struct are not reported, while those of a readonly struct are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4122-003")]
+    public async Task ReadonlyRecordStructPrimaryConstructorParametersAreNotChecked()
+    {
+        const string testCode = """
+                                public readonly record struct Point(int X, int y);
+
+                                public readonly record struct Pair(int a, int b);
+
+                                public readonly struct Size(int {|RH4122:w|});
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
