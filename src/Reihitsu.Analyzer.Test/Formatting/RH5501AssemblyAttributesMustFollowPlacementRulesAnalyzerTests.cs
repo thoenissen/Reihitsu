@@ -23,6 +23,9 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5501-001")]
+    [Requirement("RH5501-002")]
+    [Requirement("RH5501-003")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -55,6 +58,8 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5501-003")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixDoesNotInsertBlankLineWhenDeclarationHasBody()
     {
         const string testData = """
@@ -92,6 +97,9 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5501-001")]
+    [Requirement("SHARED-ATTR-004")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixDoesNotInsertBlankLineWhenSecondAttributeListViolates()
     {
         const string testData = """
@@ -127,6 +135,9 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-ATTR-004")]
+    [Requirement("SHARED-ATTR-007")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyFixAllDoesNotInsertBlankLineForTwoViolatingAttributeListsOnOneLine()
     {
         const string testData = """
@@ -161,6 +172,8 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5501-003")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixUsesCanonicalIndentationRegardlessOfTheAttributeListsOwnDepth()
     {
         const string testData = """
@@ -187,6 +200,9 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-ATTR-004")]
+    [Requirement("SHARED-ATTR-007")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixDoesNotInsertBlankLineForMultiLineAttributeList()
     {
         const string testData = """
@@ -221,6 +237,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5501-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -242,6 +259,8 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5501-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -281,6 +300,8 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5501-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForAssemblySpecifierOnSingleLinePropertyAccessor()
     {
         const string testData = """
@@ -292,6 +313,28 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
                                 {
                                 }
                                 sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an assembly specifier on a parameter is not checked, because a list of a parameter resolves to the parameter target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5501-001")]
+    [Requirement("SHARED-ATTR-003")]
+    public async Task VerifyNoDiagnosticForAssemblySpecifierOnParameter()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M([assembly: First] int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
                                 {
                                 }
                                 """;

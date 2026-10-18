@@ -23,6 +23,9 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5517-001")]
+    [Requirement("RH5517-002")]
+    [Requirement("RH5517-003")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -61,6 +64,7 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5517-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -85,6 +89,8 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5517-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -130,6 +136,8 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5517-001")]
+    [Requirement("SHARED-ATTR-003")]
     public async Task VerifyNoDiagnosticForFieldTargetedAttributeOnRecordParameter()
     {
         const string testData = """
@@ -153,6 +161,8 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5517-001")]
+    [Requirement("SHARED-ATTR-006")]
     public async Task VerifyNoDiagnosticForFieldSpecifierOnSingleLinePropertyAccessor()
     {
         const string testData = """
@@ -169,6 +179,77 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of an enum member is checked and the fix indents inside the enum
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5517-001")]
+    [Requirement("SHARED-ATTR-001")]
+    [Requirement("SHARED-ATTR-008")]
+    public async Task VerifyDiagnosticAndCodeFixForEnumMember()
+    {
+        const string testData = """
+                                internal enum Example
+                                {
+                                    {|#0:[First]|} Value,
+                                    Other
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal enum Example
+                                 {
+                                     [First]
+                                     Value,
+                                     Other
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list with the field specifier on a property resolves to the field target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5517-001")]
+    [Requirement("SHARED-ATTR-002")]
+    public async Task VerifyDiagnosticAndCodeFixForFieldSpecifierOnProperty()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[field: First]|} internal int Value { get; set; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [field: First]
+                                     internal int Value { get; set; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
     }
 
     #endregion // Tests

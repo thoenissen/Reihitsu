@@ -23,6 +23,9 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5511-001")]
+    [Requirement("RH5511-002")]
+    [Requirement("RH5511-003")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -61,6 +64,7 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5511-001")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -85,6 +89,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5511-004")]
+    [Requirement("SHARED-ATTR-011")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -132,6 +138,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5511-004")]
+    [Requirement("SHARED-ATTR-012")]
     public async Task VerifyNoCodeFixWhenEnclosingTypeIsMissingClosingBrace()
     {
         const string codeFixData = """
@@ -189,6 +197,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5511-003")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixIndentsAtNestingDepthRatherThanPrecedingDirectiveIndentation()
     {
         const string testData = """
@@ -224,6 +234,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5511-003")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixUsesCanonicalIndentationRegardlessOfTheAttributeListsOwnDepth()
     {
         const string testData = """
@@ -273,6 +285,9 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5511-003")]
+    [Requirement("SHARED-ATTR-004")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixIndentsAtNestingDepthForMultiLineAttributeList()
     {
         const string testData = """
@@ -419,6 +434,9 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-ATTR-004")]
+    [Requirement("SHARED-ATTR-007")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task VerifyCodeFixIndentsCorrectlyWhenSecondAttributeListStartsOnMultiLineListsContinuationLine()
     {
         const string testData = """
@@ -516,6 +534,73 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                      private int Pad =
                                          1 + 2; [First]
                                      internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list with the type specifier on a constructor resolves to the constructor target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5511-001")]
+    [Requirement("SHARED-ATTR-001")]
+    public async Task VerifyDiagnosticAndCodeFixForTypeSpecifier()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[type: First]|} internal Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [type: First]
+                                     internal Example() { }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5511MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a static constructor is checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5511-001")]
+    public async Task VerifyDiagnosticAndCodeFixForStaticConstructor()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|#0:[First]|} static Example() { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     static Example() { }
                                  }
                                  sealed class FirstAttribute : System.Attribute
                                  {
