@@ -14,6 +14,8 @@ This spec covers what holds for every analyzer rule, so a rule spec states only 
 - Code in an inactive `#if` branch. The compiler does not hand it to any analyzer, so no rule can report it.
 - Generated code in the formatter (FMT-PIPE-006) and in the CLI, which have their own specs.
 - How a rule is suppressed or configured — standard .NET analyzer behavior.
+- How a code fix spells a name it writes into the code, including whether it writes the verbatim prefix `@` — the spec of that fix.
+- Whether a rule reports whitespace next to a comment — the spec of that rule.
 
 ## Requirements
 
@@ -37,3 +39,103 @@ internal class C
 ```
 
 is not reported by RH1003, which reports the same class without the comment.
+
+### SHARED-DIAG-002 — A name is compared by its value
+
+An analyzer rule that compares a name with another name, a list, or a pattern, or derives other text from it, such as a file name, MUST use the name's value: an identifier without its verbatim prefix `@`, and a qualified name as its identifiers joined by `.`, without the whitespace and comments written between them. A name written with `@` or with whitespace or comments inside MUST give the same result as the same name written without them. So `class @class` declares a type named `class`, and `namespace A . B` and `namespace A./* x */B` both declare the namespace `A.B`.
+
+Why: The verbatim prefix and the trivia inside a qualified name are spelling, not part of the name; the compiler binds `@class` as `class` and `A . B` as `A.B`. A rule that compares the spelling reports a name that matches, or misses one that does not, depending only on how the author wrote it.
+
+Example — `@class` is documented by `<param name="class">` and is not reported, while `@event` has no `<param>` element and is reported:
+
+```csharp
+class C
+{
+    /// <summary>Summary</summary>
+    /// <param name="class">Class</param>
+    /// <param name="value">Value</param>
+    void M(int @class, int value, int {|RH8101:@event|})
+    {
+    }
+}
+```
+
+Example — whitespace or a comment inside the qualified name does not change the type it names, so all three fields are reported alike:
+
+```csharp
+class C
+{
+    {|RH3103:System.Nullable<int>|} a;
+    {|RH3103:System . Nullable<int>|} b;
+    {|RH3103:System./* c */Nullable<int>|} c;
+}
+```
+
+### SHARED-DIAG-003 — Only the text of a literal or a comment is content
+
+An analyzer rule MUST treat the text of a literal or of a comment as content: it MUST NOT report anything inside that text, and its code fix MUST NOT change it. Only that text is content; the code around and inside a literal MUST be checked and fixed like any other code:
+
+- the text of a literal is the text of a string literal of any kind — regular, verbatim, raw, or UTF-8 —, the text of an interpolated string between and around its holes, the text of an interpolation's format clause, and the text of a character or numeric literal; a line inside that text, even an empty one, is part of the literal, not a blank line;
+- the text of a comment is the text of a `//`, `/* */`, `///`, or `/** */` comment, a line inside a multi-line comment included;
+- the whitespace before and after a literal is code, so the spaces at the end of the line `string s = "a";` are trailing whitespace like after any other token;
+- an interpolation hole is code apart from the text of its format clause: its expression and its alignment clause, such as the braces of `new int[]{1}` in `$"{new int[]{1}.Length}"`.
+
+A rule whose subject is a comment itself, such as RH3201, which reports a comment without text, or a documentation rule (RH8###), checks the comment's text as that subject; this requirement does not restrict it.
+
+Why: The text of a literal is the program's data, and the text of a comment is the author's prose; their characters — spaces, empty lines, commas, braces — carry a meaning that a rule about code cannot judge, and changing them changes what the program does or what the comment says. Everything else is code the compiler reads as tokens. Exempting it because a literal is next to it, or because it is written inside an interpolated string, would leave ordinary code unchecked only for where it stands.
+
+Example — the comma inside the hole and the missing space before `"d"` are code and are reported and fixed; the ` ,` in the literal's text and in the comment are content and stay:
+
+```csharp
+class C
+{
+    string s = $"a ,b{string.Concat("c" {|RH6002:,|} "d")}"; // e ,f
+    string t = string.Concat("c"{|RH6002:,|}"d");
+}
+```
+
+```csharp
+class C
+{
+    string s = $"a ,b{string.Concat("c", "d")}"; // e ,f
+    string t = string.Concat("c", "d");
+}
+```
+
+Example — the space after the literal is code; the ` ;` inside it is content:
+
+```csharp
+class C
+{
+    string s = "a ;"{|RH6003: |};
+}
+```
+
+```csharp
+class C
+{
+    string s = "a ;";
+}
+```
+
+Example — the empty lines inside the raw string literal and inside the block comment are content, not blank lines, and the space at the start of the format clause ` D3` is the literal's text:
+
+```csharp
+class C
+{
+    string s = """
+        a
+
+
+        b
+        """;
+
+    /* c
+
+
+       d */
+    string t = $"{1:N2}{2: D3}";
+}
+```
+
+is reported neither by RH5023 nor by RH6021.
