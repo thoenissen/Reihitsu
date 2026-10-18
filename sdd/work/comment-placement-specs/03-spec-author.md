@@ -142,3 +142,15 @@ Touches SHARED-COMMENT-007, SHARED-COMMENT-008, and RH5049-001.
 ## Decisions needed
 
 _None._
+
+## Merge
+
+Merged origin/main at ef415ab (thoenissen/Reihitsu#1057: the blank-line specs and `shared/region-directive-blank-lines.md`) as merge commit 015f07a.
+
+- `sdd/specs/README.md`: one conflict hunk after the RH5029 row. I kept main's RH5030, RH5031 and RH5032 rows, followed by this branch's RH5033–RH5047 and RH5049 rows. The rows outside the hunk merged on their own: the new SHARED-REGION row, main's updated SHARED-WS code owners, and the SHARED-COMMENT row. Every row of both sides is present, each exactly once.
+- `sdd/specs/requirement-ids.txt`: one conflict hunk, where I kept both sides. The ledger now has 699 IDs: 615 in the merge base, 50 added on main, and 34 added on this branch. It is sorted and has no duplicates. Compared against each side, no ID is missing.
+- Overlap with SHARED-REGION: none. Its code owners are `RegionDirectiveBlankLineAnalyzerBase` and `RegionDirectiveBlankLineCodeFixProviderBase`, and no type is a code owner of both specs. The two specs touch comments near directives in different ways:
+  - SHARED-REGION-001 puts a comment behind `#endregion` inside the directive's diagnostic span. SHARED-COMMENT-002 says such a comment is part of the directive line and is not checked by the comment-placement rules.
+  - SHARED-REGION-002 keeps a comment above or below the directive in place. RH5034-001 only reports a comment that follows a documentation comment, wherever a `#region` stands between them.
+  - Neither spec states the other's behavior, so I changed no requirement.
+- `scripts/test.sh --project architecture`: 72/72 passed, including SpecConsistencyTests, SpecStructureTests and RequirementCoverageTests.
