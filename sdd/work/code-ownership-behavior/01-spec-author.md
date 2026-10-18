@@ -9,7 +9,7 @@ None. No spec, requirement ID, test, code, or code-owner row changed. No change 
 Text changes:
 
 - `sdd/README.md`, *Spec format → Code owners* bullet: after "A type is a code owner of at most one spec: … and a general-purpose utility to none." added the issue's clarification. Wording polished only: the first two of the issue's sentences are joined with a colon, and "each such caller's spec" reads "the spec of each such caller". Meaning unchanged: ownership follows the behavior a type implements, not its callers; callers' specs list the relied-on IDs under `Uses`; a general-purpose utility is a type whose behavior no spec specifies (syntax or trivia helper).
-- `sdd/changes/2026-10/introduce-sdd.md`, *Spec format → Rules*: the code-owner bullet said only "A type is a code owner of at most one spec." Amended in place (the rulebook allows this for the SDD-setup change docs) so it agrees with the clarified rule: the owning spec is the one that specifies the behavior the type implements, not the spec of a caller, and a type whose behavior no spec specifies owns none.
+- `sdd/changes/2026-10/introduce-sdd.md` is left untouched. Its code-owner bullet (*Spec format → Rules*) says only "Code owners are type names only, never file paths or line numbers. A type is a code owner of at most one spec." It does not draw the shared-spec / general-purpose-utility distinction that this run clarifies, so it does not state that rule in other words, and the issue's amend clause does not apply. The bullet stays consistent with the clarified rulebook. An earlier commit of this run had amended it; that edit was reverted to `origin/main`, because the issue's clause did not cover it and it pushed the run out of the docs lane.
 
 ## Examples for the tests
 

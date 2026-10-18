@@ -89,7 +89,7 @@ Rules:
 - `Why` is short but present — it is what lets an agent decide an edge case the requirement does not spell out.
 - Examples are concrete before/after C# blocks; they are the seed for tests.
 - `Non-goals` list what the spec deliberately does not cover, so an agent does not extend behavior on its own. Open questions are never written into a spec; they are filed as issues.
-- Code owners are type names only, never file paths or line numbers. A type is a code owner of at most one spec: the spec that specifies the behavior it implements, not the spec of code that calls it. A type whose behavior no spec specifies is a code owner of none.
+- Code owners are type names only, never file paths or line numbers. A type is a code owner of at most one spec.
 
 ### Requirement IDs
 
