@@ -42,3 +42,7 @@ Roles now: spec author (done) → skeptic → test implementer → implementer (
 - RH8107 reference clauses: maintainer kept them (`squad/decisions/2026-10-18-rh8107-shared-doc-reference-clauses.md`); after the skeptic narrowed SHARED-DOC-004, the maintainer restored RH8107-001 to its `main` text and kept only SHARED-DOC-008 under `Uses` (`squad/decisions/2026-10-18-rh8107-001-keeps-original-text.md`).
 - The five open questions of `03-spec-author.md` are filed as thoenissen/Reihitsu#1037 (`SDD open questions: sdd/specs/shared/element-documentation.md`, sub-issue of thoenissen/Reihitsu#912).
 - Implementer skipped: `04-test-implementer.md` reports every new and tagged test passing against the unchanged analyzers, so there is no production change to make.
+
+## Repair round (auditor `07-auditor.md`)
+
+Worklist, all in scope of this run: findings 1 and 2 (shared-spec coverage) → spec author (`08-spec-author.md`, which also narrowed SHARED-DOC-005/006 for namespaced elements); finding 3 (duplicated Parse-mode test setup) → test implementer; finding 4 (missing BOM) → cleaner. The lead added the `08-spec-author.md` blocks to thoenissen/Reihitsu#1037 (Q2 prefix shape, Q3 group continuation with SHARED-DOC-002, Q5 included content and namespaces). The *Lane* section's "auditor skipped" line predates the widening; the auditor ran.
