@@ -458,7 +458,7 @@ is reported, and no code fix is offered.
 
 ### SHARED-ATTR-013 — A list with several attributes is reported
 
-A rule that requires one attribute per list MUST report every attribute list of its target that holds more than one attribute, whether the list is on its own line or shares its line with other code, and whatever comments surround it. It MUST NOT report a list that holds one attribute.
+A rule that requires one attribute per list MUST report every attribute list of its target that holds more than one attribute and is not attached to an accessor, whether the list is on its own line or shares its line with other code, and whatever comments surround it. A list attached to an accessor is reported as SHARED-ATTR-014 specifies. It MUST NOT report a list that holds one attribute.
 
 Why: On a declaration every attribute gets a line of its own (FMT-BREAK-027), so a change to one attribute changes exactly one line. A list with several attributes ties unrelated attributes to one line; where the list is placed is the placement rule's decision, not this one's.
 
@@ -486,9 +486,9 @@ class C
 
 ### SHARED-ATTR-014 — Accessor lists of an inline auto-property are not split
 
-A rule that requires one attribute per list MUST NOT report an attribute list of an accessor whose lists SHARED-ATTR-006 exempts from the separate-line placement. It MUST report a list of any other accessor as SHARED-ATTR-013 specifies.
+A rule that requires one attribute per list MUST NOT report an attribute list of an accessor whose lists SHARED-ATTR-006 exempts from the separate-line placement. When the property, indexer, or event that owns the accessor spans more than one line, apart from its own attribute lists, the rule MUST report a list of the accessor that holds more than one attribute, as SHARED-ATTR-013 specifies for other lists.
 
-Why: Such an accessor list stays on the property's line (FMT-BREAK-024), so a second list would sit on the same line and only repeat the brackets; one list there says the same in less space.
+Why: Such an accessor list stays on the property's line (FMT-BREAK-024), so a second list would sit on the same line and only repeat the brackets; one list there says the same in less space. In an accessor list over several lines, each attribute has a line of its own to take, as on any other declaration.
 
 Example — RH5528:
 
@@ -496,8 +496,6 @@ Example — RH5528:
 class C
 {
     int P { [return: A, B] get; set; }
-
-    int Q { {|RH5528:[return: A, B]|} get => 1; }
 
     int R
     {
