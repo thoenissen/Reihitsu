@@ -21,7 +21,7 @@ This spec covers what holds for every code fix of an analyzer rule, so a rule sp
 
 Applying a rule's code fix to a reported diagnostic MUST correct it in one application: once the rule's own fixes have been applied one after another, at most once for each diagnostic the rule reported, the rule MUST NOT report the code they corrected. The requirement holds for each rule on its own:
 
-- The corrected code is everything the rule reports at that location, such as a whole run of blank lines, not only the run's first line.
+- The corrected code is everything the rule reports at the place it checks, such as a whole run of blank lines, not only the span the diagnostic covers.
 - A fix of another rule that would remove the rest does not count, even when that rule reports part of the same code.
 
 Why: A fix that has to be applied twice, or that recreates its own diagnostic, never reaches a clean state for the user and makes Fix All results depend on how often it runs. A user who applies one rule's fix sees that rule's diagnostics only, and the other rule may be disabled, so each rule has to reach its clean state with its own fixes.
@@ -55,7 +55,7 @@ class C
 }
 ```
 
-is not reported again.
+is not reported again. The diagnostic covers `if`; the place the rule checks, and the fix corrects, is the line in front of it.
 
 Example — RH5028, which reports a run of blank lines with one diagnostic; its fix, applied once:
 
@@ -109,18 +109,15 @@ is not reported again.
 Example — two rules that report parts of one run. In
 
 ```csharp
-class C
-{
-    void M()
-    {
-{|RH5022:
+{|RH5028:
+{|RH5023:
 |}{|RH5023:
-|}        M();
-    }
+|}|}class C
+{
 }
 ```
 
-RH5022 reports the first blank line below `{`, and RH5023 reports the second. The RH5023 fix, applied once, leaves one blank line below `{`. RH5023 does not report that line; RH5022 still does, and a diagnostic of another rule left behind is outside this spec (see Non-goals). The RH5022 fix, applied once, MUST leave no RH5022 diagnostic in the run: it removes the whole run, and does not rely on the RH5023 fix to remove the second line.
+RH5028 reports the whole run, and RH5023 reports its second and third line. The RH5023 fix, applied once for each of its diagnostics, leaves the first blank line. RH5023 does not report that line; RH5028 still does, and a diagnostic of another rule left behind is outside this spec (see Non-goals). The RH5028 fix, applied once, removes the whole run on its own, as in the RH5028 example above, and does not rely on the RH5023 fix to remove the second and third line.
 
 ### SHARED-FIX-002 — Fix All corrects everything in one application
 
@@ -153,13 +150,16 @@ public class C
 A code fix MUST NOT be offered when its result would:
 
 - have a compile error that the code did not have;
-- change what the program does at run time — the new name or the new accessibility that the fix exists to produce does not count, but any other difference in behavior does;
-- change the text of a comment, a directive, or a literal that the user wrote, except text that a diagnostic of the fix's own rule reports; or
+- change what the program does at run time;
+- change the text of a comment, a directive, or a literal that the user wrote; or
 - leave code that an `#if` branch excludes referring to a name the fix changed.
 
-The diagnostic is still reported.
+The diagnostic is still reported. The second and third condition are bounded as follows:
 
-Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. A diagnostic without a fix is a supported end state; a broken fix is not.
+- **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. Reordering instance fields whose declaration order determines the type's layout, as in a struct with sequential layout, counts. A reorder that changes neither a layout nor the order in which code runs does not.
+- **Comment, directive, and literal text.** Text that a diagnostic of the fix's own rule reports may change. A name in a documentation comment that binds to a symbol the fix renames, such as a `cref` or a `<param name>`, is renamed with the symbol as part of the rename; a word of the comment's text that only reads like the name does not bind to it and stays unchanged. Layout does not count: the whitespace, line breaks, and indentation of a comment or a directive, and the indentation of a raw string literal's lines when the literal's value stays the same. A changed word, or a changed value of a literal, does count.
+
+Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. A rename has to reach every place that refers to the symbol, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. A diagnostic without a fix is a supported end state; a broken fix is not.
 
 Example — a compile error, for RH4106:
 
@@ -208,7 +208,70 @@ public class C
 }
 ```
 
-Both fields are reported. For `_b`, no code fix is offered: moving it in front of `_a` would run its initializer first, so `_b` would hold `0` instead of `1`. For `_a`, the fix is offered, because it crosses only the instance field `_instance`, whose initialization runs at a different time.
+Both fields are reported. For `_b`, no code fix is offered: moving it in front of `_a` would run its initializer first, so `_b` would hold `0` instead of `1`. For `_a`, the fix is offered: it crosses only the instance field `_instance`, whose initialization runs at a different time, and moving a static field changes no layout.
+
+Example — a reference in a documentation comment, for RH4106:
+
+```csharp
+public class C
+{
+    /// <summary>Value is <see cref="Value"/>.</summary>
+    private int {|RH4106:Value|};
+
+    public int Get() => Value;
+}
+```
+
+```csharp
+public class C
+{
+    /// <summary>Value is <see cref="_value"/>.</summary>
+    private int _value;
+
+    public int Get() => _value;
+}
+```
+
+The `cref` binds to the field and is renamed with it. The word `Value` at the start of the summary does not bind to anything and stays.
+
+Example — layout, for RH3202:
+
+```csharp
+public class C
+{
+    ///<summary>runs</summary>
+    ///<returns>one</returns>
+    public int M() {|RH3202:=> 1|};
+
+    public string N() {|RH3202:=>
+        """
+        a
+        """|};
+}
+```
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// runs
+    /// </summary>
+    /// <returns>one</returns>
+    public int M()
+    {
+        return 1;
+    }
+
+    public string N()
+    {
+        return """
+               a
+               """;
+    }
+}
+```
+
+The fix changes the line breaks and the spacing of the documentation comment of `M`, and the indentation of the raw string literal in `N`; the comment's words and the literal's value stay the same.
 
 Example — text the rule reports, for RH8107:
 
@@ -232,7 +295,7 @@ public class C
 }
 ```
 
-The fix changes the text of the documentation comment, but only the element its diagnostic reports. Likewise, the RH5604 fix rewrites the line breaks its rule reports, also inside documentation comments, and keeps a line break in the text of a string literal, which its rule does not report.
+The fix changes the words of the documentation comment only in the element its diagnostic reports; the space it removes in front of that element is layout. Likewise, the RH5604 fix rewrites the line breaks its rule reports, also inside documentation comments, and keeps a line break in the text of a string literal, which is part of the literal's value and which its rule does not report.
 
 Example — code excluded by `#if`, for RH4106:
 
@@ -244,7 +307,7 @@ public class C
     public int M()
     {
 #if NEVER
-        return Value + 1;
+        return 0;
 #else
         return Value;
 #endif
@@ -252,7 +315,23 @@ public class C
 }
 ```
 
-is reported, and no code fix is offered, because the renamed field would leave `Value` in the excluded branch. When the excluded code does not name `Value`, the fix is offered.
+```csharp
+public class C
+{
+    private int _value;
+
+    public int M()
+    {
+#if NEVER
+        return 0;
+#else
+        return _value;
+#endif
+    }
+}
+```
+
+The excluded branch does not name `Value`, so the fix is offered and leaves that branch as it is.
 
 ### SHARED-FIX-004 — The fixes of two rules do not undo each other
 
@@ -276,22 +355,16 @@ public class C
 }
 ```
 
-RH4106 reports the private field, and its fix renames it to `_first` and keeps it `private`. The RH4106 fix does not restore the code the RH2005 fix started from.
-
-Example — in
+RH4106 reports the private field, and its fix renames it and keeps it `private`:
 
 ```csharp
-class C
+public class C
 {
-    int _a;
-
-    #region R
-
+    private string _first;
 }
-#endregion
 ```
 
-the RH5024 fix deletes the blank line between `#region R` and `}`, RH5032 then reports `#region R`, and the RH5032 fix inserts the line again. The two fixes undo each other, which this requirement forbids.
+The RH4106 fix does not restore the code the RH2005 fix started from.
 
 ### SHARED-FIX-005 — An offered fix changes the document
 
@@ -309,5 +382,3 @@ public class C
 ```
 
 is reported, and no code fix is offered, because the name the fix derives is `_1st` again.
-
-Example — in the file `"class C\n{\n}\n\n"`, an RH5023 fix offered at the end of the file would delete nothing, so it MUST NOT be offered there.
