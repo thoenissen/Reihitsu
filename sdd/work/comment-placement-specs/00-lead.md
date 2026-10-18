@@ -32,3 +32,7 @@ Verdict: lane claimed
 - Never change an existing requirement of another spec without asking the maintainer.
 - Other squads concurrently edit `sdd/specs/README.md` and `sdd/specs/requirement-ids.txt`; on a merge from main, keep both sides' rows.
 - Done: 16 rule specs + the shared spec, existing tests tagged, focused tests only for uncovered requirements, every example verified against a test or by running it, open questions filed, CI green, PR based on main without `sdd/work/`.
+
+## Log
+
+- Spec author (01): spec written at b7ac7ae. The open question it found is filed as thoenissen/Reihitsu#1058, a sub-issue of thoenissen/Reihitsu#912. The shared spec also lists `CommentPositionUtilities` and `FluentChainAnalysisHelper` as code owners: outside their own files, only this batch's base classes use them. This is reported to the maintainer in the run report.
