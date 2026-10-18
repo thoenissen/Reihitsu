@@ -21,6 +21,8 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4112-001")]
+    [Requirement("RH4112-002")]
     public async Task VerifyDiagnosticsForProtectedPropertyAndReferenceAreFixed()
     {
         const string testCode = """
@@ -61,6 +63,7 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4112-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseProtectedProperty()
     {
         const string testCode = """
@@ -81,6 +84,7 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4112-001")]
     public async Task VerifyNoDiagnosticsForProtectedInternalProperty()
     {
         const string testCode = """
@@ -101,6 +105,8 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4112-001")]
+    [Requirement("RH4112-002")]
     public async Task VerifyDiagnosticsForPrivateProtectedPropertyWrongCasing()
     {
         const string testCode = """
@@ -131,6 +137,7 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4112-001")]
     public async Task VerifyNoDiagnosticsForImplicitProperties()
     {
         const string testCode = """
@@ -146,6 +153,144 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies protected, private protected, and static protected properties are reported, while PascalCase names and other accessibility groups are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4112-001")]
+    public async Task ProtectedPropertiesOfEveryKindAreCheckedWhileOtherGroupsAreNot()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    protected int {|RH4112:count|} { get; set; }
+                                    private protected int {|RH4112:offset|} { get; set; }
+                                    protected static int {|RH4112:instance_count|} => 0;
+                                    protected int Limit { get; set; }
+                                    protected internal int scale { get; set; }
+                                    int total { get; set; }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies abstract and virtual protected properties are reported, and so is an override whose original definition is declared in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4112-001")]
+    public async Task AbstractAndVirtualProtectedPropertiesAreChecked()
+    {
+        const string testCode = """
+                                public abstract class C
+                                {
+                                    protected abstract int {|RH4112:row_count|} { get; }
+                                    protected virtual int {|RH4112:column_count|} => 0;
+                                }
+
+                                public class D : C
+                                {
+                                    protected override int {|RH4112:row_count|} => 1;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies each part of a partial protected property gets its own diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4112-001")]
+    public async Task PartialProtectedPropertyIsReportedOnEachPart()
+    {
+        const string testCode = """
+                                public partial class C
+                                {
+                                    protected partial int {|RH4112:count|} { get; }
+                                }
+
+                                public partial class C
+                                {
+                                    protected partial int {|RH4112:count|} => 0;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames protected properties and every reference to them to the derived PascalCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4112-002")]
+    public async Task FixRenamesProtectedPropertiesAndTheirReferencesToPascalCase()
+    {
+        const string testCode = """
+                                public class BaseView
+                                {
+                                    protected int {|RH4112:item_count|} { get; set; }
+
+                                    protected int {|RH4112:offset|} => 0;
+
+                                    public int Sum => item_count + offset;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class BaseView
+                                 {
+                                     protected int ItemCount { get; set; }
+
+                                     protected int Offset => 0;
+
+                                     public int Sum => ItemCount + Offset;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies renaming a protected property also renames the property it overrides and the property that overrides it in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4112-002")]
+    public async Task FixRenamesOverriddenAndOverridingProtectedPropertiesInSource()
+    {
+        const string testCode = """
+                                public class BaseView
+                                {
+                                    protected virtual int {|RH4112:row_count|} => 0;
+                                }
+
+                                public class GridView : BaseView
+                                {
+                                    protected override int {|RH4112:row_count|} => 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class BaseView
+                                 {
+                                     protected virtual int RowCount => 0;
+                                 }
+
+                                 public class GridView : BaseView
+                                 {
+                                     protected override int RowCount => 1;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

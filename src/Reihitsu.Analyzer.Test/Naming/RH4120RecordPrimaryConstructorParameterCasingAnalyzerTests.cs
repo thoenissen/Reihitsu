@@ -21,6 +21,8 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4120-001")]
+    [Requirement("RH4120-003")]
     public async Task VerifyDiagnosticsForRecordPrimaryConstructorParameterWrongCasing()
     {
         const string testCode = """
@@ -43,6 +45,8 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4120-001")]
+    [Requirement("RH4120-003")]
     public async Task VerifyCodeFixRenamesRecordPrimaryConstructorParameterReferences()
     {
         const string testCode = """
@@ -79,6 +83,8 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4120-001")]
+    [Requirement("RH4120-003")]
     public async Task VerifyDiagnosticsForRecordStructPrimaryConstructorParameterWrongCasing()
     {
         const string testCode = """
@@ -101,6 +107,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4120-001")]
     public async Task VerifyNoDiagnosticsForPascalCaseRecordPrimaryConstructorParameter()
     {
         const string testCode = """
@@ -117,6 +124,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4120-002")]
     public async Task VerifyNoDiagnosticsForMethodParameter()
     {
         const string testCode = """
@@ -131,6 +139,91 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the primary constructor parameters of a record, record class, record struct, and readonly record struct are reported, while PascalCase names are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4120-001")]
+    public async Task PrimaryConstructorParametersOfEveryRecordKindAreChecked()
+    {
+        const string testCode = """
+                                public record R(int {|RH4120:firstName|}, int LastName);
+
+                                public record class C(int {|RH4120:last_name|});
+
+                                public record struct S(int {|RH4120:count|});
+
+                                public readonly record struct T(int {|RH4120:size|});
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a record primary constructor parameter named with an underscore, an explicit record constructor, a record method, and class and struct primary constructors are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4120-002")]
+    public async Task DiscardsAndParametersOfOtherConstructorsAndMembersAreNotChecked()
+    {
+        const string testCode = """
+                                public record R(int _, int Id)
+                                {
+                                    public R(string text)
+                                        : this(0, text.Length)
+                                    {
+                                    }
+
+                                    public void M(int input)
+                                    {
+                                    }
+                                }
+
+                                public class C(int value);
+
+                                public struct S(int value);
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames the record parameter, the property it declares, and every reference to them to the derived PascalCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4120-003")]
+    public async Task FixRenamesParameterItsPropertyAndEveryReferenceToPascalCase()
+    {
+        const string testCode = """
+                                public record R(int {|RH4120:firstName|})
+                                {
+                                    public int Twice => firstName * 2;
+                                }
+
+                                public class U
+                                {
+                                    public int M(R r) => r.firstName;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public record R(int FirstName)
+                                 {
+                                     public int Twice => FirstName * 2;
+                                 }
+
+                                 public class U
+                                 {
+                                     public int M(R r) => r.FirstName;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

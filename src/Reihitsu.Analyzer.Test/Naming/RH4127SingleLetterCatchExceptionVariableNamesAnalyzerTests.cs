@@ -20,6 +20,7 @@ public class RH4127SingleLetterCatchExceptionVariableNamesAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH4127-001")]
     public async Task VerifyDiagnosticForCatchExceptionVariable()
     {
         const string testCode = """
@@ -49,6 +50,8 @@ public class RH4127SingleLetterCatchExceptionVariableNamesAnalyzerTests : Analyz
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-SINGLE-001")]
+    [Requirement("RH4127-001")]
     public async Task VerifyNoDiagnosticsForAllowedCatchDeclarations()
     {
         const string testCode = """
@@ -94,6 +97,43 @@ public class RH4127SingleLetterCatchExceptionVariableNamesAnalyzerTests : Analyz
                                     public void Process()
                                     {
                                         var e = 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a single-letter exception variable is reported, while a discard, a descriptive name, and a catch clause without a variable are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4127-001")]
+    public async Task SingleLetterExceptionVariablesAreReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        catch (ArgumentException {|RH4127:e|})
+                                        {
+                                        }
+                                        catch (FormatException _)
+                                        {
+                                        }
+                                        catch (InvalidOperationException exception)
+                                        {
+                                        }
+                                        catch (Exception)
+                                        {
+                                        }
                                     }
                                 }
                                 """;
