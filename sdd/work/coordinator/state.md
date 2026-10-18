@@ -79,9 +79,20 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 - nothing
 
+## Next: question round (new chat, planned 2026-10-18)
+
+Trigger: when the currently running batches are merged. Maintainer may also adjust AGENTS.md.
+Open-question issues so far (sub-issues of #912): #1000, #1001, #1009 (shared/casing Q1–Q4), #1010, #1011, #1012, #1013, #1014 — plus whatever the running batches file.
+Patterns found by coordinator (2026-10-18), proposed as principle decisions first:
+- A. Unsafe fix: fix yields non-compiling code, runtime breakage, or inconsistent inactive code (#1009 Q1, Q4; #1013 Q1, Q2; #1014 Q1; #1010 Q1). AGENTS.md "prefer no fix over an unsafe one" exists, but shared/code-fixes.md has only SHARED-FIX-001/002, so every instance becomes a question. Proposal: SHARED-FIX-003 (fix not offered when result does not compile, changes what runs, or leaves inactive code inconsistent); instances become bugs against the spec. #1010 `_`→`I_` already violates SHARED-FIX-001 (plain bug).
+- B. Shared question filed per rule: #1013 Q1 (RH4103) = #1014 Q1 (RH4102): member name dictated by a base/interface in a referenced assembly (+ P/Invoke without EntryPoint). Belongs to #1009. Proposal: not reported, like explicit interface implementations. Will recur for RH4111–RH4114 (#979).
+- C. `@` names compared/renamed with the `@`: #1009 Q2, #1011 Q1, #1012 Q2. Proposal: compare and rename by value without `@`; withhold a fix that would produce a keyword.
+- Rest per issue: #1000 (documented limitation in RH5103.md → likely stated exception), #1001, #1009 Q3, #1011 Q2/Q3, #1012 Q1.
+Possible AGENTS.md change: make "Code-fix coverage" point to SHARED-FIX-003 or state the unsafe-fix classes explicitly so squads file them as bugs, not questions.
+
 ## Waiting for maintainer
 
-- maintainer: run #979 (prompt given); decision round pending for open-question issues #1000, #1001, #1009 (shared/casing), #1010–#1014 — offered
+- maintainer: running batches #979, #980, #982, #986, #988, #989 (+ #1008); then question round in a new chat (restart prompt given 2026-10-18)
 
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
