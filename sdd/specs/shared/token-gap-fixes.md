@@ -23,7 +23,7 @@ A code fix that uses this requirement MUST NOT be offered when a gap it rewrites
 
 Why: Rewriting the whitespace next to a comment glues the comment to a token or changes what it appears to annotate, and the author decides where a comment goes (`documentation/rules/general-notes.md`). Each side is decided on its own, so a comment on a side the fix does not touch is no reason to refuse the side it does.
 
-Example — RH6016, which reports whitespace next to a member-access symbol, and RH6021, which reports a base-list colon without a space on each side:
+Example — RH6021, which reports a base-list colon without a space on each side, and RH6016, which reports whitespace next to a member-access symbol:
 
 ```csharp
 class B
@@ -32,10 +32,6 @@ class B
 
 class C /* note */{|RH6021::|} B
 {
-    int M(string s)
-    {
-        return s /* note */ {|RH6016:.|}Length;
-    }
 }
 ```
 
