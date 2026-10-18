@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-WS |
 | Status | Active |
-| Code owners | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase` |
+| Code owners | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase` |
 | Uses | — |
 
 This spec covers the code fixes of rules that report whitespace that must not be there — a run of spaces and tabs, or a span of blank lines — and correct it by deleting the reported span: what the deletion changes, and when a comment or a directive near a run withholds it. Each rule that uses this spec states which whitespace it reports and where its diagnostic is; it names the requirements of this spec its fix follows.
