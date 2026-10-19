@@ -205,14 +205,21 @@ Example — another run-time change, for RH7103:
 public class C
 {
     private int _instance;
-    private static int {|RH7103:_a|} = Compute();
+    private static int {|RH7103:_a|} = 1;
     private static int {|RH7103:_b|} = _a;
-
-    private static int Compute() => 1;
 }
 ```
 
-Both fields are reported. For `_b`, no code fix is offered: moving it in front of `_a` would run its initializer first, so `_b` would hold `0` instead of `1`. For `_a`, the fix is offered: it crosses only the instance field `_instance`, whose initialization runs at a different time, and moving a static field changes no layout.
+```csharp
+public class C
+{
+    private static int _a = 1;
+    private int _instance;
+    private static int {|RH7103:_b|} = _a;
+}
+```
+
+Both fields are reported. For `_b`, no code fix is offered: moving it in front of `_a` would run its initializer first, so `_b` would hold `0` instead of `1`. For `_a`, the fix is offered: it crosses only the instance field `_instance`, whose initialization runs at a different time, and moving a static field changes no layout. The second block is the result of the fix for `_a`, in which `_b` is still reported.
 
 Example — a reorder that changes no layout, for RH7109:
 
