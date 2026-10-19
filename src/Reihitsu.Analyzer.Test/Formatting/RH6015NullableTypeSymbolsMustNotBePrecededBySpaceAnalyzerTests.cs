@@ -47,6 +47,10 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6015-001")]
+    [Requirement("RH6015-003")]
+    [Requirement("RH6015-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -74,6 +78,9 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6015-001")]
+    [Requirement("RH6015-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyTabBeforeNullableTypeSymbolIsDetectedAndFixed()
     {
         const string testData = """
@@ -250,6 +257,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6015-001")]
     public async Task VerifyContinuationLineNullableTypeSymbolDoesNotProduceDiagnostic()
     {
         const string testData = """
@@ -270,6 +278,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6015-001")]
     public async Task VerifyContinuationLineNullableTypeSymbolDoesNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -290,6 +299,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6015-001")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineNullableTypeSymbolDoNotProduceDiagnostic()
     {
         const string testData = """
@@ -313,6 +323,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6015-001")]
     public async Task VerifyDirectiveAndDisabledTextBeforeContinuationLineNullableTypeSymbolDoNotProduceDiagnosticWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -338,6 +349,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6015-002")]
     public async Task VerifySpaceBeforeNullableQuestionMarkInsideCrefIsIgnored()
     {
         const string testData = """
@@ -353,6 +365,144 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : Ba
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace before the <c>?</c> of a nullable value or reference type on the same line is reported
+    /// once per <c>?</c> in fields, arrays, parameters, <c>typeof</c>, casts, type arguments, and <c>as</c>, and that a
+    /// <c>?</c> that starts its line is not reported. The verifier reports nullable warnings as errors, so the
+    /// uninitialized array field also raises CS8618
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6015-001")]
+    [Requirement("RH6015-003")]
+    public async Task VerifyWhitespaceBeforeNullableQuestionMarkIsReportedWhereverTypeIsWritten()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    int{|RH6015: |}? _a;
+                                    string{|RH6015:→|}? _b;
+                                    int{|RH6015: |}?[] {|CS8618:_c|};
+                                    int
+                                        ? _e;
+
+                                    void M(int{|RH6015: |}? a, object o)
+                                    {
+                                        var t = typeof(int{|RH6015: |}?);
+                                        var x = (int{|RH6015: |}?)o;
+                                        List<int{|RH6015: |}?> l = new();
+                                        var y = o as int{|RH6015: |}? ?? 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyWhitespaceBeforeNullableQuestionMarkIsReportedWhereverTypeIsWritten"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6015-001")]
+    [Requirement("RH6015-003")]
+    public async Task VerifyWhitespaceBeforeNullableQuestionMarkIsReportedWhereverTypeIsWrittenCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    int{|RH6015: |}? _a;
+                                    string{|RH6015:→|}? _b;
+                                    int{|RH6015: |}?[] {|CS8618:_c|};
+                                    int
+                                        ? _e;
+
+                                    void M(int{|RH6015: |}? a, object o)
+                                    {
+                                        var t = typeof(int{|RH6015: |}?);
+                                        var x = (int{|RH6015: |}?)o;
+                                        List<int{|RH6015: |}?> l = new();
+                                        var y = o as int{|RH6015: |}? ?? 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that the <c>?</c> of a conditional expression and a nullable type inside a <c>cref</c> are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6015-002")]
+    public async Task VerifyConditionalQuestionMarkAndCrefAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <see cref="M(int ?)"/>
+                                    int M(int? a, object o)
+                                    {
+                                        var x = o is int ? 1 : 2;
+
+                                        return a == null ? x : 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix deletes spaces and a tab before the <c>?</c> of a nullable type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6015-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesWhitespaceBeforeNullableQuestionMark()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                class C
+                                {
+                                    int{|RH6015: |}? _a;
+                                    string{|RH6015:→|}? _b;
+
+                                    void M(int{|RH6015: |}? a, object o)
+                                    {
+                                        var x = (int{|RH6015: |}?)o;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 #nullable enable
+
+                                 class C
+                                 {
+                                     int? _a;
+                                     string? _b;
+
+                                     void M(int? a, object o)
+                                     {
+                                         var x = (int?)o;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), fixedData);
     }
 
     #endregion // Tests

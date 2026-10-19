@@ -275,6 +275,35 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
         await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies one application of the fix corrects the line in front of the reported <c>if</c>, so the rule does not
+    /// report it again
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationCorrectsTheLineInFrontOfTheReportedIf()
+    {
+        const string testCode = "class C\n{\n    void M(int a)\n    {\n        a++;\n        {|RH5002:if|} (a > 1)\n        {\n        }\n    }\n}\n";
+        const string fixedCode = "class C\n{\n    void M(int a)\n    {\n        a++;\n\n        if (a > 1)\n        {\n        }\n    }\n}\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix corrects the line in front of the reported <c>if</c> under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationCorrectsTheLineInFrontOfTheReportedIfUnderCarriageReturnLineFeed()
+    {
+        const string testCode = "class C\r\n{\r\n    void M(int a)\r\n    {\r\n        a++;\r\n        {|RH5002:if|} (a > 1)\r\n        {\r\n        }\r\n    }\r\n}\r\n";
+        const string fixedCode = "class C\r\n{\r\n    void M(int a)\r\n    {\r\n        a++;\r\n\r\n        if (a > 1)\r\n        {\r\n        }\r\n    }\r\n}\r\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 1);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

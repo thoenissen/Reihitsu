@@ -25,6 +25,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-002")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -45,6 +46,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-003")]
+    [Requirement("RH6016-004")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -74,6 +78,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-002")]
     public async Task VerifyMethodChainsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -106,6 +111,8 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-004")]
     public async Task VerifyOnlyExtraneousTrailingSpaceIsRemovedWhenLeadingSideIsLineBroken()
     {
         const string testData = """
@@ -148,6 +155,8 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-004")]
     public async Task VerifyOnlyExtraneousLeadingSpaceIsRemovedWhenTrailingSideIsLineBroken()
     {
         const string testData = """
@@ -215,6 +224,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-004")]
     public async Task VerifyDirectiveOnLineBrokenSideSurvivesFix()
     {
         const string testData = """
@@ -263,6 +273,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-004")]
+    [Requirement("RH6016-005")]
+    [Requirement("SHARED-GAP-001")]
     public async Task VerifyCommentOnLineBrokenSideSurvivesFix()
     {
         const string testData = """
@@ -329,6 +342,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-003")]
+    [Requirement("RH6016-004")]
     public async Task VerifyConditionalAccessLeadingSpaceIsDetectedAndFixed()
     {
         const string testData = """
@@ -359,6 +375,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-003")]
+    [Requirement("RH6016-004")]
     public async Task VerifySpacedConditionalAccessReportsBothSymbolsAndIsFixed()
     {
         const string testData = """
@@ -388,6 +407,8 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-004")]
     public async Task VerifyConditionalElementAccessLeadingSpaceIsDetectedAndFixed()
     {
         const string testData = """
@@ -417,6 +438,8 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-004")]
     public async Task VerifyPointerMemberAccessSpacesAreDetectedAndFixed()
     {
         const string testData = """
@@ -456,6 +479,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-002")]
     public async Task VerifyTightConditionalAccessDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -478,6 +502,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-002")]
     public async Task VerifyTernaryQuestionMarkDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -498,6 +523,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-002")]
     public async Task VerifyNullableTypeQuestionMarkDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -520,6 +546,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6016-002")]
     public async Task VerifyLineBrokenConditionalAccessDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -535,6 +562,259 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace on the same line next to the dot of a member access, a qualified name in a
+    /// <c>using</c> directive, a namespace, or a <c>global::</c> name, an extended property pattern, the <c>?</c> of a
+    /// conditional access, and <c>-&gt;</c> is reported once per symbol, also inside an interpolation hole
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-003")]
+    public async Task VerifyWhitespaceNextToEveryMemberAccessSymbolIsReported()
+    {
+        const string testData = """
+                                using System {|RH6016:.|} Text;
+
+                                namespace N {|RH6016:.|} M;
+
+                                class C
+                                {
+                                    string _t = "";
+
+                                    unsafe void M(string s, int[] v, S* p)
+                                    {
+                                        _ = string {|RH6016:.|}Empty;
+                                        _ = string{|RH6016:.|} Empty;
+                                        _ = s→{|RH6016:.|}Length;
+                                        _ = s {|RH6016:?|}.Length;
+                                        _ = s?{|RH6016:.|} Length;
+                                        _ = v {|RH6016:?|}[0];
+                                        _ = p {|RH6016:->|} X;
+                                        _ = global::System {|RH6016:.|} String.Empty;
+                                        _ = $"{s {|RH6016:.|} Length}";
+                                        _ = this is { _t {|RH6016:.|} Length: 1 };
+                                    }
+                                }
+
+                                struct S
+                                {
+                                    public int X;
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a symbol whose only whitespace wraps to another line, a dot directly after a comment, and the
+    /// <c>?</c> of a nullable type or a conditional expression are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6016-002")]
+    public async Task VerifyLineBrokenSidesCommentsAndOtherQuestionMarksAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(string s)
+                                    {
+                                        _ = s
+                                            .Length;
+                                        _ = s.
+                                            Length;
+                                        _ = s
+                                            ?.Length;
+                                        _ = s /* note */.Length;
+                                        int ? n = null;
+
+                                        return s == null ? 1 : 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes the gap on each reported side of a member-access symbol and leaves a side that
+    /// wraps to another line unchanged, including the comment or directive on it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-003")]
+    [Requirement("RH6016-004")]
+    public async Task VerifyFixRemovesWhitespaceOnEachReportedSideOnly()
+    {
+        const string testData = """
+                                using System {|RH6016:.|} Text;
+
+                                class C
+                                {
+                                    unsafe void M(string s, int[] v, S* p)
+                                    {
+                                        _ = string {|RH6016:.|}Empty;
+                                        _ = s {|RH6016:?|} {|RH6016:.|}Length;
+                                        _ = v {|RH6016:?|}[0];
+                                        _ = p {|RH6016:->|} X;
+                                        _ = s {|RH6016:.|} // note
+                                            Length;
+                                        _ = s
+                                            {|RH6016:.|} Length;
+                                        _ = s {|RH6016:.|}
+                                #if DEBUG
+                                            Length;
+                                #else
+                                            Length;
+                                #endif
+                                    }
+                                }
+
+                                struct S
+                                {
+                                    public int X;
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Text;
+
+                                 class C
+                                 {
+                                     unsafe void M(string s, int[] v, S* p)
+                                     {
+                                         _ = string.Empty;
+                                         _ = s?.Length;
+                                         _ = v?[0];
+                                         _ = p->X;
+                                         _ = s. // note
+                                             Length;
+                                         _ = s
+                                             .Length;
+                                         _ = s.
+                                 #if DEBUG
+                                             Length;
+                                 #else
+                                             Length;
+                                 #endif
+                                     }
+                                 }
+
+                                 struct S
+                                 {
+                                     public int X;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyFixRemovesWhitespaceOnEachReportedSideOnly"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-003")]
+    [Requirement("RH6016-004")]
+    public async Task VerifyFixRemovesWhitespaceOnEachReportedSideOnlyCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                using System {|RH6016:.|} Text;
+
+                                class C
+                                {
+                                    unsafe void M(string s, int[] v, S* p)
+                                    {
+                                        _ = string {|RH6016:.|}Empty;
+                                        _ = s {|RH6016:?|} {|RH6016:.|}Length;
+                                        _ = v {|RH6016:?|}[0];
+                                        _ = p {|RH6016:->|} X;
+                                        _ = s {|RH6016:.|} // note
+                                            Length;
+                                        _ = s
+                                            {|RH6016:.|} Length;
+                                        _ = s {|RH6016:.|}
+                                #if DEBUG
+                                            Length;
+                                #else
+                                            Length;
+                                #endif
+                                    }
+                                }
+
+                                struct S
+                                {
+                                    public int X;
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Text;
+
+                                 class C
+                                 {
+                                     unsafe void M(string s, int[] v, S* p)
+                                     {
+                                         _ = string.Empty;
+                                         _ = s?.Length;
+                                         _ = v?[0];
+                                         _ = p->X;
+                                         _ = s. // note
+                                             Length;
+                                         _ = s
+                                             .Length;
+                                         _ = s.
+                                 #if DEBUG
+                                             Length;
+                                 #else
+                                             Length;
+                                 #endif
+                                     }
+                                 }
+
+                                 struct S
+                                 {
+                                     public int X;
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData));
+    }
+
+    /// <summary>
+    /// Verifies that a comment directly in front of a dot, on the side the rule does not report, keeps the fix of the
+    /// side after the dot
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6016-001")]
+    [Requirement("RH6016-005")]
+    [Requirement("SHARED-GAP-001")]
+    public async Task VerifyCommentOnUnreportedSideKeepsFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(string s)
+                                    {
+                                        return s /* note */{|RH6016:.|} Length;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(string s)
+                                     {
+                                         return s /* note */.Length;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     #endregion // Tests

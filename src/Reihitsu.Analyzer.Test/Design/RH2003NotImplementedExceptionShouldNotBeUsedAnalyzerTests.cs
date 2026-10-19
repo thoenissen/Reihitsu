@@ -108,5 +108,51 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the verbatim prefix and whitespace or a comment inside the qualified name do not change the created
+    /// type's name, so all three creations are reported like the plain name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-002")]
+    public async Task VerifyTypeNameWrittenWithVerbatimPrefixOrInnerTriviaIsReportedLikeThePlainName()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    object a = new {|#0:@NotImplementedException|}();
+                                    object b = new {|#1:System . NotImplementedException|}();
+                                    object c = new {|#2:System./* c */NotImplementedException|}();
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies another exception type written with the verbatim prefix or with whitespace or a comment inside its
+    /// qualified name is not reported, since its value is not the name <c>NotImplementedException</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-002")]
+    public async Task VerifyOtherTypeNameWrittenWithVerbatimPrefixOrInnerTriviaIsNotReported()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    object a = new @ArgumentException();
+                                    object b = new System . ArgumentException();
+                                    object c = new System./* c */ArgumentException();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

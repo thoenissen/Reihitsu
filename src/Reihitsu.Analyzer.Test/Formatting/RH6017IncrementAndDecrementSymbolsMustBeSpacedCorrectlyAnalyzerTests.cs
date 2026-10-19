@@ -25,6 +25,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6017-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -46,6 +47,10 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6017-001")]
+    [Requirement("RH6017-003")]
+    [Requirement("RH6017-004")]
+    [Requirement("SHARED-WS-001")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -157,6 +162,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6017-001")]
     public async Task VerifyContinuationLineIncrementWithPrecedingCommentDoesNotProduceDiagnostic()
     {
         const string testData = """
@@ -180,6 +186,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6017-001")]
     public async Task VerifyContinuationLineIncrementWithPrecedingCommentDoesNotProduceDiagnosticCarriageReturnLineFeed()
     {
         const string testData = """
@@ -202,6 +209,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6017-002")]
     public async Task VerifyLineLeadingIncrementDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -258,6 +266,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6017-002")]
     public async Task VerifyOperatorOverloadDeclarationsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -272,6 +281,148 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that spaces or a tab before a postfix <c>++</c> or <c>--</c> on the line of its operand are reported once
+    /// per operator, after a name, an element access, or a member access, and that an operator that starts its line
+    /// is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6017-001")]
+    [Requirement("RH6017-003")]
+    public async Task VerifyWhitespaceBeforeSameLinePostfixOperatorIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _f;
+
+                                    void M(int a, int[] v)
+                                    {
+                                        a{|RH6017: |}++;
+                                        a{|RH6017:→|}--;
+                                        v[0]{|RH6017: |}++;
+                                        this._f{|RH6017: |}++;
+
+                                        for (int i = 0; i < a; i{|RH6017: |}++)
+                                        {
+                                        }
+
+                                        a = a{|RH6017: |}++ + 1;
+                                        a
+                                            ++;
+                                        a // note
+                                            ++;
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyWhitespaceBeforeSameLinePostfixOperatorIsReported"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6017-001")]
+    [Requirement("RH6017-003")]
+    public async Task VerifyWhitespaceBeforeSameLinePostfixOperatorIsReportedCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _f;
+
+                                    void M(int a, int[] v)
+                                    {
+                                        a{|RH6017: |}++;
+                                        a{|RH6017:→|}--;
+                                        v[0]{|RH6017: |}++;
+                                        this._f{|RH6017: |}++;
+
+                                        for (int i = 0; i < a; i{|RH6017: |}++)
+                                        {
+                                        }
+
+                                        a = a{|RH6017: |}++ + 1;
+                                        a
+                                            ++;
+                                        a // note
+                                            ++;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace after a prefix <c>++</c> or <c>--</c> and the operator of an operator declaration are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6017-002")]
+    public async Task VerifyPrefixOperatorsAndOperatorDeclarationsAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        ++ a;
+                                        -- a;
+                                    }
+
+                                    public static C operator ++ (C c) => c;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix deletes spaces and a tab before a postfix <c>++</c> or <c>--</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6017-004")]
+    [Requirement("SHARED-WS-001")]
+    public async Task VerifyFixDeletesWhitespaceBeforePostfixOperator()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a, int[] v)
+                                    {
+                                        a{|RH6017: |}++;
+                                        v[0]{|RH6017:→|}--;
+
+                                        for (int i = 0; i < a; i{|RH6017: |}++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a, int[] v)
+                                     {
+                                         a++;
+                                         v[0]--;
+
+                                         for (int i = 0; i < a; i++)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), fixedData);
     }
 
     #endregion // Tests
