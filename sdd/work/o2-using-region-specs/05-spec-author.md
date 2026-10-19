@@ -80,7 +80,7 @@ Each block below is meant to be filed as written. One issue per spec, titled `SD
 
 Open questions found while writing the analyzer specs of #994 (RH7201–RH7311). They are left out of the spec until they are decided (`sdd/README.md`, *Open questions*). Every input was run against the shipped analyzer and code fix. Q1 has the same pattern as Q1 of the RH7204 and RH7206 issues (links), so the three can be decided together.
 
-### Q1 — Another non-`System` group between two directives hides an out-of-order pair
+### Q1 — A regular directive of another non-`System` root between two directives hides an out-of-order pair
 
 **Touches:** RH7203-001, RH7203-002, SHARED-USING-007.
 
@@ -96,7 +96,7 @@ Open questions found while writing the analyzer specs of #994 (RH7201–RH7311).
 **Why it looks wrong:**
 - In every input, two directives of one group are out of order (SHARED-USING-007). Whether that is reported depends on which kind of directive lies between them.
 - The analyzer compares a directive with the previous directive of its own kind, and only when that directive is in the same group. `System` roots and other roots count as separate kinds.
-- So a pair of `System`-root directives is never hidden, while a pair of other roots is hidden by any other non-`System` group between them.
+- So a pair of `System`-root directives is never hidden. A pair of other roots is hidden only by a regular directive of another non-`System` root between them. A `using static` or alias directive of any root is filtered out before the comparison and never hides a pair: `using static Microsoft.X;` or `using X = Microsoft.Y;` between `Microsoft.B` and `Microsoft.A` is reported, like Input C.
 
 **Readings:**
 - (a) Compare with the previous directive of the same group, whatever lies between. A, B, C, and D are all reported.
@@ -179,7 +179,7 @@ The formatter also writes `# region fields` as `# region Fields` (`scripts/trace
 **Why it looks wrong:**
 - C# allows whitespace between `#` and `region`, and #1079 treats such a line as a region directive.
 - From reading the code, the analyzer checks the directive text after a fixed seven characters (`ParentTrivia.ToString().AsSpan().Slice(7)`), not the description. So it reads `n Fields` instead of `Fields`.
-- The fix reads the real description, so with a single space it offers nothing. With `fields`, it capitalizes the word and the diagnostic stays.
+- The fix reads the real description. When that is already capitalized (`# region Fields`), it offers nothing. When it is not (`# region fields`, with one space or more), it capitalizes the word, and the diagnostic stays.
 
 **Expected under the decisions:**
 - The description is checked.
@@ -233,7 +233,7 @@ The same region inside a block body, a lambda body, or an accessor list is repor
 - RH7310 reports an empty region inside a field initializer (`new[] { #region Values` / `#endregion` / `1, }`), and its fix removes it.
 - The top-level-region rules count such a region as a region of the type. Example: `public class C : IDisposable` with `#region IDisposable` … `#endregion`, followed by `private int[] _a = new[] { #region Values` / `1,` / `#endregion // Values };`. RH7309 reports `#region Values`.
 
-**Second part, decided by principle P1 (#912), SHARED-FIX-003:** the RH7309 fix in that example swaps the two blocks. It moves `#region Values` / `1,` / `#endregion` into the class body and `Dispose` into the initializer, and the result does not parse.
+The RH7309 fix on that example produces code that does not parse; that part is filed as Q3 of the RH7309 issue (link).
 
 ### Q3 — Top-level statements
 
@@ -248,7 +248,7 @@ The same region inside a block body, a lambda body, or an accessor list is repor
 - The fix removes both directives, leaving `var x = 1;` / `System.Console.WriteLine(x);`.
 
 **Why it looks wrong:**
-- Both directives sit between top-level statements, which are executable code.
+- Both directives sit in top-level statement code, which is executable code.
 - The analyzer decides by the token that owns the directive's trivia. `#region` belongs to the statement after it. `#endregion` belongs to the end of the file, whose parent is the compilation unit, so it is not reported.
 - The fix then removes a directive it does not report, as in Q1.
 
@@ -261,8 +261,9 @@ The same region inside a block body, a lambda body, or an accessor list is repor
 **Inputs and real output:**
 - A region with blank lines inside, at the start or end of a method body. The fix removes only the directive lines and leaves a blank line after `{` or before `}`.
 - `var x = 1;` / blank line / `#region Work` / blank line / `x++;` / `#endregion // Work` / `x--;`. The fix leaves `var x = 1;` / blank line / blank line / `x++;`.
+- `if (a)` / `{` / `}` / `#region Work` / `M(a);` / `#endregion // Work` / `M(a);`. The fix leaves `if (a) { }` directly followed by `M(a);`. The same happens when the last statement inside the region ends with `}`.
 
-In both cases `scripts/format.sh` removes or collapses those blank lines.
+In the first two cases `scripts/format.sh` removes or collapses the blank lines; in the third it adds a blank line after the `}` (SHARED-BLANK-003).
 
 ## `SDD open questions: sdd/specs/analyzer/RH7304.md`
 
@@ -375,6 +376,20 @@ In both cases `scripts/format.sh` removes or collapses those blank lines.
 **Readings for the analyzer part:**
 - (a) The enum's regions belong to the enum, as for every other nested type. Nothing is reported.
 - (b) Keep the current behavior.
+
+### Q3 — The fix moves a region out of a field initializer
+
+**Decided by principle P1 (#912), SHARED-FIX-003.** The analyzer part, a region in an initializer counting as a region of the type, is Q2 of the RH7303 issue (link, P11).
+
+**Touches:** RH7309-004, SHARED-TYPEREGION-006.
+
+**Input:** `using System;` / `public class C : IDisposable` / `{` / `    #region IDisposable` / `    public void Dispose()` / `    {` / `    }` / `    #endregion // IDisposable` / `    private int[] _a = new[]` / `    {` / `        #region Values` / `        1,` / `        #endregion // Values` / `    };` / `}`.
+
+**Real output:**
+- RH7309 reports `#region Values`.
+- The fix swaps the two blocks. It moves `#region Values` / `1,` / `#endregion // Values` into the class body and `Dispose` into the initializer, and the result does not parse.
+
+**Expected under SHARED-FIX-003:** no fix is offered for this input. The diagnostic follows the answer to the RH7303 question.
 
 ## `SDD open questions: sdd/specs/analyzer/RH7310.md`
 
