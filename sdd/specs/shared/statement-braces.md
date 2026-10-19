@@ -43,7 +43,7 @@ class C
 
 ### SHARED-BRACE-002 — The fix wraps the body in braces
 
-A code fix that uses this requirement MUST wrap the reported body in a block by laying out the `if` statement that owns it as the formatter does (FMT-STRUCT-001): the braces start their own lines at the column of the `if`, and the body is indented one level inside them.
+A code fix that uses this requirement MUST wrap the reported body in a block by laying out the `if` statement that owns it as the formatter does (FMT-STRUCT-001). When that `if` statement starts its line, the braces start their own lines at the column of the `if`, and the body is indented one level inside them.
 
 Why: The formatter owns the braced layout of a control-flow statement; delegating to it applies that layout instead of a second one, and works the same whether the body was on the line of the `if` or below it.
 
