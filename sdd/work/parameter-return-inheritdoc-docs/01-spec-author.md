@@ -102,7 +102,7 @@ No open-questions issue exists yet for any spec below; each heading names the is
 ### `SDD open questions: sdd/specs/analyzer/RH8106.md` (new issue, sub-issue of #912)
 
 **Q1 — RH8106 and RH8107 both report a `<returns>` on a `void` member.** New question.
-- Input: `/// {|…|}<returns/>` on `public void H() { }`.
+- Input: `/// <returns/>` on `public void H() { }`.
 - Real output: RH8106 (no text) and RH8107 (must not be documented) on the same span.
 - Why it looks wrong: one rule asks for text in an element the other asks to remove; RH8107's fix clears both, RH8106's advice would be undone.
 - Touches: RH8106-001 (covers only non-`void` return types), RH8107-001.
