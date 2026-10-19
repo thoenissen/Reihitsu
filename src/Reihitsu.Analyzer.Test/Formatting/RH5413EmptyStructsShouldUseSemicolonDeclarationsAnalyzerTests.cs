@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,6 +25,9 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-003")]
+    [Requirement("RH5413-001")]
     public async Task VerifyEmptyStructIsDetectedAndFixed()
     {
         const string testData = """
@@ -45,6 +49,8 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EMPTY-002")]
+    [Requirement("RH5413-001")]
     public async Task VerifySemicolonStructIsNotFlagged()
     {
         const string testData = """
@@ -59,6 +65,7 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5413-001")]
     public async Task VerifyUnsupportedLanguageVersionIsNotFlagged()
     {
         const string testData = """
@@ -88,6 +95,8 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-004")]
     public async Task VerifyLeadingBraceCommentEmptyStructIsReportedWithoutCodeFix()
     {
         const string testData = """
@@ -117,7 +126,112 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies the specification example of the rule: an empty struct and an empty <see langword="readonly"/>
+    /// <see langword="ref"/> struct are reported and fixed, while an empty record struct is left to RH5416
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-003")]
+    [Requirement("RH5413-001")]
+    public async Task VerifySpecificationExampleOfEmptyStructsIsReportedAndFixed()
+    {
+        const string testData = """
+                                struct {|#0:A|}
+                                {
+                                }
+
+                                readonly ref struct {|#1:B|}
+                                {
+                                }
+
+                                record struct C
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 struct A;
+
+                                 readonly ref struct B;
+
+                                 record struct C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5413MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that under C# 11 no struct of the specification example is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5413-001")]
+    public async Task VerifySpecificationExampleIsNotReportedUnderCSharp11()
+    {
+        const string testData = """
+                                struct A
+                                {
+                                }
+
+                                readonly ref struct B
+                                {
+                                }
+
+                                record struct C
+                                {
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies that an empty struct is reported under C# 12, the first version with semicolon struct declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5413-001")]
+    public async Task VerifyEmptyStructIsReportedUnderCSharp12()
+    {
+        const string testData = """
+                                struct {|#0:A|}
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp12)),
+                     Diagnostics(RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5413MessageFormat));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Applies the given C# language version to the test project parse options
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <param name="languageVersion">Language version</param>
+    /// <returns>Solution</returns>
+    private static Solution ApplyLanguageVersion(Solution solution, ProjectId projectId, LanguageVersion languageVersion)
+    {
+        var project = solution.GetProject(projectId);
+
+        if (project?.ParseOptions is CSharpParseOptions parseOptions)
+        {
+            solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(languageVersion));
+        }
+
+        return solution;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
