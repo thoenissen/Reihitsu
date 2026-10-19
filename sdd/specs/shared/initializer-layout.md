@@ -83,7 +83,7 @@ A rule that uses this requirement MUST accept a complex element initializer (`{ 
 - one of its expressions starts on the line of the opening brace, on the line of the closing brace, or on a line on which an earlier expression starts; or
 - one of its expressions does not start one level (four columns) deeper than the opening brace.
 
-The columns follow SHARED-INIT-001. A complex element nested inside it MUST be checked in the same way, one level deeper.
+The columns follow SHARED-INIT-001.
 
 Why: A complex element is a small initializer of its own. On one line it reads as one value; once it is wrapped, its braces and its expressions follow the same block layout as the initializer around it, so the nesting stays visible.
 
