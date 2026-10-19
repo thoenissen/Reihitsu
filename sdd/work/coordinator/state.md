@@ -77,7 +77,7 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Running
 
-- nothing (no open PRs, 2026-10-19)
+- Round 6 (prompts 2026-10-19, `sdd/work/coordinator/prompts-round6.md`, overlap check `inventory/batches-round6.md`): #984, #991, #992, #994, #996, #997. Next: #985 after #984; #995 after #994; #993 after #994 and #996; then #939, #998.
 
 ## Next: question round (new chat, planned 2026-10-18)
 
@@ -154,20 +154,20 @@ Status: open / running / PR #… / merged.
 | 5 | #981 | AS attribute list shape | #980 | merged (PR #1102); filed #1109, #1110; follow-up #1131 |
 | 6 | #982 | D1 element documentation part 1, creates doc spec | — | merged (PR #1035); filed #1037 |
 | 7 | #983 | D2 element documentation part 2 | #982 | merged (PR #1101); filed #1127–#1130; follow-up #1132 |
-| 8 | #984 | D3 parameter/return/typeparam/inheritdoc docs | #982 | open |
+| 8 | #984 | D3 parameter/return/typeparam/inheritdoc docs | #982 | prompt given 2026-10-19 |
 | 9 | #985 | D4 documentation layout + comments | #982 | open |
 | 10 | #986 | S1 whitespace/spacing part 1 | — | merged (PR #1036); filed #1038–#1052 |
 | 11 | #987 | S2 spacing part 2 | #986 | merged (PR #1103); filed #1106–#1108 |
 | 12 | #988 | BL other blank lines | — | merged (PR #1057); filed #1059–#1066 |
 | 13 | #989 | CP comment placement, creates spec | — | merged (PR #1056); filed #1058 |
 | 14 | #990 | LB line breaks + alignment (fluent chain) | — | merged (PR #1104); filed #1111–#1125 |
-| 15 | #991 | LA initializers/expressions/braces | — | open |
-| 16 | #992 | LC trailing commas, empty types | — | open |
+| 15 | #991 | LA initializers/expressions/braces | — | prompt given 2026-10-19 |
+| 16 | #992 | LC trailing commas, empty types | — | prompt given 2026-10-19 |
 | 17 | #993 | O1 file layout, member/modifier ordering | — | open |
-| 18 | #994 | O2 usings, regions | — | open |
+| 18 | #994 | O2 usings, regions | — | prompt given 2026-10-19 |
 | 19 | #995 | O3 member grouping by regions, RH7501 | — | open |
-| 20 | #996 | B1 RH0002–RH2109 | — | open |
-| 21 | #997 | B2 clarity | — | open |
+| 20 | #996 | B1 RH0002–RH2109 | — | prompt given 2026-10-19 |
+| 21 | #997 | B2 clarity | — | prompt given 2026-10-19 |
 | 22 | #939 | tag formatter/shared/CLI/Playground tests | — | open |
 | 23 | #998 | opt-out + every test tagged | all above | open |
 
