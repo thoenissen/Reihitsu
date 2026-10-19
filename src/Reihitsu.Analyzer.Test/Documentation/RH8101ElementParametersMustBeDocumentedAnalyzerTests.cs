@@ -243,5 +243,29 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies a parameter declared with the verbatim prefix is matched to its documentation by its value, so
+    /// <c>@class</c> documented by <c>name="class"</c> is not reported while the undocumented <c>@event</c> is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-002")]
+    public async Task VerifyVerbatimParameterIsMatchedToItsDocumentationByItsValue()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>Summary</summary>
+                                  /// <param name="class">Class</param>
+                                  /// <param name="value">Value</param>
+                                  void M(int @class, int value, int {|#0:@event|})
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
     #endregion // Tests
 }

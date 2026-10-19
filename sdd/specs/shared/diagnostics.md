@@ -14,6 +14,9 @@ This spec covers what holds for every analyzer rule, so a rule spec states only 
 - Code in an inactive `#if` branch. The compiler does not hand it to any analyzer, so no rule can report it.
 - Generated code in the formatter (FMT-PIPE-006) and in the CLI, which have their own specs.
 - How a rule is suppressed or configured — standard .NET analyzer behavior.
+- How a code fix spells a name it writes into the code, including whether it writes the verbatim prefix `@` — the spec of that fix.
+- Whether a rule reports whitespace next to a comment — the spec of that rule.
+- Whether a code fix may change the text of a literal or of a comment — [`code-fixes.md`](code-fixes.md).
 
 ## Requirements
 
@@ -37,3 +40,141 @@ internal class C
 ```
 
 is not reported by RH1003, which reports the same class without the comment.
+
+### SHARED-DIAG-002 — A name is compared by its value
+
+An analyzer rule that compares a name with another name, a list, or a pattern, or derives other text from it, such as a file name, MUST use the name's value: an identifier without its verbatim prefix `@`, and a qualified name without the whitespace and comments written between its parts. A name written with `@` or with whitespace or comments inside MUST give the same result as the same name written without them. So `class @class` declares a type named `class`, and `namespace A . B` and `namespace A./* x */B` both declare the namespace `A.B`.
+
+Why: The verbatim prefix and the trivia inside a qualified name are spelling, not part of the name; the compiler binds `@class` as `class` and `A . B` as `A.B`. A rule that compares the spelling reports a name that matches, or misses one that does not, depending only on how the author wrote it.
+
+Example — `@class` is documented by `<param name="class">` and is not reported, while `@event` has no `<param>` element and is reported:
+
+```csharp
+class C
+{
+    /// <summary>Summary</summary>
+    /// <param name="class">Class</param>
+    /// <param name="value">Value</param>
+    void M(int @class, int value, int {|RH8101:@event|})
+    {
+    }
+}
+```
+
+Example — the verbatim prefix, and whitespace or a comment inside the qualified name, do not change the name `NotImplementedException`, so all three creations are reported alike:
+
+```csharp
+using System;
+
+class C
+{
+    object a = new {|RH2003:@NotImplementedException|}();
+    object b = new {|RH2003:System . NotImplementedException|}();
+    object c = new {|RH2003:System./* c */NotImplementedException|}();
+}
+```
+
+### SHARED-DIAG-003 — Only the text of a literal or a comment is content
+
+An analyzer rule MUST treat the text of a literal and the text of a comment as content and MUST NOT report anything inside it. Only that text is content; the code around a literal and inside an interpolated string MUST be checked like any other code:
+
+- the text of a literal is the text of a string literal of any kind — regular, verbatim, raw, or UTF-8 —, the text of an interpolated string between and around its holes, the text of an interpolation's format clause, and the text of a character or numeric literal; a line inside that text, even an empty one, is part of the literal's text;
+- the text of a comment is the text of a `//`, `/* */`, `///`, or `/** */` comment; a line inside a multi-line comment, even an empty one, is part of the comment's text;
+- the whitespace before and after a literal is code, so the spaces at the end of the line `string s = "a";` are trailing whitespace like after any other token;
+- an interpolation hole is code apart from the text of its format clause: its expression and its alignment clause, such as the braces of `new int[]{1}` in `$"{new int[]{1}.Length}"`.
+
+What the text of a literal protects is its value. How the literal spells that value — an escape sequence such as `\t` or the `{{` of an interpolated string, or the indentation of a raw string's lines that the compiler removes — is the literal's own syntax.
+
+This requirement restricts only rules that check code. A rule whose subject is the text of a comment or of a directive, such as RH3201, RH7301, or a documentation rule (RH8###), checks that text as its subject. A rule whose subject is a literal, such as RH5202, checks how the literal spells its value.
+
+Why: The text of a literal is the program's data, and the text of a comment is the author's prose; their characters — spaces, tabs, empty lines, commas, braces — carry a meaning that a rule about code cannot judge. How a literal spells its value belongs to the literal's own syntax: the value stays the same however it is spelled, so a rule about literals may judge the spelling. Everything else is code the compiler reads as tokens. Exempting it because a literal is next to it, or because it is written inside an interpolated string, would leave ordinary code unchecked only for where it stands.
+
+Example — the comma inside the hole and the missing space before `"d"` are code and are reported; the ` ,` in the literal's text and in the comment is content, and the `//` inside a literal starts no comment:
+
+```csharp
+class C
+{
+    string s = $"a ,b{string.Concat("c" {|RH6002:,|} "d")}"; // e ,f
+    string t = string.Concat("// c"{|RH6002:,|}"d");
+}
+```
+
+Example — the space after the literal is code; the ` ;` inside it is content:
+
+```csharp
+class C
+{
+    string s = "a ;"{|RH6003: |};
+}
+```
+
+Example — `→` marks a tab character. A tab in the text of each kind of literal and comment, the format clause of a hole included, is content and is not reported; a tab in a hole's expression or alignment clause is code and is reported:
+
+```csharp
+class C
+{
+    /// <summary>a→b</summary>
+    void M()
+    {
+        var a = "a→b";
+        var b = @"a→b";
+        var c = "a→b"u8;
+        var d = """a→b""";
+        var e = '→';
+        var f = $"a→{1}→b{2:→D3}";
+        var g = $"{1{|RH5601:→|}+ 2}{1,{|RH5601:→|}5}";
+        // a→b
+        /* a→b */
+    }
+
+    /** a→b */
+    int x;
+}
+```
+
+Example — the empty lines inside the raw string literal and inside the block comment are content, not blank lines:
+
+```csharp
+class C
+{
+    string s = """
+        a
+
+
+        b
+        """;
+
+    /* c
+
+
+       d */
+    int x;
+}
+```
+
+is not reported by RH5023.
+
+Example — RH3201's subject is the text of a comment, so it checks that text and reports the comment that has none:
+
+```csharp
+class C
+{
+    {|RH3201://|}
+    int x;
+}
+```
+
+Example — RH5202's subject is a raw string literal, so it checks how the literal spells its value and reports the literal whose closing quotes are not in the column of its opening quotes:
+
+```csharp
+class C
+{
+    string s = {|RH5202:"""
+        a
+        """|};
+
+    string t = """
+               a
+               """;
+}
+```

@@ -365,6 +365,25 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifying the rule whose subject is the text of a comment checks that text and reports a comment without text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task EmptyCommentIsReportedBecauseCommentTextIsTheRuleSubject()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    {|#0://|}
+                                    int x;
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, AnalyzerResources.RH3201MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

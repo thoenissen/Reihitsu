@@ -86,6 +86,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5023-002")]
+    [Requirement("SHARED-DIAG-003")]
     public async Task VerifyRawStringsDoNotProduceDiagnostics()
     {
         const string testData = """"
@@ -109,6 +110,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5023-002")]
+    [Requirement("SHARED-DIAG-003")]
     public async Task VerifyVerbatimStringsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -131,6 +133,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5023-002")]
+    [Requirement("SHARED-DIAG-003")]
     public async Task VerifyMultiLineCommentBlankLinesDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -279,6 +282,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5023-002")]
+    [Requirement("SHARED-DIAG-003")]
     public async Task VerifyLinesOfCommentsDisabledCodeAndStringsAreNotCounted()
     {
         const string testCode = """
@@ -316,6 +320,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5023-002")]
+    [Requirement("SHARED-DIAG-003")]
     public async Task VerifyBlankLinesInsideInterpolatedStringsAreNotReported()
     {
         const string testCode = """"
@@ -357,6 +362,65 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
         var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
+    }
+
+    /// <summary>
+    /// Verifies the empty lines inside a raw string literal and inside a block comment are content, not blank lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyEmptyLinesInsideRawStringAndBlockCommentAreNotReported()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = """
+                                        a
+
+
+                                        b
+                                        """;
+
+                                    /* c
+
+
+                                       d */
+                                    int x;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the empty lines inside a raw string literal and inside a block comment are content, not blank lines,
+    /// when the document uses CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyEmptyLinesInsideRawStringAndBlockCommentAreNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string s = """
+                                        a
+
+
+                                        b
+                                        """;
+
+                                    /* c
+
+
+                                       d */
+                                    int x;
+                                }
+                                """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
