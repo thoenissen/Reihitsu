@@ -23,6 +23,12 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5518-001")]
+    [Requirement("RH5518-002")]
+    [Requirement("RH5518-003")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -63,6 +69,8 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5518-001")]
+    [Requirement("SHARED-ATTR-013")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -88,6 +96,8 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5518-004")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -135,6 +145,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5518-001")]
     public async Task VerifyNoDiagnosticForFieldTargetedAttributeListOnRecordParameter()
     {
         const string testData = """
@@ -213,6 +224,130 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the multi-attribute lists of a field, a <c>field:</c> list on a property, and an enum member are reported, while the <c>field:</c> list of a record parameter is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5518-001")]
+    [Requirement("RH5518-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForMultiAttributeListsOfFieldsAndEnumMembers()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|#0:[A, B]|}
+                                    int _f;
+
+                                    {|#1:[field: A, B]|}
+                                    int P { get; set; }
+                                }
+
+                                enum E
+                                {
+                                    {|#2:[A, B]|}
+                                    X
+                                }
+
+                                record R([field: A, B] int Id);
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the field attribute list by one list per attribute, each on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5518-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachFieldAttributeAListOfItsOwn()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|#0:[A, B]|}
+                                    int _f;
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     [A]
+                                     [B]
+                                     int _f;
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the field attribute list by one list per attribute, each on its own line, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5518-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachFieldAttributeAListOfItsOwnWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|#0:[A, B]|}
+                                    int _f;
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     [A]
+                                     [B]
+                                     int _f;
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
     }
 

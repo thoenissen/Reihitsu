@@ -17,7 +17,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [formatter/raw-string-alignment.md](formatter/raw-string-alignment.md) | FMT-RAW | `RawStringAlignmentPhase`, `RawStringLiteralUtilities` |
 | [formatter/cleanup.md](formatter/cleanup.md) | FMT-CLEAN | `CleanupPhase`, `EndOfLineWhitespace` |
 | [formatter/line-endings.md](formatter/line-endings.md) | FMT-EOL | `LineEndingNormalizationPhase` |
-| [shared/attribute-targets.md](shared/attribute-targets.md) | SHARED-ATTR | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase` |
+| [shared/attribute-targets.md](shared/attribute-targets.md) | SHARED-ATTR | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities` |
 | [shared/blank-line-spacing.md](shared/blank-line-spacing.md) | SHARED-BLANK | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
 | [shared/casing.md](shared/casing.md) | SHARED-CASING | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | [shared/code-fixes.md](shared/code-fixes.md) | SHARED-FIX | — |
@@ -145,20 +145,36 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5205.md](analyzer/RH5205.md) | RH5205 | `RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer`, `RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider` |
 | [analyzer/RH5206.md](analyzer/RH5206.md) | RH5206 | `RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer`, `RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider` |
 | [analyzer/RH5501.md](analyzer/RH5501.md) | RH5501 | `RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer`, `RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5502.md](analyzer/RH5502.md) | RH5502 | `RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer`, `RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5503.md](analyzer/RH5503.md) | RH5503 | `RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer`, `RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5504.md](analyzer/RH5504.md) | RH5504 | `RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer`, `RH5504ModuleAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5505.md](analyzer/RH5505.md) | RH5505 | `RH5505ClassAttributesMustFollowPlacementRulesAnalyzer`, `RH5505ClassAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5506.md](analyzer/RH5506.md) | RH5506 | `RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer`, `RH5506ClassAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5507.md](analyzer/RH5507.md) | RH5507 | `RH5507StructAttributesMustFollowPlacementRulesAnalyzer`, `RH5507StructAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5508.md](analyzer/RH5508.md) | RH5508 | `RH5508StructAttributeListsMustFollowShapeRulesAnalyzer`, `RH5508StructAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5509.md](analyzer/RH5509.md) | RH5509 | `RH5509EnumAttributesMustFollowPlacementRulesAnalyzer`, `RH5509EnumAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5510.md](analyzer/RH5510.md) | RH5510 | `RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer`, `RH5510EnumAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5511.md](analyzer/RH5511.md) | RH5511 | `RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer`, `RH5511ConstructorAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5512.md](analyzer/RH5512.md) | RH5512 | `RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer`, `RH5512ConstructorAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5513.md](analyzer/RH5513.md) | RH5513 | `RH5513MethodAttributesMustFollowPlacementRulesAnalyzer`, `RH5513MethodAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5514.md](analyzer/RH5514.md) | RH5514 | `RH5514MethodAttributeListsMustFollowShapeRulesAnalyzer`, `RH5514MethodAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5515.md](analyzer/RH5515.md) | RH5515 | `RH5515PropertyAttributesMustFollowPlacementRulesAnalyzer`, `RH5515PropertyAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5516.md](analyzer/RH5516.md) | RH5516 | `RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer`, `RH5516PropertyAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5517.md](analyzer/RH5517.md) | RH5517 | `RH5517FieldAttributesMustFollowPlacementRulesAnalyzer`, `RH5517FieldAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5518.md](analyzer/RH5518.md) | RH5518 | `RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer`, `RH5518FieldAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5519.md](analyzer/RH5519.md) | RH5519 | `RH5519EventAttributesMustFollowPlacementRulesAnalyzer`, `RH5519EventAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5520.md](analyzer/RH5520.md) | RH5520 | `RH5520EventAttributeListsMustFollowShapeRulesAnalyzer`, `RH5520EventAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5521.md](analyzer/RH5521.md) | RH5521 | `RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer`, `RH5521InterfaceAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5522.md](analyzer/RH5522.md) | RH5522 | `RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer`, `RH5522InterfaceAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5523.md](analyzer/RH5523.md) | RH5523 | `RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer`, `RH5523ParameterAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5524.md](analyzer/RH5524.md) | RH5524 | `RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer`, `RH5524ParameterAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5525.md](analyzer/RH5525.md) | RH5525 | `RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer`, `RH5525DelegateAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5526.md](analyzer/RH5526.md) | RH5526 | `RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer`, `RH5526DelegateAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5527.md](analyzer/RH5527.md) | RH5527 | `RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer`, `RH5527ReturnValueAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5528.md](analyzer/RH5528.md) | RH5528 | `RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer`, `RH5528ReturnValueAttributeListsMustFollowShapeRulesCodeFixProvider` |
+| [analyzer/RH5529.md](analyzer/RH5529.md) | RH5529 | `RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer`, `RH5529GenericParameterAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5530.md](analyzer/RH5530.md) | RH5530 | `RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer`, `RH5530AccessorAttributesMustFollowPlacementRulesCodeFixProvider` |
+| [analyzer/RH5531.md](analyzer/RH5531.md) | RH5531 | `RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer`, `RH5531AccessorAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5601.md](analyzer/RH5601.md) | RH5601 | `RH5601UseTabsCorrectlyAnalyzer`, `RH5601UseTabsCorrectlyCodeFixProvider` |
 | [analyzer/RH5602.md](analyzer/RH5602.md) | RH5602 | `RH5602CodeMustNotContainTrailingWhitespaceAnalyzer`, `RH5602CodeMustNotContainTrailingWhitespaceCodeFixProvider` |
 | [analyzer/RH5603.md](analyzer/RH5603.md) | RH5603 | `RH5603FileMustNotEndWithANewlineAnalyzer`, `RH5603FileMustNotEndWithANewlineCodeFixProvider` |
