@@ -734,6 +734,22 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                 }
                                 """;
 
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+
+                                     public void Run()
+                                     {
+                                 #if DEBUG
+                                         System.Console.WriteLine();
+                                 #endif
+                                     }
+                                 }
+                                 """;
+
         var actions = await GetCodeFixActionsAsync(testCode,
                                                    RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
                                                    root => root.DescendantNodes()
@@ -743,7 +759,13 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                                                .GetLocation(),
                                                    "DEBUG");
 
-        Assert.IsNotEmpty(actions);
+        Assert.HasCount(1, actions);
+
+        var operations = await actions[0].GetOperationsAsync(CancellationToken.None);
+        var changedDocument = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution.Projects.Single().Documents.Single();
+        var changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+
+        Assert.AreEqual(fixedCode, changedText);
     }
 
     /// <summary>
