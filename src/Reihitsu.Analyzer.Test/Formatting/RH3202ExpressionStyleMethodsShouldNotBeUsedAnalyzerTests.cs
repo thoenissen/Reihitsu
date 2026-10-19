@@ -22,8 +22,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3202-001")]
-    [Requirement("RH3202-003")]
-    [Requirement("RH3202-004")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodiedMethodsAreDetectedAndFixed()
     {
         const string testData = """
@@ -63,7 +63,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3202-004")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyThrowExpressionBodiedMethodIsFixedToThrowStatement()
     {
         const string testData = """
@@ -94,7 +94,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3202-001")]
-    [Requirement("RH3202-004")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyAsyncValueTaskExpressionBodiedMethodIsFixed()
     {
         const string testData = """
@@ -129,7 +129,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3202-002")]
+    [Requirement("SHARED-BODY-001")]
     public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
     {
         const string testData = """
@@ -151,8 +151,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3202-002")]
-    [Requirement("RH3202-004")]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
     {
         const string testData = """
@@ -218,7 +218,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH3202-004")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionOnNextLineIsFixedToSingleSpacedReturn()
     {
         const string testData = """

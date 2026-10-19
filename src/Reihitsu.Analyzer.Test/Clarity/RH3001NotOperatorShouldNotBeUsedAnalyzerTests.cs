@@ -23,6 +23,9 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-001")]
+    [Requirement("RH3001-003")]
+    [Requirement("RH3001-004")]
     public async Task NotOperatorOnLiteral()
     {
         const string testCode = """
@@ -53,6 +56,9 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-001")]
+    [Requirement("RH3001-003")]
+    [Requirement("RH3001-004")]
     public async Task NotOperatorOnField()
     {
         const string testCode = """
@@ -87,6 +93,9 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-001")]
+    [Requirement("RH3001-003")]
+    [Requirement("RH3001-004")]
     public async Task NotOperatorOnProperty()
     {
         const string testCode = """
@@ -121,6 +130,9 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-001")]
+    [Requirement("RH3001-003")]
+    [Requirement("RH3001-004")]
     public async Task NotOperatorOnMethodCall()
     {
         const string testCode = """
@@ -161,6 +173,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-002")]
     public async Task NotOperatorOnNullableBoolIsNotReported()
     {
         const string testCode = """
@@ -181,6 +194,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-002")]
     public async Task NotOperatorOnUserDefinedOperatorIsNotReported()
     {
         const string testCode = """
@@ -243,6 +257,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-005")]
     public async Task CommentBetweenNotOperatorAndOperandIsPreserved()
     {
         const string testCode = """
@@ -276,6 +291,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-005")]
     public async Task EndOfLineCommentBetweenNotOperatorAndOperandIsPreserved()
     {
         const string testCode = """
@@ -311,6 +327,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-006")]
     public async Task NestedOperandDirectivesRemainAvailableAndArePreserved()
     {
         const string testCode = """
@@ -363,6 +380,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-006")]
     public async Task FixIsNotOfferedAcrossDirectiveAndDisabledText()
     {
         const string testCode = """
@@ -394,6 +412,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3001-006")]
     public async Task FixIsNotOfferedAcrossSkippedSyntax()
     {
         const string testCode = """
@@ -411,6 +430,219 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
                                                    root => root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single().OperatorToken.GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies a not operator in a condition and in front of an invocation is reported on the operator and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-001")]
+    [Requirement("RH3001-003")]
+    public async Task NotOperatorInConditionAndBeforeInvocationIsReportedOnTheOperator()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, string s)
+                                    {
+                                        if ({|RH3001:!|}a)
+                                        {
+                                        }
+
+                                        return {|RH3001:!|}s.Contains("a");
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, string s)
+                                     {
+                                         if (a == false)
+                                         {
+                                         }
+
+                                         return s.Contains("a") == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a nullable bool operand and an operand with its own not operator are not reported in one document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-002")]
+    public async Task NullableAndUserDefinedNotOperandsAreNotReported()
+    {
+        const string testCode = """
+                                struct S
+                                {
+                                    public static S operator !(S s) => s;
+                                }
+
+                                class C
+                                {
+                                    bool? M(bool? a)
+                                    {
+                                        return !a;
+                                    }
+
+                                    S N(S s)
+                                    {
+                                        return !s;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix adds parentheses only where the comparison would bind differently than the negation, and
+    /// keeps the parentheses of an already parenthesized operand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-004")]
+    public async Task FixParenthesizesTheComparisonOnlyWhereItWouldBindDifferently()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        var x = {|RH3001:!|}a && b;
+                                        var y = b == {|RH3001:!|}a;
+                                        return {|RH3001:!|}(a && b);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b)
+                                     {
+                                         var x = a == false && b;
+                                         var y = b == (a == false);
+                                         return (a && b) == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a block comment and an end-of-line comment after the operator move in front of the operand without
+    /// the whitespace that separated them from the operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-005")]
+    public async Task CommentsAfterTheOperatorMoveInFrontOfTheOperand()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        var x = {|RH3001:!|} /* first */ a;
+                                        return {|RH3001:!|} // second
+                                            b;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b)
+                                     {
+                                         var x = /* first */ a == false;
+                                         return // second
+                                             b == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a directive between the operator and its operand keeps the diagnostic and withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-006")]
+    public async Task DirectiveAfterTheOperatorIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M()
+                                    {
+                                        return {|RH3001:!|}
+                                #if DEBUG
+                                            true
+                                #else
+                                            false
+                                #endif
+                                            ;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies directives inside the parentheses of the operand do not withhold the fix and stay where they are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-006")]
+    public async Task DirectivesInsideTheParenthesizedOperandDoNotWithholdTheFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M()
+                                    {
+                                        return {|RH3001:!|}(
+                                #if DEBUG
+                                            true
+                                #else
+                                            false
+                                #endif
+                                        );
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M()
+                                     {
+                                         return (
+                                 #if DEBUG
+                                             true
+                                 #else
+                                             false
+                                 #endif
+                                         ) == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

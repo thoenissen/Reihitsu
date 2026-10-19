@@ -23,6 +23,9 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    [Requirement("RH3102-003")]
     public async Task EmptyStatementInMethodBodyIsReportedAndFixed()
     {
         const string testCode = """
@@ -52,6 +55,9 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    [Requirement("RH3102-003")]
     public async Task EmptyStatementAfterValidStatementIsReportedAndFixed()
     {
         const string testCode = """
@@ -83,6 +89,9 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    [Requirement("RH3102-003")]
     public async Task EmptyStatementInIfBlockIsReportedAndFixed()
     {
         const string testCode = """
@@ -118,6 +127,9 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    [Requirement("RH3102-003")]
     public async Task EmptyStatementInWhileLoopIsReportedAndFixed()
     {
         const string testCode = """
@@ -153,6 +165,9 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    [Requirement("RH3102-003")]
     public async Task EmptyStatementInForLoopIsReportedAndFixed()
     {
         const string testCode = """
@@ -188,6 +203,9 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    [Requirement("RH3102-003")]
     public async Task EmptyStatementInSwitchCaseIsReportedAndFixed()
     {
         const string testCode = """
@@ -227,6 +245,9 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    [Requirement("RH3102-003")]
     public async Task EmptyStatementInTryBlockIsReportedAndFixed()
     {
         const string testCode = """
@@ -272,6 +293,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-004")]
     public async Task FixIsNotOfferedForEmbeddedEmptyStatement()
     {
         const string testCode = """
@@ -301,6 +323,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-004")]
     public async Task FixIsNotOfferedWhenCommentIsAttachedToEmptyStatement()
     {
         const string testCode = """
@@ -330,6 +353,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3102-004")]
     public async Task VerifyDocumentationCommentedEmptyStatementIsNotOfferedACodeFix()
     {
         const string codeFixData = """
@@ -351,6 +375,134 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies empty statements in a block, as the body of a loop, and after a label are reported on the semicolon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3102-001")]
+    [Requirement("RH3102-002")]
+    public async Task EmptyStatementsInBlockLoopBodyAndLabelAreReportedOnTheSemicolon()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a, bool b)
+                                    {
+                                        {|RH3102:;|}
+                                        while (b) {|RH3102:;|}
+                                        L: {|RH3102:;|}
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix removes empty statements of a block and of a switch section together with their lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3102-003")]
+    public async Task FixRemovesTheLinesOfEmptyStatementsInBlockAndSwitchSection()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        {|RH3102:;|}
+                                        a++;
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                {|RH3102:;|}
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+                                         switch (a)
+                                         {
+                                             case 1:
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies embedded and labeled empty statements, and an empty statement with a trailing comment, are reported
+    /// without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3102-004")]
+    public async Task EmbeddedLabeledAndCommentedEmptyStatementsAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        while (b) {|RH3102:;|}
+                                        for (;;) {|RH3102:;|}
+                                    }
+
+                                    void N()
+                                    {
+                                        L: {|RH3102:;|}
+                                        {|RH3102:;|} // done
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that removing an empty statement behind another statement on the same line joins the next line
+    /// to that line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfEmptyStatementBehindAStatementJoinsTheNextLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++; ;
+                                        a++;
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        void M(int a)
+                                        {
+                                            a++;         a++;
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
     }
 
     #endregion // Tests

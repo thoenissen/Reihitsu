@@ -24,6 +24,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithLessThanIsReportedAndFixed()
     {
         const string testCode = """
@@ -54,6 +57,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithGreaterThanIsReportedAndFixed()
     {
         const string testCode = """
@@ -84,6 +90,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithEqualsIsReportedAndFixed()
     {
         const string testCode = """
@@ -114,6 +123,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithNotEqualsIsReportedAndFixed()
     {
         const string testCode = """
@@ -144,6 +156,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithLessThanOrEqualIsReportedAndFixed()
     {
         const string testCode = """
@@ -174,6 +189,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithGreaterThanOrEqualIsReportedAndFixed()
     {
         const string testCode = """
@@ -204,6 +222,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithConstFieldIsReportedAndFixed()
     {
         const string testCode = """
@@ -238,6 +259,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithStaticReadonlyFieldIsReportedAndFixed()
     {
         const string testCode = """
@@ -272,6 +296,9 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
     public async Task YodaConditionWithDefaultExpressionIsReportedAndFixed()
     {
         const string testCode = """
@@ -302,6 +329,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-002")]
     public async Task NormalConditionIsNotReported()
     {
         const string testCode = """
@@ -322,6 +350,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-002")]
     public async Task ConstantToConstantComparisonIsNotReported()
     {
         const string testCode = """
@@ -342,6 +371,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-002")]
     public async Task VariableToVariableComparisonIsNotReported()
     {
         const string testCode = """
@@ -363,6 +393,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-005")]
     public async Task AsymmetricUserDefinedOperatorWithoutMirrorIsNotFixed()
     {
         const string testCode = """
@@ -399,6 +430,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-005")]
     public async Task AsymmetricUserDefinedOperatorWithUnrelatedMirrorIsNotFixed()
     {
         const string testCode = """
@@ -444,6 +476,8 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-004")]
+    [Requirement("RH3005-005")]
     public async Task BuiltInComparisonIsStillFixed()
     {
         const string testCode = """
@@ -467,6 +501,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-005")]
     public async Task DynamicOperandIsNotFixed()
     {
         const string testCode = """
@@ -490,6 +525,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-005")]
     public async Task UserDefinedEqualityOperatorIsNotFixed()
     {
         const string testCode = """
@@ -526,6 +562,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-006")]
     public async Task DocumentationCommentedYodaConditionIsNotOfferedACodeFix()
     {
         const string codeFixData = """
@@ -579,6 +616,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-006")]
     public async Task VerifyCommentBeforeTheComparisonIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -609,6 +647,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3005-006")]
     public async Task VerifyCommentInsideTheComparisonWithholdsTheCodeFix()
     {
         const string codeFixData = """
@@ -626,6 +665,223 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                                    FirstComparisonOperatorLocation);
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies comparisons with a literal, a <c>const</c> field, a <c>static readonly</c> field, <c>null</c>, and a
+    /// <c>default</c> expression on the left are reported on the operator and fixed with the mirrored operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    [Requirement("RH3005-004")]
+    public async Task ConstantLikeLeftOperandsAreReportedAndSwappedWithMirroredOperator()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const int Max = 10;
+                                    static readonly int Min = 0;
+
+                                    void M(int a, string s)
+                                    {
+                                        if (0 {|RH3005:<|} a) { }
+                                        if (Max {|RH3005:==|} a) { }
+                                        if (Min {|RH3005:>=|} a) { }
+                                        if (null {|RH3005:==|} s) { }
+                                        if (default(int) {|RH3005:!=|} a) { }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     const int Max = 10;
+                                     static readonly int Min = 0;
+
+                                     void M(int a, string s)
+                                     {
+                                         if (a > 0) { }
+                                         if (a == Max) { }
+                                         if (a <= Min) { }
+                                         if (s == null) { }
+                                         if (a != default(int)) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies comparisons with a value on the left, or with two constant-like operands, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-002")]
+    public async Task ComparisonsWithoutAConstantOnlyOnTheLeftAreNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    const int Max = 10;
+
+                                    void M(int a, int b)
+                                    {
+                                        if (a < 0) { }
+                                        if (a < b) { }
+                                        if (Max > 0) { }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comparison bound to a user-defined operator and a comparison with a <c>dynamic</c> operand are
+    /// reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-005")]
+    public async Task UserDefinedAndDynamicComparisonsAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class V
+                                {
+                                    public static bool operator ==(int a, V b) => true;
+                                    public static bool operator !=(int a, V b) => false;
+                                    public override bool Equals(object o) => false;
+                                    public override int GetHashCode() => 0;
+                                }
+
+                                class C
+                                {
+                                    void M(V v, dynamic d)
+                                    {
+                                        if (1 {|RH3005:==|} v) { }
+                                        if (0 {|RH3005:<|} d) { }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a built-in comparison whose swapped form would bind to a user-defined operator is reported without a
+    /// code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-005")]
+    public async Task BuiltInComparisonWhoseMirrorBindsToAUserDefinedOperatorIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class V
+                                {
+                                    public static implicit operator int(V v) => 0;
+                                    public static bool operator <(V a, int b) => true;
+                                    public static bool operator >(V a, int b) => true;
+                                }
+
+                                class C
+                                {
+                                    bool M(V v)
+                                    {
+                                        return 1 {|RH3005:<|} v;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment between the left operand and the operator keeps the diagnostic and withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-006")]
+    public async Task CommentBeforeTheOperatorIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (0 /* x */ {|RH3005:<|} a) { }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment in front of the comparison stays in front of the swapped comparison
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-004")]
+    [Requirement("RH3005-006")]
+    public async Task CommentInFrontOfTheComparisonStaysInFront()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int a)
+                                    {
+                                        return /* x */ 0 {|RH3005:<|} a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int a)
+                                     {
+                                         return /* x */ a > 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Characterizes that the fix of a comparison whose left operand is itself a comparison writes the swapped
+    /// operands without parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfComparisonWithComparisonOperandWritesTheSwapWithoutParentheses()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (1 == 1 == b) { }
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        void M(bool b)
+                                        {
+                                            if (b == 1 == 1) { }
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
     }
 
     #endregion // Tests

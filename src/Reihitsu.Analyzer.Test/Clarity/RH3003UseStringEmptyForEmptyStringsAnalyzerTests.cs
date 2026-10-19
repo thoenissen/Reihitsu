@@ -21,6 +21,9 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-001")]
+    [Requirement("RH3003-003")]
+    [Requirement("RH3003-004")]
     public async Task EmptyStringInReturnIsReportedAndFixed()
     {
         const string testCode = """
@@ -51,6 +54,9 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-001")]
+    [Requirement("RH3003-003")]
+    [Requirement("RH3003-004")]
     public async Task EmptyStringInVariableAssignmentIsReportedAndFixed()
     {
         const string testCode = """
@@ -81,6 +87,9 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-001")]
+    [Requirement("RH3003-003")]
+    [Requirement("RH3003-004")]
     public async Task EmptyStringInMethodArgumentIsReportedAndFixed()
     {
         const string testCode = """
@@ -119,6 +128,9 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-001")]
+    [Requirement("RH3003-003")]
+    [Requirement("RH3003-004")]
     public async Task EmptyStringInFieldInitializerIsReportedAndFixed()
     {
         const string testCode = """
@@ -143,6 +155,9 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-001")]
+    [Requirement("RH3003-003")]
+    [Requirement("RH3003-004")]
     public async Task EmptyStringInPropertyInitializerIsReportedAndFixed()
     {
         const string testCode = """
@@ -167,6 +182,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInConstFieldIsNotReported()
     {
         const string testCode = """
@@ -184,6 +200,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInConstLocalIsNotReported()
     {
         const string testCode = """
@@ -204,6 +221,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInNestedConstInitializerIsNotReported()
     {
         const string testCode = """
@@ -227,6 +245,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInParameterDefaultIsNotReported()
     {
         const string testCode = """
@@ -246,6 +265,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInNestedParameterDefaultIsNotReported()
     {
         const string testCode = """
@@ -265,6 +285,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInAttributeArgumentIsNotReported()
     {
         const string testCode = """
@@ -287,6 +308,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInSwitchCaseIsNotReported()
     {
         const string testCode = """
@@ -313,6 +335,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInPatternMatchingIsNotReported()
     {
         const string testCode = """
@@ -333,6 +356,9 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-001")]
+    [Requirement("RH3003-003")]
+    [Requirement("RH3003-004")]
     public async Task EmptyStringInConcatenationIsReportedAndFixed()
     {
         const string testCode = """
@@ -363,6 +389,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3003-002")]
     public async Task EmptyStringInGotoCaseIsNotReported()
     {
         const string testCode = """
@@ -384,6 +411,163 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies regular and verbatim empty literals in a field initializer, an assignment, an argument, and a
+    /// concatenation are reported on the literal and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3003-001")]
+    [Requirement("RH3003-003")]
+    public async Task RegularAndVerbatimEmptyLiteralsAreReportedOnTheLiteral()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string _f = {|RH3003:""|};
+
+                                    string M(string s)
+                                    {
+                                        s = {|RH3003:@""|};
+                                        M({|RH3003:""|});
+                                        return {|RH3003:""|} + s;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string _f = string.Empty;
+
+                                     string M(string s)
+                                     {
+                                         s = string.Empty;
+                                         M(string.Empty);
+                                         return string.Empty + s;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies empty literals in every position that requires a constant are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3003-002")]
+    public async Task EmptyLiteralsWhereAConstantIsRequiredAreNotReported()
+    {
+        const string testCode = """
+                                using System.ComponentModel;
+
+                                class C
+                                {
+                                    const string F = "";
+
+                                    [DefaultValue("")]
+                                    void M(string s = "")
+                                    {
+                                        const string L = "";
+
+                                        switch (s)
+                                        {
+                                            case "":
+                                                goto case "x";
+                                            case "x":
+                                                break;
+                                        }
+
+                                        if (s is "")
+                                        {
+                                        }
+
+                                        var b = s switch { "" => 1, _ => 2 };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix writes <c>string.Empty</c> and keeps the comments in front of and after the literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3003-004")]
+    public async Task FixKeepsTheCommentsAroundTheLiteral()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string s)
+                                    {
+                                        var a = {|RH3003:""|};
+                                        return /* a */ {|RH3003:""|} /* b */ + s;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string s)
+                                     {
+                                         var a = string.Empty;
+                                         return /* a */ string.Empty /* b */ + s;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Characterizes that an empty literal in the <c>when</c> clause of a <c>case</c> label is not reported, while
+    /// the same literal in the <c>when</c> clause of a <c>switch</c> expression arm is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EmptyLiteralInCaseLabelWhenClauseIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(string s)
+                                    {
+                                        switch (s)
+                                        {
+                                            case var x when x == "":
+                                                return 1;
+                                        }
+
+                                        return s switch { var y when y == {|RH3003:""|} => 2, _ => 3 };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(string s)
+                                     {
+                                         switch (s)
+                                         {
+                                             case var x when x == "":
+                                                 return 1;
+                                         }
+
+                                         return s switch { var y when y == string.Empty => 2, _ => 3 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

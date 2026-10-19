@@ -21,6 +21,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task DefaultValueTypeConstructorIsReportedAndFixed()
     {
         const string testCode = """
@@ -55,6 +58,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task DefaultIntConstructorIsReportedAndFixed()
     {
         const string testCode = """
@@ -85,6 +91,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task ImplicitValueTypeCreationIsReportedAndFixed()
     {
         const string testCode = """
@@ -121,6 +130,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task DefaultDateTimeConstructorIsReportedAndFixed()
     {
         const string testCode = """
@@ -155,6 +167,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task DefaultCustomStructConstructorIsReportedAndFixed()
     {
         const string testCode = """
@@ -197,6 +212,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-002")]
     public async Task ValueTypeConstructorWithArgumentsIsNotReported()
     {
         const string testCode = """
@@ -219,6 +235,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-002")]
     public async Task ValueTypeConstructorWithInitializerIsNotReported()
     {
         const string testCode = """
@@ -269,6 +286,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task DefaultValueTypeConstructorInFieldIsReportedAndFixed()
     {
         const string testCode = """
@@ -297,6 +317,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task DefaultValueTypeConstructorInArrayIsReportedAndFixed()
     {
         const string testCode = """
@@ -331,6 +354,9 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    [Requirement("RH3104-004")]
     public async Task DefaultValueTypeConstructorAsArgumentIsReportedAndFixed()
     {
         const string testCode = """
@@ -373,6 +399,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-002")]
     public async Task StructWithExplicitParameterlessConstructorIsNotReported()
     {
         const string testCode = """
@@ -403,6 +430,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-002")]
     public async Task ImplicitStructWithExplicitParameterlessConstructorIsNotReported()
     {
         const string testCode = """
@@ -434,6 +462,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-002")]
     public async Task StructConstrainedTypeParameterCreationIsNotReported()
     {
         const string testCode = """
@@ -455,6 +484,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3104-002")]
     public async Task ImplicitStructConstrainedTypeParameterCreationIsNotReported()
     {
         const string testCode = """
@@ -470,6 +500,199 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies parameterless creations of a predefined value type, a struct, an enum, a nullable value type, and a
+    /// qualified struct are reported on the type, and a target-typed creation on <c>new</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3104-001")]
+    [Requirement("RH3104-003")]
+    public async Task ParameterlessValueTypeCreationsAreReportedOnTheTypeOrOnNew()
+    {
+        const string testCode = """
+                                using System;
+
+                                struct S
+                                {
+                                    public int X;
+                                }
+
+                                enum E
+                                {
+                                    A
+                                }
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new {|RH3104:int|}();
+                                        var b = new {|RH3104:Guid|}();
+                                        S c = {|RH3104:new|}();
+                                        var e = new {|RH3104:E|}();
+                                        var f = new {|RH3104:int?|}();
+                                        var g = new {|RH3104:System.DateTime|}();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 struct S
+                                 {
+                                     public int X;
+                                 }
+
+                                 enum E
+                                 {
+                                     A
+                                 }
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = default(int);
+                                         var b = default(Guid);
+                                         S c = default(S);
+                                         var e = default(E);
+                                         var f = default(int?);
+                                         var g = default(DateTime);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a creation with arguments, with an initializer, of a struct with its own parameterless constructor,
+    /// and of a type parameter is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3104-002")]
+    public async Task CreationsThatRunCodeAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                struct S
+                                {
+                                    public S()
+                                    {
+                                        X = 1;
+                                    }
+
+                                    public int X;
+                                }
+
+                                struct P
+                                {
+                                    public int X;
+                                }
+
+                                class C
+                                {
+                                    T M<T>() where T : struct
+                                    {
+                                        var a = new DateTime(1);
+                                        var b = new P { X = 1 };
+                                        var c = new S();
+                                        return new T();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix writes <c>default</c> with the type in its shortest form that binds in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3104-004")]
+    public async Task FixWritesDefaultWithTheShortestTypeName()
+    {
+        const string testCode = """
+                                using System;
+
+                                struct S
+                                {
+                                    public int X;
+                                }
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new {|RH3104:int|}();
+                                        S c = {|RH3104:new|}();
+                                        var g = new {|RH3104:System.DateTime|}();
+                                        var f = new {|RH3104:int?|}();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 struct S
+                                 {
+                                     public int X;
+                                 }
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = default(int);
+                                         S c = default(S);
+                                         var g = default(DateTime);
+                                         var f = default(int?);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Characterizes that the fix removes a comment inside the argument list and a comment between <c>new</c> and
+    /// the type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixRemovesCommentsInsideTheCreation()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new {|RH3104:int|}(/* x */);
+                                        var b = new /* x */ {|RH3104:int|}();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = default(int);
+                                         var b = default(int);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

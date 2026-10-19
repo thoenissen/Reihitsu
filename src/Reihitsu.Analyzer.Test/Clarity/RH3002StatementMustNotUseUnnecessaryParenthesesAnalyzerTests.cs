@@ -97,6 +97,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    [Requirement("RH3002-008")]
     public async Task UnnecessaryParenthesesInReturnAreReportedAndFixed()
     {
         const string testCode = """
@@ -127,6 +130,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    [Requirement("RH3002-008")]
     public async Task UnnecessaryParenthesesInThrowAreReportedAndFixed()
     {
         const string testCode = """
@@ -161,6 +167,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    [Requirement("RH3002-008")]
     public async Task UnnecessaryParenthesesInAssignmentAreReportedAndFixed()
     {
         const string testCode = """
@@ -191,6 +200,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    [Requirement("RH3002-008")]
     public async Task UnnecessaryParenthesesInArgumentAreReportedAndFixed()
     {
         const string testCode = """
@@ -229,6 +241,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    [Requirement("RH3002-008")]
     public async Task UnnecessaryParenthesesInExpressionBodiedMemberAreReportedAndFixed()
     {
         const string testCode = """
@@ -253,6 +268,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-003")]
     public async Task NecessaryParenthesesAroundCastAreNotReported()
     {
         const string testCode = """
@@ -273,6 +289,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-003")]
     public async Task NecessaryParenthesesAroundLambdaAreNotReported()
     {
         const string testCode = """
@@ -295,6 +312,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-002")]
     public async Task UnnecessaryParenthesesAroundMemberAccessAreReportedAndFixed()
     {
         const string testCode = """
@@ -325,6 +343,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-002")]
     public async Task UnnecessaryParenthesesAroundInvocationAreReportedAndFixed()
     {
         const string testCode = """
@@ -426,6 +445,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-008")]
+    [Requirement("RH3002-009")]
     public async Task VerifyCommentBeforeTheParenthesesIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -460,6 +481,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-009")]
     public async Task VerifyCommentInsideTheParenthesesWithholdsTheCodeFix()
     {
         const string codeFixData = """
@@ -659,6 +681,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-001")]
     public async Task NecessaryParenthesesAroundConditionalInThrowExpressionAreNotReported()
     {
         const string testCode = """
@@ -785,6 +808,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-006")]
     public async Task NestedParenthesesAroundConditionalInThrowExpressionKeepTheNecessaryPair()
     {
         const string testCode = """
@@ -970,6 +994,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-008")]
     public async Task ReturnWithoutSpaceBeforeParenthesesKeepsTheTokensSeparate()
     {
         const string testCode = """
@@ -1341,6 +1366,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-009")]
     public async Task VerifyDirectiveInsideThrowExpressionParenthesesWithholdsTheCodeFix()
     {
         const string testCode = """
@@ -1394,6 +1420,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-005")]
     public async Task ParenthesesAroundRefConditionalAssignmentTargetAreNotReported()
     {
         const string testCode = """
@@ -1842,6 +1869,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-005")]
     public async Task UnnecessaryParenthesesAroundAssignmentTargetAreReportedAndFixed()
     {
         const string testCode = """
@@ -2142,6 +2170,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-006")]
     public async Task NestedParenthesesAroundRefConditionalAssignmentTargetKeepTheNecessaryPair()
     {
         const string testCode = """
@@ -3121,6 +3150,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-006")]
     public async Task NestedParenthesesAroundBinaryExpressionInMemberAccessChainKeepTheNecessaryPair()
     {
         const string testCode = """
@@ -3446,6 +3476,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-002")]
+    [Requirement("RH3002-006")]
     public async Task NestedParenthesesAroundCastInMemberAccessChainReportTheOuterPair()
     {
         const string testCode = """
@@ -3480,6 +3512,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-002")]
+    [Requirement("RH3002-006")]
     public async Task NestedParenthesesAroundSwitchExpressionInMemberAccessChainReportTheOuterPair()
     {
         const string testCode = """
@@ -3552,6 +3586,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-004")]
     public async Task ParenthesesAroundDelegateInvokedThroughTwoPairsAreNotReported()
     {
         const string testCode = """
@@ -4967,6 +5002,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3002-004")]
     public async Task ParenthesesAroundArgumentsJoiningIntoGenericInvocationKeepTheClosingPair()
     {
         const string testCode = """
@@ -7446,6 +7482,436 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                                 """;
 
         await AssertAnalyzedWithinBoundAsync(testCode, 40);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around a whole expression are reported and fixed in every position where the expression
+    /// stands alone: an expression body of a member and of an accessor, a parameter default value, a variable
+    /// initializer, an assignment, an argument, a tuple element, a return and a throw statement, the operand of a
+    /// throw expression, and a pair directly inside another pair
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesAroundAWholeExpressionAreReportedInEveryListedPosition()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    int _f;
+
+                                    int P => {|RH3002:(_f)|};
+
+                                    int Q { get => {|RH3002:(_f)|}; }
+
+                                    int M(int a, string s, int d = {|RH3002:(1)|})
+                                    {
+                                        int b = {|RH3002:(a)|};
+                                        b = {|RH3002:(a + 1)|};
+                                        Console.WriteLine({|RH3002:(a)|});
+                                        var t = ({|RH3002:(a)|}, 1);
+                                        var u = {|RH3002:(s ?? throw {|RH3002:(new InvalidOperationException())|})|};
+                                        return {|RH3002:({|RH3002:(b)|})|};
+                                    }
+
+                                    void Fail()
+                                    {
+                                        throw {|RH3002:(new InvalidOperationException())|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Threading.Tasks;
+
+                                 class C
+                                 {
+                                     int _f;
+
+                                     int P => _f;
+
+                                     int Q { get => _f; }
+
+                                     int M(int a, string s, int d = 1)
+                                     {
+                                         int b = a;
+                                         b = a + 1;
+                                         Console.WriteLine(a);
+                                         var t = (a, 1);
+                                         var u = s ?? throw new InvalidOperationException();
+                                         return b;
+                                     }
+
+                                     void Fail()
+                                     {
+                                         throw new InvalidOperationException();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a conditional expression as the operand of a throw expression keeps its parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-001")]
+    public async Task ConditionalOperandOfThrowExpressionInExpressionBodyIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    int Fail(bool c) => throw (c ? new Exception() : new InvalidOperationException());
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around a name, around a pair that is not reported itself, and around the operand of
+    /// <c>await</c> are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-002")]
+    public async Task ParenthesesAroundPrimaryReceiversAndAwaitOperandAreReportedAndFixed()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async Task<int> M(string s, Task<int> t)
+                                    {
+                                        var n = {|RH3002:(s)|}.Length;
+                                        var c = {|RH3002:(((object)s))|}.ToString();
+                                        return await {|RH3002:(t)|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Threading.Tasks;
+
+                                 class C
+                                 {
+                                     async Task<int> M(string s, Task<int> t)
+                                     {
+                                         var n = s.Length;
+                                         var c = ((object)s).ToString();
+                                         return await t;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around a binary, cast, <c>switch</c>, or conditional expression as a receiver are not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-002")]
+    public async Task ParenthesesAroundNonPrimaryReceiversAreNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(int a, int b, object o, bool c)
+                                    {
+                                        var y = (a + b).ToString();
+                                        var z = ((int)o).ToString();
+                                        var w = (a switch { 1 => "a", _ => "b" }).Length;
+                                        return (c ? "a" : "b").ToString();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around a lambda, a cast, and a <c>switch</c> expression as variable initializers are not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-003")]
+    public async Task ParenthesesAroundLambdaCastAndSwitchInitializersAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(int a, object o)
+                                    {
+                                        Func<int> f = (() => a);
+                                        var x = ((int)o);
+                                        var y = (a switch { 1 => "a", _ => "b" });
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies neither pair around a delegate invoked through two pairs is reported, because removing the inner
+    /// pair would leave a cast
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-004")]
+    public async Task PairsAroundDelegateThatWouldLeaveACastAreNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    System.Func<int> _d;
+
+                                    int M()
+                                    {
+                                        return ((_d))();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that of two arguments that would join into a generic invocation, the first pair is reported and fixed
+    /// and the second pair stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-004")]
+    public async Task ArgumentsThatWouldJoinIntoAGenericNameKeepTheSecondPair()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int G;
+                                    int A;
+                                    int B;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M({|RH3002:(G < A)|}, (B > (7)));
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int G;
+                                     int A;
+                                     int B;
+
+                                     void M(bool x, bool y)
+                                     {
+                                     }
+
+                                     void Run()
+                                     {
+                                         M(G < A, (B > (7)));
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around a ref conditional in front of an assignment operator stay, while parentheses
+    /// around a name in front of an assignment operator are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-005")]
+    public async Task OnlyTheAssignmentTargetThatTheOperatorWouldJoinKeepsItsParentheses()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+                                    int _b;
+
+                                    void M(bool c)
+                                    {
+                                        (c ? ref _a : ref _b) = 5;
+                                        {|RH3002:(_a)|} = 6;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+                                     int _b;
+
+                                     void M(bool c)
+                                     {
+                                         (c ? ref _a : ref _b) = 5;
+                                         _a = 6;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that of nested pairs the innermost one stays around a cast or a lambda, and the outermost one stays
+    /// around a binary receiver
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-006")]
+    public async Task NestedPairsKeepOnePairAroundCastLambdaAndBinaryReceiver()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M(int a, int b, object o)
+                                    {
+                                        var x = {|RH3002:({|RH3002:(((int)o))|})|};
+                                        Func<int> f = {|RH3002:((() => a))|};
+                                        var s = {|RH3002:(((int)o))|}.ToString();
+                                        return ({|RH3002:(a + b)|}).ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     string M(int a, int b, object o)
+                                     {
+                                         var x = ((int)o);
+                                         Func<int> f = (() => a);
+                                         var s = ((int)o).ToString();
+                                         return (a + b).ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix inserts a space where the keyword would otherwise join the content, and keeps the comments
+    /// in front of and after the parentheses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-008")]
+    public async Task FixSeparatesTheKeywordAndKeepsTheCommentsAroundTheParentheses()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return{|RH3002:(a)|};
+                                    }
+
+                                    int N(int a)
+                                    {
+                                        return /* x */ {|RH3002:(a)|} /* y */;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         return a;
+                                     }
+
+                                     int N(int a)
+                                     {
+                                         return /* x */ a /* y */;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment directly inside the parentheses keeps the diagnostic and withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-009")]
+    public async Task CommentAfterTheOpeningParenthesisIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return {|RH3002:(/* x */ a)|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that redundant parentheses in a statement condition, a lambda body, a <c>switch</c> expression
+    /// arm, an attribute argument, a binary operand, and around a <c>typeof</c> receiver are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RedundantParenthesesOutsideTheListedPositionsAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    [Obsolete(("x"))]
+                                    int M(int a, bool c)
+                                    {
+                                        if ((c)) { }
+                                        while ((c)) { }
+                                        Func<int, int> f = x => (x);
+                                        var n = (typeof(int)).Name;
+                                        var s = a switch { _ => (a) };
+                                        return a + (a);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests
