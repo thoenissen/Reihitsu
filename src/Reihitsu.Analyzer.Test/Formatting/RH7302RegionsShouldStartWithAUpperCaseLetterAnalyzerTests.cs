@@ -272,6 +272,39 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                      Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix renames an <c>#endregion</c> comment that repeats the name of the region it renames, and
+    /// keeps an <c>#endregion</c> comment that does not repeat it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task VerifyCodeFixRenamesOnlyTheEndRegionCommentThatRepeatsTheRegionName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region members|}
+                                    #endregion // members
+
+                                    {|RH7302:#region values|}
+                                    #endregion // helpers
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Members
+                                     #endregion // Members
+
+                                     #region Values
+                                     #endregion // helpers
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

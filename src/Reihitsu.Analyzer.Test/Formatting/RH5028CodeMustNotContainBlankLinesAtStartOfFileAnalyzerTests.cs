@@ -177,6 +177,35 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Batc
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies one application of the fix removes the whole run of blank lines its one diagnostic reports, without
+    /// relying on the fix of another rule that reports part of the run
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationRemovesTheWholeReportedRun()
+    {
+        const string testCode = "{|RH5028:\n\n\n|}class C\n{\n}\n";
+        const string fixedCode = "class C\n{\n}\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix removes the whole reported run of blank lines under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationRemovesTheWholeReportedRunUnderCarriageReturnLineFeed()
+    {
+        const string testCode = "{|RH5028:\r\n\r\n\r\n|}class C\r\n{\r\n}\r\n";
+        const string fixedCode = "class C\r\n{\r\n}\r\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 1);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

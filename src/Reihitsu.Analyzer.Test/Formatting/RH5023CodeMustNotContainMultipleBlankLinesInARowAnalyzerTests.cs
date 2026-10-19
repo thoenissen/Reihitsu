@@ -359,6 +359,65 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies the fix, applied once for each blank line after the first of a run, leaves one blank line that the
+    /// rule does not report again
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationPerDiagnosticCorrectsTheRun()
+    {
+        const string testCode = "class C\n{\n    void M()\n    {\n        var a = 1;\n\n{|RH5023:\n|}{|RH5023:\n|}        a++;\n    }\n}\n";
+        const string fixedCode = "class C\n{\n    void M()\n    {\n        var a = 1;\n\n        a++;\n    }\n}\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 2);
+    }
+
+    /// <summary>
+    /// Verifies the fix, applied once for each diagnostic, corrects the run under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationPerDiagnosticCorrectsTheRunUnderCarriageReturnLineFeed()
+    {
+        const string testCode = "class C\r\n{\r\n    void M()\r\n    {\r\n        var a = 1;\r\n\r\n{|RH5023:\r\n|}{|RH5023:\r\n|}        a++;\r\n    }\r\n}\r\n";
+        const string fixedCode = "class C\r\n{\r\n    void M()\r\n    {\r\n        var a = 1;\r\n\r\n        a++;\r\n    }\r\n}\r\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 2);
+    }
+
+    /// <summary>
+    /// Verifies the fix, applied once for each of its diagnostics in a run at the start of the file, leaves the first
+    /// blank line, which this rule does not report, so its clean state does not depend on the fix of the rule that
+    /// reports the whole run
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationPerDiagnosticCorrectsTheRunAtTheStartOfTheFile()
+    {
+        const string testCode = "\n{|RH5023:\n|}{|RH5023:\n|}class C\n{\n}\n";
+        const string fixedCode = "\nclass C\n{\n}\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 2);
+    }
+
+    /// <summary>
+    /// Verifies the fix corrects the run at the start of the file under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-001")]
+    public async Task OneApplicationPerDiagnosticCorrectsTheRunAtTheStartOfTheFileUnderCarriageReturnLineFeed()
+    {
+        const string testCode = "\r\n{|RH5023:\r\n|}{|RH5023:\r\n|}class C\r\n{\r\n}\r\n";
+        const string fixedCode = "\r\nclass C\r\n{\r\n}\r\n";
+
+        await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 2);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

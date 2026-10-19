@@ -450,6 +450,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5604-005")]
+    [Requirement("SHARED-FIX-003")]
     public async Task VerifyCodeFixConvertsEveryLineEndingWhicheverDiagnosticItIsAppliedTo()
     {
         const string testData = "internal class TestClass\n"

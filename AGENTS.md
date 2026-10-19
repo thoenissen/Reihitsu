@@ -45,7 +45,7 @@ A code fix is never required to correct every case its diagnostic reports. Some 
 
 - A reported diagnostic with no available fix is a supported end state. "The diagnostic has no fix here" is an observation that still has to be argued on its merits; it is never a defect on its own.
 - For new analyzer rules, only implement a code fix when it can be delivered comprehensively. If only light or partial support is possible, omit the code fix.
-- Prefer no fix over an unsafe one. A rewrite that would drop, reorder, or relocate user-authored comments, directives, disabled text, or literals must withhold itself for that input.
+- Prefer no fix over an unsafe one. A rewrite that would drop, reorder, or relocate user-authored comments, directives, disabled text, or literals must withhold itself for that input. `SHARED-FIX-003` in `sdd/specs/shared/code-fixes.md` states what makes a fix unsafe; a fix that violates it is a bug against that spec, not an open question.
 - None of this licenses an imprecise guard. A fix that refuses inputs it could rewrite safely is still worth narrowing, but the defect there is the guard's scope — how much safe ground it gives away — and not the bare fact that a diagnostic went unfixed.
 - When a rule's fix deliberately leaves a class of inputs to manual correction, record that in `documentation/rules/RH####.md` so the gap reads as a decision rather than an oversight — in one or two user-facing sentences. A gap caused only by a comment, a preprocessor directive, or excluded code in the rewritten span is the general limitation already stated in `documentation/rules/general-notes.md`, and is not repeated on the rule page.
 
