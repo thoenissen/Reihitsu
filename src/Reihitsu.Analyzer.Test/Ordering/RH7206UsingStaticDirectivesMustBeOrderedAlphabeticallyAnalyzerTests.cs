@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -21,6 +22,9 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7206-001")]
+    [Requirement("RH7206-003")]
+    [Requirement("RH7206-004")]
     public async Task StaticUsingsAreReportedAndFixedWhenTheyAreNotAlphabeticallyOrdered()
     {
         const string testCode = """
@@ -49,6 +53,8 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7206-002")]
+    [Requirement("SHARED-USING-004")]
     public async Task OrdinalDistinctStaticRootGroupsDoNotProduceCrossGroupDiagnostics()
     {
         const string testCode = """
@@ -77,6 +83,8 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7206-001")]
+    [Requirement("SHARED-USING-009")]
     public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
     {
         const string testCode = """
@@ -88,6 +96,138 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that every static directive sorted before the static directive of its group directly above it is reported on its type name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    [Requirement("RH7206-003")]
+    public async Task EveryStaticDirectiveSortedBeforeItsNeighborIsReportedOnItsTypeName()
+    {
+        const string testCode = """
+                                using static System.Math;
+                                using static {|RH7206:System.Console|};
+
+                                using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
+                                using static {|RH7206:Microsoft.CodeAnalysis.CSharp.SyntaxFactory|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                using static System.Math;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using static System.Console;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static directive of another group and alias directives are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-002")]
+    [Requirement("SHARED-USING-004")]
+    public async Task StaticDirectivesOfOtherGroupsAndOtherKindsAreNotReported()
+    {
+        const string testCode = """
+                                using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+                                using static System.Console;
+
+                                using B = System.Text;
+                                using A = System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes the whole using block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-004")]
+    public async Task CodeFixOrganizesTheWholeBlock()
+    {
+        const string testCode = """
+                                using static System.Math;
+                                using static {|RH7206:System.Console|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using static System.Console;
+                                 using static System.Math;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix leaves the code after the using block unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-004")]
+    public async Task CodeFixLeavesTheCodeAfterTheBlockUnchanged()
+    {
+        const string testCode = """
+                                using static System.Math;
+                                using static {|RH7206:System.Console|};
+
+                                class C
+                                {
+                                    void M( ) {   }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using static System.Console;
+                                 using static System.Math;
+
+                                 class C
+                                 {
+                                     void M( ) {   }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
