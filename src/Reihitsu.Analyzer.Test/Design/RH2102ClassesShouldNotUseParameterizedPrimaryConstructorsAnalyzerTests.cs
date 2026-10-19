@@ -20,6 +20,8 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2102-001")]
+    [Requirement("RH2102-002")]
     public async Task VerifyDiagnosticsForParameterizedClassPrimaryConstructors()
     {
         const string source = """
@@ -42,6 +44,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2102-001")]
     public async Task VerifyNoDiagnosticsForParameterlessClassPrimaryConstructors()
     {
         const string source = """
@@ -60,6 +63,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2102-001")]
     public async Task VerifyNoDiagnosticsForClassesWithoutPrimaryConstructors()
     {
         const string source = """
@@ -81,6 +85,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2102-001")]
     public async Task VerifyNoDiagnosticsForRecords()
     {
         const string source = """
@@ -91,6 +96,71 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that nested, partial, and generic classes with primary-constructor parameters are reported on their
+    /// identifier, and that empty primary constructors, classes without one, and records are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2102-001")]
+    [Requirement("RH2102-002")]
+    public async Task VerifyNestedPartialAndGenericClassesWithPrimaryConstructorParametersAreReported()
+    {
+        const string source = """
+                              class {|#0:Service|}(int id)
+                              {
+                                  public int Id => id;
+                              }
+
+                              class Empty()
+                              {
+                              }
+
+                              class Plain
+                              {
+                              }
+
+                              partial class {|#1:Part|}(int value)
+                              {
+                              }
+
+                              class {|#2:Box|}<T>(T value)
+                              {
+                                  public T Value => value;
+                              }
+
+                              record Point(int X);
+
+                              class Outer
+                              {
+                                  class {|#3:Inner|}(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifying that the diagnostic is on the class identifier when the parameter list spans several lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2102-002")]
+    public async Task VerifyDiagnosticIsOnIdentifierWhenParameterListSpansSeveralLines()
+    {
+        const string source = """
+                              class {|#0:Service|}(
+                                  int id,
+                                  string name)
+                              {
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat));
     }
 
     #endregion // Tests

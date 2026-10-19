@@ -554,6 +554,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-001")]
     public async Task VerifyStructImplementingIEquatableTransitivelyIsNotFlagged()
     {
         await Verify(TransitiveEquatableTestData);
@@ -565,6 +566,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-001")]
     public async Task VerifyStructTypesUsedAsDictionaryValuesAreNotFlagged()
     {
         await Verify(StructValueTestData);
@@ -576,6 +578,8 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-003")]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyCollectionConstructionsWithExplicitCustomComparerAreNotFlagged()
     {
         await Verify(CustomComparerConstructionTestData);
@@ -586,6 +590,8 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-003")]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyCollectionConstructionsWithNullLikeComparerAreFlagged()
     {
         await Verify(NullLikeComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
@@ -597,6 +603,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-002")]
     public async Task VerifyNestedCollectionTypeArgumentIsStillFlagged()
     {
         await Verify(NestedCollectionTypeArgumentTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 1));
@@ -607,6 +614,8 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-002")]
+    [Requirement("RH1001-003")]
     public async Task VerifyRepeatedCollectionTypeInsideConstructorArgumentIsStillFlagged()
     {
         await Verify(RepeatedCollectionTypeArgumentTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 1));
@@ -617,6 +626,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyCollectionConstructionsWithWrappedNullComparerAreFlagged()
     {
         await Verify(WrappedNullComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 4));
@@ -627,6 +637,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyValueTypeDefaultComparerNullabilityIsRespected()
     {
         await Verify(ValueTypeDefaultComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
@@ -637,6 +648,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-003")]
     public async Task VerifyTargetTypedCollectionConstructionsUseBoundComparer()
     {
         await Verify(TargetTypedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
@@ -647,6 +659,9 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-003")]
+    [Requirement("RH1001-004")]
+    [Requirement("RH1001-005")]
     public async Task VerifyAliasedCollectionConstructionsUseBoundComparer()
     {
         await Verify(AliasedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 7));
@@ -657,6 +672,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyFrameworkDefaultComparerDoesNotExemptCollectionConstructions()
     {
         await Verify(FrameworkDefaultComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
@@ -668,6 +684,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyCompositeNullComparerDoesNotExemptCollectionConstructions()
     {
         await Verify(CompositeNullComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 6));
@@ -678,9 +695,380 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1001-002")]
     public async Task VerifyObjectInitializerConstructionWithoutParenthesesIsFlagged()
     {
         await Verify(ObjectInitializerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying which types lack equality members: a struct without equality members, a struct overriding only
+    /// <see cref="object.Equals(object)"/>, and a constructed generic struct without them are reported, while structs
+    /// with both overrides or with <see cref="System.IEquatable{T}"/> and <see cref="object.GetHashCode"/>, record
+    /// structs, enums, type parameters, primitives, and classes are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-001")]
+    [Requirement("RH1001-001")]
+    [Requirement("RH1001-005")]
+    public async Task VerifyOnlyStructsWithoutTheirOwnEqualityMembersAreReported()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+
+                              struct Plain
+                              {
+                              }
+
+                              struct EqualsAndHash
+                              {
+                                  public override bool Equals(object obj) => true;
+
+                                  public override int GetHashCode() => 0;
+                              }
+
+                              struct EqualsOnly
+                              {
+                                  public override bool Equals(object obj) => true;
+                              }
+
+                              interface IEquatableThroughInterface : IEquatable<Equatable>
+                              {
+                              }
+
+                              struct Equatable : IEquatableThroughInterface
+                              {
+                                  public bool Equals(Equatable other) => true;
+
+                                  public override int GetHashCode() => 0;
+                              }
+
+                              struct DirectlyEquatable : IEquatable<DirectlyEquatable>
+                              {
+                                  public bool Equals(DirectlyEquatable other) => true;
+
+                                  public override int GetHashCode() => 0;
+                              }
+
+                              record struct Point(int X);
+
+                              enum Color
+                              {
+                              }
+
+                              class C<T>
+                                  where T : struct
+                              {
+                                  HashSet<{|#0:Plain|}> a;
+                                  HashSet<EqualsAndHash> b;
+                                  HashSet<{|#1:EqualsOnly|}> c;
+                                  HashSet<Equatable> d;
+                                  HashSet<Point> e;
+                                  HashSet<Color> f;
+                                  HashSet<T> g;
+                                  HashSet<int> h;
+                                  HashSet<string> i;
+                                  HashSet<{|#2:KeyValuePair<int, int>|}> j;
+                                  HashSet<DirectlyEquatable> k;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that every listed hash-based collection type is reported on its key or element type argument, and
+    /// that the value type of a dictionary and collections that do not hash are not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-001")]
+    [Requirement("RH1001-005")]
+    public async Task VerifyEveryHashBasedCollectionTypeIsReportedOnItsKey()
+    {
+        const string source = """
+                              using System.Collections.Concurrent;
+                              using System.Collections.Frozen;
+                              using System.Collections.Generic;
+                              using System.Collections.Immutable;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  Dictionary<{|#0:S|}, int> a;
+                                  HashSet<{|#1:S|}> b;
+                                  ConcurrentDictionary<{|#2:S|}, int> c;
+                                  ImmutableDictionary<{|#3:S|}, int> d;
+                                  ImmutableHashSet<{|#4:S|}> e;
+                                  FrozenDictionary<{|#5:S|}, int> f;
+                                  FrozenSet<{|#6:S|}> g;
+                                  Dictionary<int, S> h;
+                                  SortedDictionary<S, int> i;
+                                  List<S> j;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 7));
+    }
+
+    /// <summary>
+    /// Verifying that every place naming the collection type is reported, together with explicit creations, a
+    /// target-typed creation passed as an argument, assigned, or returned from an expression body, while a target-typed
+    /// creation that initializes a declaration or is the operand of a cast is covered by the named type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-002")]
+    [Requirement("RH1001-005")]
+    public async Task VerifyEveryUseOfTheCollectionTypeIsReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  Dictionary<{|#0:S|}, int> _field;
+
+                                  Dictionary<{|#1:S|}, int> M(Dictionary<{|#2:S|}, int> values, List<HashSet<{|#3:S|}>> sets)
+                                  {
+                                      var created = new Dictionary<{|#4:S|}, int>();
+                                      Dictionary<{|#5:S|}, int> declared = new();
+                                      Dictionary<{|#6:S|}, int> both = new Dictionary<{|#7:S|}, int>();
+                                      object cast = (Dictionary<{|#8:S|}, int>)(values == null ? new() : new());
+                                      declared = {|#9:new|}();
+                                      var type = typeof(HashSet<{|#10:S|}>);
+                                      Take({|#11:new|}());
+
+                                      return created;
+                                  }
+
+                                  void Take(HashSet<{|#12:S|}> set)
+                                  {
+                                  }
+
+                                  HashSet<{|#13:S|}> Create() => {|#14:new|}();
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 15));
+    }
+
+    /// <summary>
+    /// Verifying that a target-typed creation initializing a field or a property, or wrapped as the operand of a cast in
+    /// parentheses, behind <c>!</c>, or in a <see langword="switch"/> arm, is covered by the declared or cast type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-002")]
+    [Requirement("RH1001-005")]
+    public async Task VerifyTargetTypedCreationInFieldPropertyAndWrappedCastIsCoveredByNamedType()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  Dictionary<{|#0:S|}, int> _field = new();
+
+                                  HashSet<{|#1:S|}> Property { get; } = new();
+
+                                  object M(int mode)
+                                  {
+                                      object a = (HashSet<{|#2:S|}>)(new())!;
+                                      object b = (HashSet<{|#3:S|}>)(mode switch { 0 => new(), _ => new() });
+
+                                      return a ?? b;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifying that creations with a custom comparer are not reported, nor declarations and casts every creation of
+    /// whose initial value passes one, through conditional branches, <see langword="switch"/> arms, parentheses,
+    /// <c>!</c>, and casts, and that a declaration with one creation lacking a custom comparer is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-003")]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyCreationsAndDeclarationsWithCustomComparerAreNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> _comparer;
+                                  bool _flag;
+                                  int _mode;
+
+                                  void M()
+                                  {
+                                      var a = new Dictionary<S, int>(_comparer);
+                                      Dictionary<S, int> b = new(_comparer);
+                                      Dictionary<S, int> c = _flag ? new(_comparer) : new Dictionary<S, int>(_comparer);
+                                      Dictionary<S, int> d = _mode switch
+                                      {
+                                          0 => new(_comparer),
+                                          _ => new(_comparer),
+                                      };
+                                      Dictionary<{|#0:S|}, int> e = _flag ? new(_comparer) : new();
+                                      Dictionary<S, int> f = true ? new(_comparer) : new();
+                                      Dictionary<S, int> l = new(_comparer), m = new(_comparer);
+                                      Dictionary<{|#1:S|}, int> n = new(_comparer), o = new();
+                                      Dictionary<S, int> h = (new(_comparer))!;
+                                      object i = (Dictionary<S, int>)new Dictionary<S, int>(_comparer);
+                                      object j = (Dictionary<{|#2:S|}, int>)new Dictionary<{|#3:S|}, int>();
+                                      var k = new Dictionary<{|#4:S|}, int>(EqualityComparer<S>.Default);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 5));
+    }
+
+    /// <summary>
+    /// Verifying that a property initialized with a creation that passes a custom comparer is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-003")]
+    public async Task VerifyPropertyInitializedWithCustomComparerIsNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  static IEqualityComparer<S> Comparer;
+
+                                  HashSet<S> First { get; } = new(Comparer);
+
+                                  HashSet<S> Second { get; } = new HashSet<S>(Comparer);
+
+                                  HashSet<{|#0:S|}> Third { get; } = new();
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that alias directives are not reported and each use of an alias whose target is, contains as a type
+    /// argument, or has as array element such a collection type is reported on the alias name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-004")]
+    [Requirement("RH1001-005")]
+    public async Task VerifyUsesOfAliasesAreReportedOnTheAliasName()
+    {
+        const string source = """
+                              using Map = System.Collections.Generic.Dictionary<S, int>;
+                              using Maps = System.Collections.Generic.List<System.Collections.Generic.Dictionary<S, int>>;
+                              using Table = System.Collections.Generic.Dictionary<S, int>[];
+                              using Names = System.Collections.Generic.Dictionary<string, S>;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  {|#0:Map|} _map;
+
+                                  {|#1:Maps|} _maps;
+
+                                  {|#2:Table|} _table;
+
+                                  Names _names;
+
+                                  object Create() => new {|#3:Map|}();
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Characterizes a struct that implements <see cref="System.IEquatable{T}"/> of itself without overriding
+    /// <see cref="object.GetHashCode"/>: it counts as having equality members and is not reported. The case is an open
+    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStructImplementingIEquatableWithoutGetHashCodeIsNotReported()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+
+                              struct S : IEquatable<S>
+                              {
+                                  public int Value;
+
+                                  public bool Equals(S other) => Value == other.Value;
+                              }
+
+                              class C
+                              {
+                                  HashSet<S> _set = new HashSet<S>();
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Characterizes generic structs with their own equality members constructed with a struct that lacks them:
+    /// <c>S?</c> and <c>(int, S)</c> are not reported, while <c>S</c> is. These cases are an open question about
+    /// intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyGenericStructsWithOwnEqualityMembersOverStructWithoutThemAreNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                                  public int Value;
+                              }
+
+                              class C
+                              {
+                                  Dictionary<S?, int> a;
+                                  Dictionary<(int, S), int> b;
+                                  Dictionary<{|#0:S|}, int> c;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
     }
 
     #endregion // Methods

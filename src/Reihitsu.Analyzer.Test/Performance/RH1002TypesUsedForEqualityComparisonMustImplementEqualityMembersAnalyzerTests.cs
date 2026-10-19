@@ -1154,6 +1154,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-001")]
     public async Task VerifyStructImplementingIEquatableTransitivelyIsNotFlagged()
     {
         await Verify(TransitiveEquatableTestData);
@@ -1164,6 +1165,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-002")]
     public async Task VerifyKeySelectorOverloadChecksProjectedKeyTypeNotElementType()
     {
         await Verify(SelectorOverloadTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
@@ -1175,6 +1177,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-002")]
     public async Task VerifyKeyValuePairSourceOverloadsCheckKeyTypeNotValueType()
     {
         await Verify(KeyValuePairSourceTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
@@ -1185,6 +1188,8 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    [Requirement("RH1002-001")]
     public async Task VerifyComparerOverloadsAreExempt()
     {
         await Verify(ComparerOverloadTestData);
@@ -1195,6 +1200,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyExplicitNullComparerArgumentDoesNotExempt()
     {
         await Verify(ExplicitNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
@@ -1205,6 +1211,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyWrappedNullComparerArgumentsDoNotExempt()
     {
         await Verify(WrappedNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
@@ -1215,6 +1222,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyValueTypeDefaultComparerNullabilityIsRespected()
     {
         await Verify(ValueTypeDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
@@ -1225,6 +1233,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyFrameworkDefaultComparerDoesNotExempt()
     {
         await Verify(FrameworkDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
@@ -1236,6 +1245,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyCompositeNullComparerDoesNotExempt()
     {
         await Verify(CompositeNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 6));
@@ -1247,6 +1257,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyNamedKeySelectorArgumentDoesNotDesyncComparerDetection()
     {
         await Verify(NamedKeySelectorArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
@@ -1258,6 +1269,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyDefaultComparerArgumentDoesNotExempt()
     {
         await Verify(DefaultComparerArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
@@ -1268,6 +1280,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-001")]
     public async Task VerifyByFamilyMethodsAreChecked()
     {
         await Verify(ByFamilyTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
@@ -1278,6 +1291,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-001")]
     public async Task VerifyToHashSetIsChecked()
     {
         await Verify(ToHashSetTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
@@ -1288,6 +1302,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-001")]
     public async Task VerifyContainsIsChecked()
     {
         await Verify(ContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
@@ -1298,6 +1313,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-001")]
     public async Task VerifySequenceEqualIsChecked()
     {
         await Verify(SequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
@@ -1308,6 +1324,8 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-001")]
+    [Requirement("RH1002-005")]
     public async Task VerifyStaticContainsAndSequenceEqualFormsAreChecked()
     {
         await Verify(StaticContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
@@ -1318,6 +1336,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-005")]
     public async Task VerifyConditionalAccessContainsAndSequenceEqualAreChecked()
     {
         await Verify(ConditionalAccessContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
@@ -1328,6 +1347,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyContainsAndSequenceEqualWithCustomComparerAreExempt()
     {
         await Verify(ContainsAndSequenceEqualCustomComparerTestData);
@@ -1338,6 +1358,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyContainsAndSequenceEqualWithNonCustomComparerAreChecked()
     {
         await Verify(ContainsAndSequenceEqualNonCustomComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 5));
@@ -1358,6 +1379,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-003")]
     public async Task VerifyContainsAndSequenceEqualNotDeclaredOnEnumerableAreNotFlagged()
     {
         await Verify(NonEnumerableContainsAndSequenceEqualTestData);
@@ -1368,6 +1390,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsOnReceiversWithoutDictionarySemanticsIsChecked()
     {
         await Verify(ReadOnlyCollectionReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
@@ -1378,6 +1401,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsWithoutComparerOnDictionaryReceiverIsNotFlagged()
     {
         await Verify(DictionaryReceiverContainsTestData);
@@ -1388,6 +1412,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsWithoutComparerOnReadOnlyDictionaryReceiverIsNotFlagged()
     {
         await Verify(ReadOnlyDictionaryReceiverContainsTestData);
@@ -1398,6 +1423,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsWithNonCustomComparerOnDictionaryReceiverIsChecked()
     {
         await Verify(DictionaryReceiverContainsWithComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
@@ -1408,6 +1434,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsOnKeyValuePairSequenceWithoutDictionaryTypeIsChecked()
     {
         await Verify(KeyValuePairSequenceContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
@@ -1418,6 +1445,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifySequenceEqualOnDictionaryReceiverIsChecked()
     {
         await Verify(DictionaryReceiverSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
@@ -1428,6 +1456,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsWithoutComparerOnTypeParameterDictionaryReceiverIsNotFlagged()
     {
         await Verify(TypeParameterDictionaryReceiverContainsTestData);
@@ -1438,6 +1467,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsWithoutComparerOnDictionaryWithNamedTupleKeyIsNotFlagged()
     {
         await Verify(TupleKeyDictionaryReceiverContainsTestData);
@@ -1448,9 +1478,422 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH1002-004")]
     public async Task VerifyContainsOnConcreteReadOnlyOnlyDictionaryIsChecked()
     {
         await Verify(ReadOnlyOnlyDictionaryReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that a call of every listed method is reported on the method name when it compares a struct without
+    /// equality members and passes no custom comparer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1002-001")]
+    [Requirement("RH1002-005")]
+    public async Task VerifyEveryListedMethodIsReported()
+    {
+        const string source = """
+                              using System.Collections.Frozen;
+                              using System.Collections.Generic;
+                              using System.Collections.Immutable;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, S item)
+                                  {
+                                      items.{|#0:Distinct|}();
+                                      items.{|#1:DistinctBy|}(x => x);
+                                      items.{|#2:Union|}(items);
+                                      items.{|#3:UnionBy|}(items, x => x);
+                                      items.{|#4:Intersect|}(items);
+                                      items.{|#5:IntersectBy|}(items, x => x);
+                                      items.{|#6:Except|}(items);
+                                      items.{|#7:ExceptBy|}(items, x => x);
+                                      items.{|#8:ToHashSet|}();
+                                      items.{|#9:ToLookup|}(x => x);
+                                      items.{|#10:ToDictionary|}(x => x);
+                                      items.{|#11:GroupBy|}(x => x);
+                                      items.{|#12:Join|}(items, x => x, x => x, (a, b) => a);
+                                      items.{|#13:GroupJoin|}(items, x => x, x => x, (a, b) => a);
+                                      items.{|#14:Contains|}(item);
+                                      items.{|#15:SequenceEqual|}(items);
+                                      items.{|#16:ToImmutableHashSet|}();
+                                      items.{|#17:ToImmutableDictionary|}(x => x, x => 0);
+                                      items.{|#18:ToFrozenSet|}();
+                                      items.{|#19:ToFrozenDictionary|}(x => x);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 20));
+    }
+
+    /// <summary>
+    /// Verifying that the listed methods are not reported for an element type that has its own equality members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1002-001")]
+    [Requirement("SHARED-EQUAL-001")]
+    public async Task VerifyListedMethodsAreNotReportedForTypesWithEqualityMembers()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct WithMembers
+                              {
+                                  public override bool Equals(object obj) => true;
+
+                                  public override int GetHashCode() => 0;
+                              }
+
+                              struct Equatable : IEquatable<Equatable>
+                              {
+                                  public bool Equals(Equatable other) => true;
+
+                                  public override int GetHashCode() => 0;
+                              }
+
+                              record struct Point(int X);
+
+                              class C
+                              {
+                                  void M(IEnumerable<WithMembers> a, IEnumerable<Equatable> b, IEnumerable<Point> c, IEnumerable<string> d, IEnumerable<int> e)
+                                  {
+                                      a.Distinct();
+                                      b.ToHashSet();
+                                      c.GroupBy(x => x);
+                                      d.Contains("");
+                                      e.SequenceEqual(e);
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that the selected key type is checked for an overload with a key selector, the first type argument
+    /// otherwise, and the key type for an overload built from key/value pairs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1002-002")]
+    public async Task VerifyComparedTypeIsTheSelectedOrPairKey()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                                  public int Value;
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, IEnumerable<int> numbers, IEnumerable<KeyValuePair<S, int>> byKey, IEnumerable<KeyValuePair<int, S>> byValue)
+                                  {
+                                      items.GroupBy(x => x.Value);
+                                      items.ToDictionary(x => x.Value);
+                                      items.DistinctBy(x => x.Value);
+                                      numbers.{|#0:GroupBy|}(x => new S());
+                                      byKey.{|#1:ToDictionary|}();
+                                      byValue.ToDictionary();
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that methods with a listed name that bind to other types are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1002-003")]
+    [Requirement("RH1002-001")]
+    public async Task VerifyMethodsOfOtherTypesAreNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Collections.Immutable;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(List<S> list, IQueryable<S> query, ImmutableDictionary<S, int> map, S item)
+                                  {
+                                      list.Contains(item);
+                                      query.Distinct();
+                                      map.Contains(item, 0);
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that <c>Contains</c> without a comparer is not reported on a dictionary, a read-only dictionary
+    /// interface, or a type parameter constrained to it, and that a class implementing only the read-only interface,
+    /// a plain pair sequence, a call with a comparer that is not custom, and <c>SequenceEqual</c> are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1002-004")]
+    public async Task VerifyContainsOnDictionaryIsNotReported()
+    {
+        const string source = """
+                              using System.Collections;
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              abstract class ReadOnlyMap : IReadOnlyDictionary<S, int>
+                              {
+                                  public abstract int this[S key] { get; }
+                                  public abstract IEnumerable<S> Keys { get; }
+                                  public abstract IEnumerable<int> Values { get; }
+                                  public abstract int Count { get; }
+                                  public abstract bool ContainsKey(S key);
+                                  public abstract bool TryGetValue(S key, out int value);
+                                  public abstract IEnumerator<KeyValuePair<S, int>> GetEnumerator();
+                                  IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                              }
+
+                              class C
+                              {
+                                  void M(Dictionary<S, int> dictionary, IReadOnlyDictionary<S, int> readOnly, ReadOnlyMap map, IEnumerable<KeyValuePair<S, int>> pairs, KeyValuePair<S, int> pair)
+                                  {
+                                      dictionary.Contains(pair);
+                                      readOnly.Contains(pair);
+                                      map.{|#0:Contains|}(pair);
+                                      pairs.{|#1:Contains|}(pair);
+                                      dictionary.{|#2:Contains|}(pair, null);
+                                      dictionary.{|#3:SequenceEqual|}(pairs);
+                                  }
+
+                                  bool N<T>(T source, KeyValuePair<S, int> pair)
+                                      where T : IReadOnlyDictionary<S, int>
+                                  {
+                                      return source.Contains(pair);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifying that the diagnostic is on the method name with its type argument list, on the method name of a static
+    /// call, and on the whole call from its dot on for a null-conditional call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1002-005")]
+    public async Task VerifyDiagnosticLocationOnNameTypeArgumentsAndNullConditionalCall()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items)
+                                  {
+                                      items.{|#0:Distinct<S>|}();
+                                      Enumerable.{|#1:Distinct|}(items);
+                                      items?{|#2:.Distinct()|};
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying which comparer arguments count as custom: a comparer instance, a named or non-trailing named argument,
+    /// a conditional or <see langword="switch"/> that can produce a comparer, and <see langword="default"/> of a value-type
+    /// comparer, while <see langword="null"/>, <see langword="default"/>, <c>EqualityComparer&lt;T&gt;.Default</c>, and
+    /// expressions that can only produce those, through parentheses, <c>!</c>, casts, <c>??</c>, conditionals, a constant
+    /// condition, <see langword="switch"/> arms, and a null-conditional access on <see langword="null"/>, do not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    [Requirement("RH1002-001")]
+    public async Task VerifyOnlyArgumentsThatCanProduceAComparerCountAsCustom()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class SComparer : IEqualityComparer<S>
+                              {
+                                  public bool Equals(S x, S y) => true;
+
+                                  public int GetHashCode(S obj) => 0;
+                              }
+
+                              struct ValueComparer : IEqualityComparer<S>
+                              {
+                                  public bool Equals(S x, S y) => true;
+
+                                  public int GetHashCode(S obj) => 0;
+                              }
+
+                              class Holder
+                              {
+                                  public IEqualityComparer<S> Comparer { get; set; }
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, IEqualityComparer<S> comparer, bool flag, int mode)
+                                  {
+                                      items.Distinct(new SComparer());
+                                      items.Distinct(comparer: comparer);
+                                      Enumerable.Distinct(source: items, comparer);
+                                      items.Distinct(flag ? comparer : null);
+                                      items.Distinct(mode switch { 0 => comparer, _ => null });
+                                      items.Distinct(default(ValueComparer));
+                                      items.{|#0:Distinct|}(null);
+                                      items.{|#1:Distinct|}(default);
+                                      items.{|#2:Distinct|}(EqualityComparer<S>.Default);
+                                      items.{|#3:Distinct|}(((IEqualityComparer<S>)null)!);
+                                      items.{|#4:Distinct|}(flag ? null : EqualityComparer<S>.Default);
+                                      items.{|#5:Distinct|}(true ? null : comparer);
+                                      items.{|#6:Distinct|}((IEqualityComparer<S>)null ?? EqualityComparer<S>.Default);
+                                      items.{|#7:Distinct|}(mode switch { 0 => null, _ => EqualityComparer<S>.Default });
+                                      items.{|#8:Distinct|}(((Holder)null)?.Comparer);
+                                      items.{|#9:Distinct|}(default(ValueComparer?));
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 10));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional expression with a constant condition counts only its chosen branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyConstantConditionCountsOnlyChosenBranch()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, IEqualityComparer<S> comparer)
+                                  {
+                                      items.Distinct(false ? null : comparer);
+                                      items.{|#0:Distinct|}(false ? comparer : null);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
+    /// <summary>
+    /// Characterizes a comparer passed for the value type of <c>ToImmutableDictionary</c>: it counts as a custom
+    /// comparer for the struct key, so the call is not reported, while the call without comparers is. The case is an
+    /// open question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyValueComparerCountsAsCustomComparerForKey()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Collections.Immutable;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, IEqualityComparer<int> valueComparer)
+                                  {
+                                      items.ToImmutableDictionary(x => x, x => 0, null, valueComparer);
+                                      items.{|#0:ToImmutableDictionary|}(x => x, x => 0);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
+    /// <summary>
+    /// Characterizes equality-based methods and factories outside the rule's fixed list of names: <c>CountBy</c>,
+    /// <c>AggregateBy</c>, <c>ImmutableHashSet.Create</c>, <c>ImmutableHashSet.CreateRange</c>, and
+    /// <c>ImmutableDictionary.CreateRange</c> are not reported, while <c>GroupBy</c> is. These cases are an open
+    /// question about intended behavior, so this test pins today's behavior without stating it as intended
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEqualityBasedMethodsOutsideTheListAreNotReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Collections.Immutable;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  void M(IEnumerable<S> items, IEnumerable<KeyValuePair<S, int>> pairs)
+                                  {
+                                      items.CountBy(x => x);
+                                      items.AggregateBy(x => x, 0, (count, x) => count + 1);
+                                      var set = ImmutableHashSet.Create<S>();
+                                      var range = ImmutableHashSet.CreateRange(items);
+                                      var map = ImmutableDictionary.CreateRange(pairs);
+                                      items.{|#0:GroupBy|}(x => x);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
     }
 
     #endregion // Methods
