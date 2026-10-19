@@ -23,6 +23,12 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5522-001")]
+    [Requirement("RH5522-002")]
+    [Requirement("RH5522-003")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -57,6 +63,8 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5522-001")]
+    [Requirement("SHARED-ATTR-013")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -79,6 +87,8 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5522-004")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -113,6 +123,114 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the multi-attribute list of an interface is reported on the whole list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5522-001")]
+    [Requirement("RH5522-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForMultiAttributeInterfaceList()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                interface I
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the interface attribute list by one list per attribute, each on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5522-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachInterfaceAttributeAListOfItsOwn()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                interface I
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 interface I
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the interface attribute list by one list per attribute, each on its own line, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5522-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachInterfaceAttributeAListOfItsOwnWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                interface I
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 interface I
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
     }
 
     #endregion // Tests

@@ -23,6 +23,12 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5506-001")]
+    [Requirement("RH5506-002")]
+    [Requirement("RH5506-003")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -57,6 +63,8 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5506-001")]
+    [Requirement("SHARED-ATTR-013")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -79,6 +87,8 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -121,6 +131,8 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5506-003")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyInsertedLineBreakUsesDetectedCarriageReturnLineFeedEndOfLine()
     {
         const string testData = """
@@ -150,6 +162,8 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDocumentedClassAttributeListIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -172,6 +186,274 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                                                .GetLocation());
 
         Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the multi-attribute lists of a class and of a record, with or without the <c>type:</c> specifier, are reported, while single-attribute lists are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-001")]
+    [Requirement("RH5506-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForMultiAttributeListsOfClassesAndRecords()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                class C
+                                {
+                                }
+
+                                {|#1:[type: A, B]|}
+                                record R;
+
+                                [A]
+                                [B]
+                                class D
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the class attribute list by one list per attribute, each on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachClassAttributeAListOfItsOwn()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                class C
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 class C
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the class attribute list by one list per attribute, each on its own line, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachClassAttributeAListOfItsOwnWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                class C
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 class C
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix splits two multi-attribute class lists that sit on separate lines, and that Fix All corrects both in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixSplitsEveryClassAttributeListOnItsOwnLine()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                {|#1:[D, E]|}
+                                class C
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                sealed class E : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 [D]
+                                 [E]
+                                 class C
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 sealed class D : System.Attribute
+                                 {
+                                 }
+                                 sealed class E : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a list with a comment or a preprocessor directive between its brackets is still reported without offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenCommentOrDirectiveIsInsideTheList()
+    {
+        const string testData = """
+                                {|#0:[A, /* c */ B]|}
+                                class C
+                                {
+                                }
+
+                                {|#1:[A,
+                                #if DEBUG
+                                #endif
+                                 B]|}
+                                class E
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   [A, /* c */ B]
+                                   class C
+                                   {
+                                   }
+
+                                   [A,
+                                   #if DEBUG
+                                   #endif
+                                    B]
+                                   class E
+                                   {
+                                   }
+                                   sealed class A : System.Attribute
+                                   {
+                                   }
+                                   sealed class B : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2));
+
+        foreach (var index in new[] { 0, 1 })
+        {
+            var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                       RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                       root => root.DescendantNodes()
+                                                                   .OfType<AttributeListSyntax>()
+                                                                   .ElementAt(index)
+                                                                   .GetLocation());
+
+            Assert.IsEmpty(actions, $"A code fix was offered for attribute list {index}.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that two identical multi-attribute lists on one line are reported once each, on their own spans
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-001")]
+    [Requirement("RH5506-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForEachOfTwoIdenticalListsOnOneLine()
+    {
+        const string testData = """
+                                {|#0:[A, B]|} {|#1:[A, B]|}
+                                class C
+                                {
+                                }
+                                [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2));
     }
 
     #endregion // Tests

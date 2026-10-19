@@ -20,6 +20,8 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-CHAIN-001")]
     public async Task VerifyCommentBeforeWrappedPropertyFirstLinkIsReported()
     {
         const string source = """
@@ -52,6 +54,8 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-CHAIN-001")]
     public async Task VerifyCommentBeforeWrappedFirstLinkOfCallLessChainIsReported()
     {
         const string source = """
@@ -84,6 +88,7 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyCommentBeforeWrappedPrefixFirstLinkIsReported()
     {
         const string source = """
@@ -116,6 +121,7 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyCommentBeforeWrappedCallAfterPropertyPrefixIsNotReported()
     {
         const string source = """
@@ -147,6 +153,7 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyCommentInsideConditionalOperatorIsNotReported()
     {
         const string source = """
@@ -178,6 +185,8 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-CHAIN-001")]
     public async Task VerifyCommentBeforeWrappedConditionalElementAccessIsNotReported()
     {
         const string source = """

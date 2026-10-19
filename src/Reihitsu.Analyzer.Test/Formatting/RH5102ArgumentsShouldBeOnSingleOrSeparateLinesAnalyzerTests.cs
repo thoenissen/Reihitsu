@@ -23,6 +23,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-001")]
     public async Task VerifyNoDiagnosticsForValidCode()
     {
         const string testData = """
@@ -71,6 +72,9 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("RH5102-002")]
+    [Requirement("RH5102-003")]
     public async Task VerifyMixedArgumentPlacementIsDetectedAndFixed()
     {
         const string testData = """
@@ -108,6 +112,9 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("RH5102-002")]
+    [Requirement("RH5102-003")]
     public async Task VerifyMixedArgumentPlacementWithMultipleGroupsIsDetectedAndFixed()
     {
         const string testData = """
@@ -150,6 +157,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-004")]
     public async Task VerifyCommentedArgumentListIsReportedWithoutCodeFix()
     {
         const string testData = """
@@ -195,6 +203,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-004")]
     public async Task VerifyDocumentationCommentedArgumentListIsNotOfferedACodeFix()
     {
         const string codeFixData = """
@@ -226,6 +235,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-001")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsReported()
     {
         const string testData = """
@@ -249,6 +259,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-004")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -302,6 +313,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-004")]
     public async Task VerifyWithoutTrailingCommentIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -332,6 +344,8 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-003")]
+    [Requirement("RH5102-004")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsFixed()
     {
         const string testData = """
@@ -371,6 +385,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-004")]
     public async Task VerifyCommentBeforeTheOpeningParenthesisWithholdsTheCodeFix()
     {
         const string codeFixData = """
@@ -403,6 +418,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5102-004")]
     public async Task VerifyCommentAdjacentToTheClosingParenthesisIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -419,6 +435,180 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
                                    """;
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that an argument sharing its line with a lambda that spans several lines is reported on the whole
+    /// argument list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("RH5102-002")]
+    public async Task VerifyArgumentSharingLineWithMultiLineLambdaIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|#0:(1, () =>
+                                        {
+                                        })|};
+                                    }
+
+                                    void Call(params object[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a multi-line argument list in which every argument starts its own line is not reported, although
+    /// one argument spans several lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    public async Task VerifyMultiLineLambdaArgumentOnItsOwnLineIsNotReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1,
+                                             () =>
+                                             {
+                                             });
+                                    }
+
+                                    void Call(params object[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that the fix lays out the argument list under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-003")]
+    public async Task VerifyMixedArgumentPlacementIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|#0:(1, 2,
+                                             3)|};
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(params int[] values)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a preprocessor directive between two arguments is reported and withholds the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-004")]
+    public async Task VerifyDirectiveInsideArgumentListWithholdsTheCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|#0:(1, 2,
+                                #if DEBUG
+                                #endif
+                                             3)|};
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment on the line of the token in front of the opening parenthesis does not withhold the
+    /// code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-004")]
+    public async Task VerifyCommentBehindTokenBeforeOpeningParenthesisIsOfferedACodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static int Add(int x, int y, int z) => x + y + z;
+
+                                    private static int Use()
+                                    {
+                                        return Add /* note */ {|#0:(1, 2,
+                                            3)|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
                                                    RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId,
                                                    root => root.DescendantNodes()
                                                                .OfType<ArgumentListSyntax>()

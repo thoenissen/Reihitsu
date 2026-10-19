@@ -24,6 +24,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -46,6 +47,10 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("RH5106-002")]
+    [Requirement("RH5106-003")]
+    [Requirement("SHARED-WS-003")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -76,6 +81,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
     public async Task VerifyNoDiagnosticsWhenClosingParenthesisIsOnLastArgumentLine()
     {
         const string testData = """
@@ -96,6 +102,8 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("RH5106-003")]
     public async Task VerifyConstructorIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -127,6 +135,8 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticAndNoCodeFixWhenDirectivesArePresent()
     {
         const string testData = """
@@ -174,6 +184,8 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticAndNoCodeFixWhenCommentIsInGap()
     {
         const string testData = """
@@ -206,6 +218,8 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("RH5106-002")]
     public async Task VerifyRemainingDirectParameterListParentsAreDetected()
     {
         const string testData = """
@@ -292,6 +306,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-JOIN-002")]
     public async Task VerifyUnrelatedSyntaxErrorSuppressesTheWholeFile()
     {
         const string testData = """
@@ -316,6 +331,8 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("SHARED-JOIN-002")]
     public async Task VerifySameParameterListIsReportedWithoutTheUnrelatedSyntaxError()
     {
         const string testData = """
@@ -330,6 +347,121 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
                                 """;
 
         await Verify(testData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the closing parenthesis of a parameter list without parameters is reported when it starts a line
+    /// below the opening parenthesis, and that the fix joins it to the opening parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("RH5106-002")]
+    [Requirement("RH5106-003")]
+    [Requirement("SHARED-WS-003")]
+    public async Task VerifyEmptyParameterListIssueIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(
+                                        {|#0:)|}
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when a block comment ends in front of the closing parenthesis on its
+    /// line, because the gap in front of the parenthesis holds it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenCommentPrecedesTheClosingParenthesis()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first,
+                                                int second
+                                                /* end */ )
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when disabled text sits in the gap in front of the closing parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenDisabledTextIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first,
+                                                int second
+                                #if false
+                                                , int third
+                                #endif
+                                    )
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the closing parenthesis under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5106-003")]
+    [Requirement("SHARED-WS-003")]
+    public async Task VerifyIssueIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first,
+                                                int second
+                                    {|#0:)|}
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
     }
 
     #endregion // Tests

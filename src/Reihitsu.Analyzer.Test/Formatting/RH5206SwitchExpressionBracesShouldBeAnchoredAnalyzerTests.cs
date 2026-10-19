@@ -21,6 +21,9 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("RH5206-002")]
+    [Requirement("RH5206-003")]
     public async Task VerifyDiagnosticAndCodeFixForVariableAssignment()
     {
         const string testData = """
@@ -66,6 +69,9 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("RH5206-002")]
+    [Requirement("RH5206-003")]
     public async Task VerifyDiagnosticAndCodeFixForReturnStatement()
     {
         const string testData = """
@@ -107,6 +113,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5206-001")]
     public async Task VerifyNoDiagnosticForCorrectSwitchExpression()
     {
         const string testData = """
@@ -132,6 +139,9 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("RH5206-002")]
+    [Requirement("RH5206-003")]
     public async Task VerifyDiagnosticAndCodeFixForSameLineOpeningBrace()
     {
         const string testData = """
@@ -173,6 +183,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5206-001")]
     public async Task VerifyNoDiagnosticForArmsSharingALine()
     {
         const string testData = """
@@ -190,6 +201,128 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a switch expression written on one line is reported on the whole expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("RH5206-002")]
+    public async Task VerifyDiagnosticForSwitchExpressionOnOneLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal string Method(int status)
+                                    {
+                                        var state = {|#0:status switch { 0 => "Idle", _ => "Other" }|};
+
+                                        return state;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a switch expression whose braces are anchored is reported once when one of its arms is not one
+    /// level deeper than the governing expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("RH5206-002")]
+    public async Task VerifyDiagnosticForMisindentedArm()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal string Method(int status)
+                                    {
+                                        var state = {|#0:status switch
+                                                    {
+                                                      0 => "Idle",
+                                                        _ => "Other"
+                                                    }|};
+
+                                        return state;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a switch expression is reported when only its closing brace is off the anchor column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-001")]
+    public async Task VerifyDiagnosticForMisplacedClosingBrace()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal string Method(int status)
+                                    {
+                                        var state = {|#0:status switch
+                                                    {
+                                                        0 => "Idle",
+                                                        _ => "Other"
+                                                  }|};
+
+                                        return state;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix anchors the braces and indents the arms under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-003")]
+    public async Task VerifySwitchExpressionIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    internal string Method(int status)
+                                    {
+                                        var state = {|#0:status switch
+                                        {
+                                            0 => "Idle",
+                                            _ => "Other"
+                                        }|};
+
+                                        return state;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     internal string Method(int status)
+                                     {
+                                         var state = status switch
+                                                     {
+                                                         0 => "Idle",
+                                                         _ => "Other"
+                                                     };
+
+                                         return state;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
     }
 
     #endregion // Tests

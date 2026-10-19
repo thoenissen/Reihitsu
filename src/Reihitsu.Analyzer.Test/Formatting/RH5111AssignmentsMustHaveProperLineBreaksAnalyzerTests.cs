@@ -55,6 +55,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-003")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForVariableDeclarationWithEqualsOnNewLine()
     {
         const string testData = """
@@ -92,6 +95,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-003")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForVariableDeclarationWithValueOnNewLine()
     {
         const string testData = """
@@ -129,6 +135,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForFieldDeclarationWithEqualsOnNewLine()
     {
         const string testData = """
@@ -161,6 +169,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-003")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForParameterDefaultValueWithEqualsOnNewLine()
     {
         const string testData = """
@@ -196,6 +207,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-003")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForPropertyDeclarationWithEqualsOnNewLine()
     {
         const string testData = """
@@ -227,6 +241,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-004")]
     public async Task VerifyCodeFixConvergesForMultilinePropertyInitializer()
     {
         const string testData = """
@@ -268,6 +284,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-003")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForAssignmentExpressionWithEqualsOnNewLine()
     {
         const string testData = """
@@ -307,6 +326,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task CodeFixOnlyFormatsReportedAssignmentExpression()
     {
         const string testData = """
@@ -358,6 +378,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task CodeFixMatchesFormatterWhenEqualsSpacingNeedsNormalization()
     {
         const string source = """
@@ -382,6 +403,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task CodeFixOnlyFormatsReportedVariableDeclarator()
     {
         const string testData = """
@@ -429,6 +451,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task CodeFixMatchesFormatterForForStatementVariable()
     {
         const string source = """"
@@ -457,6 +480,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task CodeFixMatchesFormatterForUsingStatementVariable()
     {
         const string source = """"
@@ -486,6 +510,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task CodeFixMatchesFormatterForFixedStatementVariable()
     {
         const string source = """"
@@ -514,6 +539,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForMemberInitializerWithValueOnNewLine()
     {
         const string testData = """
@@ -567,6 +594,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForIndexAssignmentWithEqualsOnNewLine()
     {
         const string testData = """
@@ -606,6 +635,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
     public async Task VerifyNoDiagnosticsForCorrectlyFormattedVariableDeclaration()
     {
         const string testData = """
@@ -629,6 +659,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
     public async Task VerifyNoDiagnosticsForMultilineValueStartingOnEqualsLine()
     {
         const string testData = """
@@ -653,6 +684,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForRawMultilineStringWhenQuotesStartOnNextLine()
     {
         const string testData = """"
@@ -696,6 +729,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-004")]
     public async Task VerifyDiagnosticsForInterpolatedRawMultilineStringWhenQuotesStartOnNextLine()
     {
         const string testData = """"
@@ -737,6 +772,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
     public async Task VerifyNoDiagnosticsForRawMultilineStringStartingOnEqualsLine()
     {
         const string testData = """"
@@ -763,6 +799,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
     public async Task VerifyNoDiagnosticsForCorrectlyFormattedFieldDeclaration()
     {
         const string testData = """
@@ -783,6 +820,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
     public async Task VerifyNoDiagnosticsForCorrectlyFormattedPropertyDeclaration()
     {
         const string testData = """
@@ -803,6 +841,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
     public async Task VerifyNoDiagnosticsForCorrectlyFormattedAssignmentExpression()
     {
         const string testData = """
@@ -827,6 +866,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
     public async Task VerifyNoDiagnosticsForCorrectlyFormattedMemberInitializer()
     {
         const string testData = """
@@ -858,6 +898,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
     public async Task VerifyNoDiagnosticsForCorrectlyFormattedIndexAssignment()
     {
         const string testData = """
@@ -883,6 +924,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
     public async Task VerifyNoDiagnosticsForNestedInitializerMemberValue()
     {
         const string testData = """
@@ -922,6 +964,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-001")]
     public async Task VerifyNoDiagnosticsForVariableDeclarationWithoutInitializer()
     {
         const string testData = """
@@ -945,6 +988,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-005")]
     public async Task VerifyCommentedAssignmentIsReportedWithoutCodeFix()
     {
         const string testData = """
@@ -992,6 +1036,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-005")]
     public async Task VerifyDocumentationCommentedAssignmentIsNotOfferedACodeFix()
     {
         const string codeFixData = """
@@ -1026,6 +1071,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task VerifyDocumentedPropertyIsFixedAndKeepsItsComment()
     {
         const string testData = """
@@ -1065,6 +1111,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-004")]
     public async Task VerifyPropertyPrecededByRegionDirectiveIsFixedAndKeepsTheDirectives()
     {
         const string testData = """
@@ -1104,6 +1151,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-003")]
+    [Requirement("RH5111-004")]
     public async Task VerifyParameterAndEnumEqualsValuesAreDetectedAndFixed()
     {
         const string testData = """
@@ -1146,6 +1196,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5111-005")]
     public async Task VerifyCommentedParameterDefaultIsReportedWithoutCodeFix()
     {
         const string testData = """
@@ -1165,6 +1216,351 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                                    root => root.DescendantNodes().OfType<ParameterSyntax>().Single().GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that an object-initializer member whose equals sign starts a line below its target is reported and
+    /// joined
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-004")]
+    public async Task VerifyMemberInitializerWithEqualsOnNewLineIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Value { get; set; }
+
+                                    public TestClass Create()
+                                    {
+                                        return new TestClass
+                                               {
+                                                   {|#0:Value
+                                                       = 1|}
+                                               };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     public int Value { get; set; }
+
+                                     public TestClass Create()
+                                     {
+                                         return new TestClass
+                                                {
+                                                    Value = 1
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an array initializer that starts a line below the equals sign is reported on the whole declarator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-003")]
+    public async Task VerifyArrayInitializerOnNewLineIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public void TestMethod()
+                                    {
+                                        int[] {|#0:values =
+                                        {
+                                            1
+                                        }|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an object-initializer member whose collection initializer starts a line below the equals sign is
+    /// reported, unlike a nested object initializer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-002")]
+    public async Task VerifyCollectionInitializerMemberValueOnNewLineIsReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class TestClass
+                                {
+                                    public List<int> Values { get; set; } = new();
+
+                                    public TestClass Create()
+                                    {
+                                        return new TestClass
+                                               {
+                                                   {|#0:Values =
+                                                   {
+                                                       1
+                                                   }|}
+                                               };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a declarator whose equals sign and value both start their own lines is reported once and that
+    /// the fix joins both
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-003")]
+    [Requirement("RH5111-004")]
+    public async Task VerifyEqualsAndValueBothOnNewLinesAreReportedOnceAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public void TestMethod()
+                                    {
+                                        var {|#0:value
+                                            =
+                                            1|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     public void TestMethod()
+                                     {
+                                         var value = 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix of a property whose target and value both span several lines matches the formatter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    public async Task CodeFixMatchesFormatterForMultilinePropertyWithMultilineValue()
+    {
+        const string source = """"
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public string Property
+                                      {
+                                          get;
+                                          set;
+                                      }
+                                          = """
+                                            test
+                                            """;
+                                  }
+                              }
+                              """";
+
+        await AssertCodeFixMatchesFormatterAsync(source);
+    }
+
+    /// <summary>
+    /// Verifying that a property carrying a comment between its accessor list and its equals sign is reported without
+    /// offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    public async Task VerifyCommentedPropertyInitializerIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    {|#0:public int Value { get; set; } // note
+                                        = 5;|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single().GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that an assignment carrying a comment between its equals sign and its value is reported without
+    /// offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    public async Task VerifyCommentedAssignmentExpressionIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public void TestMethod(int value)
+                                    {
+                                        {|#0:value = /* note */
+                                            2|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a declarator carrying a preprocessor directive in front of its equals sign is reported without
+    /// offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    public async Task VerifyDeclaratorWithDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public void TestMethod()
+                                    {
+                                        var {|#0:value
+                                #if !UNDEFINED_SYMBOL
+                                #endif
+                                            = 1|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that a comment in front of a reported enum member does not withhold the fix and is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-005")]
+    public async Task VerifyCommentInFrontOfEnumMemberDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                internal enum Values
+                                {
+                                    First,
+                                    // second
+                                    {|#0:Second =
+                                        2|},
+                                }
+                                """;
+        const string fixedData = """
+                                 internal enum Values
+                                 {
+                                     First,
+                                     // second
+                                     Second = 2,
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a comment in front of a reported parameter does not withhold the fix and is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-002")]
+    [Requirement("RH5111-005")]
+    public async Task VerifyCommentInFrontOfParameterDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first,
+                                                // second
+                                                {|#0:int second =
+                                                    1|})
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 // second
+                                                 int second = 1)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix joins the equals sign under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    public async Task VerifyVariableDeclarationIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public void TestMethod()
+                                    {
+                                        var {|#0:value
+                                            = 1|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     public void TestMethod()
+                                     {
+                                         var value = 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
     }
 
     #endregion // Tests

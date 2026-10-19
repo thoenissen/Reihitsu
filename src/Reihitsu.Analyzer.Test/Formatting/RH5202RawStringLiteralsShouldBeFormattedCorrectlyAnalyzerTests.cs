@@ -22,6 +22,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
     public async Task VerifyValidRawStringLiteralsDoNotProduceDiagnostics()
     {
         const string testData = """"
@@ -69,6 +70,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
     public async Task VerifyValidFourQuoteRawStringLiteralsDoNotProduceDiagnostics()
     {
         const string testData = """""
@@ -93,6 +95,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-002")]
+    [Requirement("RH5202-003")]
     public async Task VerifyMisalignedRawStringLiteralsAreDetectedAndFixed()
     {
         const string testData = """"
@@ -145,6 +150,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-002")]
+    [Requirement("RH5202-003")]
     public async Task VerifyMisalignedFourQuoteRawStringLiteralsAreDetectedAndFixed()
     {
         const string testData = """""
@@ -183,6 +191,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-002")]
+    [Requirement("RH5202-003")]
     public async Task VerifyMisalignedInterpolatedRawStringLiteralsAreDetectedAndFixed()
     {
         const string testData = """"
@@ -225,6 +236,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-002")]
+    [Requirement("RH5202-003")]
     public async Task VerifyMisalignedDoubleInterpolatedRawStringLiteralsAreDetectedAndFixed()
     {
         const string testData = """"
@@ -275,6 +289,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
     public async Task VerifyMisalignedMultiLineContentRawStringIsDetectedAndFixed()
     {
         const string testData = """"
@@ -317,6 +333,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
     public async Task VerifyValidUtf8RawStringLiteralsDoNotProduceDiagnostics()
     {
         const string testData = """"
@@ -341,6 +358,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-002")]
+    [Requirement("RH5202-003")]
     public async Task VerifyMisalignedUtf8RawStringLiteralsAreDetectedAndFixed()
     {
         const string testData = """"
@@ -422,6 +442,80 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                 """";
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts every line after the first by the same amount, so the relative indentation of the
+    /// content lines is kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
+    public async Task VerifyRelativeIndentationOfContentLinesIsKept()
+    {
+        const string testData = """"
+                                internal class RH5202
+                                {
+                                    void RelativeIndentation()
+                                    {
+                                        var a = {|#0:"""
+                                            Test
+                                              indented
+                                            """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  internal class RH5202
+                                  {
+                                      void RelativeIndentation()
+                                      {
+                                          var a = """
+                                                  Test
+                                                    indented
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns the literal under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedRawStringLiteralIsFixedWithCrLf()
+    {
+        const string testData = """"
+                                internal class RH5202
+                                {
+                                    void Misaligned()
+                                    {
+                                        var a = {|#0:"""
+                                            Test
+                                            """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  internal class RH5202
+                                  {
+                                      void Misaligned()
+                                      {
+                                          var a = """
+                                                  Test
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
     }
 
     #endregion // Tests
