@@ -154,7 +154,7 @@ A code fix MUST NOT be offered when its result would:
 - change the text of a comment, a directive, or a literal that the user wrote; or
 - leave code that an `#if` branch excludes referring to a name the fix changed.
 
-The diagnostic is still reported. The second and third condition are bounded as follows:
+The diagnostic is still reported. The second and third conditions are bounded as follows:
 
 - **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. Reordering the instance fields of a type whose field order sets its layout counts. That is a struct, which has sequential layout unless it declares `LayoutKind.Auto` or `LayoutKind.Explicit`, and any other type declared with `[StructLayout(LayoutKind.Sequential)]`. Under `LayoutKind.Explicit`, each field's `[FieldOffset]` sets its offset, so the field order sets no layout. A reorder that changes neither a layout nor the order in which code runs does not count.
 - **Comment, directive, and literal text.** Text that a diagnostic of the fix's own rule reports may change. Two kinds of text change together with a name the fix changes, as part of the rename:
@@ -163,7 +163,7 @@ The diagnostic is still reported. The second and third condition are bounded as 
 
   Layout does not count: the whitespace around a comment or a directive and the indentation of its lines; in a documentation comment, also the `///` exterior and the whitespace and line breaks next to an XML tag; and the indentation of a raw string literal's lines when the literal's value stays the same. The text of a comment or a directive is content, including the whitespace and line breaks inside it, such as between two words of a `//` or `/* */` comment or of a directive's message. A change to that text counts, and so does a changed value of a literal.
 
-Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. A rename has to reach every place that refers to the symbol or repeats the region's name, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. A diagnostic without a fix is a supported end state; a broken fix is not.
+Why: A user applies a fix trusting that it only corrects what the diagnostic names. A fix that breaks the build, changes behavior, or edits text the user wrote as content hands the user a defect in exchange for a warning. The new name or accessibility is the correction itself, not a change in behavior; a field order that sets a type's layout is behavior, because native code and code that reads the memory directly see the fields in that order. A rename has to reach every place that refers to the symbol or repeats the region's name, and layout is not content, so neither is such an edit. Code excluded by `#if` compiles in another configuration, so a rename that misses it breaks that build. A diagnostic without a fix is a supported end state; a broken fix is not.
 
 Example — a compile error, for RH4106:
 
