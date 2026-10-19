@@ -77,7 +77,7 @@ Earlier: 3 — plan the analyzer backfill. Phase 1 and 2 complete (2026-10-17): 
 
 ## Running
 
-- nothing
+- nothing (no open PRs, 2026-10-19)
 
 ## Next: question round (new chat, planned 2026-10-18)
 
@@ -122,7 +122,13 @@ Still open questions: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #10
 
 ## Waiting for maintainer
 
-- 2026-10-19: maintainer reports all six PRs (#1068, #1069, #981, #983, #987, #990) merged — new chat verifies on GitHub, runs a question round on newly filed open-question issues, then gives next batch prompts (6 parallel).
+- 2026-10-19: verified on GitHub — #1068 (PR #1100), #1069 (PR #1099), #981, #983, #987, #990 merged; no open PRs. Coordinator runs inventory of the 24 new open-question issues, then question round 5, then next batch prompts.
+
+## Question round 5 (started 2026-10-19)
+
+New open-question issues (open sub-issues of #912, not yet in #912 body): #1106 operator-spacing (3), #1107 RH6016 (2), #1108 RH6021 (1), #1109 attribute-targets (1), #1110 code-fixes (3, Q2/Q3 in comments), #1111 formatter/line-breaks (2), #1112 formatter/pipeline (1), #1113 code-fixes (2), #1114 RH5101 (1), #1115 RH5102 (1), #1116 RH5103 (4), #1117 RH5104 (6), #1118 RH5108 (1), #1119 RH5110 (2), #1120 RH5111 (3), #1121 RH5113 (1), #1122 RH5114 (1), #1123 RH5203 (1), #1124 RH5204 (2), #1125 RH5206 (1), #1127 RH8032 (1), #1128 RH8031 (3), #1129 RH8030 (3), #1130 element-documentation (7 + addenda). #1126 closed as duplicate of #1110 Q2.
+New follow-ups from the runs (open): #1105 using names by value, #1131 line-breaks `Uses`, #1132 param-doc `name` matching review, #1133 RH5601 raw-string tab, #1134 RH7109 layout fields, #1135 RH7309 static init order, #1136 SHARED-FIX-003 relocation/disabled text, #1137 RH2005/RH7103 non-goals.
+Inventory: `sdd/work/coordinator/inventory/round5-*.md`.
 
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
@@ -135,16 +141,16 @@ Status: open / running / PR #… / merged.
 | 2a | #1008 | rulebook: code ownership follows behavior, not callers (docs lane) | run after #978 | merged (PR #1017) |
 | 3 | #979 | N2 naming part 2 | #978 | merged (PR #1018); filed #1019–#1027 |
 | 4 | #980 | AP attribute placement, creates attribute-target spec | — | merged (PR #1028); filed #1029–#1031 |
-| 5 | #981 | AS attribute list shape | #980 | prompt given 2026-10-18 |
+| 5 | #981 | AS attribute list shape | #980 | merged (PR #1102); filed #1109, #1110; follow-up #1131 |
 | 6 | #982 | D1 element documentation part 1, creates doc spec | — | merged (PR #1035); filed #1037 |
-| 7 | #983 | D2 element documentation part 2 | #982 | prompt given 2026-10-18 |
+| 7 | #983 | D2 element documentation part 2 | #982 | merged (PR #1101); filed #1127–#1130; follow-up #1132 |
 | 8 | #984 | D3 parameter/return/typeparam/inheritdoc docs | #982 | open |
 | 9 | #985 | D4 documentation layout + comments | #982 | open |
 | 10 | #986 | S1 whitespace/spacing part 1 | — | merged (PR #1036); filed #1038–#1052 |
-| 11 | #987 | S2 spacing part 2 | #986 | prompt given 2026-10-18 |
+| 11 | #987 | S2 spacing part 2 | #986 | merged (PR #1103); filed #1106–#1108 |
 | 12 | #988 | BL other blank lines | — | merged (PR #1057); filed #1059–#1066 |
 | 13 | #989 | CP comment placement, creates spec | — | merged (PR #1056); filed #1058 |
-| 14 | #990 | LB line breaks + alignment (fluent chain) | — | prompt given 2026-10-18 |
+| 14 | #990 | LB line breaks + alignment (fluent chain) | — | merged (PR #1104); filed #1111–#1125 |
 | 15 | #991 | LA initializers/expressions/braces | — | open |
 | 16 | #992 | LC trailing commas, empty types | — | open |
 | 17 | #993 | O1 file layout, member/modifier ordering | — | open |
