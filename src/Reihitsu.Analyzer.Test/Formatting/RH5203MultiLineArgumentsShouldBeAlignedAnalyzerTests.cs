@@ -21,6 +21,7 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5203-001")]
     public async Task VerifyNoDiagnosticsForValidCode()
     {
         const string testData = """
@@ -55,6 +56,7 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5203-001")]
     public async Task VerifyArgumentAfterLeadingCommaIsNotReported()
     {
         const string testData = """
@@ -78,6 +80,7 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5203-001")]
     public async Task VerifyObjectCreationArgumentAfterLeadingCommaIsNotReported()
     {
         const string testData = """
@@ -103,6 +106,7 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5203-001")]
     public async Task VerifyArgumentSharingAContinuationLineIsNotReported()
     {
         const string testData = """
@@ -126,6 +130,9 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("RH5203-002")]
+    [Requirement("RH5203-003")]
     public async Task VerifyMisalignedArgumentsAreDetectedAndFixed()
     {
         const string testData = """
@@ -164,6 +171,9 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("RH5203-002")]
+    [Requirement("RH5203-003")]
     public async Task VerifyInconsistentAlignmentIsDetectedAndFixed()
     {
         const string testData = """
@@ -195,6 +205,121 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that every argument of a list whose first argument starts below the opening parenthesis is reported
+    /// when it is not in the column directly right of the parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("RH5203-002")]
+    public async Task VerifyArgumentsBelowOpeningParenthesisAreReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            {|#0:1|},
+                                            {|#1:2|});
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that the fix only replaces the indentation in front of the reported argument and leaves the rest of
+    /// the list as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("RH5203-003")]
+    public async Task VerifyFixChangesOnlyTheIndentationOfTheReportedArgument()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1,
+                                                {|#0:2|},
+                                             3+4);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3+4);
+                                      }
+
+                                      void Call(params int[] values)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the fix aligns the argument under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task VerifyMisalignedArgumentIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1,
+                                            {|#0:2|},
+                                             3);
+                                    }
+
+                                    void Call(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(params int[] values)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5203MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5203MessageFormat));
     }
 
     #endregion // Tests

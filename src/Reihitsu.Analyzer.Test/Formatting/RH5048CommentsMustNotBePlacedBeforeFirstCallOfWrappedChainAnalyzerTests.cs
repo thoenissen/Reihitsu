@@ -20,6 +20,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyCommentBeforeFirstCallOfWrappedChainIsReported()
     {
         const string testData = """
@@ -49,6 +50,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyCommentBeforeFirstCallOfWrappedChainWithCrLfIsReported()
     {
         const string testData = """
@@ -77,6 +79,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifySameLineCommentBeforeWrappedFirstCallIsReported()
     {
         const string testData = """
@@ -104,6 +107,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyNoDiagnosticForCommentBeforeLaterCall()
     {
         const string testData = """
@@ -133,6 +137,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyNoDiagnosticForUnwrappedChain()
     {
         const string testData = """
@@ -158,6 +163,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyNoDiagnosticAfterIntermediateMemberAccess()
     {
         const string testData = """
@@ -183,6 +189,8 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-COMMENT-002")]
     public async Task VerifyNoDiagnosticForCommentInsideDirectiveBeforeFirstCall()
     {
         const string testData = """
@@ -212,6 +220,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyNoDiagnosticForCommentInDisabledCodeBeforeFirstCall()
     {
         const string testData = """
@@ -242,6 +251,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5048-001")]
     public async Task VerifyCommentInActiveConditionalCodeBeforeFirstCallIsReported()
     {
         const string testData = """
@@ -265,6 +275,170 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 """;
 
         await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a wrapped conditional access that is the chain's first link is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-CHAIN-001")]
+    public async Task VerifyCommentBeforeWrappedConditionalFirstLinkIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private TestClass Self() => this;
+
+                                    void Method(TestClass c)
+                                    {
+                                        var a = c {|#0:// self|}
+                                            ?.Self();
+                                        _ = a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a wrapped null-forgiving access that is the chain's first link is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-CHAIN-001")]
+    public async Task VerifyCommentBeforeWrappedNullForgivingFirstLinkIsReported()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                internal class TestClass
+                                {
+                                    private TestClass Self() => this;
+
+                                    void Method(TestClass? c)
+                                    {
+                                        var a = c
+                                            {|#0:// self|}
+                                            !.Self();
+                                        _ = a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that every comment in front of a wrapped first link is reported on its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-COMMENT-003")]
+    public async Task VerifyEveryCommentBeforeWrappedFirstLinkIsReportedSeparately()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(int[] items)
+                                    {
+                                        var query = items {|#0:/* source */|}
+                                            {|#1:// only positive|}
+                                            .Where(value => value > 0);
+                                        _ = query;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the argument list of the root is not reported, because it is not in the gap in
+    /// front of the first link's operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-CHAIN-001")]
+    public async Task VerifyCommentInsideAttachedArgumentListOfRootIsNotReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var query = Get(/* value */ 1)
+                                            .Where(value => value > 0);
+                                        _ = query;
+                                    }
+
+                                    int[] Get(int x) => [x];
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of an element access attached to the root is not reported, because the gap in
+    /// front of the first link's operator holds no comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    [Requirement("SHARED-CHAIN-001")]
+    public async Task VerifyCommentBeforeAttachedElementAccessOfRootIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int[] items)
+                                    {
+                                        var text = items // element
+                                            ?[0]
+                                            .ToString();
+                                        _ = text;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment in front of a first link that stays on the root's line is not reported, and
+    /// neither is a comment in front of a later link of the same chain
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5048-001")]
+    public async Task VerifyInlineCommentBeforeFirstLinkOnRootLineIsNotReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(int[] items)
+                                    {
+                                        var query = items /* inline */ .Where(value => value > 0)
+                                                                       // materialize
+                                                                       .ToList();
+                                        _ = query;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests
