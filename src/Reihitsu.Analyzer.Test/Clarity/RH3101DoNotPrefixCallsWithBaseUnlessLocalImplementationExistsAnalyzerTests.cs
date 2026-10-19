@@ -439,7 +439,9 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                 class D : B
                                 {
                                     public override int M() => base.M();
+
                                     public override int N() => 2;
+
                                     public new int Q() => 2;
 
                                     int Run()

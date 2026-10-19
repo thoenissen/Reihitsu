@@ -510,6 +510,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                     int _a;
                                     {|RH3201:/* */|}
                                     int _b; {|RH3201://|}
+
                                     int M(int a, int b) => a + {|RH3201:/* */|} b;
                                 }
                                 """;
@@ -519,6 +520,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                  {
                                      int _a;
                                      int _b;
+
                                      int M(int a, int b) => a + b;
                                  }
                                  """;

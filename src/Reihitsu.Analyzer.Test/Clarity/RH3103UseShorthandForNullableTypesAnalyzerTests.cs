@@ -763,7 +763,6 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                     {|RH3103:Nullable<int>|} _a;
                                     {|RH3103:System.Nullable<DateTime>|} _b;
                                     {|RH3103:global::System.Nullable<long>|} _c;
-
                                     {|RH3103:Nullable<int>|} P { get; }
 
                                     {|RH3103:Nullable<int>|} M({|RH3103:Nullable<int>|} p)
@@ -786,7 +785,6 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                      int? _a;
                                      DateTime? _b;
                                      long? _c;
-
                                      int? P { get; }
 
                                      int? M(int? p)

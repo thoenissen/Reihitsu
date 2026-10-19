@@ -473,7 +473,6 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                     void M(string s = "")
                                     {
                                         const string L = "";
-
                                         switch (s)
                                         {
                                             case "":
