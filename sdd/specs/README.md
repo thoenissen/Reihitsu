@@ -24,13 +24,14 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
-| [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
+| [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
+| [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
 | [shared/region-directive-blank-lines.md](shared/region-directive-blank-lines.md) | SHARED-REGION | `RegionDirectiveBlankLineAnalyzerBase`, `RegionDirectiveBlankLineCodeFixProviderBase` |
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
 | [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
-| [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase` |
+| [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase`, `CollapseTokenGapCodeFixProviderBase` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
 | [analyzer/RH1003.md](analyzer/RH1003.md) | RH1003 | `RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer` |
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
@@ -119,7 +120,28 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5045.md](analyzer/RH5045.md) | RH5045 | `RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzer` |
 | [analyzer/RH5046.md](analyzer/RH5046.md) | RH5046 | `RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer` |
 | [analyzer/RH5047.md](analyzer/RH5047.md) | RH5047 | `RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer` |
+| [analyzer/RH5048.md](analyzer/RH5048.md) | RH5048 | `RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer` |
 | [analyzer/RH5049.md](analyzer/RH5049.md) | RH5049 | `RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer` |
+| [analyzer/RH5101.md](analyzer/RH5101.md) | RH5101 | `RH5101FirstArgumentShouldBeOnSameLineAnalyzer`, `RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider` |
+| [analyzer/RH5102.md](analyzer/RH5102.md) | RH5102 | `RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer`, `RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider` |
+| [analyzer/RH5103.md](analyzer/RH5103.md) | RH5103 | `RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer`, `RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider` |
+| [analyzer/RH5104.md](analyzer/RH5104.md) | RH5104 | `RH5104CommentsMustBeOnTheirOwnLineAnalyzer`, `RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider` |
+| [analyzer/RH5105.md](analyzer/RH5105.md) | RH5105 | `RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer`, `RH5105OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider` |
+| [analyzer/RH5106.md](analyzer/RH5106.md) | RH5106 | `RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer`, `RH5106ClosingParenthesisMustBeOnLineOfLastArgumentCodeFixProvider` |
+| [analyzer/RH5107.md](analyzer/RH5107.md) | RH5107 | `RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer`, `RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider` |
+| [analyzer/RH5108.md](analyzer/RH5108.md) | RH5108 | `RH5108ParameterListMustFollowDeclarationAnalyzer`, `RH5108ParameterListMustFollowDeclarationCodeFixProvider` |
+| [analyzer/RH5109.md](analyzer/RH5109.md) | RH5109 | `RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer`, `RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider` |
+| [analyzer/RH5110.md](analyzer/RH5110.md) | RH5110 | `RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer`, `RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider` |
+| [analyzer/RH5111.md](analyzer/RH5111.md) | RH5111 | `RH5111AssignmentsMustHaveProperLineBreaksAnalyzer`, `RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider` |
+| [analyzer/RH5112.md](analyzer/RH5112.md) | RH5112 | `RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer`, `RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider` |
+| [analyzer/RH5113.md](analyzer/RH5113.md) | RH5113 | `RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer`, `RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider` |
+| [analyzer/RH5114.md](analyzer/RH5114.md) | RH5114 | `RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer`, `RH5114UsingDirectivesMustBePlacedOnSeparateLinesCodeFixProvider` |
+| [analyzer/RH5201.md](analyzer/RH5201.md) | RH5201 | `RH5201MethodChainsShouldBeAlignedAnalyzer`, `RH5201MethodChainsShouldBeAlignedCodeFixProvider` |
+| [analyzer/RH5202.md](analyzer/RH5202.md) | RH5202 | `RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer`, `RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider` |
+| [analyzer/RH5203.md](analyzer/RH5203.md) | RH5203 | `RH5203MultiLineArgumentsShouldBeAlignedAnalyzer`, `RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider` |
+| [analyzer/RH5204.md](analyzer/RH5204.md) | RH5204 | `RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer`, `RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider` |
+| [analyzer/RH5205.md](analyzer/RH5205.md) | RH5205 | `RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer`, `RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider` |
+| [analyzer/RH5206.md](analyzer/RH5206.md) | RH5206 | `RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer`, `RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider` |
 | [analyzer/RH5501.md](analyzer/RH5501.md) | RH5501 | `RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer`, `RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5503.md](analyzer/RH5503.md) | RH5503 | `RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer`, `RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5505.md](analyzer/RH5505.md) | RH5505 | `RH5505ClassAttributesMustFollowPlacementRulesAnalyzer`, `RH5505ClassAttributesMustFollowPlacementRulesCodeFixProvider` |

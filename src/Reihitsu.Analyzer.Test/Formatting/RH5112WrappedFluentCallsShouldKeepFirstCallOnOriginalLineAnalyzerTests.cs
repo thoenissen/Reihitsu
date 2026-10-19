@@ -21,6 +21,11 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-002")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-003")]
+    [Requirement("SHARED-CHAIN-008")]
     public async Task VerifyDiagnosticAndCodeFixWhenFirstCallStartsOnNextLine()
     {
         const string testData = """
@@ -93,6 +98,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-003")]
     public async Task VerifyNoDiagnosticWhenFirstCallStaysOnOriginalLine()
     {
         const string testData = """
@@ -133,6 +140,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-008")]
     public async Task VerifyConditionalAccessChainFixConvergesInOneApplication()
     {
         const string testData = """
@@ -172,6 +181,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-004")]
     public async Task VerifyNoDiagnosticAcrossActiveDirectiveGap()
     {
         const string testData = """
@@ -200,6 +211,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-004")]
     public async Task VerifyNoDiagnosticAcrossDisabledTextGap()
     {
         const string testData = """
@@ -226,6 +239,10 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-002")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-003")]
     public async Task VerifyDiagnosticAndCodeFixForSingleWrappedCall()
     {
         const string testData = """
@@ -274,6 +291,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-004")]
     public async Task VerifyNoDiagnosticWhenCommentIsDirectlyAboveFirstWrappedCall()
     {
         const string testData = """
@@ -319,6 +338,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-001")]
     public async Task VerifyNoDiagnosticWhenNullForgivingLinkHasIntermediateMemberAccess()
     {
         const string testData = """
@@ -364,6 +385,9 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-002")]
+    [Requirement("RH5112-003")]
     public async Task VerifyDiagnosticAndCodeFixWhenNullForgivingLinkHasNoIntermediateMemberAccess()
     {
         const string testData = """
@@ -424,6 +448,9 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-003")]
     public async Task VerifyWrappedPropertyFirstLinkIsFixedInOneApplication()
     {
         const string testData = """
@@ -472,6 +499,10 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-001")]
+    [Requirement("SHARED-CHAIN-003")]
     public async Task VerifyWrappedFirstLinkOfCallLessChainIsFixedInOneApplication()
     {
         const string testData = """
@@ -520,6 +551,9 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-002")]
+    [Requirement("RH5112-003")]
     public async Task VerifyWrappedNullForgivingFirstLinkIsFixedInOneApplication()
     {
         const string testData = """
@@ -566,6 +600,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-003")]
     public async Task VerifyWrappedCallBehindRawStringRootIsFixedInOneApplication()
     {
         const string testData = """"
@@ -618,6 +654,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-009")]
     public async Task VerifyFixJoinsFirstCallBehindMisspacedDeclaration()
     {
         const string testData = """
@@ -680,6 +718,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-009")]
     public async Task VerifyFixJoinsFirstCallOfChainInConditionalExpression()
     {
         const string testData = """
@@ -732,6 +772,257 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                       private sealed class Node
                                       {
                                           public List<Node> Children { get; } = new List<Node>();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped conditional first link is reported on the question mark of its operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-002")]
+    [Requirement("SHARED-CHAIN-003")]
+    public async Task VerifyWrappedConditionalFirstLinkIsReportedOnQuestionMark()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private Example Self() => this;
+
+                                    private static object Run(Example c)
+                                    {
+                                        return c
+                                            {|#0:?|}.Self();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped first link written as <c>!?.</c> is reported on its exclamation mark
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-002")]
+    [Requirement("SHARED-CHAIN-001")]
+    public async Task VerifyWrappedNullForgivingConditionalFirstLinkIsReportedOnExclamationMark()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                internal sealed class Example
+                                {
+                                    private Example Self() => this;
+
+                                    private static object? Run(Example? c)
+                                    {
+                                        return c
+                                            {|#0:!|}?.Self();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment ending the root's line keeps the wrapped first link from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-004")]
+    public async Task VerifyNoDiagnosticWhenCommentFollowsRootOnItsLine()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] items)
+                                    {
+                                        return items // only positive
+                                            .Where(value => value > 0)
+                                            .ToArray();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the argument list of the root does not keep the wrapped first link from being
+    /// reported and fixed, because it is not in the gap in front of the first link's operator. The fix gives the chain
+    /// its formatted layout, which also removes the space between the comment and the argument behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-001")]
+    public async Task VerifyCommentInsideRootArgumentListDoesNotKeepFirstLinkInPlace()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert()
+                                    {
+                                        return Get(/* value */ 1)
+                                            {|#0:.|}Where(value => value > 0)
+                                            .ToArray();
+                                    }
+
+                                    private static int[] Get(int value) => [value];
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert()
+                                      {
+                                          return Get(/* value */1).Where(value => value > 0)
+                                                                  .ToArray();
+                                      }
+
+                                      private static int[] Get(int value) => [value];
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped first link behind an element access attached to the root is reported, although a
+    /// comment sits in front of the element access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-001")]
+    public async Task VerifyWrappedFirstLinkBehindAttachedElementAccessIsReported()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static string Run(int[] items)
+                                    {
+                                        return items // element
+                                            ?[0]
+                                            {|#0:.|}ToString();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a chain written on one line is not reported, however long it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("SHARED-CHAIN-002")]
+    public async Task VerifyNoDiagnosticForLongChainOnOneLine()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        return items.Where(value => value > 0).Select(value => value * 2).OrderBy(value => value).ThenBy(value => value).ToList().AsReadOnly();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the first link and aligns the later links under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-008")]
+    public async Task VerifyWrappedFirstLinkIsFixedWithCrLf()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        return items
+                                            {|#0:.|}Where(value => value > 0)
+                                            .ToList();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(int[] items)
+                                      {
+                                          return items.Where(value => value > 0)
+                                                      .ToList();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix changes only the chain when formatting the statement would give the chain the same text
+    /// and start column, so unformatted code behind the chain stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-009")]
+    public async Task VerifyFixLeavesCodeBehindTheChainAsWritten()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static int Run(dynamic a, int d)
+                                    {
+                                        var r = a
+                                            {|#0:.|}B()
+                                            .C() + d+1;
+
+                                        return r;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal sealed class Example
+                                  {
+                                      private static int Run(dynamic a, int d)
+                                      {
+                                          var r = a.B()
+                                                   .C() + d+1;
+
+                                          return r;
                                       }
                                   }
                                   """;

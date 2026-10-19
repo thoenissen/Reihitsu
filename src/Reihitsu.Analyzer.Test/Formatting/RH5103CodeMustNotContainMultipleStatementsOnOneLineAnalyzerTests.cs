@@ -23,6 +23,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-001")]
     public async Task VerifyNoDiagnosticsWhenStatementsAreOnSeparateLines()
     {
         const string testData = """
@@ -44,6 +45,9 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-001")]
+    [Requirement("RH5103-002")]
+    [Requirement("RH5103-003")]
     public async Task VerifyMultipleStatementsOnOneLineAreDetectedAndFixed()
     {
         const string testData = """
@@ -75,6 +79,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-004")]
     public async Task VerifyFixIsNotOfferedWhenCommentIsBetweenStatements()
     {
         const string testData = """
@@ -103,6 +108,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-003")]
     public async Task VerifyInsertedLineBreakUsesDetectedCarriageReturnLineFeedEndOfLine()
     {
         const string testData = """
@@ -126,6 +132,8 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-002")]
+    [Requirement("RH5103-003")]
     public async Task ThreeStatementChainFixAllKeepsBlockIndentation()
     {
         const string testData = """
@@ -160,6 +168,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-003")]
     public async Task TabIndentedBlockChainFixAllPreservesExactIndentation()
     {
         const string testData = "internal class TestClass\n{\n\tvoid Method()\n\t{\n\t\tint first = 1; {|#0:int second = 2;|} {|#1:int third = 3;|}\n\t}\n}";
@@ -287,6 +296,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-003")]
     public async Task VerifySplitStatementKeepsSiblingColumnWhenPrecedingLineStartsWithComment()
     {
         const string testData = """
@@ -350,6 +360,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-003")]
     public async Task FixAllKeepsSiblingColumnWhenPrecedingLineStartsWithComment()
     {
         const string testData = """
@@ -477,6 +488,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-003")]
     public async Task VerifySplitStatementCompensatesWhenLineStartsWithAnotherSectionsLabel()
     {
         const string testData = """
@@ -539,6 +551,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-003")]
     public async Task VerifySplitStatementCompensatesWhenCommentPrecedesTheLabelOnItsLine()
     {
         const string testData = """
@@ -603,6 +616,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-003")]
     public async Task VerifySplitStatementDoesNotCompensateWhenLineStartsWithAnEarlierSiblingSectionsStatement()
     {
         const string testData = """
@@ -742,6 +756,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5103-004")]
     public async Task FixIsNotOfferedAcrossEmptyStatementSyntax()
     {
         const string testData = """
@@ -819,6 +834,213 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind an empty statement is reported, because the empty statement is skipped as its
+    /// predecessor, and that no code fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-001")]
+    [Requirement("RH5103-004")]
+    public async Task VerifyStatementBehindEmptyStatementIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Method(); ; {|#0:Method();|}
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ExpressionStatementSyntax>()
+                                                               .Last()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind an empty statement that starts the line is not reported, because the empty
+    /// statement is skipped and no other statement starts on that line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-001")]
+    public async Task VerifyStatementBehindLeadingEmptyStatementIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        ; Method();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the first statement of a switch section is not reported for sharing the line of its case label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-001")]
+    public async Task VerifyFirstStatementOnCaseLabelLineIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1: Method(value);
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a block comment is reported and no code fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-004")]
+    public async Task VerifyStatementBehindBlockCommentIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Method(); /* next */ {|#0:Method();|}
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ExpressionStatementSyntax>()
+                                                               .Last()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind the first statement of a switch section is reported and moved to the
+    /// section's statement indentation, one level deeper than the case label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-001")]
+    [Requirement("RH5103-003")]
+    public async Task VerifyStatementBehindStatementOnCaseLabelLineIsFixedToSectionIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1: Method(value); {|#0:break;|}
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1: Method(value);
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that statements split off a line in a switch section outside an anchor scope get the section's
+    /// statement column, whether the preceding statement starts its line, shares the line of its own label, or shares
+    /// a line that starts with a comment, with another section's label, or with another section's statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-001")]
+    [Requirement("RH5103-003")]
+    public async Task VerifyStatementsInSwitchSectionsAreFixedToTheSectionStatementColumn()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int value)
+                                    {
+                                        Method(value); {|#0:Method(value);|}
+                                        switch (value)
+                                        {
+                                            case 1: Method(value); {|#1:break;|}
+                                            case 2:
+                                                Method(value); {|#2:break;|}
+                                            /* three */ case 3: Method(value); {|#3:break;|}
+                                            case 4: break; case 5: Method(value); {|#4:break;|}
+                                            case 6:
+                                                break; case 7: Method(value); {|#5:break;|}
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int value)
+                                     {
+                                         Method(value);
+                                         Method(value);
+                                         switch (value)
+                                         {
+                                             case 1: Method(value);
+                                                 break;
+                                             case 2:
+                                                 Method(value);
+                                                 break;
+                                             /* three */ case 3: Method(value);
+                                                 break;
+                                             case 4: break; case 5: Method(value);
+                                                 break;
+                                             case 6:
+                                                 break; case 7: Method(value);
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 6));
     }
 
     #endregion // Tests
