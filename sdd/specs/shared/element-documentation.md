@@ -7,7 +7,7 @@
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
 | Uses | — |
 
-This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and when documentation rules do not run at all. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
+This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and when documentation rules do not run at all. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
 ## Non-goals
 
@@ -1040,6 +1040,138 @@ public static partial class Extensions
     /// More single values
     /// </summary>
     extension(float value)
+    {
+    }
+}
+```
+
+### SHARED-DOC-014 — A parameter, type-parameter, or return-value description without text
+
+A `<param>`, `<typeparam>`, or `<returns>` element MUST count as without text exactly when a `<summary>` element with the same content counts as without text under SHARED-DOC-010, and as having text otherwise.
+
+This requirement covers what SHARED-DOC-010 covers, applied to the content of the `<param>`, `<typeparam>`, or `<returns>` element.
+
+Why: The description of a parameter, a type parameter, or a return value is what the editor's tooltip shows next to it, so a description of white space leaves the reader as uninformed as a missing one, the same way an empty summary does. Judging all of them by one definition keeps the rules that require text from disagreeing about the same content.
+
+Example — RH8104, RH8106, and RH8111:
+
+```csharp
+/// <summary>
+/// Container
+/// </summary>
+/// {|RH8111:<typeparam name="T"></typeparam>|}
+public class C<T>
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// {|RH8104:<param name="a"/>|}
+    /// {|RH8104:<param name="b">&#32;</param>|}
+    /// <param name="c">Value</param>
+    /// {|RH8106:<returns>
+    /// </returns>|}
+    public int M(int a, int b, int c) => 0;
+
+    /**
+     * <summary>
+     * Runs
+     * </summary>
+     * {|RH8104:<param name="a">
+     * </param>|}
+     * <returns>Value</returns>
+     */
+    public int N(int a) => 0;
+}
+```
+
+### SHARED-DOC-015 — Parameter descriptions follow the order of the parameters
+
+A rule that checks whether the `<param>` elements of a declaration's documentation comment match the declaration's parameters, or its `<typeparam>` elements the declaration's type parameters, MUST pair the elements at the top level of the comment, as SHARED-DOC-004 defines the comment, with the parameters by position: the first element with the first parameter, the second element with the second parameter, and so on, counting every element whether or not it has a name. It MUST report an element whose `name` attribute differs from the name of the parameter in the same position, compared as SHARED-DOC-012 compares a `name` attribute with a parameter's name, and an element whose position is after the last parameter. It MUST NOT report an element that has no `name` attribute or whose `name` attribute is empty or only white space, an element nested inside another element, or a parameter that has no element.
+
+This requirement covers a declaration that declares at least one parameter, or at least one type parameter for `<typeparam>` elements, and whose leading trivia has one documentation comment, placed as SHARED-DOC-004 covers and well-formed XML, with the tag names `param` and `typeparam` written in lower case, without a namespace prefix, and in no XML namespace; and a `name` attribute whose value is empty, only white space, or a C# identifier that SHARED-DOC-012 covers.
+
+Why: Readers and documentation tools take the descriptions in the order they are written, and a reader who scans them against the signature attaches each description to the parameter in its position. A description that names no parameter in its position, or that comes after the last one, describes something the signature does not have there. An element without a name is reported by the rule that requires the name, and a parameter without a description by the rule that requires one, so neither is reported twice.
+
+Example — RH8102 and RH8109:
+
+```csharp
+/// <summary>
+/// Pair
+/// </summary>
+/// {|RH8109:<typeparam name="TSecond">Second</typeparam>|}
+/// {|RH8109:<typeparam name="TFirst">First</typeparam>|}
+public class Pair<TFirst, TSecond>
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <param name="a">A</param>
+    /// {|RH8102:<param name="c">C</param>|}
+    public void M(int a, int b)
+    {
+    }
+
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <param>Unnamed</param>
+    /// <param name="b">B</param>
+    /// {|RH8102:<param name="c">Extra</param>|}
+    public void N(int a, int b)
+    {
+    }
+
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <param name="a">A</param>
+    /// <remarks>
+    /// <param name="z">Nested</param>
+    /// </remarks>
+    public void O(int a, int b)
+    {
+    }
+
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// <param name="class">Class</param>
+    /// {|RH8102:<param name="@event">Event</param>|}
+    public void P(int @class, int @event)
+    {
+    }
+}
+```
+
+### SHARED-DOC-016 — A parameter description names its parameter
+
+A rule that requires the `<param>` or `<typeparam>` elements of a declaration's documentation comment to name a parameter MUST report each such element at the top level of the comment, as SHARED-DOC-004 defines the comment, that has no `name` attribute or whose `name` attribute is empty or only white space. The attribute name MUST be matched case-sensitively, so an element that has only a `Name` attribute has no `name` attribute. An element nested inside another element MUST NOT be reported.
+
+This requirement covers a declaration whose leading trivia has one documentation comment, placed as SHARED-DOC-004 covers and well-formed XML, with the tag names `param` and `typeparam` written in lower case, without a namespace prefix, and in no XML namespace; and a `name` attribute whose value is empty, only white space, or a C# identifier.
+
+Why: The `name` attribute is the only link between a description and its parameter. Without it, the compiler and the documentation tools cannot pair the description with any parameter, so the tooltip shows nothing for the parameter, and the reader has to guess which one the text is about.
+
+Example — RH8103 and RH8110:
+
+```csharp
+/// <summary>
+/// Container
+/// </summary>
+/// {|RH8110:<typeparam>Element</typeparam>|}
+public class C<T>
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    /// {|RH8103:<param>First</param>|}
+    /// {|RH8103:<param name="">Second</param>|}
+    /// {|RH8103:<param name=" ">Third</param>|}
+    /// {|RH8103:<param Name="d">Fourth</param>|}
+    /// <param name="e">Fifth</param>
+    /// <remarks>
+    /// <param>Nested</param>
+    /// </remarks>
+    public void M(int a, int b, int c, int d, int e)
     {
     }
 }
