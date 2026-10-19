@@ -21,6 +21,7 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5407-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -48,6 +49,9 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("RH5407-001")]
+    [Requirement("RH5407-002")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -91,6 +95,9 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("RH5407-001")]
+    [Requirement("RH5407-002")]
     public async Task VerifyIfBranchUnbracedIsFixedWithElseOnItsOwnLine()
     {
         const string testData = """
@@ -132,6 +139,8 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-001")]
+    [Requirement("RH5407-001")]
     public async Task VerifyElseIfChainsDoNotProduceDiagnostics()
     {
         const string testData = """
@@ -157,6 +166,9 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("RH5407-001")]
+    [Requirement("RH5407-002")]
     public async Task VerifyIssueIsFixedWhenChildSharesElseLine()
     {
         const string testData = """
@@ -190,6 +202,162 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the unbraced body of an if statement whose other branch has braces is reported, also for an else
+    /// if checked against its own else, while an if statement whose two bodies both lack braces is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5407-001")]
+    [Requirement("RH5407-002")]
+    [Requirement("SHARED-BRACE-001")]
+    public async Task VerifyBranchWithoutBracesNextToBracedBranchIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a)
+                                            {|RH5407:M(a, b);|}
+                                        else
+                                        {
+                                            M(a, b);
+                                        }
+
+                                        if (a)
+                                        {
+                                            M(a, b);
+                                        }
+                                        else if (b)
+                                            {|RH5407:M(a, b);|}
+                                        else
+                                        {
+                                            M(a, b);
+                                        }
+
+                                        if (a)
+                                            M(a, b);
+                                        else
+                                            M(a, b);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an if statement without else is not reported, whatever its body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5407-001")]
+    public async Task VerifyIfStatementWithoutElseIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a)
+                                            M(a, b);
+                                        if (b)
+                                        {
+                                            M(a, b);
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix wraps the unbraced branch in braces on their own lines in the column of the if
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWrapsUnbracedBranchInBraces()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a)
+                                            {|RH5407:M(a, b);|}
+                                        else
+                                        {
+                                            M(a, b);
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix wraps the unbraced branch in braces on their own lines in the column of the if, with CRLF
+    /// line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWrapsUnbracedBranchInBracesWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a)
+                                            {|RH5407:M(a, b);|}
+                                        else
+                                        {
+                                            M(a, b);
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

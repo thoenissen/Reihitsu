@@ -21,6 +21,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5406-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -43,6 +44,10 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("RH5406-001")]
+    [Requirement("RH5406-002")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -86,6 +91,9 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("RH5406-001")]
+    [Requirement("RH5406-002")]
     public async Task VerifyIssueIsFixedWhenChildStartsOnParentLine()
     {
         const string testData = """
@@ -129,6 +137,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5406-001")]
     public async Task VerifySingleLineChildStatementIsNotFlagged()
     {
         const string testData = """
@@ -150,6 +159,10 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("RH5406-001")]
+    [Requirement("RH5406-002")]
     public async Task VerifyMultiLineElseChildStatementIsDetectedAndFixed()
     {
         const string testData = """
@@ -200,6 +213,10 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BRACE-001")]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("RH5406-001")]
+    [Requirement("RH5406-002")]
     public async Task VerifyBothBranchesMultiLineUnbracedPlacesElseOnItsOwnLine()
     {
         const string testData = """
@@ -244,6 +261,133 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a body without braces that spans several lines is reported, whether it starts on the line of its
+    /// else or on a later line, while a body on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5406-001")]
+    [Requirement("RH5406-002")]
+    [Requirement("SHARED-BRACE-001")]
+    public async Task VerifyUnbracedBodyOnSeveralLinesIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5406:M(a,
+                                              b);|}
+                                        else {|RH5406:M(a,
+                                                    b);|}
+                                        if (a)
+                                            M(a, b);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the body without braces of a while statement that spans several lines is not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-001")]
+    public async Task VerifyMultiLineLoopBodyIsNotChecked()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        while (a)
+                                            M(a,
+                                              b);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix wraps a body without braces that spans several lines in braces on their own lines in the
+    /// column of the if
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWrapsMultiLineBodyInBraces()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5406:M(a,
+                                              b);|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a,
+                                               b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix wraps a body without braces that spans several lines in braces on their own lines in the
+    /// column of the if, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyFixWrapsMultiLineBodyInBracesWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a)
+                                            {|RH5406:M(a,
+                                              b);|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a,
+                                               b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests
