@@ -289,6 +289,38 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Characterizes that the fix collapses two blank lines above the converted method to one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixCollapsesTwoBlankLinesAboveTheMethod()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+
+                                    public int GetValue() {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int GetValue()
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

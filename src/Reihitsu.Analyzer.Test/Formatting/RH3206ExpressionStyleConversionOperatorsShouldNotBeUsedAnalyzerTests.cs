@@ -21,6 +21,9 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3206-001")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyImplicitConversionOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -52,6 +55,9 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3206-001")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExplicitConversionOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -79,6 +85,9 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3206-001")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyCheckedExplicitConversionOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -117,6 +126,8 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3206-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyThrowExpressionBodiedConversionOperatorIsFixedToThrowStatement()
     {
         const string testData = """
@@ -144,6 +155,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3206-001")]
     public async Task VerifyBlockBodiedConversionOperatorIsNotReported()
     {
         const string testData = """
@@ -165,6 +177,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
     public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
     {
         const string testData = """
@@ -186,6 +199,8 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
     {
         const string testData = """
@@ -217,6 +232,8 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionOnNextLineIsFixedToSingleSpacedReturn()
     {
         const string testData = """
@@ -273,6 +290,38 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies expression-bodied implicit, explicit, and checked explicit conversion operators are reported, while a
+    /// block-bodied conversion operator is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3206-001")]
+    public async Task EveryExpressionBodiedConversionOperatorKindIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    private int _value;
+
+                                    public static implicit operator int(C c) {|RH3206:=> c._value|};
+
+                                    public static explicit operator C(int v) {|RH3206:=> throw new NotSupportedException()|};
+
+                                    public static explicit operator checked byte(C c) {|RH3206:=> checked((byte)c._value)|};
+
+                                    public static explicit operator byte(C c)
+                                    {
+                                        return (byte)c._value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests
