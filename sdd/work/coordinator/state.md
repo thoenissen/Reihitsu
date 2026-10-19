@@ -216,6 +216,7 @@ Shared specs: new ones are created by the first batch of a family; "if shared" =
 - #946 (RH5005/RH5006 `await using`/`await foreach` fix never converges) → phase 2; blocks RH5005/RH5006 specs.
 - #939 split → done: #939 (tagging) + #998 (opt-out).
 - #942 → phase 5.
+- FINAL STEP before closing SDD (maintainer 2026-10-19): remove every retired requirement and renumber the remaining IDs so the specs are clean (gap-free). Needs: rulebook change in sdd/README.md (ID stability/retirement rules), requirement-ids.txt rebuilt, every test tag and every cross-reference (`Uses`, change docs, decisions, issues?) updated mechanically by a script; run as one tooling/docs PR after all batches (#939, #998) are merged and no squad is running.
 
 ## Issues fully decided (close when follow-ups exist)
 
