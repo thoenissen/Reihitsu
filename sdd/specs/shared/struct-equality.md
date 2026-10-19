@@ -21,7 +21,7 @@ This spec covers the rules that report a struct that is compared for equality, o
 
 A rule MUST treat a type as lacking equality members exactly when it is a struct, including a generic struct constructed with type arguments, that neither implements `IEquatable<T>` of itself, directly or through another interface, nor declares overrides of both `Equals(object)` and `GetHashCode()`. A type that is not a struct — a class, an interface, an enum, or a type parameter — MUST NOT be treated as lacking equality members, and neither MUST a record struct, whose compiler-generated members implement `IEquatable<T>`.
 
-This requirement covers a struct that implements `IEquatable<T>` of itself only when the struct also overrides `GetHashCode()`. For a generic struct, it covers only one whose type arguments are not structs that lack equality members themselves.
+This requirement covers a struct that implements `IEquatable<T>` of itself only when the struct also overrides `GetHashCode()`. For a generic struct that has its own equality members, it covers only one none of whose type arguments is a struct that lacks equality members.
 
 Why: A struct that declares no equality members falls back to `ValueType.Equals` and `ValueType.GetHashCode`, which box the value and may inspect its fields through reflection on every call. Equality-based operations call them many times, so the cost adds up. Overriding only `Equals(object)` still leaves the slow `GetHashCode`, so both overrides are needed. An enum, a class, and a type parameter do not use `ValueType`'s members this way, or their equality is not known at the place of use.
 
@@ -94,6 +94,8 @@ A rule MUST treat an operation as not using the compared type's equality members
 
 `default` of a non-nullable value type that implements `IEqualityComparer<T>` is a comparer and MUST count as a custom one.
 
+This requirement covers a parameter of type `IEqualityComparer<T>` only when `T` is the type the operation compares.
+
 Why: A comparer passed to the operation does the comparing and hashing itself, so the type's own members are never called. `null` and `EqualityComparer<T>.Default` both fall back to the type's own equality behavior, so passing them changes nothing, however the expression is written. A value-type comparer is boxed into a real instance and is used.
 
 Example — RH1002:
@@ -120,13 +122,20 @@ struct ValueComparer : IEqualityComparer<S>
     public int GetHashCode(S obj) => 0;
 }
 
+class Holder
+{
+    public IEqualityComparer<S> Comparer { get; set; }
+}
+
 class C
 {
-    void M(IEnumerable<S> items, IEqualityComparer<S> comparer, bool flag)
+    void M(IEnumerable<S> items, IEqualityComparer<S> comparer, bool flag, int mode)
     {
         items.Distinct(new SComparer());
         items.Distinct(comparer: comparer);
+        Enumerable.Distinct(source: items, comparer);
         items.Distinct(flag ? comparer : null);
+        items.Distinct(mode switch { 0 => comparer, _ => null });
         items.Distinct(default(ValueComparer));
         items.{|RH1002:Distinct|}(null);
         items.{|RH1002:Distinct|}(default);
@@ -135,6 +144,8 @@ class C
         items.{|RH1002:Distinct|}(flag ? null : EqualityComparer<S>.Default);
         items.{|RH1002:Distinct|}(true ? null : comparer);
         items.{|RH1002:Distinct|}((IEqualityComparer<S>)null ?? EqualityComparer<S>.Default);
+        items.{|RH1002:Distinct|}(mode switch { 0 => null, _ => EqualityComparer<S>.Default });
+        items.{|RH1002:Distinct|}(((Holder)null)?.Comparer);
         items.{|RH1002:Distinct|}(default(ValueComparer?));
     }
 }

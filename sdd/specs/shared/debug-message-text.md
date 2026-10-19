@@ -21,7 +21,7 @@ This spec covers the rules that require a call of a `System.Diagnostics.Debug` m
 
 A rule MUST treat a message argument as having no text exactly when it is a compile-time constant whose value is `null`, the empty string, or a string of white-space characters only, as `string.IsNullOrWhiteSpace` decides. The constant MAY be written in any form the compiler folds: a literal, `default`, a cast of `null`, a `const` field or local, a concatenation of constants, or an interpolated string without holes or with constant holes only. A message whose value is not known at compile time MUST be treated as having text.
 
-This requirement covers a message that is not a compile-time constant only when it is a parameter, a local variable, a method call, or an interpolated string with a hole whose value is not constant.
+This requirement covers every message that is not a compile-time constant except `string.Empty` and a conditional or `switch` expression each of whose results is a constant without text.
 
 Why: A message without text gives whoever hits the failure nothing more than a stack trace. The analyzer can judge only a value the compiler knows; a message computed at run time may well have text, and reporting it would be a guess.
 

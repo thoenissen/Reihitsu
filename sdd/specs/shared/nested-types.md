@@ -12,7 +12,6 @@ This spec covers the rules that report a type of one kind declared inside anothe
 ## Non-goals
 
 - Which kind of declaration a rule reports and its own exceptions — each rule's spec.
-- How the containing type is declared: its kind, its accessibility, and whether it is `static` do not change whether a declaration in it is nested.
 - A code fix: no rule of this kind offers one, because moving a type changes the name every user of it writes and may need a new file.
 
 ## Requirements
