@@ -35,3 +35,10 @@ Rules: RH3001–RH3007, RH3101–RH3107, RH3201, RH3203–RH3208 (21 rules). One
 - Open questions: one `SDD open questions: <spec path>` issue per spec, sub-issue of thoenissen/Reihitsu#912, filed by the lead and linked from the PR. Never written into a spec.
 - Must not: change production code or behavior; fix any bug; retire/move/renumber an existing requirement ID without escalation; claim a shared utility another batch or spec owns without escalation; create issues other than "SDD open questions" issues without the maintainer's approval of the exact text.
 - Done: a spec per rule, IDs registered, every requirement covered by tagged tests, rule pages corrected only where wrong, open questions filed, CI green, PR `Closes #997`.
+
+## Escalations after the spec author (answered 2026-10-19)
+
+- RH3202 retires RH3202-002, -003, -004 and uses SHARED-BODY, which covers methods too (`squad/decisions/2026-10-19-997-rh3202-shared-body.md`).
+- `BlankLineCodeFixUtilities`: a new shared spec owns the placement of the inserted blank line; RH5030 and RH3208 use it; RH5030-003 is retired and its tests re-tagged; resolves thoenissen/Reihitsu#1067 (`squad/decisions/2026-10-19-997-blank-line-code-fix-utilities-owner.md`).
+- RH3201: `Uses` is `—`; it keeps its own documentation-line requirement (`squad/decisions/2026-10-19-997-rh3201-uses.md`).
+- RH3202-005 (two blank lines above the method collapse to one): characterization test, filed as an open question of `analyzer/RH3202.md`; spec unchanged (`squad/decisions/2026-10-19-997-rh3202-005-blank-lines.md`).
