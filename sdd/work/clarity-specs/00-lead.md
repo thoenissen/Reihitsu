@@ -42,3 +42,7 @@ Rules: RH3001–RH3007, RH3101–RH3107, RH3201, RH3203–RH3208 (21 rules). One
 - `BlankLineCodeFixUtilities`: a new shared spec owns the placement of the inserted blank line; RH5030 and RH3208 use it; RH5030-003 is retired and its tests re-tagged; resolves thoenissen/Reihitsu#1067 (`squad/decisions/2026-10-19-997-blank-line-code-fix-utilities-owner.md`).
 - RH3201: `Uses` is `—`; it keeps its own documentation-line requirement (`squad/decisions/2026-10-19-997-rh3201-uses.md`).
 - RH3202-005 (two blank lines above the method collapse to one): characterization test, filed as an open question of `analyzer/RH3202.md`; spec unchanged (`squad/decisions/2026-10-19-997-rh3202-005-blank-lines.md`).
+
+## Lane widened: tests → tooling
+
+The decision records under `squad/decisions/` classify as tooling (`LANE CHECK: mismatch — claimed tests, diff needs tooling`). Widened before any implementer stage, along docs → tests → tooling, as the merged batch thoenissen/Reihitsu#1101 did for the same reason. The tooling lane adds the auditor. The implementer stays skipped unless a test fails against the unchanged production code (which this run must not change anyway).
