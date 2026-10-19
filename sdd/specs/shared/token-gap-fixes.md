@@ -13,6 +13,7 @@ This spec covers the code fixes of rules that check the whitespace on both sides
 
 - Which sides a rule reports and what the fix writes — each rule's spec, such as RH6016 and RH6021.
 - Fixes that delete one reported whitespace run — SHARED-WS-002 decides when a comment or directive withholds them.
+- Fixes that join a reported token to the token before it, such as RH5105's — SHARED-WS-003; their rules do not report a gap that holds a comment or a directive (SHARED-JOIN-001).
 - Code with syntax errors.
 
 ## Requirements
