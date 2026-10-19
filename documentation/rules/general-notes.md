@@ -18,7 +18,7 @@ Process(first, // the primary input
 
 ## Code excluded by `#if`
 
-Only the code that is active for the current build configuration is analyzed. Code inside an `#if` branch whose condition is false is not checked, because it is not part of the compilation. It is checked when you build the configuration that includes it.
+Only the code that is active for the current build configuration is analyzed. Code inside an `#if` branch whose condition is false is not checked, because it is not part of the compilation. It is checked when you build the configuration that includes it. The `#region` and `#endregion` directives inside such a branch are the exception: the compiler still reads them, so the rules about regions check them as well.
 
 ## Generated code
 
