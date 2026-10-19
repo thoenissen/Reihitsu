@@ -20,6 +20,8 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("RH7311-003")]
     public async Task VerifyDuplicateRegionDescriptionIsReported()
     {
         const string testData = """
@@ -51,6 +53,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
     public async Task VerifyDuplicateRegionDescriptionIsReportedCaseInsensitively()
     {
         const string testData = """
@@ -82,6 +85,8 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("RH7311-003")]
     public async Task VerifyEveryFurtherDuplicateRegionDescriptionIsReported()
     {
         const string testData = """
@@ -121,6 +126,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
     public async Task VerifyDuplicateRegionDescriptionIsReportedInInterface()
     {
         const string testData = """
@@ -148,6 +154,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
     public async Task VerifyDuplicateRegionDescriptionIsReportedInStruct()
     {
         const string testData = """
@@ -179,6 +186,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
     public async Task VerifyDuplicateRegionDescriptionIsReportedInRecord()
     {
         const string testData = """
@@ -210,6 +218,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
     public async Task VerifyDuplicateRegionDescriptionIsReportedInRecordStruct()
     {
         const string testData = """
@@ -241,6 +250,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
     public async Task VerifyNoDiagnosticForDistinctRegionDescriptions()
     {
         const string testData = """
@@ -293,6 +303,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-002")]
     public async Task VerifyNoDiagnosticForDuplicateDescriptionsInDifferentTypes()
     {
         const string testData = """
@@ -327,6 +338,8 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
     public async Task VerifyNoDiagnosticForDuplicateDescriptionInNestedType()
     {
         const string testData = """
@@ -365,6 +378,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7311-001")]
     public async Task VerifyNoDiagnosticForRegionsWithoutADescription()
     {
         const string testData = """
@@ -385,6 +399,169 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
                                     }
 
                                     #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that every later top-level region repeating an earlier description, ignoring case, is reported, while regions without a description are not compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("RH7311-003")]
+    [Requirement("SHARED-REGDESC-001")]
+    public async Task RepeatedDescriptionsAreReportedOnTheLaterRegions()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7311:#region  methods|}
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7311:#region Methods|}
+
+                                    void D()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region
+
+                                    int _a;
+
+                                    #endregion
+
+                                    #region
+
+                                    int _b;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the regions of two declarations of a partial type are not compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionsOfAnotherPartialDeclarationAreNotCompared()
+    {
+        const string testData = """
+                                partial class P
+                                {
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+
+                                partial class P
+                                {
+                                    #region Methods
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a nested region and a region of a nested type are not top-level regions of the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task NestedRegionsAndRegionsOfNestedTypesAreNotTopLevelRegions()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Methods
+
+                                    #region Methods
+
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+
+                                    class D
+                                    {
+                                        #region Methods
+
+                                        void N()
+                                        {
+                                        }
+
+                                        #endregion
+                                    }
+
+                                    {|RH7311:#region Methods|}
+
+                                    void O()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Characterizes the current behavior for the same description in an <c>#if</c> and an <c>#else</c> branch, which the specification leaves open: the region of the second branch is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SameDescriptionInIfAndElseBranchIsCurrentlyReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if DEBUG
+                                    #region Fields
+                                    int _a;
+                                    #endregion
+                                #else
+                                    {|RH7311:#region Fields|}
+                                    int _b;
+                                    #endregion
+                                #endif
                                 }
                                 """;
 

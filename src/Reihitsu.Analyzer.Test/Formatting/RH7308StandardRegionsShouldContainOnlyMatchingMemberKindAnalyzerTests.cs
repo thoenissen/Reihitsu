@@ -20,6 +20,8 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
+    [Requirement("RH7308-003")]
     public async Task VerifyDiagnosticForPropertyInFieldsRegion()
     {
         const string testData = """
@@ -43,6 +45,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyDiagnosticForMethodInFieldsRegion()
     {
         const string testData = """
@@ -68,6 +71,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyDiagnosticForFieldInPropertiesRegion()
     {
         const string testData = """
@@ -91,6 +95,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyDiagnosticForConstructorInMethodsRegion()
     {
         const string testData = """
@@ -118,6 +123,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyDiagnosticForEventInMethodsRegion()
     {
         const string testData = """
@@ -145,6 +151,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyNoDiagnosticsForMatchingStandardRegions()
     {
         const string testData = """
@@ -188,6 +195,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyNoDiagnosticsForNonStandardRegion()
     {
         const string testData = """
@@ -211,6 +219,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyNoDiagnosticsForNestedTypeInStandardRegion()
     {
         const string testData = """
@@ -278,6 +287,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyDiagnosticForPropertyInSingularFieldRegion()
     {
         const string testData = """
@@ -301,6 +311,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyDiagnosticForRegionLabelMatchedCaseInsensitively()
     {
         const string testData = """
@@ -324,6 +335,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyDiagnosticForPropertyInPrivateMethodsRegion()
     {
         const string testData = """
@@ -349,6 +361,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyNoDiagnosticsForMethodInProtectedMethodsRegion()
     {
         const string testData = """
@@ -372,6 +385,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyNoDiagnosticsForCombinedConstructorsAndFinalizerRegion()
     {
         const string testData = """
@@ -399,6 +413,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyDiagnosticForMethodInCombinedConstructorsAndFinalizerRegion()
     {
         const string testData = """
@@ -426,6 +441,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-002")]
     public async Task VerifyDiagnosticForPropertyInConstantsRegion()
     {
         const string testData = """
@@ -449,6 +465,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyDiagnosticForFinalizerInMethodsRegion()
     {
         const string testData = """
@@ -476,6 +493,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7308-001")]
     public async Task VerifyDiagnosticForMethodInInterfacePropertiesRegion()
     {
         const string testData = """
@@ -492,6 +510,196 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
                                 """;
 
         await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Properties", "property declarations")));
+    }
+
+    /// <summary>
+    /// Verifies that members of a kind the recognized label does not name are reported, also in a nested type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task MembersOfKindsTheLabelDoesNotNameAreReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _value;
+
+                                    public int {|RH7308:Value|} => _value;
+
+                                    #endregion
+
+                                    #region Constructors / Finalizer
+
+                                    public C()
+                                    {
+                                    }
+
+                                    ~C()
+                                    {
+                                    }
+
+                                    public void {|RH7308:Run|}()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Operators
+
+                                    public static C operator +(C left, C right) => left;
+
+                                    public static implicit operator int(C value) => 0;
+
+                                    public int {|RH7308:this|}[int index] => index;
+
+                                    #endregion
+
+                                    class D
+                                    {
+                                        #region Methods
+
+                                        private int {|RH7308:_b|};
+
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that events of both forms in an events region, nested types, and delegates are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    public async Task NestedTypesAndDelegatesAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Events
+
+                                    public event System.EventHandler A;
+
+                                    public event System.EventHandler B
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+
+                                    public delegate void D();
+
+                                    class E
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that labels made of member-kind nouns, qualifiers, and separators are recognized case-insensitively
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-002")]
+    public async Task LabelsOfNounsQualifiersAndSeparatorsAreRecognized()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region private methods
+
+                                    public int {|RH7308:P|} => 1;
+
+                                    #endregion
+
+                                    #region Ctors - Finalizer
+
+                                    public C()
+                                    {
+                                    }
+
+                                    public void {|RH7308:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Const
+
+                                    public int {|RH7308:Q|} => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a label containing any other word is not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-002")]
+    public async Task LabelWithAnyOtherWordIsNotChecked()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Helper methods
+
+                                    public int P => 1;
+
+                                    #endregion
+
+                                    #region IDisposable
+
+                                    public int Q => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic is on the first declarator of a field, the event name, the operator token, and the operator keyword of a conversion operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-003")]
+    public async Task DiagnosticIsOnTheMemberName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Methods
+
+                                    private int {|RH7308:_a|}, _b;
+
+                                    public event System.EventHandler {|RH7308:Changed|};
+
+                                    public static C operator {|RH7308:+|}(C left, C right) => left;
+
+                                    public static implicit {|RH7308:operator|} int(C value) => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests
