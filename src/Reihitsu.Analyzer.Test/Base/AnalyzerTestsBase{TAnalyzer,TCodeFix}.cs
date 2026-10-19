@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Test.Verifiers;
 
@@ -144,6 +145,48 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
             var text = await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
 
             return text.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix
+    /// registers no action for any diagnostic the analyzer reports on the source without its markup
+    /// </summary>
+    /// <param name="source">The source text to test, with markup for every expected diagnostic</param>
+    /// <param name="onConfigure">Additional configuration of the analyzer verification</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyNoCodeFixIsOffered(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure = null)
+    {
+        await Verify(source, onConfigure);
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        using (var workspace = new AdhocWorkspace())
+        {
+            var (document, _) = CreateTestDocument(workspace, plainSource, []);
+
+            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                  ?? throw new InvalidOperationException("Failed to compile test document.");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new TAnalyzer());
+            var diagnostics = await compilation.WithAnalyzers(analyzers).GetAnalyzerDiagnosticsAsync(CancellationToken.None).ConfigureAwait(false);
+            var codeFixProvider = new TCodeFix();
+            var fixableDiagnostics = diagnostics.Where(item => codeFixProvider.FixableDiagnosticIds.Contains(item.Id))
+                                                .ToList();
+
+            Assert.IsNotEmpty(fixableDiagnostics, "The analyzer must report a diagnostic on the source without its markup.");
+
+            foreach (var diagnostic in fixableDiagnostics)
+            {
+                var actions = new List<CodeAction>();
+                var context = new CodeFixContext(document,
+                                                 diagnostic,
+                                                 (action, _) => actions.Add(action),
+                                                 CancellationToken.None);
+
+                await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+
+                Assert.IsEmpty(actions, $"No code fix may be offered for the diagnostic at {diagnostic.Location.SourceSpan}.");
+            }
         }
     }
 

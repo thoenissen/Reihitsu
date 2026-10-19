@@ -23,6 +23,12 @@ public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5502-001")]
+    [Requirement("RH5502-002")]
+    [Requirement("RH5502-003")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -57,6 +63,8 @@ public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5502-001")]
+    [Requirement("SHARED-ATTR-013")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -79,6 +87,8 @@ public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5502-004")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -136,6 +146,119 @@ public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that only the assembly attribute list that holds several attributes is reported, on the whole list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5502-001")]
+    [Requirement("RH5502-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticOnlyForMultiAttributeAssemblyList()
+    {
+        const string testData = """
+                                {|#0:[assembly: A, B]|}
+                                [assembly: D]
+                                [assembly: E]
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                sealed class E : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5502MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the assembly attribute list by one list per attribute, each on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5502-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachAssemblyAttributeAListOfItsOwn()
+    {
+        const string testData = """
+                                {|#0:[assembly: A, B]|}
+                                class C
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [assembly: A]
+                                 [assembly: B]
+                                 class C
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5502MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the assembly attribute list by one list per attribute, each on its own line, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5502-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachAssemblyAttributeAListOfItsOwnWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                {|#0:[assembly: A, B]|}
+                                class C
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [assembly: A]
+                                 [assembly: B]
+                                 class C
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5502MessageFormat));
     }
 
     #endregion // Tests

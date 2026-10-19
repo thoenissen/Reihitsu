@@ -23,6 +23,12 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5508-001")]
+    [Requirement("RH5508-002")]
+    [Requirement("RH5508-003")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-017")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -57,6 +63,8 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5508-001")]
+    [Requirement("SHARED-ATTR-013")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -79,6 +87,8 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5508-004")]
+    [Requirement("SHARED-ATTR-019")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -113,6 +123,117 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the multi-attribute lists of a struct and of a record struct are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5508-001")]
+    [Requirement("RH5508-002")]
+    [Requirement("SHARED-ATTR-013")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForMultiAttributeListsOfStructsAndRecordStructs()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                struct S
+                                {
+                                }
+
+                                {|#1:[A, B]|}
+                                record struct R;
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the struct attribute list by one list per attribute, each on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5508-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachStructAttributeAListOfItsOwn()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                struct S
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 struct S
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces the struct attribute list by one list per attribute, each on its own line, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5508-003")]
+    [Requirement("SHARED-ATTR-017")]
+    public async Task VerifyCodeFixGivesEachStructAttributeAListOfItsOwnWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                {|#0:[A, B]|}
+                                struct S
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B]
+                                 struct S
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat));
     }
 
     #endregion // Tests

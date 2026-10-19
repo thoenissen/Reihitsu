@@ -23,6 +23,12 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5529-001")]
+    [Requirement("RH5529-002")]
+    [Requirement("RH5529-003")]
+    [Requirement("SHARED-ATTR-015")]
+    [Requirement("SHARED-ATTR-016")]
+    [Requirement("SHARED-ATTR-018")]
     public async Task VerifyDiagnosticAndCodeFixForPolicyViolation()
     {
         const string testData = """
@@ -58,6 +64,8 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5529-001")]
+    [Requirement("SHARED-ATTR-015")]
     public async Task VerifyNoDiagnosticForCompliantCode()
     {
         const string testData = """
@@ -80,6 +88,8 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5529-004")]
+    [Requirement("SHARED-ATTR-020")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentsArePresent()
     {
         const string testData = """
@@ -189,6 +199,8 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5529-003")]
+    [Requirement("SHARED-ATTR-018")]
     public async Task VerifyCodeFixJoinsTypeParameterWhenBlankLineFollowsTheGroup()
     {
         const string testData = """
@@ -227,6 +239,8 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5529-003")]
+    [Requirement("SHARED-ATTR-018")]
     public async Task VerifyCodeFixJoinsVariantTypeParameterWhenBlankLineFollowsTheGroup()
     {
         const string testData = """
@@ -265,6 +279,8 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5529-004")]
+    [Requirement("SHARED-ATTR-020")]
     public async Task VerifyDiagnosticWithoutCodeFixWhenPragmaFollowsBlankLineAfterTheGroup()
     {
         const string testData = """
@@ -309,6 +325,162 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a list following another list of the same type parameter and target is reported on type, method, and delegate type parameters, while a single merged list is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5529-001")]
+    [Requirement("RH5529-002")]
+    [Requirement("SHARED-ATTR-015")]
+    [Requirement("SHARED-ATTR-016")]
+    public async Task VerifyDiagnosticForEveryFollowingListOfOneTypeParameterAndTarget()
+    {
+        const string testData = """
+                                class C<[A] {|#0:[B]|} T, [typevar: A] {|#1:[B]|} U, [A, B] W>
+                                {
+                                    void M<[A] {|#2:[B]|} T>()
+                                    {
+                                    }
+                                }
+
+                                delegate void D<[A] {|#3:[B]|} T>();
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix merges the lists of the type parameter into the first and joins the type parameter onto its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5529-003")]
+    [Requirement("SHARED-ATTR-018")]
+    public async Task VerifyCodeFixMergesTypeParameterListsIntoTheFirst()
+    {
+        const string testData = """
+                                interface I<[A]
+                                            {|#0:[B]|} out T>
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 interface I<[A, B] out T>
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix merges the lists of the type parameter into the first and joins the type parameter onto its line, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5529-003")]
+    [Requirement("SHARED-ATTR-018")]
+    public async Task VerifyCodeFixMergesTypeParameterListsIntoTheFirstWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                interface I<[A]
+                                            {|#0:[B]|} out T>
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 interface I<[A, B] out T>
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a following list is still reported without offering a code fix when the first list of the group holds a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5529-004")]
+    [Requirement("SHARED-ATTR-020")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenFirstListHoldsComment()
+    {
+        const string testData = """
+                                class C<[typevar: A /* c */] {|#0:[typevar: B]|} T>
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   class C<[typevar: A /* c */] [typevar: B] T>
+                                   {
+                                   }
+                                   sealed class A : System.Attribute
+                                   {
+                                   }
+                                   sealed class B : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+
+        foreach (var index in new[] { 1 })
+        {
+            var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                       RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                       root => root.DescendantNodes()
+                                                                   .OfType<AttributeListSyntax>()
+                                                                   .ElementAt(index)
+                                                                   .GetLocation());
+
+            Assert.IsEmpty(actions, $"A code fix was offered for attribute list {index}.");
+        }
     }
 
     #endregion // Tests
