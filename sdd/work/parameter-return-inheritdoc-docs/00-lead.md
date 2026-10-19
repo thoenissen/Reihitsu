@@ -26,3 +26,11 @@ RH8101–RH8106, RH8108–RH8111, RH8201–RH8204 (14 rules). One spec per rule 
 ## Open-question issues of touched specs
 
 No open "SDD open questions" issue exists for `shared/element-documentation.md` (#1037, #1130 closed) or `analyzer/RH8107.md`.
+
+## Lane widened
+
+After the decision record `squad/decisions/2026-10-19-rh8202-uses-rh8107-fix-requirements.md` was committed, `scripts/lane-check.sh tests --head worktree` reported `mismatch — claimed tests, diff needs tooling` (the record lives under `squad/`). This is before the implementer stage, so the lane widens tests → tooling, as the RH8020–RH8034 batch did. Roles now: spec author and skeptic (done), test implementer, implementer only if a test fails against the unchanged code (production code stays untouched either way), cleaner, spec checker, auditor (added by the tooling lane), validator.
+
+## Escalation answered
+
+RH8202 keeps RH8107-006 and RH8107-007 under `Uses`; nothing moves or retires (decision record above).
