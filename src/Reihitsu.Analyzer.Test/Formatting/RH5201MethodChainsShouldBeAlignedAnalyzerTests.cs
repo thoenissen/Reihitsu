@@ -26,6 +26,14 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-004")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-002")]
+    [Requirement("SHARED-CHAIN-005")]
+    [Requirement("SHARED-CHAIN-007")]
+    [Requirement("SHARED-CHAIN-008")]
     public async Task VerifyMisalignedMethodChainsAreDetectedAndFixed()
     {
         const string testData = """
@@ -307,6 +315,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-008")]
     public async Task VerifyNestedConditionalAccessChainFixConvergesInOneApplication()
     {
         const string testData = """
@@ -345,6 +355,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-005")]
     public async Task VerifyMemberAccessInsideConditionalAccessArmIsDetectedAndFixed()
     {
         const string testData = """
@@ -384,6 +396,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyMixedPropertyAndInvocationChainFixConvergesInOneApplication()
     {
         const string testData = """
@@ -418,6 +432,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-005")]
     public async Task VerifySameLineFixRemovesPreviousTokenTrailingWhitespace()
     {
         const string testData = """
@@ -457,6 +473,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
     public async Task VerifySameLineFixPreservesBlockCommentInTokenGap()
     {
         const string testData = """
@@ -497,6 +514,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-004")]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyFixPreservesDirectiveInTokenGap()
     {
         const string testData = """
@@ -546,6 +566,10 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-003")]
+    [Requirement("RH5201-004")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-006")]
     public async Task VerifyLineBreakInsideNullForgivingLinkIsReportedAndMovedInFrontOfOperator()
     {
         const string testData = """
@@ -577,6 +601,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyConditionalAccessAndNullForgivingOperatorsAlignAsChainLinks()
     {
         const string testData = """
@@ -600,6 +626,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
     public async Task VerifyInsertedLineBreakUsesDetectedCarriageReturnLineFeedEndOfLine()
     {
         const string testData = """
@@ -628,6 +655,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-004")]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyChainWithDisabledLinkReportsNoDiagnostic()
     {
         const string testData = """
@@ -692,6 +722,10 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-003")]
+    [Requirement("RH5201-004")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-006")]
     public async Task VerifyConditionalLinksWrappedAfterQuestionMarkAreFixedWithoutSplittingOperator()
     {
         const string testData = """
@@ -741,6 +775,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-001")]
     public async Task VerifyConditionalElementAccessStaysWithItsCallWhenFixed()
     {
         const string testData = """
@@ -789,6 +826,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyLinkBehindNullForgivingConditionalFirstLinkIsAlignedWithExclamationMark()
     {
         const string testData = """
@@ -836,6 +876,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
     public async Task VerifyLinksOfTwoChainsAreFixedTogether()
     {
         const string testData = """
@@ -892,6 +933,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
     public async Task VerifyFixKeepsRawStringRootInPlace()
     {
         const string testData = """"
@@ -943,6 +985,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-008")]
     public async Task VerifyFixAlignsChainInsideArgument()
     {
         const string testData = """
@@ -990,6 +1034,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-009")]
     public async Task VerifyFixAlignsChainBehindMisspacedDeclaration()
     {
         const string testData = """
@@ -1051,6 +1097,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-009")]
     public async Task VerifyFixAlignsChainBehindMisspacedArgumentList()
     {
         const string testData = """
@@ -1108,6 +1156,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-006")]
     public async Task VerifyFixMovesBreakInsideOperatorOfChainInConditionalExpression()
     {
         const string testData = """
@@ -1171,6 +1221,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-008")]
     public async Task VerifyFixAlignsInnerChainInsideWrappedOuterChain()
     {
         const string testData = """
@@ -1231,6 +1283,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
     public async Task VerifyFixAlignsChainOnRawStringRootNotAlignedUnderItsQuotes()
     {
         const string testData = """"
@@ -1297,6 +1350,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-009")]
     public async Task VerifyFixLeavesCodeBehindTheChainUntouched()
     {
         const string testData = """
@@ -1325,6 +1380,295 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that links of the prefix in front of the first invoked link are not reported for sharing a line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("SHARED-CHAIN-005")]
+    public async Task VerifyPrefixLinksSharingALineAreNotReported()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private Example Next { get; set; }
+
+                                    private Example Self() => this;
+
+                                    private static Example Run(Example c)
+                                    {
+                                        return c.Next.Next
+                                                .Self();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that links of a wrapped chain without an invoked link are not reported for sharing a line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("SHARED-CHAIN-005")]
+    public async Task VerifyLinksOfCallLessChainSharingALineAreNotReported()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private Example Next { get; set; }
+
+                                    private static Example Run(Example c)
+                                    {
+                                        return c.Next
+                                                .Next.Next;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped link is aligned to the start of the root when a comment keeps the first link on its own
+    /// line, so a link in another column is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-004")]
+    [Requirement("SHARED-CHAIN-004")]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyLinkBehindCommentedRootIsAlignedToTheRoot()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var b = items // root
+                                            {|#0:.|}Where(value => value > 0);
+                                        var c = items // root
+                                                .Where(value => value > 0);
+
+                                        return b.Concat(c);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment in front of a link on the link's line is aligned together with the link, so the
+    /// line is not reported when the comment starts in the anchor's column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyBlockCommentStartingTheLinkLineIsAlignedWithTheLink()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        return items.Where(value => value > 0)
+                                                    /* all */ .ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a first link that starts a line is not reported for its column, and the later links aligned to
+    /// it are not reported either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyWrappedFirstLinkIsNotReportedForItsColumn()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var d = items
+                                            .Where(value => value > 0)
+                                            .ToList();
+
+                                        return d;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a link of a chain without a call is reported when its operator is split across lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-003")]
+    [Requirement("RH5201-004")]
+    [Requirement("SHARED-CHAIN-006")]
+    public async Task VerifySplitConditionalOperatorOfCallLessChainIsReported()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                internal sealed class Example
+                                {
+                                    private Example? Next { get; set; }
+
+                                    private static object? Run(Example d)
+                                    {
+                                        return d.Next{|#0:?|}
+                                                 .Next;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line break a comment keeps inside a link operator does not count as splitting it, so a link of a
+    /// chain without a call is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-003")]
+    public async Task VerifyCommentHeldLineBreakInsideOperatorOfCallLessChainIsNotReported()
+    {
+        const string testData = """
+                                #nullable enable
+
+                                internal sealed class Example
+                                {
+                                    private Example? Next { get; set; }
+
+                                    private static object? Run(Example d)
+                                    {
+                                        return d.Next? // why
+                                                 .Next;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a later link whose operator holds a comment-kept line break is reported because its first token
+    /// does not start a line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-003")]
+    public async Task VerifyCommentHeldLineBreakInsideLaterLinkOperatorIsReportedForSharingALine()
+    {
+        const string testData = """
+                                #nullable enable
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object? Run(int[]? items)
+                                    {
+                                        return items?.Where(value => value > 0){|#0:?|} // why
+                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a later link which both shares a line and has its operator split is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("RH5201-003")]
+    [Requirement("RH5201-004")]
+    public async Task VerifyLinkMisplacedInTwoWaysIsReportedOnce()
+    {
+        const string testData = """
+                                #nullable enable
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object? Run(int[]? items)
+                                    {
+                                        return items?.Where(value => value > 0){|#0:?|}
+                                                     .ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix gives the whole chain its formatted layout when the first of two misplaced links is fixed,
+    /// under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-008")]
+    public async Task VerifyChainWithTwoMisplacedLinksIsFixedWithCrLf()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static object Run(int[] items)
+                                    {
+                                        var a = items.Where(value => value > 0)
+                                            {|#0:.|}Select(value => value){|#1:.|}ToList();
+
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static object Run(int[] items)
+                                      {
+                                          var a = items.Where(value => value > 0)
+                                                       .Select(value => value)
+                                                       .ToList();
+
+                                          return a;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
     }
 
     /// <summary>

@@ -23,6 +23,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -45,6 +46,9 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-001")]
+    [Requirement("RH5109-002")]
+    [Requirement("RH5109-003")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -76,6 +80,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-003")]
     public async Task VerifyContinuationLinesAlignUnderRelocatedFirstParameter()
     {
         const string testData = """
@@ -108,6 +113,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-001")]
     public async Task VerifyMultiLineParameterListWithSharedStartLineIsDetected()
     {
         const string testData = """
@@ -128,6 +134,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-001")]
     public async Task VerifyMultiLineSingleParameterIsNotFlagged()
     {
         const string testData = """
@@ -149,6 +156,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-003")]
     public async Task VerifyFixDoesNotReformatMemberBody()
     {
         const string testData = """
@@ -181,6 +189,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-004")]
     public async Task VerifyFixIsNotOfferedWhenParameterListContainsComment()
     {
         const string testData = """
@@ -212,6 +221,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-004")]
     public async Task VerifyDocumentationCommentedParameterListIsNotOfferedACodeFix()
     {
         const string codeFixData = """
@@ -241,6 +251,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-004")]
     public async Task VerifyDocumentedMemberStillGetsTheCodeFixAndKeepsItsComment()
     {
         const string codeFixData = """
@@ -265,6 +276,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-001")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsReported()
     {
         const string testData = """
@@ -285,6 +297,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-004")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -334,6 +347,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-004")]
     public async Task VerifyWithoutTrailingCommentIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -363,6 +377,8 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-003")]
+    [Requirement("RH5109-004")]
     public async Task VerifyTrailingCommentAfterClosingParenthesisIsFixed()
     {
         const string testData = """
@@ -396,6 +412,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-004")]
     public async Task VerifyCommentBeforeTheOpeningParenthesisWithholdsTheCodeFix()
     {
         const string codeFixData = """
@@ -427,6 +444,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5109-004")]
     public async Task VerifyCommentAdjacentToTheClosingParenthesisIsOfferedACodeFix()
     {
         const string codeFixData = """
@@ -449,6 +467,198 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
                                                                .GetLocation());
 
         Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a primary constructor's parameter list with parameters sharing a line is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    public async Task VerifyPrimaryConstructorParameterListIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass{|#0:(|}int first, int second,
+                                                         int third)
+                                {
+                                    public int Sum => first + second + third;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a parenthesized lambda's parameter list with parameters sharing a line is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    public async Task VerifyParenthesizedLambdaParameterListIsDetected()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Func<int, int, int, int> sum = {|#0:(|}int first, int second,
+                                                                        int third) => first + second + third;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that one diagnostic is reported per parameter list, however many parameters share a line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-002")]
+    [Requirement("RH5109-003")]
+    public async Task VerifyOneDiagnosticIsReportedForSeveralSharedLines()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third, int fourth)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second,
+                                                 int third,
+                                                 int fourth)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts every parameter on its own line under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-003")]
+    public async Task VerifyIssueIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second,
+                                                 int third)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive between two parameters is reported and withholds the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-004")]
+    public async Task VerifyDirectiveInsideParameterListWithholdsTheCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                #if DEBUG
+                                #endif
+                                                int third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ParameterListSyntax>()
+                                                               .First()
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on the line of the token in front of the opening parenthesis does not withhold the
+    /// code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-004")]
+    public async Task VerifyCommentBehindTokenBeforeOpeningParenthesisIsOfferedACodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method /* note */ {|#0:(|}int first, int second,
+                                                          int third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ParameterListSyntax>()
+                                                               .First()
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list written on one line is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    public async Task VerifySingleLineParameterListIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first, int second, int third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

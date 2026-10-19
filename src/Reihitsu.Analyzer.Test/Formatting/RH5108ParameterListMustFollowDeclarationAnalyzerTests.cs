@@ -21,6 +21,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -43,6 +44,10 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-002")]
+    [Requirement("RH5108-003")]
+    [Requirement("SHARED-WS-003")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -72,6 +77,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenDirectivesArePresent()
     {
         const string testData = """
@@ -95,6 +102,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenCommentSitsInParameterGap()
     {
         const string testData = """
@@ -115,6 +124,9 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-002")]
+    [Requirement("RH5108-003")]
     public async Task VerifyAttributedFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -149,6 +161,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-003")]
     public async Task VerifyConstructorFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -177,6 +191,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-003")]
     public async Task VerifyLocalFunctionFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -211,6 +227,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-003")]
     public async Task VerifyOperatorFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -241,6 +259,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-003")]
     public async Task VerifyConversionOperatorFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -271,6 +291,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-003")]
     public async Task VerifyDelegateFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -289,6 +311,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-003")]
     public async Task VerifyRecordFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -307,6 +331,8 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-003")]
     public async Task VerifyRecordStructFirstParameterOnNextLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -318,6 +344,84 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the violation is not flagged when a block comment ends in front of the first parameter on its
+    /// line, because the gap in front of the parameter holds it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenCommentPrecedesTheFirstParameter()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(
+                                        /* note */ int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the violation is not flagged when disabled text sits in the gap in front of the first parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenDisabledTextIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(
+                                #if false
+                                        int disabled,
+                                #endif
+                                        int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the first parameter to the opening parenthesis under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5108-003")]
+    [Requirement("SHARED-WS-003")]
+    public async Task VerifyIssueIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(
+                                        {|#0:int|} value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
     }
 
     #endregion // Tests
