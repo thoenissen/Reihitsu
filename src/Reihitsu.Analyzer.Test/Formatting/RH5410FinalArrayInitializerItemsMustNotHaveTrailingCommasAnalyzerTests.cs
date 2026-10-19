@@ -21,6 +21,9 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5410-001")]
     public async Task VerifyTrailingCommaOnFinalExplicitArrayItemIsDetectedAndFixed()
     {
         const string testData = """
@@ -44,6 +47,9 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5410-001")]
     public async Task VerifyTrailingCommaOnImplicitArrayInitializerIsRemovedSurgically()
     {
         const string testData = """
@@ -73,6 +79,8 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5410-001")]
     public async Task VerifyTrailingCommaWithSameLineCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -106,6 +114,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
     public async Task VerifyTrailingCommaOnOwnLineAfterCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -140,6 +149,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
     public async Task VerifyArrayWithoutTrailingCommaIsNotFlagged()
     {
         const string testData = """
@@ -157,6 +167,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
     public async Task VerifyEmptyArrayInitializerIsNotFlagged()
     {
         const string testData = """
@@ -175,6 +186,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
     public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsNotFlagged()
     {
         const string testData = """
@@ -202,6 +214,8 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-TRAIL-003")]
     public async Task VerifyArrayWithRegionDirectiveAfterFinalItemIsStillFlagged()
     {
         const string testData = """
@@ -243,6 +257,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5410-002")]
     public async Task VerifyTrailingCommaOnCollectionInitializerIsNotFlagged()
     {
         const string testData = """
@@ -269,6 +284,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5410-002")]
     public async Task VerifyTrailingCommaOnObjectInitializerIsNotFlagged()
     {
         const string testData = """
@@ -286,6 +302,118 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
                                             Second = 2,
                                         };
                                     }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of array initializers: the initializer of a field, of an explicit and an
+    /// implicit array creation, of each nested initializer of a multi-dimensional array, and of both
+    /// <see langword="stackalloc"/> forms is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5410-001")]
+    public async Task VerifySpecificationExampleOfArrayInitializersIsReportedAndFixed()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    int[] _a = { 1, 2{|#0:,|} };
+                                    int[] _b = new int[] { 1{|#1:,|} };
+                                    int[] _c = new[] { 1{|#2:,|} };
+                                    int[,] _d = { { 1, 2{|#3:,|} }, { 3, 4 }{|#4:,|} };
+
+                                    void M()
+                                    {
+                                        Span<int> s = stackalloc int[] { 1{|#5:,|} };
+                                        Span<int> t = stackalloc[] { 1{|#6:,|} };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     int[] _a = { 1, 2 };
+                                     int[] _b = new int[] { 1 };
+                                     int[] _c = new[] { 1 };
+                                     int[,] _d = { { 1, 2 }, { 3, 4 } };
+
+                                     void M()
+                                     {
+                                         Span<int> s = stackalloc int[] { 1 };
+                                         Span<int> t = stackalloc[] { 1 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5410MessageFormat, 7));
+    }
+
+    /// <summary>
+    /// Verifies that the trailing comma of an inner and of the outer initializer of one multi-dimensional array are
+    /// reported on their own and both removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5410-001")]
+    public async Task VerifyInnerAndOuterTrailingCommasOfMultiDimensionalArrayAreReportedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int[,] _d =
+                                    {
+                                        { 1, 2{|#0:,|} },
+                                        { 3, 4{|#1:,|} }{|#2:,|}
+                                    };
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int[,] _d =
+                                     {
+                                         { 1, 2 },
+                                         { 3, 4 }
+                                     };
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5410MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of other initializers: a collection initializer, an object initializer, a
+    /// collection expression, and an anonymous object creation are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5410-002")]
+    public async Task VerifySpecificationExampleOfOtherInitializersIsNotReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class D
+                                {
+                                    public int P { get; set; }
+                                }
+
+                                class C
+                                {
+                                    List<int> _a = new List<int> { 1, 2, };
+                                    D _b = new D { P = 1, };
+                                    int[] _c = [1, 2,];
+                                    object _d = new { A = 1, };
                                 }
                                 """;
 

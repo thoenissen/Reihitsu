@@ -24,6 +24,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
+| [shared/empty-type-declarations.md](shared/empty-type-declarations.md) | SHARED-EMPTY | `EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase`, `EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase`, `EmptyTypeDeclarationSemicolonAnalysisUtilities` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
 | [shared/operator-spacing.md](shared/operator-spacing.md) | SHARED-OPSPACE | `OperatorSpacingCodeFixProviderBase` |
@@ -32,6 +33,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
 | [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
 | [shared/token-gap-fixes.md](shared/token-gap-fixes.md) | SHARED-GAP | `CommentSafeSpanReplacementCodeFixProviderBase` |
+| [shared/trailing-commas.md](shared/trailing-commas.md) | SHARED-TRAIL | `TrailingCommaAnalyzerBase<TNode>`, `TrailingCommaRemovalCodeFixProviderBase`, `TrailingCommaCodeFixHelper` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
 | [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase`, `CollapseTokenGapCodeFixProviderBase` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
@@ -144,6 +146,15 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5204.md](analyzer/RH5204.md) | RH5204 | `RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer`, `RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider` |
 | [analyzer/RH5205.md](analyzer/RH5205.md) | RH5205 | `RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer`, `RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider` |
 | [analyzer/RH5206.md](analyzer/RH5206.md) | RH5206 | `RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer`, `RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider` |
+| [analyzer/RH5409.md](analyzer/RH5409.md) | RH5409 | `RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer`, `RH5409FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider` |
+| [analyzer/RH5410.md](analyzer/RH5410.md) | RH5410 | `RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer`, `RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasCodeFixProvider` |
+| [analyzer/RH5411.md](analyzer/RH5411.md) | RH5411 | `RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer`, `RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasCodeFixProvider` |
+| [analyzer/RH5412.md](analyzer/RH5412.md) | RH5412 | `RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer`, `RH5412EmptyClassesShouldUseSemicolonDeclarationsCodeFixProvider` |
+| [analyzer/RH5413.md](analyzer/RH5413.md) | RH5413 | `RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer`, `RH5413EmptyStructsShouldUseSemicolonDeclarationsCodeFixProvider` |
+| [analyzer/RH5414.md](analyzer/RH5414.md) | RH5414 | `RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer`, `RH5414EmptyInterfacesShouldUseSemicolonDeclarationsCodeFixProvider` |
+| [analyzer/RH5415.md](analyzer/RH5415.md) | RH5415 | `RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer`, `RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider` |
+| [analyzer/RH5416.md](analyzer/RH5416.md) | RH5416 | `RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer`, `RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsCodeFixProvider` |
+| [analyzer/RH5417.md](analyzer/RH5417.md) | RH5417 | `RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer`, `RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider` |
 | [analyzer/RH5501.md](analyzer/RH5501.md) | RH5501 | `RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer`, `RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5502.md](analyzer/RH5502.md) | RH5502 | `RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer`, `RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5503.md](analyzer/RH5503.md) | RH5503 | `RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer`, `RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider` |
