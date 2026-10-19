@@ -156,7 +156,7 @@ interface {|RH7305:I|}
 
 ### SHARED-TYPEREGION-005 — Inside executable code and between declarations
 
-A rule MUST treat a region directive as inside executable code when it lies in a block, an accessor list, a lambda or anonymous method, a local function, or a statement. It MUST treat a region directive as between declarations when it lies between the members of a type or of an enum, between the declarations of a namespace, or at the top level of a file.
+In a file without top-level statements, a rule MUST treat a region directive as inside executable code when it lies in a block, an accessor list, a lambda or anonymous method, a local function, or a statement. It MUST treat a region directive as between declarations when it lies between the members of a type or of an enum, between the declarations of a namespace, or at the top level of a file.
 
 Why: Inside executable code a region hides statements; between declarations it groups members, types, or namespaces, which is what regions are for. The rules that report misplaced regions, align region directives, or remove empty regions need the same line between the two, or one rule would align a directive that another asks to remove.
 
@@ -208,7 +208,7 @@ namespace N
 
 ### SHARED-TYPEREGION-006 — The top-level regions of a type declaration
 
-When no `#region`–`#endregion` pair (FMT-REGION-003) of a class, struct, interface, record, or record struct declaration crosses the start or the end of one of its members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested types, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
+When every region directive inside a class, struct, interface, record, or record struct declaration lies inside executable code or between declarations (SHARED-TYPEREGION-005), none lies inside a nested enum or a nested extension block, and no `#region`–`#endregion` pair (FMT-REGION-003) crosses the start or the end of one of the declaration's members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested types, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
 
 Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type to that type's outline, and a region in a method body to the method; none of them is an entry of this type's outline.
 
