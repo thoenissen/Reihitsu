@@ -405,7 +405,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies the parameters of a documented explicit interface implementation are not reported, while the same parameters of an implicit implementation are
+    /// Verifies the parameters of a documented explicit interface implementation are not reported, while the same parameters of a public method with the same signature are
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

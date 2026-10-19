@@ -579,7 +579,6 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                   /// <example><code><value>Sample</value></code></example>
                                   /// <remarks>{|#2:<value>Nested</value>|}</remarks>
                                   public int Weight { get; }
-
                               }
                               """;
 

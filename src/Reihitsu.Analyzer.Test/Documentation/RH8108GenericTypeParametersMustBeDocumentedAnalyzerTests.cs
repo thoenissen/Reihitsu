@@ -160,7 +160,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
     }
 
     /// <summary>
-    /// Verifies the type parameters of a documented explicit interface implementation are not reported, while the same type parameter of an implicit implementation is
+    /// Verifies the type parameters of a documented explicit interface implementation are not reported, while the same type parameter of a public method with the same signature is
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

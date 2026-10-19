@@ -173,7 +173,6 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                                   public void N()
                                   {
                                   }
-
                               }
                               """;
 

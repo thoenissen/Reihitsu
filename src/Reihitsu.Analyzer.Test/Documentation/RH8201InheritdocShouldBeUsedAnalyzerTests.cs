@@ -314,7 +314,6 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     [TestMethod]
     [Requirement("RH8201-001")]
     [Requirement("RH8201-004")]
-    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForFieldLikeOverrideEvent()
     {
         const string testData = """
@@ -480,7 +479,6 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-001")]
-    [Requirement("RH8201-005")]
     public async Task VerifyMultipleFieldLikeOverrideEventsAreFixedInOneFixAllIteration()
     {
         const string testData = """
