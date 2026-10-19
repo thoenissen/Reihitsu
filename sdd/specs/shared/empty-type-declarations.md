@@ -89,11 +89,11 @@ class A;
 class B; // note
 ```
 
-### SHARED-EMPTY-004 — A comment in the body withholds the fix
+### SHARED-EMPTY-004 — The fix is withheld where the formatter keeps the braces
 
-The code fix MUST NOT be offered for a declaration whose braces FMT-STRUCT-018 keeps: one with anything other than whitespace and line breaks after the declaration's header, before or after the opening brace, or before the closing brace. The diagnostic is still reported (SHARED-EMPTY-001).
+The code fix MUST NOT be offered for a declaration whose braces FMT-STRUCT-018 keeps. A declaration that SHARED-EMPTY-001 reports, such as one with a comment in those places, stays reported.
 
-Why: The braces are the only place such a comment can stay. Removing them would delete the comment the author wrote; moving it would change what it describes, which the fix cannot decide for the author.
+Why: The braces are the only place a comment there can stay. Removing them would delete the comment the author wrote; moving it would change what it describes, which the fix cannot decide for the author.
 
 Example — RH5412:
 
