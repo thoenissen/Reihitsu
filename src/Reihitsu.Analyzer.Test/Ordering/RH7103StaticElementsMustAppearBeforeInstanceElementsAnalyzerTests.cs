@@ -19,6 +19,35 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests : BatchCodeFixTestsBase<RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer, RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Input of the SHARED-FIX-003 RH7103 example, in which <c>_a</c> crosses only the instance field and <c>_b</c>
+    /// would cross <c>_a</c>
+    /// </summary>
+    private const string CrossesOnlyAnInstanceFieldTestCode = """
+                                                              public class C
+                                                              {
+                                                                  private int _instance;
+                                                                  private static int _a = 1;
+                                                                  private static int _b = _a;
+                                                              }
+                                                              """;
+
+    /// <summary>
+    /// Result of the SHARED-FIX-003 RH7103 example after one application of the action registered for <c>_a</c>
+    /// </summary>
+    private const string CrossesOnlyAnInstanceFieldFixedCode = """
+                                                               public class C
+                                                               {
+                                                                   private static int _a = 1;
+                                                                   private int _instance;
+                                                                   private static int _b = _a;
+                                                               }
+                                                               """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1213,10 +1242,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                 public class C
                                 {
                                     private int _instance;
-                                    private static int {|RH7103:_a|} = Compute();
+                                    private static int {|RH7103:_a|} = 1;
                                     private static int {|RH7103:_b|} = _a;
-
-                                    private static int Compute() => 1;
                                 }
                                 """;
 
@@ -1234,25 +1261,43 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifying a code action is registered for the static field that crosses only an instance field, whose
-    /// initialization runs at a different time
+    /// Verifying exactly one code action is registered for the static field that crosses only an instance field, whose
+    /// initialization runs at a different time, and that it moves only that field and leaves the reading field reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-003")]
     public async Task CodeActionIsRegisteredWhenTheMoveCrossesOnlyAnInstanceField()
     {
-        const string testCode = """
-                                public class C
-                                {
-                                    private int _instance;
-                                    private static int _a = Compute();
-                                    private static int _b = _a;
+        await VerifyTheActionForTheFieldThatCrossesOnlyAnInstanceField(CrossesOnlyAnInstanceFieldTestCode, CrossesOnlyAnInstanceFieldFixedCode);
+    }
 
-                                    private static int Compute() => 1;
-                                }
-                                """;
+    /// <summary>
+    /// Verifying exactly one code action is registered for the static field that crosses only an instance field when
+    /// the document uses CRLF line endings, and that it moves only that field and keeps every line ending
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task CodeActionIsRegisteredWhenTheMoveCrossesOnlyAnInstanceFieldWithCarriageReturnLineFeed()
+    {
+        await VerifyTheActionForTheFieldThatCrossesOnlyAnInstanceField(NormalizeToCarriageReturnLineFeed(CrossesOnlyAnInstanceFieldTestCode),
+                                                                       NormalizeToCarriageReturnLineFeed(CrossesOnlyAnInstanceFieldFixedCode));
+    }
 
+    #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Applies the one code action registered for <c>_a</c>, asserts the exact result, and asserts that <c>_b</c> is
+    /// still reported in it while <c>_a</c> is not
+    /// </summary>
+    /// <param name="testCode">Source text without markup, in which <c>_a</c> and <c>_b</c> are reported</param>
+    /// <param name="fixedCode">Expected source text after the action, without markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyTheActionForTheFieldThatCrossesOnlyAnInstanceField(string testCode, string fixedCode)
+    {
         var actions = await GetCodeFixActionsAsync(testCode,
                                                    RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
                                                    root => root.DescendantNodes()
@@ -1261,21 +1306,18 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                                                .Identifier
                                                                .GetLocation());
 
-        Assert.IsNotEmpty(actions);
+        Assert.HasCount(1, actions);
 
         var operations = await actions[0].GetOperationsAsync(CancellationToken.None);
         var changedDocument = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution.Projects.Single().Documents.Single();
         var changedText = (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
-        var movedFieldPosition = changedText.IndexOf("private static int _a = Compute();", StringComparison.Ordinal);
-        var readingFieldPosition = changedText.IndexOf("private static int _b = _a;", StringComparison.Ordinal);
-        var instanceFieldPosition = changedText.IndexOf("private int _instance;", StringComparison.Ordinal);
 
-        Assert.IsGreaterThanOrEqualTo(0, movedFieldPosition, changedText);
-        Assert.IsLessThan(instanceFieldPosition, movedFieldPosition, changedText);
-        Assert.IsLessThan(readingFieldPosition, movedFieldPosition, changedText);
+        Assert.AreEqual(fixedCode, changedText);
+
+        await Verify(changedText.Replace("private static int _b", "private static int {|RH7103:_b|}", StringComparison.Ordinal));
     }
 
-    #endregion // Tests
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

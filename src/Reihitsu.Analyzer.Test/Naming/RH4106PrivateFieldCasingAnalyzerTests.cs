@@ -488,33 +488,15 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     }
 
     /// <summary>
-    /// Verifies that a field whose new name is already declared in the same type is still reported, but no fix is offered
+    /// Verifies that a field whose new name is already declared in the same type is still reported, but no fix is
+    /// offered, because the renamed field would collide with the other field and not compile
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
     [Requirement("RH4106-006")]
-    public async Task NoFixIsOfferedWhenTheNewNameIsTaken()
-    {
-        const string testCode = """
-                                public class D
-                                {
-                                    private int {|RH4106:Value|};
-                                    private int _value;
-                                }
-                                """;
-
-        await Verify(testCode, testCode);
-    }
-
-    /// <summary>
-    /// Verifies that a field whose renamed declaration would collide with another field, and so not compile, is
-    /// still reported, but no code action is registered for it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
     [Requirement("SHARED-FIX-003")]
-    public async Task NoCodeActionIsRegisteredWhenTheRenameWouldCauseACompileError()
+    public async Task NoFixIsOfferedWhenTheNewNameIsTaken()
     {
         const string testCode = """
                                 public class C
@@ -524,17 +506,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                 }
                                 """;
 
-        await Verify(testCode);
-
-        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|RH4106:", string.Empty).Replace("|}", string.Empty),
-                                                   RH4106PrivateFieldCasingAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<VariableDeclaratorSyntax>()
-                                                               .Single(declarator => declarator.Identifier.ValueText == "Value")
-                                                               .Identifier
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testCode, testCode);
     }
 
     /// <summary>
