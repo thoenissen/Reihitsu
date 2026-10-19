@@ -35,9 +35,9 @@ class C
 
 ### SHARED-EMPTY-002 — The fix removes the empty list
 
-The code fix MUST remove the reported list from `(` to `)` and keep the trivia in front of `(` and after `)`.
+The code fix MUST remove the reported list from `(` to `)`. A comment in front of `(` MUST stay.
 
-Why: Without the parentheses the construct means the same; the trivia around the list belongs to the code next to it.
+Why: Without the parentheses the construct means the same; a comment in front of the list belongs to the code before it.
 
 Example — RH3106:
 
@@ -70,7 +70,7 @@ Example — RH3107:
 ```csharp
 using System;
 
-[Obsolete{|RH3107:()|}, Serializable{|RH3107:()|}]
+[Obsolete{|RH3107:()|}, Serializable /* a */{|RH3107:()|}]
 class C
 {
 }
@@ -79,7 +79,7 @@ class C
 ```csharp
 using System;
 
-[Obsolete, Serializable]
+[Obsolete, Serializable /* a */]
 class C
 {
 }
