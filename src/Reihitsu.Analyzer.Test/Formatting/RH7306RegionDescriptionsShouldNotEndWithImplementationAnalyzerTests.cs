@@ -44,6 +44,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7306-001")]
     public async Task VerifyRegionDescriptionsEndingWithImplementationAreDetected()
     {
         const string testData = """
@@ -81,6 +82,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7306-001")]
     public async Task VerifyImplementationSuffixIsDetectedCaseInsensitively()
     {
         const string testData = """
@@ -104,6 +106,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7306-002")]
     public async Task VerifyDescriptionsContainingImplementationAsPartOfAnotherWordAreIgnored()
     {
         const string testData = """
@@ -120,6 +123,120 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that region and end directives whose description ends with the word implementation, in any casing, are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-001")]
+    [Requirement("SHARED-REGDESC-002")]
+    public async Task DescriptionsEndingWithTheWordImplementationAreReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7306:#region IDisposable implementation|}
+
+                                    int _a;
+
+                                    #endregion
+
+                                    {|RH7306:#region Implementation|}
+
+                                    int _b;
+
+                                    {|RH7306:#endregion // IComparable IMPLEMENTATION|}
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that implementation as part of a longer word or followed by other text is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-002")]
+    public async Task WordInsideOrBeforeOtherTextIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Reimplementation
+
+                                    int _a;
+
+                                    #endregion // Reimplementation
+
+                                    #region IDisposable implementation details
+
+                                    int _b;
+
+                                    #endregion // IDisposable implementation details
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix removes the trailing word from the reported directive and from its partner when that ends with the word as well
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-003")]
+    public async Task CodeFixRemovesTheTrailingWordFromBothDirectives()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7306:#region IDisposable implementation|}
+
+                                    int _a;
+
+                                    {|RH7306:#endregion // IDisposable implementation|}
+
+                                    {|RH7306:#region IComparable implementation|}
+
+                                    int _b;
+
+                                    #endregion
+
+                                    #region ICloneable
+
+                                    int _c;
+
+                                    {|RH7306:#endregion ICloneable Implementation|}
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region IDisposable
+
+                                     int _a;
+
+                                     #endregion // IDisposable
+
+                                     #region IComparable
+
+                                     int _b;
+
+                                     #endregion
+
+                                     #region ICloneable
+
+                                     int _c;
+
+                                     #endregion ICloneable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     #endregion // Tests
