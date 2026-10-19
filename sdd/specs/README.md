@@ -24,6 +24,8 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase` |
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions` |
+| [shared/empty-parentheses.md](shared/empty-parentheses.md) | SHARED-EMPTY | `EmptyParenthesesAnalyzerBase<TNode>` |
+| [shared/expression-body-conversion.md](shared/expression-body-conversion.md) | SHARED-BODY | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyRewriteUtilities` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
 | [shared/operator-spacing.md](shared/operator-spacing.md) | SHARED-OPSPACE | `OperatorSpacingCodeFixProviderBase` |
@@ -37,7 +39,28 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
 | [analyzer/RH1003.md](analyzer/RH1003.md) | RH1003 | `RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer` |
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
-| [analyzer/RH3202.md](analyzer/RH3202.md) | RH3202 | `RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer`, `RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider`, `ExpressionBodyRewriteUtilities` |
+| [analyzer/RH3001.md](analyzer/RH3001.md) | RH3001 | `RH3001NotOperatorShouldNotBeUsedAnalyzer`, `RH3001NotOperatorShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH3002.md](analyzer/RH3002.md) | RH3002 | `RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer`, `RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider` |
+| [analyzer/RH3003.md](analyzer/RH3003.md) | RH3003 | `RH3003UseStringEmptyForEmptyStringsAnalyzer`, `RH3003UseStringEmptyForEmptyStringsCodeFixProvider` |
+| [analyzer/RH3004.md](analyzer/RH3004.md) | RH3004 | `RH3004UseLambdaSyntaxAnalyzer`, `RH3004UseLambdaSyntaxCodeFixProvider` |
+| [analyzer/RH3005.md](analyzer/RH3005.md) | RH3005 | `RH3005UseReadableConditionsAnalyzer`, `RH3005UseReadableConditionsCodeFixProvider` |
+| [analyzer/RH3006.md](analyzer/RH3006.md) | RH3006 | `RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer`, `RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider` |
+| [analyzer/RH3007.md](analyzer/RH3007.md) | RH3007 | `RH3007DoNotUseQuerySyntaxAnalyzer` |
+| [analyzer/RH3101.md](analyzer/RH3101.md) | RH3101 | `RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer`, `RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider` |
+| [analyzer/RH3102.md](analyzer/RH3102.md) | RH3102 | `RH3102CodeMustNotContainEmptyStatementsAnalyzer`, `RH3102CodeMustNotContainEmptyStatementsCodeFixProvider` |
+| [analyzer/RH3103.md](analyzer/RH3103.md) | RH3103 | `RH3103UseShorthandForNullableTypesAnalyzer`, `RH3103UseShorthandForNullableTypesCodeFixProvider` |
+| [analyzer/RH3104.md](analyzer/RH3104.md) | RH3104 | `RH3104DoNotUseDefaultValueTypeConstructorAnalyzer`, `RH3104DoNotUseDefaultValueTypeConstructorCodeFixProvider` |
+| [analyzer/RH3105.md](analyzer/RH3105.md) | RH3105 | `RH3105DoNotPrefixLocalMembersWithThisAnalyzer`, `RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider` |
+| [analyzer/RH3106.md](analyzer/RH3106.md) | RH3106 | `RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer`, `RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider` |
+| [analyzer/RH3107.md](analyzer/RH3107.md) | RH3107 | `RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer`, `RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider` |
+| [analyzer/RH3201.md](analyzer/RH3201.md) | RH3201 | `RH3201CommentsMustContainTextAnalyzer`, `RH3201CommentsMustContainTextCodeFixProvider` |
+| [analyzer/RH3202.md](analyzer/RH3202.md) | RH3202 | `RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer`, `RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH3203.md](analyzer/RH3203.md) | RH3203 | `RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer`, `RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH3204.md](analyzer/RH3204.md) | RH3204 | `RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer`, `RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider` |
+| [analyzer/RH3205.md](analyzer/RH3205.md) | RH3205 | `RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer`, `RH3205ExpressionStyleOperatorsShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH3206.md](analyzer/RH3206.md) | RH3206 | `RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer`, `RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH3207.md](analyzer/RH3207.md) | RH3207 | `RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer`, `RH3207ExpressionStyleFinalizersShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH3208.md](analyzer/RH3208.md) | RH3208 | `RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer`, `RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider` |
 | [analyzer/RH4001.md](analyzer/RH4001.md) | RH4001 | `RH4001TypeNameShouldMatchFileNameAnalyzer`, `RH4001TypeNameShouldMatchFileNameCodeFixProvider`, `RH4001TypeNameShouldMatchFileNameHelper` |
 | [analyzer/RH4002.md](analyzer/RH4002.md) | RH4002 | `RH4002ClassNameCasingAnalyzer`, `RH4002ClassNameCasingCodeFixProvider` |
 | [analyzer/RH4003.md](analyzer/RH4003.md) | RH4003 | `RH4003StructNameCasingAnalyzer`, `RH4003StructNameCasingCodeFixProvider` |
