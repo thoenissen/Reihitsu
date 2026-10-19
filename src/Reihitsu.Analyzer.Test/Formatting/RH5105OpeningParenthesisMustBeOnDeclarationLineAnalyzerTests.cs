@@ -24,6 +24,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -46,6 +47,10 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-002")]
+    [Requirement("RH5105-003")]
+    [Requirement("SHARED-WS-003")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -74,6 +79,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-003")]
     public async Task VerifyConstructorIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -103,6 +110,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenCommentIsInGap()
     {
         const string testData = """
@@ -125,6 +134,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("SHARED-JOIN-001")]
     public async Task VerifyNoDiagnosticWhenDirectiveIsInGap()
     {
         const string testData = """
@@ -208,6 +219,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-003")]
     public async Task VerifyLocalFunctionIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -242,6 +255,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-003")]
     public async Task VerifyOperatorIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -272,6 +287,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-003")]
     public async Task VerifyConversionOperatorIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -302,6 +319,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-003")]
     public async Task VerifyDelegateIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -320,6 +339,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-003")]
     public async Task VerifyRecordIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -338,6 +359,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-003")]
     public async Task VerifyRecordStructIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -356,6 +379,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-002")]
     public async Task VerifyRemainingDirectParameterListParentsAreDetected()
     {
         const string testData = """
@@ -405,6 +430,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
     public async Task VerifyParenthesizedLambdasAreIgnored()
     {
         const string testData = """
@@ -457,6 +483,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-JOIN-002")]
     public async Task VerifyUnrelatedSyntaxErrorSuppressesTheWholeFile()
     {
         const string testData = """
@@ -480,6 +507,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("SHARED-JOIN-002")]
     public async Task VerifySameDeclarationIsReportedWithoutTheUnrelatedSyntaxError()
     {
         const string testData = """
@@ -493,6 +522,116 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                 """;
 
         await Verify(testData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when a block comment follows the declaration's name on its line,
+    /// because the gap in front of the parenthesis holds it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenCommentFollowsTheDeclarationName()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method /* why */
+                                        (int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when disabled text sits in the gap in front of the parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("SHARED-JOIN-001")]
+    public async Task VerifyNoDiagnosticWhenDisabledTextIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method
+                                #if false
+                                        Disabled
+                                #endif
+                                        (int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix only joins the parenthesis and keeps the layout of the rest of the parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5105-003")]
+    [Requirement("SHARED-WS-003")]
+    public async Task VerifyFixKeepsTheLayoutOfTheRemainingParameters()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method
+                                        {|#0:(|}int first,
+                                               int second)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                int second)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the parenthesis under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5105-003")]
+    [Requirement("SHARED-WS-003")]
+    public async Task VerifyIssueIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method
+                                        {|#0:(|}int value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
     }
 
     #endregion // Tests

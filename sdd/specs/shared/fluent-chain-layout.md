@@ -4,10 +4,10 @@
 |---|---|
 | ID prefix | SHARED-CHAIN |
 | Status | Active |
-| Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities` |
+| Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | Uses | FMT-PIPE-002 |
 
-This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
+This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112 and RH5201 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
 
 ## Non-goals
 
@@ -235,6 +235,104 @@ class C
                     .Where(x => x.A);
         var c = items // c
                 .Where(x => x.A);
+    }
+}
+```
+
+### SHARED-CHAIN-008 — A chain fix gives the chain its formatted layout
+
+A code fix that lays out a chain MUST give the whole chain — every link, not only the reported one — the line breaks and columns that formatting the document gives it, and MUST NOT split a link operator.
+
+Why: One diagnostic of a chain is usually one of several, and fixing one link at a time could leave the chain in a layout the formatter would change again. Taking the layout the formatter gives the whole chain, instead of a layout of its own, clears every diagnostic the chain had in one application.
+
+Example — the RH5201 fix, applied to the first of two misplaced links:
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(int[] items)
+    {
+        var a = items.Where(x => x > 0)
+            {|RH5201:.|}Select(x => x){|RH5201:.|}ToList();
+    }
+}
+```
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(int[] items)
+    {
+        var a = items.Where(x => x > 0)
+                     .Select(x => x)
+                     .ToList();
+    }
+}
+```
+
+### SHARED-CHAIN-009 — A chain fix formats more than the chain only when the chain's layout depends on it
+
+A code fix that lays out a chain MUST change only the chain when the chain alone, formatted in the unchanged code around it, gets the same text and starts in the same column as it does when the innermost statement or member declaration that contains the chain and starts a line is formatted. When it does not — for example because formatting changes the spacing of a declaration in front of the chain — the fix MUST write back that formatted statement or member declaration instead.
+
+Why: The columns of a wrapped chain depend on where the chain starts, and the formatter computes them for the code in front of the chain as it will be after formatting. Writing back only the chain keeps the rest of the statement as written; the formatted statement is needed only when the chain alone would get other columns than formatting gives it.
+
+Example — the RH5201 fix leaves the code behind the chain as written:
+
+```csharp
+class C
+{
+    int M(dynamic a, int d)
+    {
+        var r = a.B()
+            {|RH5201:.|}C() + d+1;
+
+        return r;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(dynamic a, int d)
+    {
+        var r = a.B()
+                 .C() + d+1;
+
+        return r;
+    }
+}
+```
+
+The RH5112 fix formats the declaration in front of the chain as well:
+
+```csharp
+class C
+{
+    object M(dynamic a)
+    {
+        var r=a
+            {|RH5112:.|}B()
+            .C();
+
+        return r;
+    }
+}
+```
+
+```csharp
+class C
+{
+    object M(dynamic a)
+    {
+        var r = a.B()
+                 .C();
+
+        return r;
     }
 }
 ```

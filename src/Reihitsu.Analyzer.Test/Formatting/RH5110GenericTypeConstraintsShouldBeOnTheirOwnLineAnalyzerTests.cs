@@ -21,6 +21,7 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
     public async Task VerifyNoDiagnosticsWhenGenericConstraintsAreFormattedCorrectly()
     {
         const string testData = """
@@ -67,6 +68,8 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
     public async Task VerifyClassConstraintIsDetectedAndFixed()
     {
         const string testData = """
@@ -93,6 +96,8 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
     public async Task VerifyStructConstraintIsDetectedAndFixed()
     {
         const string testData = """
@@ -120,6 +125,8 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
     public async Task VerifyInterfaceConstraintIsDetectedAndFixed()
     {
         const string testData = """
@@ -146,6 +153,8 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
     public async Task VerifyDelegateConstraintIsDetectedAndFixed()
     {
         const string testData = """
@@ -167,6 +176,8 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
     public async Task VerifyRecordConstraintIsDetectedAndFixed()
     {
         const string testData = """
@@ -187,6 +198,9 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-002")]
+    [Requirement("RH5110-003")]
     public async Task VerifyMethodConstraintIsDetectedAndFixed()
     {
         const string testData = """
@@ -219,6 +233,8 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
     public async Task VerifyLocalFunctionConstraintIsDetectedAndFixed()
     {
         const string testData = """
@@ -249,6 +265,146 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await Verify(testData,
                      fixedData,
                      Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a constraint clause that starts its own line in another column than one level deeper than the
+    /// declaration is detected and moved to that column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
+    public async Task VerifyConstraintInWrongColumnIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method<TKey>()
+                                            {|#0:where|} TKey : notnull
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method<TKey>()
+                                         where TKey : notnull
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a constraint clause at the declaration's own column is reported, although the next clause is
+    /// placed correctly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-002")]
+    public async Task VerifyConstraintAtDeclarationColumnIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method<TKey, TValue>()
+                                    {|#0:where|} TKey : notnull
+                                        where TValue : class
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a second constraint clause sharing the line of the first one is reported, although the first
+    /// clause is placed correctly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-002")]
+    public async Task VerifySecondConstraintSharingLineIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method<TKey, TValue>()
+                                        where TKey : notnull {|#0:where|} TValue : class
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that two misplaced clauses of one declaration produce one diagnostic on the first, and that the fix
+    /// puts each clause on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-002")]
+    [Requirement("RH5110-003")]
+    public async Task VerifyOneDiagnosticIsReportedPerDeclaration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method<TKey, TValue>() {|#0:where|} TKey : notnull where TValue : class
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method<TKey, TValue>()
+                                         where TKey : notnull
+                                         where TValue : class
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the constraint clause on its own line under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyMethodConstraintIsFixedWithCrLf()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method<TKey>() {|#0:where|} TKey : notnull
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method<TKey>()
+                                         where TKey : notnull
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
     }
 
     #endregion // Tests

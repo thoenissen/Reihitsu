@@ -21,6 +21,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5205-001")]
     public async Task VerifyNoDiagnosticsWhenSimpleStatementLambdaBraceIsAligned()
     {
         const string testData = """
@@ -46,6 +47,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5205-001")]
     public async Task VerifyNoDiagnosticsWhenParenthesizedStatementLambdaBraceIsAligned()
     {
         const string testData = """
@@ -71,6 +73,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5205-001")]
     public async Task VerifyNoDiagnosticsWhenLambdaIsExpressionBodied()
     {
         const string testData = """
@@ -93,6 +96,9 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5205-001")]
+    [Requirement("RH5205-002")]
+    [Requirement("RH5205-003")]
     public async Task VerifySimpleStatementLambdaBraceMisalignmentIsDetectedAndFixed()
     {
         const string testData = """
@@ -134,6 +140,9 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5205-001")]
+    [Requirement("RH5205-002")]
+    [Requirement("RH5205-003")]
     public async Task VerifyParenthesizedStatementLambdaBraceMisalignmentIsDetectedAndFixed()
     {
         const string testData = """
@@ -175,6 +184,9 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5205-001")]
+    [Requirement("RH5205-002")]
+    [Requirement("RH5205-003")]
     public async Task VerifyAsyncSimpleStatementLambdaBraceMisalignmentIsDetectedAndFixed()
     {
         const string testData = """
@@ -218,6 +230,9 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5205-001")]
+    [Requirement("RH5205-002")]
+    [Requirement("RH5205-003")]
     public async Task VerifyAsyncParenthesizedStatementLambdaBraceMisalignmentIsDetectedAndFixed()
     {
         const string testData = """
@@ -254,6 +269,73 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
         await Verify(testData,
                      fixedData,
                      Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an opening brace on the line of the arrow is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5205-001")]
+    public async Task VerifyNoDiagnosticsWhenBraceIsOnArrowLine()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    internal void Method()
+                                    {
+                                        Func<int, int> value = x => {
+                                            return x;
+                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix aligns the lambda body under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5205-001")]
+    [Requirement("RH5205-002")]
+    [Requirement("RH5205-003")]
+    public async Task VerifyParenthesizedLambdaBraceIsFixedWithCrLf()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    internal void Method()
+                                    {
+                                        Func<int, int> value = (x) =>
+                                        {|#0:{|}
+                                            return x;
+                                        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 internal class TestClass
+                                 {
+                                     internal void Method()
+                                     {
+                                         Func<int, int> value = (x) =>
+                                                                {
+                                                                    return x;
+                                                                };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
     }
 
     #endregion // Tests
