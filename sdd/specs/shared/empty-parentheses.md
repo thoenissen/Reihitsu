@@ -35,7 +35,7 @@ class C
 
 ### SHARED-EMPTY-002 — The fix removes the empty list
 
-The code fix MUST remove the reported list from `(` to `)`. A comment in front of `(` MUST stay.
+For a reported list that holds nothing but whitespace between `(` and `)`, the code fix MUST remove the list from `(` to `)`. A comment in front of `(` MUST stay.
 
 Why: Without the parentheses the construct means the same; a comment in front of the list belongs to the code before it.
 
