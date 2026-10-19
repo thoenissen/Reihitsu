@@ -7,12 +7,11 @@
 | Code owners | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyRewriteUtilities` |
 | Uses | FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-006, FMT-STRUCT-007, FMT-PIPE-010 |
 
-This spec covers what the rules share that report an expression-bodied member so that it gets a block body — RH3203 (constructors), RH3205 (operators), RH3206 (conversion operators), RH3207 (finalizers), and RH3208 (local functions): which members are left alone because the formatter cannot convert them, where the diagnostic is, and what the code fix produces. Each rule's spec states which kind of member it reports. "The member" below is the declaration the rule reports, a local function included.
+This spec covers what the rules share that report an expression-bodied member so that it gets a block body — RH3202 (methods), RH3203 (constructors), RH3205 (operators), RH3206 (conversion operators), RH3207 (finalizers), and RH3208 (local functions): which members are left alone because the formatter cannot convert them, where the diagnostic is, and what the code fix produces. Each rule's spec states which kind of member it reports. "The member" below is the declaration the rule reports, a local function included.
 
 ## Non-goals
 
 - Which kind of member a rule reports — the rule's own spec.
-- Expression-bodied methods, which RH3202 specifies in its own requirements.
 - Expression-bodied properties, indexers, accessors, and lambdas, which stay expression-bodied (FMT-STRUCT-008).
 - The statement the block body contains and how the trivia of `=>` and `;` is carried over — the formatter's FMT-STRUCT requirements own that; this spec only references them.
 
