@@ -76,3 +76,5 @@ scripts/test.sh --project architecture --filter "FullyQualifiedName~RequirementC
 ```
 
 `scripts/format.sh` was run over all 20 changed test files and changed nothing.
+
+Full runs on 59a944f: `scripts/test.sh --project analyzer` passed all 5232 tests, and `scripts/test.sh --project architecture` passed all 72.
