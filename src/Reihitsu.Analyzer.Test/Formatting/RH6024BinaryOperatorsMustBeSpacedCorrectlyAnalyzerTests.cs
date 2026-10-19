@@ -25,6 +25,8 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("SHARED-OPSPACE-002")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -45,6 +47,11 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("RH6024-003")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-003")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyPaddingAroundBinaryOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -74,6 +81,11 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("RH6024-003")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-003")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyMissingSpaceAroundBinaryOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -103,6 +115,10 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("RH6024-003")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyComparisonOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -132,6 +148,10 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("RH6024-003")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyLogicalOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -161,6 +181,8 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("SHARED-OPSPACE-002")]
     public async Task VerifyWrappedBinaryOperatorIsIgnored()
     {
         const string testData = """
@@ -182,6 +204,10 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("RH6024-003")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyIsKeywordOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -211,6 +237,10 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("RH6024-003")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyAsKeywordOperatorIsDetectedAndFixed()
     {
         const string testData = """
@@ -240,6 +270,8 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("SHARED-OPSPACE-002")]
     public async Task VerifyWrappedKeywordOperatorIsIgnored()
     {
         const string testData = """
@@ -261,6 +293,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-001")]
     public async Task VerifyGenericTypeArgumentsAreIgnored()
     {
         const string testData = """
@@ -285,6 +318,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH6024-002")]
     public async Task VerifyDirectiveConditionOperatorIsIgnored()
     {
         const string testData = """
@@ -308,6 +342,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     /// coverage the way the type-hierarchy check it replaced could not
     /// </summary>
     [TestMethod]
+    [Requirement("RH6024-001")]
     public void VerifyRegisteredKindsCoverEveryBinaryExpressionKind()
     {
         // SyntaxFacts.IsBinaryExpression/GetBinaryExpression classify the operator TOKEN kind, not the
@@ -320,6 +355,354 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
         var registeredKinds = RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.BinaryExpressionKinds.OrderBy(static kind => (int)kind).ToImmutableArray();
 
         Assert.AreSequenceEqual(expectedKinds, registeredKinds);
+    }
+
+    /// <summary>
+    /// Verifies that arithmetic, shift, comparison, logical, null-coalescing, and type-test operators are reported once
+    /// when a side is not exactly one space, also inside an interpolation hole, and that a wrapped side is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-003")]
+    public async Task VerifyEveryBinaryOperatorIsChecked()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(int a, int b, object o, string s)
+                                    {
+                                        _ = a{|RH6024:+|}b;
+                                        _ = a  {|RH6024:+|}  b;
+                                        _ = a→{|RH6024:*|} b;
+                                        _ = a{|RH6024:==|}b && a{|RH6024:!=|}b;
+                                        _ = a{|RH6024:<|}b || a{|RH6024:>=|}b;
+                                        _ = a{|RH6024:<<|}1;
+                                        _ = a{|RH6024:>>>|}1;
+                                        _ = (o){|RH6024:is|} string;
+                                        _ = o {|RH6024:as|}  string;
+                                        _ = s{|RH6024:??|}"x";
+                                        _ = a{|RH6024:-|} -b;
+                                        _ = $"{a{|RH6024:+|}b}";
+                                        _ = a +
+                                            b;
+
+                                        return a{|RH6024:>|}b;
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyEveryBinaryOperatorIsChecked"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6024-001")]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-003")]
+    public async Task VerifyEveryBinaryOperatorIsCheckedCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(int a, int b, object o, string s)
+                                    {
+                                        _ = a{|RH6024:+|}b;
+                                        _ = a  {|RH6024:+|}  b;
+                                        _ = a→{|RH6024:*|} b;
+                                        _ = a{|RH6024:==|}b && a{|RH6024:!=|}b;
+                                        _ = a{|RH6024:<|}b || a{|RH6024:>=|}b;
+                                        _ = a{|RH6024:<<|}1;
+                                        _ = a{|RH6024:>>>|}1;
+                                        _ = (o){|RH6024:is|} string;
+                                        _ = o {|RH6024:as|}  string;
+                                        _ = s{|RH6024:??|}"x";
+                                        _ = a{|RH6024:-|} -b;
+                                        _ = $"{a{|RH6024:+|}b}";
+                                        _ = a +
+                                            b;
+
+                                        return a{|RH6024:>|}b;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that an operator in a directive condition and a mis-spaced <c>is</c> followed by a pattern are not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6024-002")]
+    public async Task VerifyDirectiveConditionsAndPatternsAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(int a, object o)
+                                    {
+                                #if DEBUG&&TRACE
+                                #endif
+                                        _ = o is  null;
+                                        _ = o  is string s;
+
+                                        return a is  > 0 and < 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts one space on both sides of an arithmetic, type-test, null-coalescing, and comparison
+    /// operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6024-003")]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task VerifyFixPutsOneSpaceOnBothSidesOfBinaryOperators()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(int a, int b, object o, string s)
+                                    {
+                                        _ = a{|RH6024:+|}b;
+                                        _ = (o){|RH6024:is|} string;
+                                        _ = s{|RH6024:??|}"x";
+                                        _ = a{|RH6024:+|}-b;
+
+                                        return a  {|RH6024:>|}  b;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     bool M(int a, int b, object o, string s)
+                                     {
+                                         _ = a + b;
+                                         _ = (o) is string;
+                                         _ = s ?? "x";
+                                         _ = a + -b;
+
+                                         return a > b;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a gap without whitespace, with more than one space, or with a tab is reported, also when the other
+    /// side holds a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-003")]
+    public async Task VerifyGapThatIsNotExactlyOneSpaceIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        var x = a{|RH6024:+|}b;
+                                        var y = a {|RH6024:+|}b;
+                                        var z = a  {|RH6024:+|}  b;
+                                        var w = a→{|RH6024:*|} b;
+                                        var v = a /* note */{|RH6024:+|}b;
+
+                                        return a +
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyGapThatIsNotExactlyOneSpaceIsReported"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-001")]
+    [Requirement("SHARED-OPSPACE-003")]
+    public async Task VerifyGapThatIsNotExactlyOneSpaceIsReportedCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        var x = a{|RH6024:+|}b;
+                                        var y = a {|RH6024:+|}b;
+                                        var z = a  {|RH6024:+|}  b;
+                                        var w = a→{|RH6024:*|} b;
+                                        var v = a /* note */{|RH6024:+|}b;
+
+                                        return a +
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that an operator whose gaps each hold exactly one space, a line break, or a comment is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-002")]
+    public async Task VerifyGapsWithOneSpaceLineBreakOrCommentAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        var x = a + b;
+                                        var y = a /* note */+ b;
+                                        var z = a + /* note */b;
+                                        var w = a
+                                            + b;
+
+                                        return a +
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyGapsWithOneSpaceLineBreakOrCommentAreNotReported"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-002")]
+    public async Task VerifyGapsWithOneSpaceLineBreakOrCommentAreNotReportedCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        var x = a + b;
+                                        var y = a /* note */+ b;
+                                        var z = a + /* note */b;
+                                        var w = a
+                                            + b;
+
+                                        return a +
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that an operator whose gap after it holds a line break and a directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-002")]
+    public async Task VerifyGapWithDirectiveIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        return a +
+                                #if DEBUG
+                                #endif
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Repeats <see cref="VerifyGapWithDirectiveIsNotReported"/> with the source normalized to CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-002")]
+    public async Task VerifyGapWithDirectiveIsNotReportedCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        return a +
+                                #if DEBUG
+                                #endif
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves exactly one space in each gap next to the operator that holds no line break and no
+    /// comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task VerifyFixLeavesOneSpaceInEachGap()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        var x = a{|RH6024:+|}b;
+                                        var z = a  {|RH6024:+|}  b;
+                                        var w = a→{|RH6024:*|} b;
+
+                                        return a{|RH6024:-|} -b;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(int a, int b)
+                                     {
+                                         var x = a + b;
+                                         var z = a + b;
+                                         var w = a * b;
+
+                                         return a - -b;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), fixedData);
     }
 
     #endregion // Tests
