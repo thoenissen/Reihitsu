@@ -122,7 +122,7 @@ Still open questions: #1000 Q1, #1001 Q1, #1029 Q1, #1030 Q1–Q4, #1031 Q1, #10
 
 ## Waiting for maintainer
 
-- maintainer: running 6 squads (prompts given 2026-10-18): #1068, #1069, #981, #983, #987, #990
+- 2026-10-19: maintainer reports all six PRs (#1068, #1069, #981, #983, #987, #990) merged — new chat verifies on GitHub, runs a question round on newly filed open-question issues, then gives next batch prompts (6 parallel).
 
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
