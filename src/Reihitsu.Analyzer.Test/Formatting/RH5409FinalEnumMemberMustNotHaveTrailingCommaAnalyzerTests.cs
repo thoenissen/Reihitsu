@@ -21,6 +21,9 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5409-001")]
     public async Task VerifyTrailingCommaOnFinalEnumMemberIsDetectedAndFixed()
     {
         const string testData = """
@@ -46,6 +49,9 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5409-001")]
     public async Task VerifyTrailingCommaOnSingleEnumMemberIsDetectedAndFixed()
     {
         const string testData = """
@@ -69,6 +75,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
     public async Task VerifyTrailingCommaWithSameLineCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -92,6 +99,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
     public async Task VerifyTrailingCommaOnOwnLineAfterCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -118,6 +126,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
     public async Task VerifyTrailingCommaIsRemovedSurgically()
     {
         const string testData = """
@@ -151,6 +160,8 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("RH5409-001")]
     public async Task VerifyMultipleEnumsWithTrailingCommasAreDetected()
     {
         const string testData = """
@@ -173,6 +184,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
     public async Task VerifyEnumWithoutTrailingCommaIsNotFlagged()
     {
         const string testData = """
@@ -191,6 +203,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
     public async Task VerifyEmptyEnumIsNotFlagged()
     {
         const string testData = """
@@ -208,6 +221,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
     public async Task VerifyEnumWithConditionalBlockAfterFinalMemberIsNotFlagged()
     {
         const string testData = """
@@ -221,6 +235,316 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comma after the last element: only the comma after the last member
+    /// is reported, while a comma between two members, an enum without a trailing comma, and an empty enum are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("RH5409-001")]
+    public async Task VerifySpecificationExampleReportsOnlyTheCommaAfterTheLastMember()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                    B{|#0:,|}
+                                }
+
+                                enum F
+                                {
+                                    A,
+                                    B
+                                }
+
+                                enum G
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A,
+                                     B
+                                 }
+
+                                 enum F
+                                 {
+                                     A,
+                                     B
+                                 }
+
+                                 enum G
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comma in front of a directive: a conditional block after the comma
+    /// keeps it from being reported, while a "#region"/"#endregion" pair does not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    public async Task VerifySpecificationExampleReportsCommaInFrontOfRegionButNotInFrontOfConditionalBlock()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                #if DEBUG
+                                    B,
+                                #endif
+                                }
+
+                                enum F
+                                {
+                                    A,
+                                    B{|#0:,|}
+                                #region R
+                                #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A,
+                                 #if DEBUG
+                                     B,
+                                 #endif
+                                 }
+
+                                 enum F
+                                 {
+                                     A,
+                                     B
+                                 #region R
+                                 #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that "#pragma" directives between the comma and the closing brace do not keep the comma from being
+    /// reported, and that the fix keeps both directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-TRAIL-003")]
+    public async Task VerifyCommaInFrontOfPragmaDirectivesIsReportedAndFixed()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                    B{|#0:,|}
+                                #pragma warning disable CS0168
+                                #pragma warning restore CS0168
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A,
+                                     B
+                                 #pragma warning disable CS0168
+                                 #pragma warning restore CS0168
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive pair after the comma keeps it from being reported even when the pair
+    /// excludes no code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    public async Task VerifyCommaInFrontOfEmptyConditionalBlockIsNotReported()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                #if SYMBOL
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that "#else" and "#elif" branches after the comma keep it from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    public async Task VerifyCommaInFrontOfElseAndElifBranchesIsNotReported()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                #if SYMBOL
+                                    B,
+                                #elif OTHER
+                                    C,
+                                #else
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional block in front of the comma does not keep it from being reported, since the
+    /// block does not lie between the comma and the closing brace, and that the fix removes the comma-only line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-TRAIL-003")]
+    public async Task VerifyCommaBehindConditionalBlockIsReportedAndFixed()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A
+                                #if SYMBOL
+                                #endif
+                                    {|#0:,|}
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A
+                                 #if SYMBOL
+                                 #endif
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the fix: a comment behind the comma stays on its line, and a line that
+    /// holds nothing but the comma is removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
+    public async Task VerifySpecificationExampleOfCommaRemoval()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                    B{|#0:,|} // last
+                                }
+
+                                enum F
+                                {
+                                    A
+                                    // last
+                                    {|#1:,|}
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A,
+                                     B // last
+                                 }
+
+                                 enum F
+                                 {
+                                     A
+                                     // last
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes a line that holds nothing but the comma together with its CRLF line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
+    public async Task VerifyCommaOnlyLineIsRemovedWithCarriageReturnLineFeeds()
+    {
+        const string testData = """
+                                enum F
+                                {
+                                    A
+                                    // last
+                                    ,
+                                }
+
+                                """;
+        const string fixedData = """
+                                 enum F
+                                 {
+                                     A
+                                     // last
+                                 }
+
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of enum members with values and attributes, and of an enum written on one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5409-001")]
+    public async Task VerifySpecificationExampleOfMembersWithValuesAttributesAndOneLineEnum()
+    {
+        const string testData = """
+                                using System;
+
+                                enum E
+                                {
+                                    A = 1,
+                                    [Obsolete]
+                                    B = 2{|#0:,|}
+                                }
+
+                                enum F { A{|#1:,|} }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 enum E
+                                 {
+                                     A = 1,
+                                     [Obsolete]
+                                     B = 2
+                                 }
+
+                                 enum F { A }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
     }
 
     #endregion // Tests
