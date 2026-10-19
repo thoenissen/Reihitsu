@@ -20,6 +20,9 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("RH8103-002")]
+    [Requirement("SHARED-DOC-016")]
     public async Task VerifyDiagnosticForMissingParameterName()
     {
         const string source = """
@@ -43,6 +46,8 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("SHARED-DOC-016")]
     public async Task VerifyNoDiagnosticForUnnamedParameterNestedInRemarks()
     {
         const string source = """
@@ -66,6 +71,8 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("RH8103-002")]
     public async Task VerifyDiagnosticForOperatorParameterMissingName()
     {
         const string source = """
@@ -89,6 +96,8 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("RH8103-002")]
     public async Task VerifyDiagnosticForConversionOperatorParameterMissingName()
     {
         const string source = """
@@ -113,6 +122,8 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -129,6 +140,131 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a param element without a name is reported on the whole element, whether or not the declaration has parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("RH8103-002")]
+    public async Task VerifySpecificationExampleReportsParameterElementsWithoutName()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              /// {|#0:<param>Unused</param>|}
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#1:<param>Value</param>|}
+                                  public void M(int value)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#2:<param/>|}
+                                  public void N()
+                                  {
+                                  }
+
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies the shared specification example: a top-level param element without a name attribute, with an empty or white-space name, or with only a differently cased Name attribute is reported, while a nested one is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("RH8103-002")]
+    [Requirement("SHARED-DOC-016")]
+    public async Task VerifySpecificationExampleReportsMissingEmptyAndWhiteSpaceNames()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Container
+                              /// </summary>
+                              /// <typeparam>Element</typeparam>
+                              public class C<T>
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#0:<param>First</param>|}
+                                  /// {|#1:<param name="">Second</param>|}
+                                  /// {|#2:<param name=" ">Third</param>|}
+                                  /// {|#3:<param Name="d">Fourth</param>|}
+                                  /// <param name="e">Fifth</param>
+                                  /// <remarks>
+                                  /// <param>Nested</param>
+                                  /// </remarks>
+                                  public void M(int a, int b, int c, int d, int e)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies unnamed param elements are reported on constructor, delegate, indexer, record, and explicit interface implementation declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8103-001")]
+    [Requirement("RH8103-002")]
+    public async Task VerifyDiagnosticForUnnamedParameterElementsOfOtherParameterOwners()
+    {
+        const string source = """
+                              /// <summary>Handler</summary>
+                              /// {|#0:<param>Value</param>|}
+                              internal delegate void Handler(int value);
+
+                              /// <summary>Point</summary>
+                              /// {|#1:<param>X</param>|}
+                              internal record Point(int X);
+
+                              /// <summary>Contract</summary>
+                              internal interface I
+                              {
+                                  /// <summary>Runs</summary>
+                                  /// <param name="value">Value</param>
+                                  void Run(int value);
+                              }
+
+                              /// <summary>Service</summary>
+                              internal class C : I
+                              {
+                                  /// <summary>Creates</summary>
+                                  /// {|#2:<param>Size</param>|}
+                                  public C(int size)
+                                  {
+                                  }
+
+                                  /// <summary>Item</summary>
+                                  /// {|#3:<param>Index</param>|}
+                                  public int this[int index] => 0;
+
+                                  /// <summary>Runs</summary>
+                                  /// {|#4:<param>Value</param>|}
+                                  void I.Run(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat, 5));
     }
 
     #endregion // Tests

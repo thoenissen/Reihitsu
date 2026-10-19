@@ -21,6 +21,9 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-002")]
+    [Requirement("RH8202-003")]
     public async Task VerifyDiagnosticForValueTagOnProperty()
     {
         const string source = """
@@ -55,6 +58,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-003")]
     public async Task VerifyCodeFixKeepsSummaryTagSharingTheLine()
     {
         const string source = """
@@ -89,6 +93,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-003")]
     public async Task VerifyCodeFixKeepsPrecedingEndTagSharingTheLine()
     {
         const string source = """
@@ -127,6 +132,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-002")]
+    [Requirement("RH8202-003")]
     public async Task VerifyCodeFixKeepsFollowingTagSharingTheLastLine()
     {
         const string source = """
@@ -165,6 +172,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-002")]
+    [Requirement("RH8202-003")]
     public async Task VerifyCodeFixRemovesMultiLineValueTagCompletely()
     {
         const string source = """
@@ -202,6 +211,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-003")]
     public async Task VerifyCodeFixKeepsSurroundingTagsSharingTheLine()
     {
         const string source = """
@@ -236,6 +246,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-003")]
     public async Task VerifyCodeFixRemovesValueTagFromDelimitedDocumentationComment()
     {
         const string source = """
@@ -279,6 +291,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// declaration would be pulled into the documentation comment
     /// </remarks>
     [TestMethod]
+    [Requirement("RH8202-002")]
+    [Requirement("RH8202-004")]
     public async Task VerifyNoCodeFixWhenEndTagIsMissing()
     {
         const string source = """
@@ -304,6 +318,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-002")]
+    [Requirement("RH8202-004")]
     public async Task VerifyNoCodeFixWhenEndTagIsMissingAndFollowingTagIsSwallowed()
     {
         const string source = """
@@ -329,6 +345,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -351,6 +369,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-003")]
     public async Task VerifyDiagnosticForValueTagNestedInRemarks()
     {
         const string source = """
@@ -390,6 +410,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-003")]
     public async Task VerifyDiagnosticForValueTagNestedInSummaryText()
     {
         const string source = """
@@ -424,6 +446,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
     public async Task VerifyNoDiagnosticForValueTagInsideCodeSample()
     {
         const string source = """
@@ -450,6 +473,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
     public async Task VerifyNoDiagnosticForValueTagInsideExampleSample()
     {
         const string source = """
@@ -474,6 +498,8 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-003")]
     public async Task VerifyTopLevelValueTagIsDetectedBesideCodeSample()
     {
         const string source = """
@@ -512,6 +538,226 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(source,
                      fixedSource,
                      Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a top-level or nested value element on a property or indexer is reported on the element, while one inside a sample is neither reported nor hides a nested one after it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-002")]
+    public async Task VerifySpecificationExampleReportsValueElementsOnPropertiesAndIndexers()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// {|#0:<value>The size</value>|}
+                                  public int Size { get; }
+
+                                  /// <summary>
+                                  /// Gets the item
+                                  /// </summary>
+                                  /// <remarks>{|#1:<value>The item</value>|}</remarks>
+                                  private int this[int index] => 0;
+
+                                  /// <summary>
+                                  /// Gets the name
+                                  /// </summary>
+                                  /// <example><code><value>Sample</value></code></example>
+                                  public string Name => "";
+
+                                  /// <summary>
+                                  /// Gets the weight
+                                  /// </summary>
+                                  /// <example><code><value>Sample</value></code></example>
+                                  /// <remarks>{|#2:<value>Nested</value>|}</remarks>
+                                  public int Weight { get; }
+
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix removes a value element with the lines it owns, with the white space before it on a shared line, and from the remarks element that contains it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-002")]
+    [Requirement("RH8202-003")]
+    public async Task VerifySpecificationExampleRemovesValueElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// {|#0:<value>
+                                  /// The size
+                                  /// </value>|}
+                                  public int Size { get; }
+
+                                  /// <summary>Gets the count</summary> {|#1:<value>The count</value>|}
+                                  public int Count { get; }
+
+                                  /// <summary>
+                                  /// Gets the item
+                                  /// </summary>
+                                  /// <remarks>{|#2:<value>The item</value>|}</remarks>
+                                  public int this[int index] => 0;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Service
+                                   /// </summary>
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Gets the size
+                                       /// </summary>
+                                       public int Size { get; }
+
+                                       /// <summary>Gets the count</summary>
+                                       public int Count { get; }
+
+                                       /// <summary>
+                                       /// Gets the item
+                                       /// </summary>
+                                       /// <remarks></remarks>
+                                       public int this[int index] => 0;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a value element without an end tag is reported through the line break at the end of its line, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-002")]
+    [Requirement("RH8202-004")]
+    public async Task VerifySpecificationExampleWithholdsFixForValueElementWithoutEndTag()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// {|RH8202:<value>The size
+                              |}    public int Size { get; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies a value element on an indexer with a set accessor and on a private property is reported, whatever the accessibility
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-002")]
+    public async Task VerifyDiagnosticForValueElementWhateverTheAccessibilityAndAccessors()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /// <summary>Gets or sets the item</summary>
+                                  /// {|#0:<value>The item</value>|}
+                                  public int this[int index]
+                                  {
+                                      get => 0;
+                                      set
+                                      {
+                                      }
+                                  }
+
+                                  /// <summary>Gets the size</summary>
+                                  /// {|#1:<value/>|}
+                                  private int Size { get; set; }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the fix in a document whose line breaks are CRLF: the removed lines and the kept content leave every remaining line break as CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-003")]
+    public async Task VerifySpecificationExampleRemovesValueElementInCarriageReturnLineFeedDocument()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       /// <summary>
+                                                       /// Service
+                                                       /// </summary>
+                                                       public class C
+                                                       {
+                                                           /// <summary>
+                                                           /// Gets the size
+                                                           /// </summary>
+                                                           /// {|#0:<value>
+                                                           /// The size
+                                                           /// </value>|}
+                                                           public int Size { get; }
+
+                                                           /// <summary>Gets the count</summary> {|#1:<value>The count</value>|}
+                                                           public int Count { get; }
+
+                                                           /// <summary>
+                                                           /// Gets the item
+                                                           /// </summary>
+                                                           /// <remarks>{|#2:<value>The item</value>|}</remarks>
+                                                           public int this[int index] => 0;
+                                                       }
+                                                       """);
+
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            /// <summary>
+                                                            /// Service
+                                                            /// </summary>
+                                                            public class C
+                                                            {
+                                                                /// <summary>
+                                                                /// Gets the size
+                                                                /// </summary>
+                                                                public int Size { get; }
+
+                                                                /// <summary>Gets the count</summary>
+                                                                public int Count { get; }
+
+                                                                /// <summary>
+                                                                /// Gets the item
+                                                                /// </summary>
+                                                                /// <remarks></remarks>
+                                                                public int this[int index] => 0;
+                                                            }
+                                                            """);
+
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 3));
     }
 
     #endregion // Tests

@@ -20,6 +20,9 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("RH8104-002")]
+    [Requirement("SHARED-DOC-014")]
     public async Task VerifyDiagnosticForEmptyParameterDocumentation()
     {
         const string source = """
@@ -43,6 +46,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8104-001")]
     public async Task VerifyNoDiagnosticForEmptyParameterNestedInRemarks()
     {
         const string source = """
@@ -66,6 +70,8 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("RH8104-002")]
     public async Task VerifyOnlyDirectEmptyParameterIsReportedBesideNestedMatch()
     {
         const string source = """
@@ -90,6 +96,8 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("RH8104-002")]
     public async Task VerifyDiagnosticForEmptyOperatorParameterDocumentation()
     {
         const string source = """
@@ -113,6 +121,8 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("RH8104-002")]
     public async Task VerifyDiagnosticForEmptyConversionOperatorParameterDocumentation()
     {
         const string source = """
@@ -137,6 +147,8 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -153,6 +165,154 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an empty or white-space param element at the top level is reported on the whole element, on a primary constructor, a method, and an operator, while a nested one and one with text are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("RH8104-002")]
+    public async Task VerifySpecificationExampleReportsParameterElementsWithoutText()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              /// {|#0:<param name="size"></param>|}
+                              public class C(int size)
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#1:<param name="a"/>|}
+                                  /// <param name="b">B</param>
+                                  /// <remarks>
+                                  /// <param name="c"></param>
+                                  /// </remarks>
+                                  public void M(int a, int b)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Adds
+                                  /// </summary>
+                                  /// {|#2:<param name="left">
+                                  /// </param>|}
+                                  /// <param name="right">Right</param>
+                                  /// <returns>Sum</returns>
+                                  public static C operator +(C left, C right) => left;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies the shared specification example: a param element that is empty, holds only a white-space character reference, or only line breaks of a delimited comment counts as without text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("RH8104-002")]
+    [Requirement("SHARED-DOC-014")]
+    public async Task VerifySpecificationExampleJudgesParameterTextLikeSummaryText()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Container
+                              /// </summary>
+                              /// <typeparam name="T"></typeparam>
+                              public class C<T>
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// {|#0:<param name="a"/>|}
+                                  /// {|#1:<param name="b">&#32;</param>|}
+                                  /// <param name="c">Value</param>
+                                  /// <returns>
+                                  /// </returns>
+                                  public int M(int a, int b, int c) => 0;
+
+                                  /**
+                                   * <summary>
+                                   * Runs
+                                   * </summary>
+                                   * {|#2:<param name="a">
+                                   * </param>|}
+                                   * <returns>Value</returns>
+                                   */
+                                  public int N(int a) => 0;
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies an empty param element is reported whether or not it names a parameter, on a type without a primary constructor and on an explicit interface implementation as well
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("RH8104-002")]
+    public async Task VerifyDiagnosticForParameterElementWithoutTextWhateverItNames()
+    {
+        const string source = """
+                              /// <summary>Contract</summary>
+                              internal interface I
+                              {
+                                  /// <summary>Runs</summary>
+                                  /// <param name="value">Value</param>
+                                  void Run(int value);
+                              }
+
+                              /// <summary>Service</summary>
+                              /// {|#0:<param name="size"></param>|}
+                              internal class C : I
+                              {
+                                  /// <summary>Runs</summary>
+                                  /// {|#1:<param name="value"/>|}
+                                  void I.Run(int value)
+                                  {
+                                  }
+
+                                  /// <summary>Runs</summary>
+                                  /// {|#2:<param name="other"></param>|}
+                                  public void M(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies a param element whose content is only a tab or a no-break space counts as without text, while one with an asterisk in the middle of its line has text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8104-001")]
+    [Requirement("SHARED-DOC-014")]
+    public async Task VerifyParameterElementWithNoBreakSpaceOrTabIsWithoutText()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /// <summary>Runs</summary>
+                                  /// {|#0:<param name="a">&#9;</param>|}
+                                  /// {|#1:<param name="b">&#160;</param>|}
+                                  /// <param name="c"> * </param>
+                                  public void M(int a, int b, int c)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 2));
     }
 
     #endregion // Tests

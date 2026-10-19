@@ -20,6 +20,8 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("RH8101-002")]
     public async Task VerifyDiagnosticForMissingParameterDocumentation()
     {
         const string source = """
@@ -43,6 +45,8 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -66,6 +70,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
     public async Task VerifyDiagnosticForExtensionMemberParameterWithoutDocumentation()
     {
         const string source = """
@@ -90,6 +95,8 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("RH8101-002")]
     public async Task VerifyDiagnosticForOperatorParameterWithoutDocumentation()
     {
         const string source = """
@@ -112,6 +119,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
     public async Task VerifyNoDiagnosticForOperatorWithAllParametersDocumented()
     {
         const string source = """
@@ -135,6 +143,8 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("RH8101-002")]
     public async Task VerifyDiagnosticForConversionOperatorParameterWithoutDocumentation()
     {
         const string source = """
@@ -158,6 +168,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
     public async Task VerifyDiagnosticForClassPrimaryConstructorParameterWithoutDocumentation()
     {
         const string source = """
@@ -175,6 +186,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
     public async Task VerifyDiagnosticForRecordPrimaryConstructorParameterWithoutDocumentation()
     {
         const string source = """
@@ -193,6 +205,8 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("RH8101-002")]
     public async Task VerifyDiagnosticForPrimaryConstructorParametersWithoutDocumentation()
     {
         const string source = """
@@ -210,6 +224,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
     public async Task VerifyNoDiagnosticForPrimaryConstructorWithAllParametersDocumented()
     {
         const string source = """
@@ -229,6 +244,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8101-001")]
     public async Task VerifyNoDiagnosticForTypeWithoutPrimaryConstructor()
     {
         const string source = """
@@ -250,6 +266,8 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-DIAG-002")]
+    [Requirement("RH8101-001")]
+    [Requirement("SHARED-DOC-012")]
     public async Task VerifyVerbatimParameterIsMatchedToItsDocumentationByItsValue()
     {
         const string source = """
@@ -265,6 +283,312 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
                               """;
 
         await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: each undocumented parameter of a documented method, constructor, delegate, indexer, operator, conversion operator, or primary constructor is reported on its name, while undocumented declarations, inheritdoc, explicit implementations, and local functions are not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("RH8101-002")]
+    [Requirement("SHARED-DOC-009")]
+    [Requirement("SHARED-DOC-011")]
+    public async Task VerifySpecificationExampleReportsUndocumentedParameters()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Point
+                              /// </summary>
+                              /// <param name="X">X</param>
+                              public record Point(int X, int {|#0:Y|});
+
+                              /// <summary>
+                              /// Handler
+                              /// </summary>
+                              public delegate void Handler(int {|#1:value|});
+
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="value">Value</param>
+                                  void Run(int value);
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C : I
+                              {
+                                  /// <summary>
+                                  /// Creates
+                                  /// </summary>
+                                  public C(int {|#2:size|})
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="a">A</param>
+                                  private void M(int a, int {|#3:b|})
+                                  {
+                                  }
+
+                                  public void N(int a)
+                                  {
+                                  }
+
+                                  /// <inheritdoc/>
+                                  public void O(int a)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  void I.Run(int value)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+                                  public int this[int {|#4:index|}] => 0;
+
+                                  /// <summary>
+                                  /// Adds
+                                  /// </summary>
+                                  /// <param name="left">Left</param>
+                                  /// <returns>Sum</returns>
+                                  public static C operator +(C left, C {|#5:right|}) => left;
+
+                                  /// <summary>
+                                  /// Converts
+                                  /// </summary>
+                                  /// <returns>Value</returns>
+                                  public static implicit operator int(C {|#6:value|}) => 0;
+
+                                  private void P()
+                                  {
+                                      void Local(int value)
+                                      {
+                                      }
+                                  }
+                              }
+
+                              /// <summary>
+                              /// Extensions
+                              /// </summary>
+                              public static class Extensions
+                              {
+                                  /// <summary>
+                                  /// Text values
+                                  /// </summary>
+                                  /// <param name="value">Value</param>
+                                  extension(string value)
+                                  {
+                                      /// <summary>
+                                      /// Counts
+                                      /// </summary>
+                                      public int Count(char {|#7:c|}) => 0;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat, 8));
+    }
+
+    /// <summary>
+    /// Verifies the parameters of a documented explicit interface implementation are not reported, while the same parameters of an implicit implementation are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("SHARED-DOC-009")]
+    public async Task VerifyNoDiagnosticForParametersOfExplicitInterfaceImplementation()
+    {
+        const string source = """
+                              using System;
+
+                              /// <summary>Formatter</summary>
+                              internal class Formatter : IFormattable
+                              {
+                                  /// <summary>Formats</summary>
+                                  string IFormattable.ToString(string format, IFormatProvider formatProvider) => "";
+
+                                  /// <summary>Formats</summary>
+                                  public string ToString(string {|#0:format|}, IFormatProvider {|#1:formatProvider|}) => "";
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies no parameter is reported when a later documentation comment of the declaration has a top-level inheritdoc element, while one nested in remarks does not exempt the parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("SHARED-DOC-011")]
+    public async Task VerifyNoDiagnosticWhenLaterDocumentationCommentHasInheritdoc()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /// <summary>Runs</summary>
+
+                                  /// <inheritdoc/>
+                                  public void M(int value)
+                                  {
+                                  }
+
+                                  /// <summary>Runs</summary>
+                                  /// <remarks><inheritdoc/></remarks>
+                                  public void N(int {|#0:value|})
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a top-level param element in a later documentation comment documents the parameter, while a param element nested in remarks does not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("SHARED-DOC-012")]
+    public async Task VerifyParameterIsDocumentedByLaterDocumentationComment()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /// <summary>Runs</summary>
+
+                                  /// <param name="value"></param>
+                                  public void M(int value)
+                                  {
+                                  }
+
+                                  /// <summary>Runs</summary>
+                                  /// <remarks><param name="value">Value</param></remarks>
+                                  public void N(int {|#0:value|})
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies an included file documents a parameter with its param element and exempts the parameters with its inheritdoc element, while included content with only a summary does not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("SHARED-DOC-011")]
+    [Requirement("SHARED-DOC-012")]
+    public async Task VerifyIncludedDocumentationIsReadForParameters()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="A"]/*'/>
+                                  public void A(int value)
+                                  {
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="B"]/*'/>
+                                  public void B(int {|#0:value|})
+                                  {
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public void I(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string documentation = """
+                                     <doc>
+                                         <members>
+                                             <member name="A">
+                                                 <summary>Value</summary>
+                                                 <param name="value">Value</param>
+                                             </member>
+                                             <member name="B">
+                                                 <summary>Value</summary>
+                                             </member>
+                                             <member name="I">
+                                                 <inheritdoc/>
+                                             </member>
+                                         </members>
+                                     </doc>
+                                     """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies an undocumented parameter of a documented interface method is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    [Requirement("RH8101-002")]
+    public async Task VerifyDiagnosticForInterfaceMethodParameter()
+    {
+        const string source = """
+                              internal interface I
+                              {
+                                  /// <summary>Runs</summary>
+                                  void Run(int {|#0:value|});
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8101ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the parameters of a documented local function and of a lambda are not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    public async Task VerifyNoDiagnosticForDocumentedLocalFunctionAndLambda()
+    {
+        const string source = """
+                              using System;
+
+                              internal class C
+                              {
+                                  /// <summary>Runs</summary>
+                                  public void Run()
+                                  {
+                                      /// <summary>Local</summary>
+                                      void Local(int value)
+                                      {
+                                      }
+
+                                      Func<int, int> lambda = value => value;
+
+                                      Local(lambda(0));
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // Tests

@@ -20,6 +20,9 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("RH8109-002")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyDiagnosticForTypeParameterDocumentationInWrongOrder()
     {
         const string source = """
@@ -41,6 +44,9 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("RH8109-002")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyDiagnosticForTypeParameterDocumentationInPermutedOrder()
     {
         const string source = """
@@ -62,6 +68,8 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyNoDiagnosticForTypeParameterDocumentationInDeclaredOrder()
     {
         const string source = """
@@ -83,6 +91,8 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("SHARED-DOC-015")]
     public async Task VerifyNoDiagnosticForTypeParameterDocumentationNestedInRemarks()
     {
         const string source = """
@@ -103,6 +113,8 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -117,6 +129,154 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: typeparam elements in another order than the type parameters, or after the last one, are reported on the whole element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("RH8109-002")]
+    public async Task VerifySpecificationExampleReportsTypeParameterElementsThatDoNotFollowTheTypeParameters()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Pair
+                              /// </summary>
+                              /// {|#0:<typeparam name="TSecond">Second</typeparam>|}
+                              /// {|#1:<typeparam name="TFirst">First</typeparam>|}
+                              public class Pair<TFirst, TSecond>
+                              {
+                              }
+
+                              /// <summary>
+                              /// Factory
+                              /// </summary>
+                              /// <typeparam name="T">Result</typeparam>
+                              /// {|#2:<typeparam name="U">Extra</typeparam>|}
+                              public delegate T Factory<T>();
+
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Maps
+                                  /// </summary>
+                                  /// <typeparam name="TSource">Source</typeparam>
+                                  /// <typeparam name="TTarget">Target</typeparam>
+                                  void Map<TSource, TTarget>();
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8109MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies the shared specification example: typeparam elements are paired with the type parameters by position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("RH8109-002")]
+    [Requirement("SHARED-DOC-015")]
+    public async Task VerifySpecificationExamplePairsTypeParameterElementsByPosition()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Pair
+                              /// </summary>
+                              /// {|#0:<typeparam name="TSecond">Second</typeparam>|}
+                              /// {|#1:<typeparam name="TFirst">First</typeparam>|}
+                              public class Pair<TFirst, TSecond>
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="a">A</param>
+                                  /// <param name="c">C</param>
+                                  public void M(int a, int b)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param>Unnamed</param>
+                                  /// <param name="b">B</param>
+                                  /// <param name="c">Extra</param>
+                                  public void N(int a, int b)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="a">A</param>
+                                  /// <remarks>
+                                  /// <param name="z">Nested</param>
+                                  /// </remarks>
+                                  public void O(int a, int b)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  /// <param name="class">Class</param>
+                                  /// <param name="@event">Event</param>
+                                  public void P(int @class, int @event)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8109MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the typeparam elements of a method are checked, an explicit interface implementation included, while an unnamed element keeps its position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("RH8109-002")]
+    [Requirement("SHARED-DOC-015")]
+    public async Task VerifyTypeParameterElementsOfMethodsAreCheckedIncludingExplicitImplementations()
+    {
+        const string source = """
+                              /// <summary>Contract</summary>
+                              internal interface I
+                              {
+                                  /// <summary>Maps</summary>
+                                  /// <typeparam name="TSource">Source</typeparam>
+                                  /// <typeparam name="TTarget">Target</typeparam>
+                                  void Map<TSource, TTarget>();
+                              }
+
+                              /// <summary>Service</summary>
+                              internal class C : I
+                              {
+                                  /// <summary>Maps</summary>
+                                  /// {|#0:<typeparam name="TTarget">Target</typeparam>|}
+                                  /// {|#1:<typeparam name="TSource">Source</typeparam>|}
+                                  void I.Map<TSource, TTarget>()
+                                  {
+                                  }
+
+                                  /// <summary>Maps</summary>
+                                  /// <typeparam>Source</typeparam>
+                                  /// <typeparam name="TTarget">Target</typeparam>
+                                  /// {|#2:<typeparam name="TExtra">Extra</typeparam>|}
+                                  public void Map<TSource, TTarget>()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8109MessageFormat, 3));
     }
 
     #endregion // Tests
