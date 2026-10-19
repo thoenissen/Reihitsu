@@ -18,7 +18,7 @@ Process(first, // the primary input
 
 ## Code excluded by `#if`
 
-Only the code that is active for the current build configuration is analyzed. Code inside an `#if` branch whose condition is false is not checked, because it is not part of the compilation. It is checked when you build the configuration that includes it. The `#region` and `#endregion` directives inside such a branch are an exception for some rules: the compiler still reads them, so RH7301, RH7302, RH7303, RH7306, and RH7307 check them as well.
+Only the code that is active for the current build configuration is analyzed. Code inside an `#if` branch whose condition is false is not checked, because it is not part of the compilation. It is checked when you build the configuration that includes it. The `#region` and `#endregion` directives inside such a branch are an exception: the compiler still reads them, so several of the region rules check them there as well.
 
 ## Generated code
 
