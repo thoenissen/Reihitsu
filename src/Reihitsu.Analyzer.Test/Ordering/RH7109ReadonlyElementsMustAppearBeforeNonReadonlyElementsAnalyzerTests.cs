@@ -386,6 +386,105 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(testCode, fixedCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying the fix reorders the fields of a struct with explicit layout, where each field's offset attribute
+    /// moves with it, so the layout stays the same
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixReordersTheFieldsOfAnExplicitLayoutStructAndKeepsEachOffset()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                [StructLayout(LayoutKind.Explicit)]
+                                public struct S
+                                {
+                                    [FieldOffset(0)]
+                                    public int _a;
+                                    [FieldOffset(8)]
+                                    public readonly long {|RH7109:_b|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 [StructLayout(LayoutKind.Explicit)]
+                                 public struct S
+                                 {
+                                     [FieldOffset(8)]
+                                     public readonly long _b;
+                                     [FieldOffset(0)]
+                                     public int _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the fix reorders the fields of a struct with automatic layout, whose field order sets no layout
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixReordersTheFieldsOfAnAutoLayoutStruct()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                [StructLayout(LayoutKind.Auto)]
+                                public struct S
+                                {
+                                    public int _a;
+                                    public readonly long {|RH7109:_b|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 [StructLayout(LayoutKind.Auto)]
+                                 public struct S
+                                 {
+                                     public readonly long _b;
+                                     public int _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the fix reorders the fields of a class without a layout attribute, whose fields the runtime lays out
+    /// in an order of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixReordersTheFieldsOfAClassWithoutLayoutAttribute()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int _a;
+                                    public readonly long {|RH7109:_b|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public readonly long _b;
+                                     public int _a;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
