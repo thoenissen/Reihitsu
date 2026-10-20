@@ -224,3 +224,32 @@ G2. Same as F2 for events (`NoCodeFixWhenDirectivesAreInAccessorLeadingTrivia`, 
 ## Decisions needed
 
 _None._
+
+# Repair (skeptic worklist, 02-skeptic.md)
+
+Commit the repair was derived from: 7143dc9. Every item was re-derived from the code (harness on the Debug build, see above) before the edit. No ID was added, removed, renumbered, or retired, so `requirement-ids.txt` and `sdd/specs/README.md` are unchanged; the `Uses` rows of RH7102, RH7109, and RH7110 gained SHARED-TYPEREGION-006 (no edit to `shared/type-regions.md`).
+
+## Changed requirements
+
+- RH7002-001 — narrowed: reports only declarations without `partial`; a non-partial type after a partial one is reported (new example `partial class A {}` + `class {|RH7002:B|} {}`). The second part of a partial type (C1) is unspecified.
+- RH7003-001 — narrowed: a namespace that contains a namespace declaration or an `#if`/`#elif`/`#else`/`#endif` is no longer covered; the "contents do not matter" sentence and the nested-namespace example are gone (N1 and the P22 reach stay out). New example: using directive, comment, and type inside the namespace.
+- RH7104-001, RH7104-003, RH7104-004 — narrowed to a type with only the reported declaration; the `Why:` of -001 no longer argues per-part reporting (D2 stays out).
+- SHARED-MODORDER-001 — `Why:` no longer presents the list as complete (E2 stays out).
+- SHARED-MODORDER-002 — retitled "The fix writes the modifiers in its rule's order"; scoped to declarations with no comment and no directive between the last modifier and the next token (N2, and the comment-on-the-next-line case that gets a blank line inserted, stay out). The non-goal now points neutrally to `shared/code-fixes.md`.
+- SHARED-MODORDER-003 — narrowed to what `ReorderingWouldDropCommentOrDirective` checks: a comment on a modifier's line (trailing trivia), or a comment or a directive other than `#if`/`#elif`/`#else`/`#endif` in front of a modifier after the first. A directive after the last modifier (N2) and conditional directives (E3) are not covered.
+- RH7101-001, RH7105-001, RH7106-001, RH7107-001, RH7108-001 — narrowed: a conditional directive inside the judged construct (declarator list, modifier list, accessor list) is no longer covered by the "is reported" sentence (B2, E3, F2, G2). These were not in the worklist's item 6 by name, but they wrote the same P22 cases into the spec as the "still reported" sentences did.
+- RH7102-001, RH7109-001 — narrowed: the reported declaration contains no conditional directive, and the two fields are compared only when both lie outside every region or both in the same top-level region.
+- RH7101-005, RH7102-006, RH7107-005, RH7108-005, RH7109-006 — "The diagnostic is still reported" now holds only when no `#if`/`#elif`/`#else`/`#endif` takes part in the refusal (RH7101-005: when the declaration contains none). Examples unchanged.
+- RH7102-003, RH7109-003 — narrowed rather than removed: retitled "Fields in one top-level region are compared"; they now state only the case both readings of N3 share — two fields in the same top-level region (SHARED-TYPEREGION-006), a nested region included — reported, no fix (SHARED-ORDER-004). The cross-region case (N3) is unspecified. New examples verified: RH7102 with the constant in a nested region, RH7109 with three fields in one region; both reported, no fix offered.
+- RH7110-001 — retitled; the order is named "the accessibility order" without a breadth claim; example prose adjusted.
+- RH7110-003 — now references SHARED-TYPEREGION-006 instead of restating it; examples unchanged.
+- RH7110-004 — states the operator token for an operator and the `operator` keyword for a conversion operator (from `OrderingDeclarationUtilities.GetDiagnosticLocation`). Note: operators and conversion operators are always `public` in classes, so RH7110 may never reach these two locations; the clause is there because the code places them so.
+- RH7004-006 — "directly" replaced: any later statement of the same block withholds the fix; the example now has `stream.Flush();` between the declaration and the local function (verified: no fix offered).
+
+## Not narrowed — for the coordinator
+
+- N4 reading B (P22's "construct" is the whole declaration, body included) would also reach RH7001-001, RH7002-001, RH7104-001, RH7105-001/RH7106-001 on a type declaration, and RH7110-001: each says "every … declaration" and covers a namespace or type whose body contains an `#if`. The worklist narrowed only RH7003 for this. If N4 is filed rather than answered, the same qualifier ("contains no `#if`, `#elif`, `#else`, or `#endif` directive") would have to go into those sentences too.
+
+## Open questions to file (additions)
+
+The skeptic's N1, N2, N3, N4, N5 and its classifications of A1–G2 and C1 are in 02-skeptic.md; I have nothing to add or contest. C1 is now kept out of RH7002-001 either way.

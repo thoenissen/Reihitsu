@@ -7,12 +7,12 @@
 | Code owners | `ModifierOrderingUtilities`, `ModifierOrderingCodeFixProviderBase` |
 | Uses | — |
 
-This spec covers what the two modifier ordering rules share: which declarations they check, how their code fixes rewrite the modifier list, and when the fixes are withheld. It applies to RH7105 (declaration keyword order) and RH7106 (`protected` before `internal`, `private` before `protected`). Which order each rule enforces, which modifier it reports, and where the fix puts each keyword is that rule's own spec.
+This spec covers what the two modifier ordering rules share: which declarations they check, what their code fixes write into the modifier list, and when the fixes are withheld. It applies to RH7105 (declaration keyword order) and RH7106 (`protected` before `internal`, `private` before `protected`). Which order each rule enforces, which modifier it reports, and where the fix puts each keyword is that rule's own spec.
 
 ## Non-goals
 
 - The order each rule enforces — RH7105 and RH7106.
-- The layout of the rest of the declaration after the fix. The fix lays the declaration out with the formatter (FMT-PIPE); this spec only fixes what happens to the modifiers and the trivia between them.
+- How a fix lays out the code it changes — [`code-fixes.md`](code-fixes.md).
 - Which accessibility a declaration should have — RH2004, RH2005, RH7104.
 
 ## Requirements
@@ -21,7 +21,7 @@ This spec covers what the two modifier ordering rules share: which declarations 
 
 A modifier ordering rule MUST check the modifier list of every class, struct, interface, record, record struct, delegate, field, constructor, property, event, event field, method, indexer, operator, and conversion operator declaration.
 
-Why: These are the declarations whose modifier lists carry accessibility together with other keywords, so a reader compares their modifiers across a type. Checking them all with one list keeps the two rules consistent: a declaration that one rule checks is checked by the other too.
+Why: Checking the same declarations in both rules keeps them consistent: a declaration whose modifier order one rule checks is checked by the other too.
 
 Example — RH7105 checks a class, a field, an event field, a property, a method, an operator, and a conversion operator:
 
@@ -96,11 +96,11 @@ public class C
 }
 ```
 
-### SHARED-MODORDER-002 — The fix rewrites only the modifier keywords
+### SHARED-MODORDER-002 — The fix writes the modifiers in its rule's order
 
-The code fix MUST write the declaration's modifier keywords in the order its rule produces, keeping every keyword the declaration had. The trivia in front of the first modifier MUST stay in front of the new first modifier, and each modifier MUST be followed by a single space.
+When no comment and no directive stands between the declaration's last modifier and the token after it, the code fix MUST write the declaration's modifier keywords in the order its rule produces, keeping every keyword the declaration had. The trivia in front of the first modifier MUST stay in front of the new first modifier, and each modifier MUST be followed by a single space.
 
-Why: The diagnostic is about the order of the keywords, so the fix changes the order and nothing else in the list. The trivia in front of the first modifier — the indentation, a comment on the same line, a documentation comment of a declaration without attributes — belongs to the declaration, not to the keyword that happened to come first.
+Why: The diagnostic is about the order of the keywords, so the fix writes the same keywords in the order the rule asks for. The trivia in front of the first modifier — the indentation, a comment on the same line, a documentation comment of a declaration without attributes — belongs to the declaration, not to the keyword that happened to come first.
 
 Example — RH7105:
 
@@ -120,7 +120,7 @@ class C
 
 ### SHARED-MODORDER-003 — A comment or directive between the modifiers withholds the fix
 
-The code fix MUST NOT be offered when a comment or a directive follows any modifier before the next token of the declaration, or precedes any modifier but the first. The diagnostic is still reported. A comment or directive in front of the first modifier does not withhold the fix (SHARED-MODORDER-002).
+The code fix MUST NOT be offered when a comment follows a modifier on that modifier's line, or when a comment or a directive other than `#if`, `#elif`, `#else`, and `#endif` precedes any modifier but the first. The diagnostic is still reported. A comment or directive in front of the first modifier does not withhold the fix (SHARED-MODORDER-002).
 
 Why: The fix writes each modifier with a single space after it, so trivia between the modifiers would be dropped, and a comment written next to one keyword cannot be placed next to the same keyword in the new order. A reported diagnostic without a fix is a supported end state.
 
