@@ -7,7 +7,7 @@
 | Code owners | `MembersShouldBeGroupedByRegionsAnalyzerBase`, `NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase`, `OverrideMemberUtilities`, `InterfaceImplementationUtilities` |
 | Uses | SHARED-REGDESC-001, SHARED-TYPEREGION-006 |
 
-This spec covers what the rules that group members by the type they come from share: which type declarations they check, which region a member lies in, how a region's name is matched against a type, which type an override comes from (RH7401–RH7408), which interface an implementation comes from (RH7409–RH7412), when a region is an override region (RH7405–RH7408), and where the diagnostic is. Which members a rule checks, and whether it asks for a region or forbids one, is each rule's own spec.
+This spec covers what the rules that group members by the type they come from share: which type declarations they check, how a region's name is matched against a type, which type an override comes from (RH7401–RH7408), which interface an implementation comes from (RH7409–RH7412), when a region is an override region (RH7405–RH7408), and where the diagnostic is. Which members a rule checks, and whether it asks for a region or forbids one, is each rule's own spec. Which top-level regions a type declaration has, and when a member lies in one, is SHARED-TYPEREGION-006.
 
 ## Non-goals
 
@@ -88,64 +88,11 @@ interface IB : IA
 
 is not reported.
 
-### SHARED-REGGROUP-002 — The region a member lies in
+### SHARED-REGGROUP-002 — A region name matches the type's simple name
 
-A member MUST count as lying in a top-level region of its type declaration (SHARED-TYPEREGION-006) when it lies wholly between that region's `#region` and `#endregion` directives and in no region nested in that region. A member that lies in no top-level region MUST count as lying in no region, also when a region lies inside its own body.
+For a type whose simple name does not start with a character that changes under invariant upper-casing, a region MUST match the type exactly when the region's name — its description (SHARED-REGDESC-001) — equals the type's simple name, compared ordinally: the name's value without a verbatim `@`, without its namespace or containing type, and without a type parameter or type argument list. A name with different casing or with any further text MUST NOT match.
 
-Why: The top-level regions of a type's body are its outline, and a member is grouped by the outline entry around it. A region inside a member's body hides statements of that member; it does not group the member.
-
-Example — RH7401:
-
-```csharp
-class B
-{
-    public virtual void M()
-    {
-    }
-
-    public virtual void N()
-    {
-    }
-
-    public virtual void O()
-    {
-    }
-}
-
-class C : B
-{
-    #region B
-
-    public override void M()
-    {
-    }
-
-    #endregion
-
-    public override void {|RH7401:N|}()
-    {
-        #region B
-        System.Console.WriteLine();
-        #endregion
-    }
-
-    #region Methods
-
-    public override void {|RH7401:O|}()
-    {
-    }
-
-    #endregion
-}
-```
-
-`M` lies in the region `B`; `N` lies in no region, because the region in its body is not a top-level region of `C`; `O` lies in the region `Methods`.
-
-### SHARED-REGGROUP-003 — A region name matches the type's simple name
-
-A region MUST match a type exactly when the region's name — its description (SHARED-REGDESC-001) — equals the type's simple name, compared ordinally: the name without its namespace or containing type and without a type parameter or type argument list. A name with different casing or with any further text MUST NOT match.
-
-Why: One spelling per type keeps the regions of every type in a code base alike, and the simple name is the same for every construction of a generic type, so the members of `B<int>` and `B<string>` group under the same name. Comparing exactly keeps the region's name the type's name instead of a text that only resembles it.
+Why: One spelling per type keeps the regions of every type in a code base alike, and the simple name is the same for every construction of a generic type, so the members of `B<int>` and `B<string>` group under the same name. The `@` is spelling, not part of the name. Comparing exactly keeps the region's name the type's name instead of a text that only resembles it.
 
 Example — RH7401, with the base type `B<T>`:
 
@@ -205,7 +152,41 @@ class C : B<int>
 }
 ```
 
-The description of the first region is `B`, whatever whitespace surrounds it; `B<T>`, `b`, and `B // base` do not match. The same holds for an interface — RH7409:
+The description of the first region is `B`, whatever whitespace surrounds it; `B<T>`, `b`, and `B // base` do not match. A type declared with a verbatim identifier matches its value — RH7401:
+
+```csharp
+class @Base
+{
+    public virtual void M()
+    {
+    }
+
+    public virtual void N()
+    {
+    }
+}
+
+class C : @Base
+{
+    #region Base
+
+    public override void M()
+    {
+    }
+
+    #endregion
+
+    #region @Base
+
+    public override void {|RH7401:N|}()
+    {
+    }
+
+    #endregion
+}
+```
+
+The same holds for an interface — RH7409:
 
 ```csharp
 using System;
@@ -220,7 +201,7 @@ class C : IComparable<C>
 }
 ```
 
-### SHARED-REGGROUP-004 — An override comes from the type that introduced the member
+### SHARED-REGGROUP-003 — An override comes from the type that introduced the member
 
 The type an override comes from MUST be the type that declares the member its override chain starts from — the `virtual` or `abstract` member that the first override in the chain overrides — and not the direct base type that overrode it last. This holds for methods, properties, indexers, and events, and for `override`, `sealed override`, and `abstract override` alike. An override of a member that `object` declares MUST come from `Object`, also in a struct, whose `ToString`, `Equals`, and `GetHashCode` override members that `ValueType` overrides in turn.
 
@@ -287,9 +268,9 @@ class C
 
 `E.M` comes from `B`, because `D.M` only overrides it again; `E.N` comes from `D`, which introduced `N`; `S.ToString` and `C.ToString` come from `Object`.
 
-### SHARED-REGGROUP-005 — An implementation comes from the interface that declares the member
+### SHARED-REGGROUP-004 — An implementation comes from the interface that declares the member
 
-The interface an explicit interface implementation comes from MUST be the interface its name is qualified with. The interface an implicit implementation comes from MUST be the interface that declares the member it implements, also when the type lists only an interface derived from it. A member that is an override MUST NOT come from an interface, even when it implements an interface member; it comes from its base type (SHARED-REGGROUP-004).
+The interface an explicit interface implementation comes from MUST be the interface its name is qualified with. The interface an implicit implementation comes from MUST be the interface that declares the member it implements, also when the type lists only an interface derived from it. A member that is an override MUST NOT come from an interface, even when it implements an interface member; it comes from its base type (SHARED-REGGROUP-003).
 
 Why: The interface that declares a member is the contract the member fulfils, and it is the name the member is implemented under, whichever derived interface the type lists. An override that also implements an interface member is grouped once, under the type it overrides, so that one member is never asked to lie in two regions.
 
@@ -362,9 +343,9 @@ class D : B, IA
 
 is not reported by RH7409.
 
-### SHARED-REGGROUP-006 — The diagnostic is on the member's name
+### SHARED-REGGROUP-005 — The diagnostic is on the member's name
 
-A rule MUST report one diagnostic per reported member, located on its identifier: for an explicit interface implementation the identifier after the interface name, for an indexer the `this` keyword, and for a field-like event the identifier of its declarator.
+A rule MUST report one diagnostic per reported member declaration, located on its identifier: for an explicit interface implementation the identifier after the interface name, for an indexer the `this` keyword, and for a field-like event with one declarator the identifier of that declarator.
 
 Why: The name is what a reader scans for, and one diagnostic per member lets the user move members one at a time.
 
@@ -392,9 +373,9 @@ class C : I
 }
 ```
 
-### SHARED-REGGROUP-007 — An override region
+### SHARED-REGGROUP-006 — An override region
 
-A top-level region MUST count as an override region of a rule when its name matches (SHARED-REGGROUP-003) the type that an override of the rule's member kind comes from (SHARED-REGGROUP-004), for an override that the type declaration declares, wherever that override lies — in the region, in another region, or in none. A region whose name matches no type that an override of the type comes from MUST NOT count as an override region.
+A top-level region MUST count as an override region of a rule when its name matches (SHARED-REGGROUP-002) the type that an override of the rule's member kind comes from (SHARED-REGGROUP-003), for an override that the analyzed type declaration declares, wherever that override lies — in the region, in another region, or in none. A region whose name matches no type that an override in any declaration of the type comes from MUST NOT count as an override region.
 
 Why: A region named after a base type of the type's overrides is where those overrides belong, whether or not they have been moved there yet; a member that overrides nothing does not belong in it. A region that only happens to carry a base type's name, in a type that overrides nothing of it, is an ordinary region.
 
