@@ -71,3 +71,4 @@ thoenissen/Reihitsu#912 has reached GitHub's limit of 100 sub-issues, so each is
 - Auditor blocked after the repair round (escalation 7, 2026-10-20): one more repair round allowed for all findings (`squad/decisions/2026-10-20-997-second-repair-round.md`).
 - Repair-round open questions filed (2026-10-20): new analyzer/RH3001.md → thoenissen/Reihitsu#1245 (Q1 P1, Q2 normal); comments thoenissen/Reihitsu#1231 Q2, #1227 Q2, #1233 Q2, #1229 Q3.
 - Spec checker findings on the second repair round (24): routed within the same approved round, since they concern the requirements and tests that round repaired (RH3001-004, RH3103-003, RH3001 pins, RH3002-001 tags).
+- RH3001-004 still open after the repair round (escalation 7, 2026-10-20): small targeted fix allowed (`squad/decisions/2026-10-20-997-rh3001-targeted-fix.md`).
