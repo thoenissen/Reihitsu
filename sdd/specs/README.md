@@ -310,6 +310,20 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH8032.md](analyzer/RH8032.md) | RH8032 | `RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8033.md](analyzer/RH8033.md) | RH8033 | `RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8034.md](analyzer/RH8034.md) | RH8034 | `RH8034OperatorsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8101.md](analyzer/RH8101.md) | RH8101 | `RH8101ElementParametersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8102.md](analyzer/RH8102.md) | RH8102 | `RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer` |
+| [analyzer/RH8103.md](analyzer/RH8103.md) | RH8103 | `RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer` |
+| [analyzer/RH8104.md](analyzer/RH8104.md) | RH8104 | `RH8104ElementParameterDocumentationMustHaveTextAnalyzer` |
+| [analyzer/RH8105.md](analyzer/RH8105.md) | RH8105 | `RH8105ElementReturnValueMustBeDocumentedAnalyzer` |
+| [analyzer/RH8106.md](analyzer/RH8106.md) | RH8106 | `RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer` |
 | [analyzer/RH8107.md](analyzer/RH8107.md) | RH8107 | `RH8107VoidReturnValueMustNotBeDocumentedAnalyzer`, `RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider`, `DocumentationCommentCodeFixUtilities` |
+| [analyzer/RH8108.md](analyzer/RH8108.md) | RH8108 | `RH8108GenericTypeParametersMustBeDocumentedAnalyzer` |
+| [analyzer/RH8109.md](analyzer/RH8109.md) | RH8109 | `RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer` |
+| [analyzer/RH8110.md](analyzer/RH8110.md) | RH8110 | `RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer` |
+| [analyzer/RH8111.md](analyzer/RH8111.md) | RH8111 | `RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer` |
+| [analyzer/RH8201.md](analyzer/RH8201.md) | RH8201 | `RH8201InheritdocShouldBeUsedAnalyzer`, `RH8201InheritdocShouldBeUsedCodeFixProvider` |
+| [analyzer/RH8202.md](analyzer/RH8202.md) | RH8202 | `RH8202ValueTagMustNotBeUsedAnalyzer`, `RH8202ValueTagMustNotBeUsedCodeFixProvider` |
+| [analyzer/RH8203.md](analyzer/RH8203.md) | RH8203 | `RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer` |
+| [analyzer/RH8204.md](analyzer/RH8204.md) | RH8204 | `RH8204DoNotUsePlaceholderElementsAnalyzer`, `RH8204DoNotUsePlaceholderElementsCodeFixProvider` |
 | [cli/reihitsu-format.md](cli/reihitsu-format.md) | CLI | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
 | [playground/playground.md](playground/playground.md) | PLAY | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundVersion` |
