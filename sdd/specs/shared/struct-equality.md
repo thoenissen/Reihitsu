@@ -86,7 +86,7 @@ A rule MUST treat an operation as not using the compared type's equality members
 
 - `null`, or `default` of a reference type or of a nullable value type;
 - `EqualityComparer<T>.Default`;
-- one of these forms inside parentheses, behind the null-forgiving operator `!`, or converted by a cast that is not a user-defined conversion;
+- one of these forms inside parentheses, behind the null-forgiving operator `!`, converted by a cast that is not a user-defined conversion, or converted by the `as` operator;
 - a `??` expression whose two operands have one of these forms, or whose left operand has one of these forms and always produces `EqualityComparer<T>.Default`, so that its right operand is never used;
 - a conditional expression whose two branches have one of these forms, or, when its condition is a constant, whose chosen branch has one;
 - a `switch` expression whose arms all have one of these forms;
@@ -94,7 +94,7 @@ A rule MUST treat an operation as not using the compared type's equality members
 
 Every other argument MUST count as custom. The rule decides by the form of the expression alone: a variable, a field, a property, or a method call counts as custom whatever value it has at run time, also a local variable initialized with `null`, and so does a cast with a user-defined conversion, whatever its operand. `default` of a non-nullable value type that implements `IEqualityComparer<T>` is a comparer and MUST count as a custom one.
 
-This requirement covers a parameter of type `IEqualityComparer<T>` only when `T` is the type the operation compares. It covers a conditional expression with a `throw` branch, and a `switch` expression with a `throw` arm, only when another branch or arm counts as custom.
+This requirement covers a parameter of type `IEqualityComparer<T>` only when `T` is the type the operation compares. It covers a conditional expression with a `throw` branch, and a `switch` expression with a `throw` arm, only when another branch or arm counts as custom. It covers an argument whose whole expression is a form inside parentheses or behind `!` only when that form is a constant with the value `null` or always produces `EqualityComparer<T>.Default`: `((IEqualityComparer<S>)null)!` and `(EqualityComparer<S>.Default ?? comparer)` are covered, `(flag ? null : EqualityComparer<S>.Default)` and `(null as IEqualityComparer<S>)` are not.
 
 Why: A comparer passed to the operation does the comparing and hashing itself, so the type's own members are never called. `null` and `EqualityComparer<T>.Default` both fall back to the type's own equality behavior, so passing them changes nothing, however the expression is written. The rule does not follow a variable or a call to the value it produces, and a conversion operator can return any comparer, so such an argument may be a real comparer. A value-type comparer is boxed into a real instance and is used.
 
