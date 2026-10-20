@@ -23,6 +23,9 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-001")]
+    [Requirement("RH7109-004")]
+    [Requirement("RH7109-005")]
     public async Task ReadonlyFieldsAreReportedAndFixedWhenTheyAppearAfterMutableFields()
     {
         const string testCode = """
@@ -50,6 +53,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-005")]
     public async Task SeparatorSurvivesTheReorderWhenReadonlyFieldWasAlreadySeparated()
     {
         const string testCode = """
@@ -79,6 +83,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-001")]
+    [Requirement("RH7109-005")]
     public async Task MixedImplicitAndExplicitPublicInterfaceFieldsAreDetectedAndFixedWhenSafe()
     {
         const string testCode = """
@@ -105,6 +111,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-001")]
+    [Requirement("RH7109-006")]
     public async Task ExplicitPublicMutableAndImplicitReadonlyInterfaceFieldsReportWithoutCodeFixWhenInitialized()
     {
         const string source = """
@@ -190,6 +198,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-002")]
     public async Task InterfaceFieldsInDifferentAccessibilityGroupsDoNotProduceDiagnostics()
     {
         const string testCode = """
@@ -259,6 +268,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-001")]
+    [Requirement("RH7109-004")]
     public async Task MultipleMisorderedReadonlyInterfaceFieldsProduceDiagnostics()
     {
         const string testCode = """
@@ -278,6 +289,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-006")]
     public async Task NoCodeFixWhenMoveChangesInitializerExecutionOrder()
     {
         const string testCode = """
@@ -306,6 +318,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-006")]
     public async Task NoCodeFixWhenMoveChangesInitializerExecutionOrderAcrossEventField()
     {
         const string testCode = """
@@ -365,6 +378,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7109-005")]
     public async Task ReadonlyFieldWithInitializerIsFixedWhenNoPassedOverFieldHasInitializer()
     {
         const string testCode = """
@@ -483,6 +497,221 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                                  """;
 
         await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a readonly field after a field of its accessibility and static group is
+    /// reported on its first name, in a class and in an interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-001")]
+    [Requirement("RH7109-004")]
+    public async Task ReadonlyFieldsAfterFieldsOfTheirGroupAreReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private static int _shared;
+                                  private int _count;
+                                  public int Value;
+                                  private readonly int {|RH7109:_id|};
+                                  private static readonly int {|RH7109:_default|};
+                                  public readonly int {|RH7109:Key|};
+                                  private const int Max = 1;
+                              }
+
+                              interface I
+                              {
+                                  static int Counter;
+                                  public static readonly int {|RH7109:Limit|};
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: readonly fields that follow only fields of other groups or constants are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-002")]
+    public async Task ReadonlyFieldsAfterFieldsOfOtherGroupsAreNotReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _count;
+                                  private static readonly int _default = 1;
+                                  private const int Max = 1;
+                                  public readonly int Key;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: fields in one top-level region are compared, and no code fix is offered
+    /// because the region opens in the crossed span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-003")]
+    [Requirement("RH7109-006")]
+    public async Task ReadonlyFieldInTheSameTopLevelRegionIsReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+
+                                  private int _count;
+                                  private int _other;
+                                  private readonly int {|RH7109:_id|};
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the fix moves the readonly field in front of the first field of its group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-005")]
+    [Requirement("SHARED-ORDER-001")]
+    public async Task FixMovesTheReadonlyFieldInFrontOfTheFirstFieldOfItsGroup()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _count;
+                                  private readonly int {|RH7109:_id|} = 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _id = 2;
+                                       private int _count;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the documentation comment travels with the moved field, and the blank
+    /// line stays where it was
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-005")]
+    [Requirement("SHARED-ORDER-002")]
+    public async Task FixMovesTheDocumentationCommentWithTheReadonlyField()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _count;
+
+                                  /// <summary>
+                                  /// The identifier
+                                  /// </summary>
+                                  private readonly int {|RH7109:_id|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /// <summary>
+                                       /// The identifier
+                                       /// </summary>
+                                       private readonly int _id;
+
+                                       private int _count;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: when both fields have an instance initializer the fix is withheld, and
+    /// the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task InitializersOfBothFieldsWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _count = 1;
+                                  private readonly int {|RH7109:_id|} = 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a pragma pair around a crossed field withholds the fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-006")]
+    public async Task PragmaDirectivesAroundACrossedFieldWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _count;
+                              #pragma warning disable CS0169
+                                  private int _unused;
+                              #pragma warning restore CS0169
+                                  private readonly int {|RH7109:_id|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Characterizes current behavior that no requirement states: the fix reorders the fields of a struct without a
+    /// layout attribute, whose fields the runtime lays out sequentially
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixReordersTheFieldsOfAStructWithDefaultLayout()
+    {
+        const string source = """
+                              struct S
+                              {
+                                  public int A;
+                                  public readonly int {|RH7109:B|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   struct S
+                                   {
+                                       public readonly int B;
+                                       public int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     #endregion // Tests
