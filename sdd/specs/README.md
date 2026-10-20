@@ -32,6 +32,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | [shared/initializer-layout.md](shared/initializer-layout.md) | SHARED-INIT | `InitializerLayoutAnalysisUtilities` |
 | [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
+| [shared/member-region-grouping.md](shared/member-region-grouping.md) | SHARED-REGGROUP | `MembersShouldBeGroupedByRegionsAnalyzerBase`, `NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase`, `OverrideMemberUtilities`, `InterfaceImplementationUtilities` |
 | [shared/nested-types.md](shared/nested-types.md) | SHARED-NESTED | `NestedTypeAnalyzerHelper` |
 | [shared/operator-spacing.md](shared/operator-spacing.md) | SHARED-OPSPACE | `OperatorSpacingCodeFixProviderBase` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
@@ -300,6 +301,19 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH7309.md](analyzer/RH7309.md) | RH7309 | `RH7309RegionsShouldFollowCategoryOrderAnalyzer`, `RH7309RegionsShouldFollowCategoryOrderCodeFixProvider`, `RegionCategoryUtilities` |
 | [analyzer/RH7310.md](analyzer/RH7310.md) | RH7310 | `RH7310EmptyRegionsShouldBeRemovedAnalyzer`, `RH7310EmptyRegionsShouldBeRemovedCodeFixProvider` |
 | [analyzer/RH7311.md](analyzer/RH7311.md) | RH7311 | `RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer` |
+| [analyzer/RH7401.md](analyzer/RH7401.md) | RH7401 | `RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer` |
+| [analyzer/RH7402.md](analyzer/RH7402.md) | RH7402 | `RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer` |
+| [analyzer/RH7403.md](analyzer/RH7403.md) | RH7403 | `RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer` |
+| [analyzer/RH7404.md](analyzer/RH7404.md) | RH7404 | `RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzer` |
+| [analyzer/RH7405.md](analyzer/RH7405.md) | RH7405 | `RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer` |
+| [analyzer/RH7406.md](analyzer/RH7406.md) | RH7406 | `RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyzer` |
+| [analyzer/RH7407.md](analyzer/RH7407.md) | RH7407 | `RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer` |
+| [analyzer/RH7408.md](analyzer/RH7408.md) | RH7408 | `RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer` |
+| [analyzer/RH7409.md](analyzer/RH7409.md) | RH7409 | `RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer` |
+| [analyzer/RH7410.md](analyzer/RH7410.md) | RH7410 | `RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer` |
+| [analyzer/RH7411.md](analyzer/RH7411.md) | RH7411 | `RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer` |
+| [analyzer/RH7412.md](analyzer/RH7412.md) | RH7412 | `RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer` |
+| [analyzer/RH7501.md](analyzer/RH7501.md) | RH7501 | `RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer`, `RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider` |
 | [analyzer/RH8001.md](analyzer/RH8001.md) | RH8001 | `RH8001NonPrivateClassesMustBeDocumentedAnalyzer` |
 | [analyzer/RH8002.md](analyzer/RH8002.md) | RH8002 | `RH8002PrivateClassesMustBeDocumentedAnalyzer` |
 | [analyzer/RH8003.md](analyzer/RH8003.md) | RH8003 | `RH8003NonPrivateStructsMustBeDocumentedAnalyzer` |
