@@ -21,6 +21,8 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-001")]
+    [Requirement("RH7310-003")]
     public async Task VerifyEmptyRegionIsReported()
     {
         const string testData = """
@@ -40,6 +42,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionContainingOnlyCommentIsNotReported()
     {
         const string testData = """
@@ -61,6 +64,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionContainingRationaleCommentsIsNotReported()
     {
         const string testData = """
@@ -87,6 +91,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionContainingMultiLineCommentIsNotReported()
     {
         const string testData = """
@@ -108,6 +113,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-001")]
     public async Task VerifyMultipleEmptyRegionsAreReported()
     {
         const string testData = """
@@ -131,6 +137,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyNestedEmptyRegionReportsInnermostOnly()
     {
         const string testData = """
@@ -154,6 +161,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionContainingFieldIsNotReported()
     {
         const string testData = """
@@ -175,6 +183,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionContainingMethodIsNotReported()
     {
         const string testData = """
@@ -198,6 +207,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionContainingNestedTypeIsNotReported()
     {
         const string testData = """
@@ -221,6 +231,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionWrappingNonEmptyNestedRegionIsNotReported()
     {
         const string testData = """
@@ -246,6 +257,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionWrappingDisabledCodeIsNotReported()
     {
         const string testData = """
@@ -269,6 +281,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyRegionWrappingDirectiveIsNotReported()
     {
         const string testData = """
@@ -288,6 +301,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7310-002")]
     public async Task VerifyEmptyRegionInsideMethodBodyIsNotReported()
     {
         const string testData = """
@@ -448,6 +462,160 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                       config.NumberOfFixAllIterations = 2;
                                   },
                      Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that regions holding only whitespace and line breaks are reported on their region directive, also at the top level of a file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7310-001")]
+    [Requirement("RH7310-003")]
+    [Requirement("SHARED-TYPEREGION-005")]
+    public async Task RegionsWithNothingInsideAreReported()
+    {
+        const string testData = """
+                                {|RH7310:#region Types|}
+
+                                #endregion
+
+                                class C
+                                {
+                                    int _a;
+
+                                    {|RH7310:#region Methods|}
+
+                                    #endregion // Methods
+
+                                    {|RH7310:#region Events|}
+                                    #endregion
+
+                                    int _b;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that regions holding a comment, a nested region, a directive, or excluded code, and a region inside executable code, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7310-002")]
+    [Requirement("SHARED-TYPEREGION-005")]
+    public async Task RegionsWithContentOrInsideExecutableCodeAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Properties
+
+                                    // Added later
+
+                                    #endregion // Properties
+
+                                    #region Outer
+
+                                    {|RH7310:#region Inner|}
+
+                                    #endregion // Inner
+
+                                    #endregion // Outer
+
+                                    #region Fields
+
+                                #pragma warning disable CS0169
+
+                                    #endregion // Fields
+
+                                    #region Legacy
+
+                                #if false
+                                    void Old()
+                                    {
+                                    }
+                                #endif
+
+                                    #endregion // Legacy
+
+                                    void M()
+                                    {
+                                        #region Body
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix removes an empty region between two sibling members and the blank lines after it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7310-004")]
+    public async Task CodeFixRemovesTheRegionAndTheBlankLinesAfterIt()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _a;
+
+                                    {|RH7310:#region Methods|}
+
+                                    #endregion // Methods
+
+                                    int _b;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     int _b;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix removes the region and the blank lines after it with their carriage-return line-feed line breaks and leaves every other line unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7310-004")]
+    public async Task CodeFixRemovesTheRegionWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _a;
+
+                                    #region Methods
+
+                                    #endregion // Methods
+
+                                    int _b;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     int _b;
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
     #endregion // Tests

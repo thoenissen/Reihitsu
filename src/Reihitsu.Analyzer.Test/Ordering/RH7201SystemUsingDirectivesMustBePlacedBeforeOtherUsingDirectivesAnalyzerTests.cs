@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -23,6 +24,9 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-003")]
+    [Requirement("RH7201-004")]
     public async Task SystemNamespaceUsingsAreReportedAndFixedWhenTheyAppearAfterOtherUsings()
     {
         const string testCode = """
@@ -66,6 +70,9 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
+    [Requirement("SHARED-USING-005")]
     public async Task CaseVariantSystemRootDoesNotDisagreeWithCanonicalOrdering()
     {
         const string testCode = """
@@ -109,6 +116,9 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
+    [Requirement("SHARED-USING-005")]
     public async Task GlobalQualifiedCaseVariantConvergesBehindExactSystemGlobalUsing()
     {
         const string testCode = """
@@ -144,6 +154,8 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
     public async Task FileScopedNamespaceSystemUsingIsReportedAndFixed()
     {
         const string testCode = """
@@ -177,6 +189,7 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-009")]
     public async Task NoCodeFixWhenUsingDirectivesCannotBeSafelyReordered()
     {
         const string testCode = """
@@ -202,6 +215,8 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("SHARED-USING-009")]
     public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
     {
         const string testCode = """
@@ -239,6 +254,208 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that every System directive below a directive of another root is reported on its name, a global qualifier included, while static directives between them do not matter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-003")]
+    public async Task EverySystemDirectiveBelowAnotherRootIsReportedOnItsName()
+    {
+        const string testCode = """
+                                using Microsoft.CodeAnalysis;
+                                using {|RH7201:System.Linq|};
+                                using static System.Math;
+                                using {|RH7201:global::System.Text|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the global section is checked on its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("SHARED-USING-002")]
+    public async Task GlobalSectionIsCheckedOnItsOwn()
+    {
+        const string testCode = """
+                                global using Microsoft.CodeAnalysis;
+                                global using {|RH7201:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a local System directive is not compared with a global directive of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("SHARED-USING-002")]
+    public async Task DirectivesOfDifferentSectionsAreNotCompared()
+    {
+        const string testCode = """
+                                global using Microsoft.CodeAnalysis;
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a System directive in a namespace is not compared with a directive of the compilation unit
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("SHARED-USING-001")]
+    public async Task DirectivesOfDifferentBlocksAreNotCompared()
+    {
+        const string testCode = """
+                                using Microsoft.CodeAnalysis;
+
+                                namespace N
+                                {
+                                    using System;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                using Microsoft.CodeAnalysis;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that static directives, alias directives, and roots that only resemble System are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-002")]
+    [Requirement("SHARED-USING-005")]
+    public async Task StaticAliasAndLookAlikeDirectivesAreNotReported()
+    {
+        const string testCode = """
+                                using Microsoft.CodeAnalysis;
+                                using SYSTEM.Text;
+                                using Systematic;
+                                using static System.Math;
+                                using A = System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes the whole using block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-004")]
+    public async Task CodeFixOrganizesTheWholeBlock()
+    {
+        const string testCode = """
+                                using Microsoft.CodeAnalysis;
+                                using {|RH7201:System.Linq|};
+                                using {|RH7201:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix leaves the code after the using block unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-004")]
+    public async Task CodeFixLeavesTheCodeAfterTheBlockUnchanged()
+    {
+        const string testCode = """
+                                using Microsoft.CodeAnalysis;
+                                using {|RH7201:System|};
+
+                                class C
+                                {
+                                    void M( ) {   }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                     void M( ) {   }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

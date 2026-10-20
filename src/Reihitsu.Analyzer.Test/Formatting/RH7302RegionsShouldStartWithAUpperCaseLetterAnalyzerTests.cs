@@ -21,6 +21,8 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
     public async Task VerifyLowercaseRegionNamesAreDetected()
     {
         const string testData = """
@@ -56,6 +58,8 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7302-004")]
+    [Requirement("RH7302-005")]
     public async Task VerifyCodeFixUpdatesMatchingEndRegionComment()
     {
         const string testData = """
@@ -93,6 +97,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7302-005")]
     public async Task VerifyCodeFixDoesNotChangeUnrelatedEndRegionText()
     {
         const string testData = """
@@ -130,6 +135,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7302-004")]
     public async Task VerifyCodeFixDoesNotChangeUnrelatedSource()
     {
         const string testData = """
@@ -202,6 +208,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7302-002")]
     public async Task VerifyNoDiagnosticForUppercaseNameWithExtraLeadingWhitespace()
     {
         const string testData = """
@@ -221,6 +228,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7302-002")]
     public async Task VerifyNoDiagnosticForDigitLeadingRegionName()
     {
         const string testData = """
@@ -240,6 +248,8 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-004")]
     public async Task VerifyLowercaseRegionNameWithExtraLeadingWhitespaceIsDetectedAndFixed()
     {
         const string testData = """
@@ -279,6 +289,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-003")]
+    [Requirement("RH7302-005")]
     public async Task VerifyCodeFixRenamesOnlyTheEndRegionCommentThatRepeatsTheRegionName()
     {
         const string testData = """
@@ -299,6 +310,160 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
                                      #region Values
                                      #endregion // helpers
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that every region whose description starts with a lower-case letter is reported, between members, in an element body, and in an excluded branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task EveryRegionStartingWithALowerCaseLetterIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region äpfel und birnen|}
+
+                                    int _a;
+
+                                    #endregion // äpfel und birnen
+
+                                    {|RH7302:#region   members|}
+
+                                    int _b;
+
+                                    #endregion // members
+
+                                    void M()
+                                    {
+                                        {|RH7302:#region local|}
+                                        var a = 1;
+                                        #endregion
+                                    }
+
+                                #if false
+                                    {|RH7302:#region test|}
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that upper-case letters, characters without an upper-case form, missing descriptions, and end directives are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-002")]
+    public async Task OtherFirstCharactersAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region   Fields
+
+                                    int _a;
+
+                                    #endregion // fields
+
+                                    #region 1st fields
+
+                                    int _b;
+
+                                    #endregion // 1st fields
+
+                                    #region _private
+
+                                    int _c;
+
+                                    #endregion // _private
+
+                                    #region
+
+                                    int _d;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix capitalizes the first letter and keeps the whitespace in front of the description
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-004")]
+    public async Task CodeFixCapitalizesTheFirstLetterAndKeepsTheSpacing()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region   äpfel und birnen|}
+
+                                    int _a;
+
+                                    #endregion
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region   Äpfel und birnen
+
+                                     int _a;
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix renames an end directive that repeats the old description, with or without a double slash, and leaves one naming something else
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-005")]
+    public async Task CodeFixRenamesOnlyTheEndRegionThatRepeatsTheName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region members|}
+                                    #endregion // members
+
+                                    {|RH7302:#region values|}
+                                    #endregion values
+
+                                    {|RH7302:#region helpers|}
+                                    #endregion // other
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Members
+                                     #endregion // Members
+
+                                     #region Values
+                                     #endregion Values
+
+                                     #region Helpers
+                                     #endregion // other
                                  }
                                  """;
 
