@@ -21,6 +21,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-001")]
     public async Task VerifySingleLineConditionalIsNotReported()
     {
         const string testData = """
@@ -41,6 +42,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-002")]
     public async Task VerifyAlignedMultiLineConditionalIsNotReported()
     {
         const string testData = """
@@ -65,6 +67,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-002")]
+    [Requirement("RH5308-003")]
+    [Requirement("RH5308-004")]
     public async Task VerifyMisalignedConditionalIsDetectedAndFixed()
     {
         const string testData = """
@@ -103,6 +108,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-001")]
+    [Requirement("RH5308-003")]
+    [Requirement("RH5308-004")]
     public async Task VerifyQuestionTokenOnConditionLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -140,6 +148,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-002")]
+    [Requirement("RH5308-003")]
+    [Requirement("RH5308-004")]
     public async Task VerifyMultipleConditionalsAreDetectedAndFixed()
     {
         const string testData = """
@@ -188,6 +199,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-002")]
+    [Requirement("RH5308-003")]
+    [Requirement("RH5308-004")]
     public async Task VerifyNestedConditionalStairIsDetectedAndFixed()
     {
         const string testData = """
@@ -230,6 +244,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-002")]
+    [Requirement("RH5308-003")]
+    [Requirement("RH5308-004")]
     public async Task VerifySiblingConditionalsInOneStatementAreDetectedAndFixed()
     {
         const string testData = """
@@ -266,6 +283,210 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped conditional whose question mark is on the line of its condition, or whose colon is on
+    /// the line of its true branch, is reported, while a conditional on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-001")]
+    [Requirement("RH5308-003")]
+    public async Task VerifyOperatorThatDoesNotStartItsLineIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(bool a)
+                                    {
+                                        var x = a {|RH5308:?|}
+                                                1 :
+                                                2;
+                                        var y = a
+                                                    ? 1 {|RH5308::|} 2;
+                                        var z = a ? 1 : 2;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional nested in the false branch of a wrapped conditional is reported when its colon is on
+    /// the line of its true branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-001")]
+    [Requirement("RH5308-003")]
+    public async Task VerifyNestedConditionalInBranchIsCheckedTheSameWay()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(bool a, bool b)
+                                    {
+                                        var x = a
+                                                    ? 1
+                                                    : b
+                                                        ? 2 {|RH5308::|}
+                                                        3;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an operator which starts its line outside the column one level deeper than the condition, and one
+    /// further level per nesting, is reported, while operators in those columns are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-002")]
+    [Requirement("RH5308-003")]
+    public async Task VerifyOperatorThatStartsItsLineOutsideItsColumnIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(bool a, bool b)
+                                    {
+                                        var x = a
+                                                {|RH5308:?|} 1
+                                                : 2;
+                                        var y = a
+                                                    ? 1
+                                                    : b
+                                                    {|RH5308:?|} 2
+                                                    : 3;
+                                        var z = a
+                                                    ? 1
+                                                    : b
+                                                        ? 2
+                                                        : 3;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that one diagnostic per outermost conditional is reported, on the question mark when both the question
+    /// mark and the colon are misplaced
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-003")]
+    public async Task VerifyOnlyFirstMisplacedOperatorIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(bool a)
+                                    {
+                                        var x = a {|RH5308:?|}
+                                                1 :
+                                                2;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts every question mark and colon on its own line followed by its branch, one level
+    /// deeper than the condition and one further level for each nested conditional
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-004")]
+    public async Task VerifyFixLaysOutConditionalAsStair()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(bool a, bool b)
+                                    {
+                                        var x = a {|RH5308:?|}
+                                                1 :
+                                                b ? 2 : 3;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(bool a, bool b)
+                                     {
+                                         var x = a
+                                                     ? 1
+                                                     : b
+                                                         ? 2
+                                                         : 3;
+
+                                         return x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts every question mark and colon on its own line followed by its branch, one level
+    /// deeper than the condition and one further level for each nested conditional, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-004")]
+    public async Task VerifyFixLaysOutConditionalAsStairWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(bool a, bool b)
+                                    {
+                                        var x = a {|RH5308:?|}
+                                                1 :
+                                                b ? 2 : 3;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(bool a, bool b)
+                                     {
+                                         var x = a
+                                                     ? 1
+                                                     : b
+                                                         ? 2
+                                                         : 3;
+
+                                         return x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

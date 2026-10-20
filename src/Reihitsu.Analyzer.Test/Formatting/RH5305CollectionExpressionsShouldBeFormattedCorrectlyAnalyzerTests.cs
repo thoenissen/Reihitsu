@@ -21,6 +21,10 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5305-001")]
+    [Requirement("RH5305-002")]
+    [Requirement("RH5305-003")]
+    [Requirement("RH5305-004")]
     public async Task VerifyDiagnosticAndCodeFixForMultilineCollectionExpressionWithMultipleElementsOnOneLine()
     {
         const string testData = """
@@ -59,6 +63,9 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5305-001")]
+    [Requirement("RH5305-003")]
+    [Requirement("RH5305-004")]
     public async Task VerifyDiagnosticForMultilineCollectionExpressionWithMisalignedBrackets()
     {
         const string testData = """
@@ -97,6 +104,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5305-001")]
     public async Task VerifyNoDiagnosticForSingleLineCollectionExpression()
     {
         const string testData = """
@@ -117,6 +125,8 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5305-001")]
+    [Requirement("RH5305-002")]
     public async Task VerifyNoDiagnosticForCorrectlyFormattedMultilineCollectionExpression()
     {
         const string testData = """
@@ -195,6 +205,158 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped collection expression whose closing bracket is not in the column of its opening bracket
+    /// is reported on the whole collection expression, while a collection expression on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-001")]
+    [Requirement("RH5305-003")]
+    public async Task VerifyWrappedBracketsOutOfColumnAreReportedOnCollectionExpression()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[] a = [1, 2];
+                                        int[] b = {|RH5305:[
+                                                      1
+                                            ]|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped collection expression whose closing bracket is one column to the right of its opening
+    /// bracket is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-001")]
+    public async Task VerifyWrappedClosingBracketOneColumnRightIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[] a = {|RH5305:[
+                                                      1
+                                                   ]|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped collection expression with an element on the line of a bracket or of an earlier element
+    /// is reported on the whole collection expression, while one element per line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-002")]
+    [Requirement("RH5305-003")]
+    public async Task VerifyWrappedElementsThatShareALineAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] v)
+                                    {
+                                        int[] a = {|RH5305:[1,
+                                                   2]|};
+                                        int[] b = {|RH5305:[
+                                                      .. v,
+                                                      3 ]|};
+                                        int[] c = [
+                                                      1,
+                                                      2
+                                                  ];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts every element on its own line one level deeper than the opening bracket and the
+    /// closing bracket in the column of the opening bracket, and that a comment behind an element stays behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-004")]
+    public async Task VerifyFixLaysOutCollectionExpressionAndKeepsTrailingComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[] a = {|RH5305:[1, // one
+                                                   2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int[] a = [
+                                                       1, // one
+                                                       2
+                                                   ];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts every element on its own line one level deeper than the opening bracket and the
+    /// closing bracket in the column of the opening bracket, and that a comment behind an element stays behind it, with
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-004")]
+    public async Task VerifyFixLaysOutCollectionExpressionAndKeepsTrailingCommentWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[] a = {|RH5305:[1, // one
+                                                   2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int[] a = [
+                                                       1, // one
+                                                       2
+                                                   ];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

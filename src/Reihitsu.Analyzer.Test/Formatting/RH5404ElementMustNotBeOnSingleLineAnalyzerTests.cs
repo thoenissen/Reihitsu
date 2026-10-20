@@ -25,6 +25,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
         const string testData = """
@@ -41,6 +42,9 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
@@ -63,6 +67,9 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
     public async Task VerifyFixPlacesEveryMemberOnItsOwnLine()
     {
         const string testData = """
@@ -89,6 +96,8 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-003")]
     public async Task VerifyEmptyTypeConvergesToSemicolonDeclaration()
     {
         const string testData = """
@@ -129,6 +138,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyPrimaryConstructorRecordStructDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -145,6 +155,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyInterfaceSemicolonBodyDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -163,6 +174,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyClassSemicolonBodyDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -181,6 +193,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyStructSemicolonBodyDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -199,6 +212,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyRecordSemicolonBodyDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -217,6 +231,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyRecordStructSemicolonBodyDoesNotProduceDiagnostics()
     {
         const string testData = """
@@ -235,6 +250,8 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-003")]
     public async Task VerifyAttributeOnOwnLineWithSingleLineBodyIsFlagged()
     {
         const string testData = """
@@ -260,6 +277,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     public async Task VerifyAttributeOnOwnLineWithMultiLineBodyIsNotFlagged()
     {
         const string testData = """
@@ -279,6 +297,8 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
     public async Task VerifySingleLineEnumIsFlagged()
     {
         const string testData = """
@@ -375,6 +395,8 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
     public async Task VerifySingleLineStructIsFlagged()
     {
         const string testData = """
@@ -389,6 +411,8 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
     public async Task VerifySingleLineInterfaceIsFlagged()
     {
         const string testData = """
@@ -403,6 +427,8 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
     public async Task VerifySingleLineRecordIsFlagged()
     {
         const string testData = """
@@ -418,6 +444,8 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
     public async Task VerifySingleLineRecordStructIsFlagged()
     {
         const string testData = """
@@ -425,6 +453,143 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                 """;
 
         await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a class, struct, or enum whose body is on one line is reported on its name, also when the body is
+    /// empty, while declarations without a body and a body whose braces are on different lines are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
+    public async Task VerifyTypeBodyOnOneLineIsReportedOnName()
+    {
+        const string testCode = """
+                                class {|RH5404:A|} { int _x; }
+
+                                struct {|RH5404:B|} { }
+
+                                enum {|RH5404:E|} { One, Two }
+
+                                class D;
+
+                                record struct P(int X);
+
+                                class F
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a type nested in a one-line type body is reported on its own name, apart from its container
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-002")]
+    public async Task VerifyNestedTypesAreReportedOnTheirOwnNames()
+    {
+        const string testCode = """
+                                class {|RH5404:A|} { class {|RH5404:B|} { } }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the braces on their own lines and every member of a class or interface on its own
+    /// line, turns an empty struct into a semicolon declaration, and keeps the member layout and the braces of an enum
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-003")]
+    public async Task VerifyFixLaysOutTypeDeclarations()
+    {
+        const string testCode = """
+                                class {|RH5404:A|} { int _x; }
+
+                                struct {|RH5404:B|} { }
+
+                                interface {|RH5404:I|} { void M(); }
+
+                                enum {|RH5404:E|} { One, Two }
+
+                                enum {|RH5404:F|} { }
+                                """;
+        const string fixedCode = """
+                                 class A
+                                 {
+                                     int _x;
+                                 }
+
+                                 struct B;
+
+                                 interface I
+                                 {
+                                     void M();
+                                 }
+
+                                 enum E
+                                 {
+                                     One, Two
+                                 }
+
+                                 enum F
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the braces on their own lines and every member of a class or interface on its own
+    /// line, turns an empty struct into a semicolon declaration, and keeps the member layout and the braces of an enum,
+    /// with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-003")]
+    public async Task VerifyFixLaysOutTypeDeclarationsWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class {|RH5404:A|} { int _x; }
+
+                                struct {|RH5404:B|} { }
+
+                                interface {|RH5404:I|} { void M(); }
+
+                                enum {|RH5404:E|} { One, Two }
+
+                                enum {|RH5404:F|} { }
+                                """;
+        const string fixedCode = """
+                                 class A
+                                 {
+                                     int _x;
+                                 }
+
+                                 struct B;
+
+                                 interface I
+                                 {
+                                     void M();
+                                 }
+
+                                 enum E
+                                 {
+                                     One, Two
+                                 }
+
+                                 enum F
+                                 {
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

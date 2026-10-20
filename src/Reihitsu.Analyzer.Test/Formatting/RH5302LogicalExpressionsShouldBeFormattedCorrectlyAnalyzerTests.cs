@@ -23,6 +23,10 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-001")]
+    [Requirement("RH5302-002")]
+    [Requirement("RH5302-003")]
+    [Requirement("RH5302-004")]
     public async Task VerifyMisalignedLogicalOperatorsAreDetectedAndFixed()
     {
         const string testData = """
@@ -128,6 +132,9 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-001")]
+    [Requirement("RH5302-003")]
+    [Requirement("RH5302-004")]
     public async Task VerifyChainWithMultipleTrailingOperatorsConverges()
     {
         const string testData = """
@@ -165,6 +172,9 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-001")]
+    [Requirement("RH5302-003")]
+    [Requirement("RH5302-004")]
     public async Task VerifyThreeOperatorTrailingChainConverges()
     {
         const string testData = """
@@ -205,6 +215,9 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-001")]
+    [Requirement("RH5302-002")]
+    [Requirement("RH5302-004")]
     public async Task VerifyRightNestedChainConverges()
     {
         const string testData = """
@@ -243,6 +256,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-005")]
     public async Task VerifyOperatorFollowedByLineCommentIsNotFixed()
     {
         const string testData = """
@@ -275,6 +289,8 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-004")]
+    [Requirement("RH5302-005")]
     public async Task VerifyCommentBeforeOperatorIsStillFixed()
     {
         const string testData = """
@@ -352,6 +368,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-005")]
     public async Task VerifyOwnLineCommentAboveOperandLeavesOnlyItsOwnGapUnfixed()
     {
         const string testData = """
@@ -396,6 +413,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5302-005")]
     public async Task VerifyOperatorFollowedByDirectiveIsNotFixed()
     {
         const string testData = """
@@ -490,6 +508,267 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
 
         Assert.IsFalse(fixedText.Replace("\r\n", string.Empty).Contains('\n'), "The fixed source must not contain a lone line feed.");
         Assert.Contains("\r\n", fixedText);
+    }
+
+    /// <summary>
+    /// Verifies that an operator on the line its left operand ends on, with its right operand on a later line, is
+    /// reported on the operator, while a logical expression on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-001")]
+    [Requirement("RH5302-003")]
+    public async Task VerifyOperatorAtEndOfLineIsReportedOnOperator()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        var x = a {|RH5302:&&|}
+                                                b;
+                                        var y = a && b || c;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an operator which starts a line outside the column of its own left operand is reported, while
+    /// operators at that column are not reported, also when a tighter-binding operator aligns with its own left operand
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-002")]
+    [Requirement("RH5302-003")]
+    public async Task VerifyOperatorStartingLineOutsideColumnOfLeftOperandIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        var x = a
+                                            {|RH5302:|||} b;
+                                        var y = a
+                                                && b
+                                                && c;
+                                        var z = a
+                                                || b
+                                                   && c;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an operator which starts a line one column to the right of its left operand is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-002")]
+    public async Task VerifyOperatorOneColumnRightOfLeftOperandIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        var x = a
+                                                 {|RH5302:&&|} b;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the whole chain of logical operators, so that one application corrects every
+    /// operator of the chain
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-004")]
+    public async Task VerifyFixLaysOutWholeChainInOneApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b, bool c)
+                                    {
+                                        if (a {|RH5302:&&|}
+                                            b {|RH5302:|||}
+                                            c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b, bool c)
+                                     {
+                                         if (a
+                                             && b
+                                             || c)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the whole chain of logical operators, so that one application corrects every
+    /// operator of the chain, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-004")]
+    public async Task VerifyFixLaysOutWholeChainInOneApplicationWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b, bool c)
+                                    {
+                                        if (a {|RH5302:&&|}
+                                            b {|RH5302:|||}
+                                            c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b, bool c)
+                                     {
+                                         if (a
+                                             && b
+                                             || c)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind an operator at the end of a line keeps the diagnostic and withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    public async Task VerifyCommentBehindOperatorAtEndOfLineWithholdsFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        var x = a {|RH5302:&&|} // note
+                                                b;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of an operator at the end of a line does not withhold the fix and stays where
+    /// it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-004")]
+    [Requirement("RH5302-005")]
+    public async Task VerifyCommentInFrontOfOperatorDoesNotWithholdFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        var x = a /* note */ {|RH5302:&&|}
+                                                b;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b)
+                                     {
+                                         var x = a /* note */
+                                                 && b;
+
+                                         return x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of an operator at the end of a line does not withhold the fix and stays where
+    /// it is, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-004")]
+    [Requirement("RH5302-005")]
+    public async Task VerifyCommentInFrontOfOperatorDoesNotWithholdFixWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        var x = a /* note */ {|RH5302:&&|}
+                                                b;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b)
+                                     {
+                                         var x = a /* note */
+                                                 && b;
+
+                                         return x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

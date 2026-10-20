@@ -21,6 +21,9 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5411-001")]
     public async Task VerifyTrailingCommaOnCollectionInitializerIsDetectedAndFixed()
     {
         const string testData = """
@@ -56,6 +59,8 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5411-001")]
     public async Task VerifyTrailingCommaOnCollectionInitializerAssignmentIsRemovedSurgically()
     {
         const string testData = """
@@ -93,6 +98,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-003")]
     public async Task VerifyTrailingCommaWithSameLineCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -128,6 +134,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
     public async Task VerifyCollectionInitializerWithoutTrailingCommaIsNotFlagged()
     {
         const string testData = """
@@ -151,6 +158,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
     public async Task VerifyEmptyCollectionInitializerIsNotFlagged()
     {
         const string testData = """
@@ -173,6 +181,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
     public async Task VerifyCollectionWithConditionalBlockAfterFinalItemIsNotFlagged()
     {
         const string testData = """
@@ -201,6 +210,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5411-002")]
     public async Task VerifyTrailingCommaOnArrayInitializerIsNotFlagged()
     {
         const string testData = """
@@ -225,6 +235,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5411-002")]
     public async Task VerifyTrailingCommaOnObjectInitializerIsNotFlagged()
     {
         const string testData = """
@@ -242,6 +253,83 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                             Second = 2,
                                         };
                                     }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of collection initializers: the initializer of an object creation, of a
+    /// target-typed object creation, of a dictionary whose elements are braced argument lists, and a collection
+    /// initializer nested in an object initializer are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-001")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("RH5411-001")]
+    public async Task VerifySpecificationExampleOfCollectionInitializersIsReportedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class D
+                                {
+                                    public List<int> L { get; } = new List<int>();
+                                }
+
+                                class C
+                                {
+                                    List<int> _a = new List<int> { 1, 2{|#0:,|} };
+                                    List<int> _b = new() { 1{|#1:,|} };
+                                    Dictionary<int, int> _c = new Dictionary<int, int> { { 1, 2 }, { 3, 4 }{|#2:,|} };
+                                    D _d = new D { L = { 1, 2{|#3:,|} } };
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class D
+                                 {
+                                     public List<int> L { get; } = new List<int>();
+                                 }
+
+                                 class C
+                                 {
+                                     List<int> _a = new List<int> { 1, 2 };
+                                     List<int> _b = new() { 1 };
+                                     Dictionary<int, int> _c = new Dictionary<int, int> { { 1, 2 }, { 3, 4 } };
+                                     D _d = new D { L = { 1, 2 } };
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of other initializers: an array initializer, an object initializer, an
+    /// object initializer that assigns an indexer, and a collection expression are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5411-002")]
+    public async Task VerifySpecificationExampleOfOtherInitializersIsNotReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class D
+                                {
+                                    public int P { get; set; }
+                                }
+
+                                class C
+                                {
+                                    int[] _a = { 1, 2, };
+                                    D _b = new D { P = 1, };
+                                    Dictionary<int, int> _c = new Dictionary<int, int> { [1] = 2, };
+                                    List<int> _d = [1, 2,];
                                 }
                                 """;
 
