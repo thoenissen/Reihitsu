@@ -47,3 +47,23 @@ Rules: RH3001–RH3007, RH3101–RH3107, RH3201, RH3203–RH3208 (21 rules). One
 
 The decision records under `squad/decisions/` classify as tooling (`LANE CHECK: mismatch — claimed tests, diff needs tooling`). Widened before any implementer stage, along docs → tests → tooling, as the merged batch thoenissen/Reihitsu#1101 did for the same reason. The tooling lane adds the auditor. The implementer stays skipped unless a test fails against the unchanged production code (which this run must not change anyway).
 - Test implementer findings (escalation 4, 2026-10-20): spec author corrects the SHARED-BODY-001 example span and narrows RH3103-003 to exclude alias-qualified names; tests unchanged (`squad/decisions/2026-10-20-997-test-findings-spec-corrections.md`).
+
+## Open questions filed (2026-10-20)
+
+thoenissen/Reihitsu#912 has reached GitHub's limit of 100 sub-issues, so each issue names it in its body instead (as batch thoenissen/Reihitsu#991 did).
+
+- analyzer/RH3002.md → thoenissen/Reihitsu#1224
+- analyzer/RH3003.md → thoenissen/Reihitsu#1225
+- analyzer/RH3004.md → thoenissen/Reihitsu#1226
+- analyzer/RH3005.md → thoenissen/Reihitsu#1227
+- analyzer/RH3006.md → thoenissen/Reihitsu#1228
+- analyzer/RH3101.md → thoenissen/Reihitsu#1229
+- analyzer/RH3102.md → thoenissen/Reihitsu#1230
+- analyzer/RH3103.md → thoenissen/Reihitsu#1231
+- analyzer/RH3104.md → thoenissen/Reihitsu#1232
+- analyzer/RH3105.md → thoenissen/Reihitsu#1233
+- analyzer/RH3106.md → thoenissen/Reihitsu#1234
+- analyzer/RH3201.md → thoenissen/Reihitsu#1235
+- analyzer/RH3202.md → thoenissen/Reihitsu#1236
+- shared/expression-body-conversion.md → thoenissen/Reihitsu#1237
+- shared/empty-parentheses.md → thoenissen/Reihitsu#1238
