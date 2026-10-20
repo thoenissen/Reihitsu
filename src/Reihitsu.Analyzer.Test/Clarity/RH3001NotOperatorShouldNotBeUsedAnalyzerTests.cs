@@ -504,13 +504,13 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
     }
 
     /// <summary>
-    /// Verifies the fix adds parentheses only where the comparison would bind differently than the negation, and
-    /// keeps the parentheses of an already parenthesized operand
+    /// Verifies the fix parenthesizes the comparison as the right operand of <c>==</c>, adds no parentheses as the left
+    /// operand of <c>&amp;&amp;</c>, and keeps the parentheses of an already parenthesized operand
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3001-004")]
-    public async Task FixParenthesizesTheComparisonOnlyWhereItWouldBindDifferently()
+    public async Task FixParenthesizesTheComparisonWhereItWouldBindDifferently()
     {
         const string testCode = """
                                 class C
