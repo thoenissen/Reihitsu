@@ -24,6 +24,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-002")]
     public async Task VerifyNoDiagnosticForCustomRegionsOnly()
     {
         const string testData = """
@@ -51,6 +52,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-002")]
     public async Task VerifyNoDiagnosticForSingleRegion()
     {
         const string testData = """
@@ -79,6 +81,8 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-001")]
+    [Requirement("RH7309-002")]
     public async Task VerifyNoDiagnosticForCanonicalOrder()
     {
         const string testData = """
@@ -130,6 +134,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-002")]
     public async Task VerifyNoDiagnosticForCustomThenInterfaceRegion()
     {
         const string testData = """
@@ -166,6 +171,8 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("RH7309-003")]
     public async Task VerifyDiagnosticForInterfaceRegionBeforeCustomRegion()
     {
         const string testData = """
@@ -227,6 +234,9 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-001")]
+    [Requirement("RH7309-002")]
+    [Requirement("RH7309-003")]
     public async Task VerifyDiagnosticForInterfaceRegionBeforeBaseTypeRegion()
     {
         const string testData = """
@@ -302,6 +312,8 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-001")]
+    [Requirement("RH7309-002")]
     public async Task VerifyDiagnosticForBaseTypeRegionBeforeCustomRegion()
     {
         const string testData = """
@@ -367,6 +379,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-002")]
     public async Task VerifyDiagnosticsForInterfaceRegionBeforeBaseTypeAndCustomRegions()
     {
         const string testData = """
@@ -421,6 +434,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-004")]
     public async Task VerifyCodeFixReordersAllCategories()
     {
         const string testData = """
@@ -513,6 +527,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyNoCodeFixWhenConditionalDirectiveIsImproperlyNestedWithRegions()
     {
         const string testData = """
@@ -556,6 +571,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyNoCodeFixWhenConditionalDirectiveWrapsOnlyTheLaterRegion()
     {
         const string testData = """
@@ -599,6 +615,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyNoCodeFixWhenConditionalDirectiveWrapsOnlyTheEarlierRegion()
     {
         const string testData = """
@@ -642,6 +659,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyCodeFixReordersRegionsWrappedByTheSameConditionalDirective()
     {
         const string testData = """
@@ -711,6 +729,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyCodeFixReordersRegionsContainingBalancedConditionalDirectives()
     {
         const string testData = """
@@ -776,6 +795,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyCodeFixReordersRegionsWithBalancedConditionalDirectivesBetweenThem()
     {
         const string testData = """
@@ -850,6 +870,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyNoCodeFixWhenRegionContainsPragmaWarningDirective()
     {
         const string testData = """
@@ -891,6 +912,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyNoCodeFixWhenRegionContainsNullableDirective()
     {
         const string testData = """
@@ -933,6 +955,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyNoCodeFixWhenPragmaWarningDirectiveSitsBetweenRegions()
     {
         const string testData = """
@@ -974,6 +997,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-005")]
     public async Task VerifyCodeFixReordersRegionsFollowingAPragmaWarningDirective()
     {
         const string testData = """
@@ -1028,6 +1052,376 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
+    /// <summary>
+    /// Verifies that a region named after an implemented interface is an interface region, one named after a base type a base-type region, and any other a custom region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-001")]
+    [Requirement("RH7309-002")]
+    [Requirement("RH7309-003")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionCategoriesComeFromTheDescription()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IComparable<C>
+                                {
+                                    #region IComparable
+
+                                    public int CompareTo(C other) => 0;
+
+                                    #endregion // IComparable
+
+                                    {|RH7309:#region Object|}
+
+                                    public override string ToString() => "";
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a description differing from the interface name in case, or no description, gives the custom category
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-001")]
+    [Requirement("SHARED-REGDESC-001")]
+    public async Task DescriptionDifferingInCaseOrMissingIsCustom()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region idisposable|}
+
+                                    private int _a;
+
+                                    #endregion // idisposable
+
+                                    {|RH7309:#region|}
+
+                                    private int _b;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a custom region after an interface region of a struct is reported on its region directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("RH7309-003")]
+    public async Task CustomRegionAfterInterfaceRegionInStructIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                public struct S : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the regions of an interface declaration are not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    public async Task RegionsOfAnInterfaceAreNotChecked()
+    {
+        const string testData = """
+                                using System;
+
+                                public interface I : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    void Close();
+
+                                    #endregion // IDisposable
+
+                                    #region Methods
+
+                                    void M();
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix orders the region blocks by category and keeps the code between them in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    public async Task CodeFixOrdersRegionBlocksAndKeepsCodeBetweenThemInPlace()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    private int _between;
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+
+                                     private int _between;
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that one application of the code fix corrects every diagnostic of the type, keeping the written order within a category
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    public async Task OneApplicationCorrectsEveryDiagnosticOfTheType()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IComparable<C>
+                                {
+                                    #region IComparable
+
+                                    public int CompareTo(C other) => 0;
+
+                                    #endregion // IComparable
+
+                                    {|RH7309:#region Object|}
+
+                                    public override string ToString() => "";
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IComparable<C>
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region Object
+
+                                     public override string ToString() => "";
+
+                                     #endregion // Object
+
+                                     #region IComparable
+
+                                     public int CompareTo(C other) => 0;
+
+                                     #endregion // IComparable
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a pragma directive would be moved across, while the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    public async Task NoCodeFixWhenAPragmaDirectiveWouldBeMovedAcross()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                #pragma warning disable CS0169
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                #pragma warning restore CS0169
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional pair that lies wholly inside one block does not withhold the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    public async Task BalancedConditionalPairInsideABlockDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                #if DEBUG
+                                        Console.WriteLine();
+                                #endif
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                 #if DEBUG
+                                         Console.WriteLine();
+                                 #endif
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     #endregion // Tests

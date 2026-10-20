@@ -21,6 +21,9 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-001")]
+    [Requirement("RH5307-003")]
+    [Requirement("RH5307-004")]
     public async Task VerifyDiagnosticAndCodeFixForMultilineIndexerArguments()
     {
         const string testData = """
@@ -56,6 +59,9 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-001")]
+    [Requirement("RH5307-003")]
+    [Requirement("RH5307-004")]
     public async Task VerifyDiagnosticAndCodeFixForMultilineIndexerArgumentsWithTrailingComment()
     {
         const string testData = """
@@ -89,6 +95,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-002")]
     public async Task VerifyNoDiagnosticForIndexerArgumentsWithInteriorComment()
     {
         const string testData = """
@@ -110,6 +117,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-001")]
     public async Task VerifyNoDiagnosticForSingleLineIndexerArguments()
     {
         const string testData = """
@@ -130,6 +138,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-002")]
     public async Task VerifyNoDiagnosticForMultilineIndexerArgumentsWithComments()
     {
         const string testData = """
@@ -153,6 +162,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-002")]
     public async Task VerifyNoDiagnosticForMultilineIndexerArgumentsWithDirectives()
     {
         const string testData = """
@@ -204,6 +214,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-002")]
     public async Task VerifyNoDiagnosticForMultilineIndexerArgumentsWithDocumentationComment()
     {
         const string testData = """
@@ -229,6 +240,9 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5307-001")]
+    [Requirement("RH5307-003")]
+    [Requirement("RH5307-004")]
     public async Task VerifyDiagnosticAndCodeFixForIndexerArgumentCallWithAttributedLambda()
     {
         const string testData = """
@@ -268,6 +282,266 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
         await Verify(testData,
                      fixedData,
                      Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped argument list of an element access is reported on the element access, also with a
+    /// comment behind its closing bracket, that a wrapped implicit element access is reported on its argument list, and
+    /// that an argument list on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5307-001")]
+    [Requirement("RH5307-003")]
+    public async Task VerifyWrappedElementAccessesAreReported()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        var a = {|RH5307:m[1,
+                                                  2]|};
+                                        var b = {|RH5307:m[1,
+                                                  2]|}; // note
+                                        var c = m[1, 2];
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    {|RH5307:[1
+                                                    ]|} = 2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped argument list with a comment between its brackets, or with an argument that spans
+    /// several lines, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5307-002")]
+    public async Task VerifyWrappedElementAccessTheFormatterCannotJoinIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        var a = m[1, // note
+                                                  2];
+                                        var b = m[N(1,
+                                                    2), 3];
+                                    }
+
+                                    int N(int a, int b) => a;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the argument list onto the line of the opening bracket with a comma and a space
+    /// between the arguments, and that a comment behind the closing bracket stays behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsArgumentListAndKeepsTrailingComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        var a = {|RH5307:m[
+                                            1, 2]|};
+                                        var b = {|RH5307:m[1,
+                                                  2]|}; // note
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[,] m)
+                                     {
+                                         var a = m[1, 2];
+                                         var b = m[1, 2]; // note
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the argument list onto the line of the opening bracket with a comma and a space
+    /// between the arguments, and that a comment behind the closing bracket stays behind it, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsArgumentListAndKeepsTrailingCommentWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        var a = {|RH5307:m[
+                                            1, 2]|};
+                                        var b = {|RH5307:m[1,
+                                                  2]|}; // note
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[,] m)
+                                     {
+                                         var a = m[1, 2];
+                                         var b = m[1, 2]; // note
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the argument list of an implicit element access inside an object initializer onto
+    /// one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsImplicitElementAccessArgumentList()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    {|RH5307:[1
+                                                    ]|} = 2
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var d = new Dictionary<int, int>
+                                                 {
+                                                     [1] = 2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins the argument list of an implicit element access inside an object initializer onto
+    /// one line, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsImplicitElementAccessArgumentListWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    {|RH5307:[1
+                                                    ]|} = 2
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var d = new Dictionary<int, int>
+                                                 {
+                                                     [1] = 2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Characterizes the current behavior that no fix is offered for a wrapped element access inside another bracketed
+    /// argument list, while the diagnostic is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedForElementAccessInsideAnotherArgumentList()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] x, int[,] m)
+                                    {
+                                        var a = x[{|RH5307:m[1,
+                                                    2]|}];
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes the current behavior that no fix is offered for a wrapped element access whose receiver starts
+    /// with an element access that holds a comment, while the diagnostic is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenReceiverStartsWithElementAccess()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[][,] j)
+                                    {
+                                        var a = {|RH5307:j[0 /* c */][1,
+                                                             2]|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     #endregion // Tests

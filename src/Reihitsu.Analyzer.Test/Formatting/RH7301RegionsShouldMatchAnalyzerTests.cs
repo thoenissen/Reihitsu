@@ -23,6 +23,9 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-001")]
+    [Requirement("RH7301-003")]
+    [Requirement("RH7301-004")]
     public async Task VerifyMismatchedRegionsAreDetectedAndFixed()
     {
         const string testData = """
@@ -138,6 +141,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-004")]
     public async Task VerifySynthesizedEndRegionCommentUsesDetectedCarriageReturnLineFeedEndOfLine()
     {
         const string testData = """
@@ -168,6 +172,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-004")]
     public async Task VerifySynthesizedEndRegionCommentUsesDetectedLineFeedEndOfLine()
     {
         const string testData = """
@@ -194,6 +199,8 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-002")]
+    [Requirement("SHARED-REGDESC-001")]
     public async Task EquivalentRegionDescriptionsWithExtraWhitespaceDoNotProduceDiagnostics()
     {
         const string source = """
@@ -222,6 +229,8 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-001")]
+    [Requirement("RH7301-003")]
     public async Task DifferentNormalizedRegionDescriptionsReportAtMatchingEndRegion()
     {
         const string testData = """
@@ -241,6 +250,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-002")]
     public async Task NamelessRegionsDoNotRegisterCodeFixActions()
     {
         const string testData = """
@@ -270,6 +280,8 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-001")]
+    [Requirement("RH7301-005")]
     public async Task EmptyStartRegionDescriptionReportsWithoutCodeFixAction()
     {
         const string source = """
@@ -300,6 +312,8 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-001")]
+    [Requirement("RH7301-004")]
     public async Task NamedStartRegionAndBareEndRegionAreDetectedAndFixed()
     {
         const string testData = """
@@ -328,6 +342,8 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7301-004")]
+    [Requirement("SHARED-REGDESC-001")]
     public async Task RegionFixDoesNotCarryExtraStartSeparatorIntoEndRegionComment()
     {
         const string testData = """
@@ -349,6 +365,246 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that every end directive whose description differs from its region's is reported, also in an element body and when only the case differs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7301-001")]
+    [Requirement("RH7301-003")]
+    public async Task EveryMismatchedEndRegionIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+                                    int _a;
+                                    {|RH7301:#endregion // fields|}
+
+                                    #region Methods
+                                    void M()
+                                    {
+                                        #region Local
+                                        var a = 1;
+                                        {|RH7301:#endregion // Other|}
+                                    }
+                                    {|RH7301:#endregion|}
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that nested regions pair innermost first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7301-001")]
+    public async Task NestedRegionsPairInnermostFirst()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Outer
+
+                                    #region Inner
+                                    int _a;
+                                    {|RH7301:#endregion // Outer|}
+
+                                    {|RH7301:#endregion // Inner|}
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a pair inside an excluded branch is checked too
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7301-001")]
+    public async Task PairInAnExcludedBranchIsChecked()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if false
+                                    #region Fields
+
+                                    {|RH7301:#endregion // Members|}
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that matching descriptions, in every form of the end directive and when both are empty, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7301-002")]
+    [Requirement("SHARED-REGDESC-001")]
+    public async Task MatchingDescriptionsAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+                                    int _a;
+                                    #endregion Fields
+
+                                    #region Methods
+                                    void M() { }
+                                    #endregion //Methods
+
+                                    #region
+                                    int _b;
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace around a description and a leading double slash of the end directive are not part of the description
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGDESC-001")]
+    public async Task WhitespaceAndLeadingDoubleSlashAreNotPartOfTheDescription()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region   Fields
+                                    int _a;
+                                    #endregion Fields
+
+                                    #region Methods
+                                    void M() { }
+                                    #endregion //Methods
+
+                                    #region Events
+                                    #endregion   //   Events
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment behind an end directive is part of its description
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGDESC-001")]
+    public async Task BlockCommentBehindTheEndDirectiveIsPartOfTheDescription()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+                                    int _a;
+                                    {|RH7301:#endregion /* Fields */|}
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix rewrites the end directive to repeat its region's description
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7301-004")]
+    public async Task CodeFixRepeatsTheRegionDescription()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+                                    int _a;
+                                    {|RH7301:#endregion /* Fields */|}
+
+                                    #region Methods
+                                    void M() { }
+                                    {|RH7301:#endregion|}
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Fields
+                                     int _a;
+                                     #endregion // Fields
+
+                                     #region Methods
+                                     void M() { }
+                                     #endregion // Methods
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the indentation and a carriage-return line-feed line break of the rewritten directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7301-004")]
+    public async Task CodeFixKeepsIndentationAndCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+                                    int _a;
+                                    #endregion /* Fields */
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Fields
+                                     int _a;
+                                     #endregion // Fields
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the region has no description
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7301-005")]
+    public async Task NoCodeFixIsOfferedWhenTheRegionHasNoDescription()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region
+                                    int _a;
+                                    {|RH7301:#endregion // Stale|}
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     #endregion // Tests

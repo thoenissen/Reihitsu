@@ -21,6 +21,9 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3207-001")]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodiedFinalizerIsDetectedAndFixed()
     {
         const string testData = """
@@ -56,6 +59,8 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3207-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyThrowExpressionBodiedFinalizerIsFixedToThrowStatement()
     {
         const string testData = """
@@ -83,6 +88,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3207-001")]
     public async Task VerifyBlockBodiedFinalizerIsNotReported()
     {
         const string testData = """
@@ -104,6 +110,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
     public async Task VerifyExpressionBodyWithDirectiveBeforeExpressionIsNotReported()
     {
         const string testData = """
@@ -125,6 +132,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
     public async Task VerifyExpressionBodyWithRegionAfterExpressionIsNotReported()
     {
         const string testData = """
@@ -146,6 +154,8 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionBodyWithDirectiveAfterExpressionIsFixed()
     {
         const string testData = """
@@ -177,6 +187,8 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-002")]
+    [Requirement("SHARED-BODY-003")]
     public async Task VerifyExpressionOnNextLineIsFixedToExpressionStatement()
     {
         const string testData = """
@@ -239,6 +251,73 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies an expression-bodied finalizer is reported, while a block-bodied finalizer is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3207-001")]
+    public async Task ExpressionBodiedFinalizerIsReportedAndBlockBodiedFinalizerIsNot()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    ~C() {|RH3207:=> Release()|};
+
+                                    private void Release()
+                                    {
+                                    }
+                                }
+
+                                class D
+                                {
+                                    ~D()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the fix converts a finalizer whose expression stands on the line after the arrow and keeps a comment
+    /// between the expression and the semicolon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task FixKeepsACommentBetweenTheExpressionAndTheSemicolon()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    ~C() {|RH3207:=>
+                                        Release()|} /* why */;
+
+                                    private void Release()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      ~C()
+                                      {
+                                          Release() /* why */;
+                                      }
+
+                                      private void Release()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     #endregion // Tests

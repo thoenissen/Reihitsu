@@ -20,6 +20,7 @@ public class RH2106NestedRecordsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2106-001")]
     public async Task VerifyNestedRecordDeclarationsTriggerDiagnostics()
     {
         const string source = """
@@ -40,6 +41,7 @@ public class RH2106NestedRecordsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-NESTED-001")]
     public async Task VerifyTopLevelRecordsDoNotTriggerDiagnostics()
     {
         const string source = """
@@ -57,6 +59,7 @@ public class RH2106NestedRecordsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2106-001")]
     public async Task VerifyNestedClassesDoNotTriggerDiagnostics()
     {
         const string source = """
@@ -71,6 +74,38 @@ public class RH2106NestedRecordsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that a nested record, record class, and record struct are reported and a nested class is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2106-001")]
+    [Requirement("SHARED-NESTED-001")]
+    public async Task VerifyNestedRecordRecordClassAndRecordStructAreReported()
+    {
+        const string source = """
+                              class Outer
+                              {
+                                  record {|#0:Point|}(int X);
+
+                                  record class {|#1:Line|}(int Length);
+
+                                  record struct {|#2:Size|}(int Width);
+
+                                  class Helper
+                                  {
+                                  }
+                              }
+
+                              record Container
+                              {
+                                  record {|#3:InRecord|}(int X);
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2106NestedRecordsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2106MessageFormat, 4));
     }
 
     #endregion // Tests

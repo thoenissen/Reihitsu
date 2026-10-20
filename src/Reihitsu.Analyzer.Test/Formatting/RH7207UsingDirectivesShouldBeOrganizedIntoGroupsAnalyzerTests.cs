@@ -24,6 +24,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-002")]
     public async Task NoDiagnosticForSingleUsing()
     {
         const string testCode = """
@@ -42,6 +43,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-002")]
     public async Task NoDiagnosticForSingleGroupAlreadySorted()
     {
         const string testCode = """
@@ -127,6 +129,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
     public async Task NoDiagnosticWhenRegionDirectivePreventsSafeReordering()
     {
         const string testCode = """
@@ -155,6 +159,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-002")]
     public async Task NoDiagnosticWhenAlreadyOrganized()
     {
         const string testCode = """
@@ -201,6 +206,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-002")]
     public async Task NoDiagnosticWhenUsingTypesAreAlreadyGrouped()
     {
         const string testCode = """
@@ -251,6 +257,10 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-003")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-008")]
     public async Task DiagnosticWhenMissingBlankLineBetweenGroups()
     {
         const string testCode = """
@@ -331,6 +341,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-007")]
     public async Task CodeFixSortsUsingWithinGroups()
     {
         const string testCode = """
@@ -394,6 +406,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-002")]
     public async Task CodeFixPlacesGlobalSectionBeforeLocalExactSystemSection()
     {
         const string testCode = """
@@ -427,6 +441,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-002")]
     public async Task CodeFixSeparatesGlobalAndLocalDirectivesWithSameRoot()
     {
         const string testCode = """
@@ -453,6 +469,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-004")]
     public async Task CodeFixDoesNotFormatFollowingType()
     {
         const string testCode = """
@@ -504,6 +521,9 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-008")]
     public async Task DiagnosticWhenExtraBlankLineWithinGroup()
     {
         const string testCode = """
@@ -563,6 +583,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-005")]
     public async Task CodeFixPlacesSystemGroupFirst()
     {
         const string testCode = """
@@ -608,6 +630,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-003")]
     public async Task StaticUsingsAreSeparatedFromRegularUsings()
     {
         const string testCode = """
@@ -657,6 +680,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-004")]
     public async Task AliasUsingsAreGroupedByRootNamespace()
     {
         const string testCode = """
@@ -703,6 +727,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-003")]
     public async Task AliasUsingsAreSeparatedFromStaticUsings()
     {
         const string testCode = """
@@ -749,6 +774,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-002")]
     public async Task GlobalUsingDirectivesAreOrganized()
     {
         const string testCode = """
@@ -794,6 +820,9 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-001")]
     public async Task FileScopedNamespaceUsingGroupsAreReportedAndFixed()
     {
         const string testCode = """
@@ -827,6 +856,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-002")]
     public async Task NoDiagnosticForNoUsings()
     {
         const string testCode = """
@@ -843,6 +873,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-006")]
     public async Task NonSystemGroupsAreOrderedAlphabetically()
     {
         const string testCode = """
@@ -891,6 +923,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-USING-009")]
     public async Task NoCodeFixWhenConditionalDirectiveWouldBeMoved()
     {
         const string testCode = """
@@ -924,6 +957,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
     public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
     {
         const string testCode = """
@@ -967,6 +1002,8 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-008")]
     public async Task CrossGroupPairSharingOneLineConvergesInOneApplication()
     {
         const string testCode = """
@@ -1013,6 +1050,677 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
         var actual = await ApplyCodeFixAsync(testCode);
 
         Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a block whose directives are not in the canonical order is reported on its first directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-003")]
+    public async Task BlockOutOfCanonicalOrderIsReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using System;
+                                using Microsoft.CodeAnalysis;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a block without a blank line between two groups is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-008")]
+    public async Task MissingBlankLineBetweenGroupsIsReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+                                using Microsoft.CodeAnalysis;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that two directives of different groups on one line are reported as a missing blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-008")]
+    public async Task GroupsSharingOneLineAreReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System|}; using Microsoft.CodeAnalysis;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line inside a group is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-008")]
+    public async Task BlankLineInsideAGroupIsReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that only the block that is not organized is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-001")]
+    public async Task OnlyTheBlockThatIsNotOrganizedIsReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                using Microsoft.CodeAnalysis;
+
+                                namespace N
+                                {
+                                    using {|RH7207:System.Linq|};
+                                    using System;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an organized block is not reported, also when a group boundary has more than one blank line before it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task OrganizedBlockWithSeveralBlankLinesAtABoundaryIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+
+                                using Microsoft.CodeAnalysis;
+
+                                using static System.Math;
+
+                                using A = System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a block with a single directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task BlockWithASingleDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                using static System.Math;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic of a block starting with an alias is on the alias target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-003")]
+    public async Task DiagnosticOfABlockStartingWithAnAliasIsOnTheAliasTarget()
+    {
+        const string testCode = """
+                                using A = {|RH7207:System.Text|};
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic of a block starting with an alias of a keyword type covers the whole directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-003")]
+    public async Task DiagnosticOfABlockStartingWithAnAliasOfAKeywordTypeCoversTheDirective()
+    {
+        const string testCode = """
+                                {|RH7207:using B = int;|}
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes the whole using block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    public async Task CodeFixOrganizesTheWholeBlock()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using System;
+                                using Microsoft.CodeAnalysis;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the using directives of the compilation unit and of a namespace are organized as separate blocks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-001")]
+    public async Task EveryUsingBlockIsOrganizedOnItsOwn()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using System;
+
+                                namespace N
+                                {
+                                    using {|RH7207:Reihitsu.Core|};
+                                    using System.Text;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 namespace N
+                                 {
+                                     using System.Text;
+
+                                     using Reihitsu.Core;
+
+                                     class C
+                                     {
+                                         int x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that global directives are placed before every non-global directive in a section of their own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-002")]
+    public async Task GlobalDirectivesComeFirst()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+                                global using Microsoft.CodeAnalysis;
+                                global using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 global using System.Linq;
+
+                                 global using Microsoft.CodeAnalysis;
+
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that regular directives come before static directives, and static directives before alias directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-003")]
+    public async Task RegularThenStaticThenAliasDirectives()
+    {
+        const string testCode = """
+                                using static {|RH7207:System.Math|};
+                                using A = System.Text;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using static System.Math;
+
+                                 using A = System.Text;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a group is made of section, kind, and root namespace, and that aliases are grouped by their target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-004")]
+    public async Task GroupIsSectionKindAndRootNamespace()
+    {
+        const string testCode = """
+                                using Zeta = {|RH7207:Microsoft.CodeAnalysis.SyntaxNode|};
+                                using static System.Math;
+                                using Reihitsu.Core;
+                                using Alpha = System.Text.StringBuilder;
+                                using Microsoft.CodeAnalysis;
+                                using System.Linq;
+                                using static Reihitsu.Core.CasingUtilities;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 using Reihitsu.Core;
+
+                                 using static System.Math;
+
+                                 using static Reihitsu.Core.CasingUtilities;
+
+                                 using Alpha = System.Text.StringBuilder;
+
+                                 using Zeta = Microsoft.CodeAnalysis.SyntaxNode;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that only the exact System root is placed first, while case variants are ordinary roots
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-005")]
+    public async Task ExactSystemRootComesFirst()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using SYSTEM.Text;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 using SYSTEM.Text;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the other roots are ordered alphabetically ignoring case, with roots that differ only in case kept as separate groups
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-006")]
+    public async Task OtherRootsAreOrderedAlphabetically()
+    {
+        const string testCode = """
+                                using {|RH7207:Systematic|};
+                                using system.Text;
+                                using foo.Bar;
+                                using Foo.Baz;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using Foo.Baz;
+
+                                 using foo.Bar;
+
+                                 using system.Text;
+
+                                 using Systematic;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that aliases are sorted by alias name within the group of their target root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-007")]
+    public async Task AliasesAreSortedByAliasNameWithinTheirGroup()
+    {
+        const string testCode = """
+                                using Zeta = {|RH7207:System.Text.StringBuilder|};
+                                using Beta = Microsoft.CodeAnalysis.SyntaxNode;
+                                using Alpha = Microsoft.CodeAnalysis.SyntaxToken;
+                                using Gamma = System.Console;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using Gamma = System.Console;
+                                 using Zeta = System.Text.StringBuilder;
+
+                                 using Alpha = Microsoft.CodeAnalysis.SyntaxToken;
+                                 using Beta = Microsoft.CodeAnalysis.SyntaxNode;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that directives whose keys differ only in case keep their source order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-007")]
+    public async Task EqualKeysKeepTheirSourceOrder()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Xml|};
+                                using System.collections;
+                                using System.Collections;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.collections;
+                                 using System.Collections;
+                                 using System.Xml;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is placed between two groups and removed inside a group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-008")]
+    public async Task BlankLineBetweenGroupsAndNoneWithinAGroup()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+
+                                using System.Linq;
+                                using Microsoft.CodeAnalysis;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a block whose first directive is led by a nullable directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockLedByANullableDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System.Linq;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive after the last using directive does not prevent the block from being organized
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task DirectiveAfterTheBlockDoesNotPreventOrganizing()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using System;
+                                #if DEBUG
+                                class D
+                                {
+                                    int y;
+                                }
+                                #endif
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+                                 #if DEBUG
+                                 class D
+                                 {
+                                     int y;
+                                 }
+                                 #endif
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

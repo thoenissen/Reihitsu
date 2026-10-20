@@ -21,6 +21,10 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("RH5306-002")]
+    [Requirement("RH5306-003")]
+    [Requirement("RH5306-004")]
     public async Task VerifyDiagnosticAndCodeFixForMultilineListPatternWithMultipleInnerPatternsOnOneLine()
     {
         const string testData = """
@@ -59,6 +63,9 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("RH5306-003")]
+    [Requirement("RH5306-004")]
     public async Task VerifyDiagnosticAndCodeFixForMultilineListPatternWithMisalignedBrackets()
     {
         const string testData = """
@@ -96,6 +103,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5306-001")]
     public async Task VerifyNoDiagnosticForSingleLineListPattern()
     {
         const string testData = """
@@ -116,6 +124,8 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("RH5306-002")]
     public async Task VerifyNoDiagnosticForCorrectlyFormattedMultilineListPattern()
     {
         const string testData = """
@@ -179,6 +189,283 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
         var fixedCode = await ApplyCodeFixAsync(codeFixData);
 
         Assert.Contains("/** doc */", fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list pattern whose closing bracket is not in the column of its opening bracket is
+    /// reported on the whole list pattern, while a list pattern on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("RH5306-003")]
+    public async Task VerifyWrappedBracketsOutOfColumnAreReportedOnListPattern()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var a = v is [1, 2];
+                                        var b = v is {|RH5306:[
+                                                         1
+                                               ]|};
+
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped list pattern with an inner pattern on the line of a bracket or of an earlier inner
+    /// pattern is reported on the whole list pattern, also when a comment trails the token in front of it, while one
+    /// inner pattern per line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("RH5306-002")]
+    [Requirement("RH5306-003")]
+    public async Task VerifyWrappedInnerPatternsThatShareALineAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var a = v is {|RH5306:[1,
+                                                      2]|};
+                                        var b = v is {|RH5306:[
+                                                         1, .. var rest
+                                                     ]|};
+                                        var c = v is // note
+                                                {|RH5306:[1,
+                                                 2]|};
+                                        var d = v is [
+                                                         1,
+                                                         2
+                                                     ];
+
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts every inner pattern on its own line one level deeper than the opening bracket and the
+    /// closing bracket in the column of the opening bracket
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-004")]
+    public async Task VerifyFixLaysOutListPattern()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var a = v is {|RH5306:[1, .. var rest
+                                                     ]|};
+
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int[] v)
+                                     {
+                                         var a = v is [
+                                                          1,
+                                                          .. var rest
+                                                      ];
+
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts every inner pattern on its own line one level deeper than the opening bracket and the
+    /// closing bracket in the column of the opening bracket, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-004")]
+    public async Task VerifyFixLaysOutListPatternWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var a = v is {|RH5306:[1, .. var rest
+                                                     ]|};
+
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int[] v)
+                                     {
+                                         var a = v is [
+                                                          1,
+                                                          .. var rest
+                                                      ];
+
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the token in front of the list pattern does not withhold the fix and stays on its
+    /// line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("RH5306-004")]
+    public async Task VerifyFixLaysOutListPatternBehindTrailingCommentOfPrecedingToken()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var c = v is // note
+                                                {|RH5306:[1,
+                                                 2]|};
+
+                                        return c;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int[] v)
+                                     {
+                                         var c = v is // note
+                                         [
+                                             1,
+                                             2
+                                         ];
+
+                                         return c;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the token in front of the list pattern does not withhold the fix and stays on its
+    /// line, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("RH5306-004")]
+    public async Task VerifyFixLaysOutListPatternBehindTrailingCommentOfPrecedingTokenWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var c = v is // note
+                                                {|RH5306:[1,
+                                                 2]|};
+
+                                        return c;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int[] v)
+                                     {
+                                         var c = v is // note
+                                         [
+                                             1,
+                                             2
+                                         ];
+
+                                         return c;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Characterizes the current behavior that a line comment inside a wrapped list pattern keeps it from being
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInsideListPatternKeepsItFromBeingReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var a = v is [1, // note
+                                                      2];
+
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes the current behavior that a wrapped list pattern whose inner pattern spans several lines is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineInnerPatternKeepsListPatternFromBeingReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int[][] v)
+                                    {
+                                        var a = v is [{ Length: 1,
+                                                        Rank: 1 }, { Length: 2 },
+                                                      { Length: 3 }];
+
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     #endregion // Tests

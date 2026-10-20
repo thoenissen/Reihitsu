@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,6 +25,9 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-003")]
+    [Requirement("RH5414-001")]
     public async Task VerifyEmptyInterfaceIsDetectedAndFixed()
     {
         const string testData = """
@@ -45,6 +49,8 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EMPTY-002")]
+    [Requirement("RH5414-001")]
     public async Task VerifySemicolonInterfaceIsNotFlagged()
     {
         const string testData = """
@@ -59,6 +65,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5414-001")]
     public async Task VerifyUnsupportedLanguageVersionIsNotFlagged()
     {
         const string testData = """
@@ -88,6 +95,8 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-004")]
     public async Task VerifyLeadingBraceCommentEmptyInterfaceIsReportedWithoutCodeFix()
     {
         const string testData = """
@@ -117,7 +126,100 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies the specification example of the rule: an empty interface and an empty interface that inherits
+    /// another interface are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-003")]
+    [Requirement("RH5414-001")]
+    public async Task VerifySpecificationExampleOfEmptyInterfacesIsReportedAndFixed()
+    {
+        const string testData = """
+                                interface {|#0:I|}
+                                {
+                                }
+
+                                interface {|#1:J|} : I
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 interface I;
+
+                                 interface J : I;
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that under C# 11 neither interface of the specification example is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5414-001")]
+    public async Task VerifySpecificationExampleIsNotReportedUnderCSharp11()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                }
+
+                                interface J : I
+                                {
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies that an empty interface is reported under C# 12, the first version with semicolon interface declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5414-001")]
+    public async Task VerifyEmptyInterfaceIsReportedUnderCSharp12()
+    {
+        const string testData = """
+                                interface {|#0:I|}
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp12)),
+                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Applies the given C# language version to the test project parse options
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <param name="languageVersion">Language version</param>
+    /// <returns>Solution</returns>
+    private static Solution ApplyLanguageVersion(Solution solution, ProjectId projectId, LanguageVersion languageVersion)
+    {
+        var project = solution.GetProject(projectId);
+
+        if (project?.ParseOptions is CSharpParseOptions parseOptions)
+        {
+            solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(languageVersion));
+        }
+
+        return solution;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

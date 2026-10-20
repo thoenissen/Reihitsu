@@ -20,6 +20,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TYPEREGION-002")]
     public async Task VerifyNoDiagnosticsForEmptyClass()
     {
         const string testData = """
@@ -36,6 +37,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-001")]
     public async Task VerifyDiagnosticForPropertyOnlyClassWithoutRegions()
     {
         const string testData = """
@@ -55,6 +57,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-002")]
     public async Task VerifyNoDiagnosticsWhenInterfaceMembersAreOrganizedWithRegions()
     {
         const string testData = """
@@ -102,6 +105,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-002")]
     public async Task VerifyNoDiagnosticsWhenClassMembersAreOrganizedWithRegions()
     {
         const string testData = """
@@ -154,6 +158,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-001")]
     public async Task VerifyDiagnosticWhenClassMembersAreNotOrganizedWithRegions()
     {
         const string testData = """
@@ -185,6 +190,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-001")]
     public async Task VerifyDiagnosticWhenTypeContainsPropertiesAndMethodsWithoutRegions()
     {
         const string testData = """
@@ -212,6 +218,8 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-001")]
+    [Requirement("SHARED-TYPEREGION-003")]
     public async Task VerifyDiagnosticWhenTypeContainsMembersOutsideRegions()
     {
         const string testData = """
@@ -253,6 +261,8 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-001")]
+    [Requirement("SHARED-TYPEREGION-001")]
     public async Task VerifyDiagnosticWhenRecordMembersAreNotOrganizedWithRegions()
     {
         const string testData = """
@@ -285,6 +295,8 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-001")]
+    [Requirement("SHARED-TYPEREGION-001")]
     public async Task VerifyDiagnosticWhenStructMembersAreNotOrganizedWithRegions()
     {
         const string testData = """
@@ -317,6 +329,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TYPEREGION-001")]
     public async Task VerifyNoDiagnosticsForNestedTypeWithoutRegions()
     {
         const string testData = """
@@ -401,6 +414,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7305-002")]
     public async Task VerifyNoDiagnosticsWhenTopLevelMembersUseCustomNamedRegions()
     {
         const string testData = """
@@ -504,6 +518,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TYPEREGION-003")]
     public async Task VerifyDiagnosticWhenOnlyTheTypeIsWrappedInARegion()
     {
         const string testData = """
@@ -527,6 +542,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-TYPEREGION-003")]
     public async Task VerifyDiagnosticWhenOnlyMethodBodyContainsARegion()
     {
         const string testData = """
@@ -544,6 +560,250 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 """;
 
         await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a type is reported also when all its members are of one kind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7305-001")]
+    [Requirement("SHARED-TYPEREGION-004")]
+    public async Task TypeWithMembersOfOneKindOutsideRegionsIsReported()
+    {
+        const string testData = """
+                                class {|RH7305:C|}
+                                {
+                                    public int P { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a type with regions that leaves one member outside them is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7305-001")]
+    [Requirement("SHARED-TYPEREGION-003")]
+    public async Task TypeWithOneMemberOutsideTheRegionsIsReported()
+    {
+        const string testData = """
+                                class {|RH7305:C|}
+                                {
+                                    #region Methods
+
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a type in which every member lies inside a region is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7305-002")]
+    [Requirement("SHARED-TYPEREGION-003")]
+    public async Task TypeWithEveryMemberInARegionIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _a;
+
+                                    #endregion // Fields
+
+                                    #region Methods
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a nested type outside every region makes the enclosing type reported, while the nested type and an enum are not checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-001")]
+    [Requirement("SHARED-TYPEREGION-002")]
+    public async Task NestedTypesAndEnumsAreNotCheckedButCountAsMembers()
+    {
+        const string testData = """
+                                class {|RH7305:C|}
+                                {
+                                    #region Methods
+
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    class D
+                                    {
+                                        int _x;
+
+                                        void N()
+                                        {
+                                        }
+                                    }
+                                }
+
+                                enum E
+                                {
+                                    A,
+                                    B,
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that only the declaration of a partial type with a member outside every region is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-001")]
+    public async Task EachDeclarationOfAPartialTypeIsCheckedOnItsOwn()
+    {
+        const string testData = """
+                                partial class P
+                                {
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+
+                                partial class {|RH7305:P|}
+                                {
+                                    void B()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an empty class and a positional record without members of its own are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-002")]
+    public async Task TypesWithoutCountedMembersAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                }
+
+                                record R(int X);
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a member inside a region nested in a top-level region counts as organized
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-003")]
+    public async Task MemberInANestedRegionCounts()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Members
+
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion
+
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region around the type and a region inside a method body do not organize the type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-003")]
+    public async Task RegionsAroundTheTypeOrInsideABodyDoNotCount()
+    {
+        const string testData = """
+                                #region Types
+                                class {|RH7305:C|}
+                                {
+                                    void M()
+                                    {
+                                        #region Body
+                                        var a = 1;
+                                        #endregion
+                                    }
+                                }
+                                #endregion
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a type with several members outside regions gets one diagnostic on its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-004")]
+    public async Task OneDiagnosticOnTheTypeNameForSeveralMembers()
+    {
+        const string testData = """
+                                interface {|RH7305:I|}
+                                {
+                                    void M();
+
+                                    int P { get; }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

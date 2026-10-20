@@ -22,6 +22,9 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    [Requirement("RH3105-004")]
     public async Task UnnecessaryThisQualifierOnFieldIsReportedAndFixed()
     {
         const string testCode = """
@@ -56,6 +59,9 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    [Requirement("RH3105-004")]
     public async Task UnnecessaryThisQualifierOnPropertyIsReportedAndFixed()
     {
         const string testCode = """
@@ -90,6 +96,9 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    [Requirement("RH3105-004")]
     public async Task UnnecessaryThisQualifierOnMethodIsReportedAndFixed()
     {
         const string testCode = """
@@ -130,6 +139,9 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    [Requirement("RH3105-004")]
     public async Task UnnecessaryThisQualifierOnChainedAccessIsReportedAndFixed()
     {
         const string testCode = """
@@ -164,6 +176,7 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-002")]
     public async Task NecessaryThisQualifierWithShadowingParameterIsNotReported()
     {
         const string testCode = """
@@ -186,6 +199,7 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-002")]
     public async Task NecessaryThisQualifierWithShadowingLocalIsNotReported()
     {
         const string testCode = """
@@ -209,6 +223,9 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    [Requirement("RH3105-004")]
     public async Task UnnecessaryThisQualifierInAssignmentIsReportedAndFixed()
     {
         const string testCode = """
@@ -243,6 +260,9 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    [Requirement("RH3105-004")]
     public async Task UnnecessaryThisQualifierWithMethodArgumentsIsReportedAndFixed()
     {
         const string testCode = """
@@ -283,6 +303,9 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    [Requirement("RH3105-004")]
     public async Task UnnecessaryThisQualifierInNestedScopeIsReportedAndFixed()
     {
         const string testCode = """
@@ -328,6 +351,7 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH3105-002")]
     public async Task ThisQualifierOnUnresolvableMemberIsNotReported()
     {
         const string testCode = """
@@ -341,6 +365,361 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzerTests : BatchCodeFixTe
                                 """;
 
         await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies <c>this.</c> accesses of a field, a property, and a method, also inside a lambda and inside an
+    /// argument, are reported on <c>this</c> and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-001")]
+    [Requirement("RH3105-003")]
+    public async Task ThisAccessesAreReportedOnTheThisKeywordAlsoInsideALambda()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+                                    int P { get; set; }
+
+                                    int M()
+                                    {
+                                        {|RH3105:this|}._a = {|RH3105:this|}.P;
+                                        System.Func<int> f = () => {|RH3105:this|}._a;
+                                        return {|RH3105:this|}.M2({|RH3105:this|}._a).GetHashCode();
+                                    }
+
+                                    int M2(int x) => x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+                                     int P { get; set; }
+
+                                     int M()
+                                     {
+                                         _a = P;
+                                         System.Func<int> f = () => _a;
+                                         return M2(_a).GetHashCode();
+                                     }
+
+                                     int M2(int x) => x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a <c>this.</c> access that selects a field shadowed by a parameter is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-002")]
+    public async Task ThisAccessThatSelectsAShadowedFieldIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int a;
+
+                                    void M(int a)
+                                    {
+                                        this.a = a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix removes the qualifier of a field, a property, and a method access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3105-004")]
+    public async Task FixRemovesTheThisQualifier()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+                                    int P { get; set; }
+
+                                    int M()
+                                    {
+                                        {|RH3105:this|}._a = {|RH3105:this|}.P;
+                                        return {|RH3105:this|}.M2({|RH3105:this|}._a).GetHashCode();
+                                    }
+
+                                    int M2(int x) => x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+                                     int P { get; set; }
+
+                                     int M()
+                                     {
+                                         _a = P;
+                                         return M2(_a).GetHashCode();
+                                     }
+
+                                     int M2(int x) => x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Characterizes that the fix removes comments on both sides of the dot together with the qualifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixRemovesCommentsAroundTheDotWithTheQualifier()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    int M()
+                                    {
+                                        return {|RH3105:this|} /* a */ . /* b */ _a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     int M()
+                                     {
+                                         return _a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Characterizes that removing the qualifier from the right operand of a <c>&lt;</c> in an argument leaves a name
+    /// that, with the <c>&gt;</c> of the next argument, reads as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfQualifiedOperandAfterLessThanBeforeAGreaterThanArgumentWritesAGenericReading()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int A;
+                                    int B;
+                                    int D;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M(A < this.B, D > (7));
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        int A;
+                                        int B;
+                                        int D;
+
+                                        void M(bool x, bool y)
+                                        {
+                                        }
+
+                                        void Run()
+                                        {
+                                            M(A < B, D > (7));
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that removing the qualifier from the left operand of a <c>&gt;</c> in an argument leaves a name
+    /// that, with the <c>&lt;</c> of the previous argument, reads as a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfQualifiedOperandBeforeGreaterThanAfterALessThanArgumentWritesAGenericReading()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int A;
+                                    int B;
+                                    int D;
+
+                                    void M(bool x, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M(A < B, this.D > (7));
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        int A;
+                                        int B;
+                                        int D;
+
+                                        void M(bool x, bool y)
+                                        {
+                                        }
+
+                                        void Run()
+                                        {
+                                            M(A < B, D > (7));
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that removing the qualifier from an argument between a <c>&lt;</c> argument and a <c>&gt;</c>
+    /// argument leaves a name that reads as a type argument of a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfQualifiedArgumentBetweenLessThanAndGreaterThanArgumentsWritesAGenericReading()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int A;
+                                    int B;
+                                    int X;
+                                    int D;
+
+                                    void M(bool x, int z, bool y)
+                                    {
+                                    }
+
+                                    void Run()
+                                    {
+                                        M(A < B, this.X, D > (7));
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class C
+                                    {
+                                        int A;
+                                        int B;
+                                        int X;
+                                        int D;
+
+                                        void M(bool x, int z, bool y)
+                                        {
+                                        }
+
+                                        void Run()
+                                        {
+                                            M(A < B, X, D > (7));
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Characterizes that removing the qualifier from the middle operand of a user-defined comparison chain leaves a
+    /// name that reads as the type argument of a generic invocation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixOfQualifiedOperandInAComparisonChainWritesAGenericReading()
+    {
+        const string testCode = """
+                                class U
+                                {
+                                    public static bool operator >(U a, int b) => true;
+
+                                    public static bool operator <(U a, int b) => true;
+                                }
+
+                                class T
+                                {
+                                    public static U operator <(T a, int b) => null;
+
+                                    public static U operator >(T a, int b) => null;
+                                }
+
+                                class C
+                                {
+                                    T A;
+                                    int B;
+
+                                    bool Run()
+                                    {
+                                        return A < this.B > (7);
+                                    }
+                                }
+                                """;
+
+        const string expectedCode = """
+                                    class U
+                                    {
+                                        public static bool operator >(U a, int b) => true;
+
+                                        public static bool operator <(U a, int b) => true;
+                                    }
+
+                                    class T
+                                    {
+                                        public static U operator <(T a, int b) => null;
+
+                                        public static U operator >(T a, int b) => null;
+                                    }
+
+                                    class C
+                                    {
+                                        T A;
+                                        int B;
+
+                                        bool Run()
+                                        {
+                                            return A < B > (7);
+                                        }
+                                    }
+                                    """;
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
     }
 
     #endregion // Tests

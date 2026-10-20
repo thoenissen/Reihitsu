@@ -273,6 +273,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForMethod()
     {
         await Verify(MethodTestData, MethodResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
@@ -283,6 +286,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForProperty()
     {
         await Verify(PropertyTestData, PropertyResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
@@ -293,6 +299,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForEvent()
     {
         await Verify(EventTestData, EventResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
@@ -303,6 +312,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
     public async Task VerifyDiagnosticForFieldLikeOverrideEvent()
     {
         const string testData = """
@@ -349,6 +360,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyNoDiagnosticForFieldLikeOverrideEventWithInheritdoc()
     {
         const string testData = """
@@ -374,6 +386,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyNoDiagnosticForUndocumentedFieldLikeOverrideEvent()
     {
         const string testData = """
@@ -398,6 +411,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForDocumentedNonOverrideFieldLikeEvent()
     {
         const string testData = """
@@ -419,6 +434,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
     public async Task VerifyMultiLineDocumentationForFieldLikeOverrideEventIsReplaced()
     {
         const string testData = """
@@ -461,6 +478,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyMultipleFieldLikeOverrideEventsAreFixedInOneFixAllIteration()
     {
         const string testData = """
@@ -512,6 +530,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForIndexer()
     {
         await Verify(IndexerTestData, IndexerResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
@@ -589,6 +610,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForMultiLineDocumentationComment()
     {
         const string testData = """
@@ -648,6 +671,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForSingleLineFormMultiLineDocumentationComment()
     {
         const string testData = """
@@ -705,6 +730,9 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForMultiLineDocumentationCommentOnProperty()
     {
         const string testData = """
@@ -758,6 +786,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-005")]
     public async Task VerifySurroundingTriviaIsPreservedForMultiLineDocumentationComment()
     {
         const string testData = """
@@ -919,6 +948,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-005")]
     public async Task VerifyTrailingCommentIsPreservedWhenMultiLineDocumentationCommentIsReplaced()
     {
         const string testData = """
@@ -979,6 +1009,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-005")]
     public async Task VerifyDirectiveIsPreservedWhenMultiLineDocumentationCommentIsReplaced()
     {
         const string testData = """
@@ -1039,6 +1070,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("SHARED-DOC-008")]
     public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
     {
         const string source = """
@@ -1104,6 +1137,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForImplicitInterfaceMethod()
     {
         const string testData = """
@@ -1146,6 +1180,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForImplicitInterfaceProperty()
     {
         const string testData = """
@@ -1184,6 +1219,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForImplicitInterfaceIndexer()
     {
         const string testData = """
@@ -1222,6 +1258,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForImplicitInterfaceEvent()
     {
         const string testData = """
@@ -1280,6 +1317,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForImplicitInterfaceFieldLikeEvent()
     {
         const string testData = """
@@ -1322,6 +1360,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForFieldLikeEventWhoseDeclaratorsAllImplementInterfaceEvents()
     {
         const string testData = """
@@ -1368,6 +1407,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyNoDiagnosticForFieldLikeEventWhoseSecondDeclaratorImplementsNothing()
     {
         const string testData = """
@@ -1393,6 +1433,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyNoDiagnosticForFieldLikeEventWhoseFirstDeclaratorImplementsNothing()
     {
         const string testData = """
@@ -1418,6 +1459,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForExplicitInterfaceMethod()
     {
         const string testData = """
@@ -1460,6 +1502,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForExplicitInterfaceProperty()
     {
         const string testData = """
@@ -1498,6 +1541,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForExplicitInterfaceIndexer()
     {
         const string testData = """
@@ -1536,6 +1580,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForExplicitInterfaceEvent()
     {
         const string testData = """
@@ -1594,6 +1639,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForMetadataInterfaceImplementation()
     {
         const string testData = """
@@ -1630,6 +1676,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForGenericInterfaceImplementation()
     {
         const string testData = """
@@ -1668,6 +1715,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForImplementationOfInheritedInterfaceMember()
     {
         const string testData = """
@@ -1718,6 +1766,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForVirtualInterfaceImplementation()
     {
         const string testData = """
@@ -1760,6 +1809,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForMemberImplementingSeveralInterfaces()
     {
         const string testData = """
@@ -1812,6 +1862,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyNoDiagnosticForMemberImplementingSeveralInterfacesWithInheritdocCref()
     {
         const string testData = """
@@ -1842,6 +1893,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForStaticAbstractInterfaceMethod()
     {
         const string testData = """
@@ -1884,6 +1936,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForImplicitStaticAbstractOperator()
     {
         const string testData = """
@@ -1924,6 +1977,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForExplicitStaticAbstractOperator()
     {
         const string testData = """
@@ -1964,6 +2018,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForStaticAbstractConversionOperator()
     {
         const string testData = """
@@ -2004,6 +2059,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForOperatorWithoutInterface()
     {
         const string testData = """
@@ -2022,6 +2078,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForConversionOperatorWithoutInterface()
     {
         const string testData = """
@@ -2040,6 +2097,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForInterfaceMemberOverridingBaseInterfaceMember()
     {
         const string testData = """
@@ -2082,6 +2140,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForInterfaceMemberHidingBaseInterfaceMember()
     {
         const string testData = """
@@ -2105,6 +2164,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForInterfaceOwnMember()
     {
         const string testData = """
@@ -2123,6 +2183,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForReimplementationWithNew()
     {
         const string testData = """
@@ -2181,6 +2242,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForHidingMemberWithoutReimplementation()
     {
         const string testData = """
@@ -2214,6 +2276,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForBaseMemberWhenOnlyDerivedTypeListsInterface()
     {
         const string testData = """
@@ -2243,6 +2306,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForOverloadOfImplementedMember()
     {
         const string testData = """
@@ -2273,6 +2337,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForPublicMemberBesideExplicitImplementation()
     {
         const string testData = """
@@ -2303,6 +2368,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-002")]
     public async Task VerifyNoDiagnosticForMemberImplementingNoInterface()
     {
         const string testData = """
@@ -2406,6 +2472,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticsForOverrideAndInterfaceImplementationsAreFixedTogether()
     {
         const string testData = """
@@ -2482,6 +2550,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticForImplicitImplementationWhenInterfaceListIsConditional()
     {
         const string testData = """
@@ -2507,6 +2576,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticForImplicitImplementationWhenAnotherInterfaceIsDisabled()
     {
         const string testData = """
@@ -2532,6 +2602,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticForImplicitImplementationWhenOtherPartialDeclarationIsConditional()
     {
         const string testData = """
@@ -2561,6 +2632,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticForFieldLikeEventWhenInterfaceListIsConditional()
     {
         const string testData = """
@@ -2589,6 +2661,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyDiagnosticForExplicitImplementationWhenInterfaceListIsConditional()
     {
         const string testData = """
@@ -2631,6 +2704,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyDiagnosticForOverrideWhenBaseListIsConditional()
     {
         const string testData = """
@@ -2679,6 +2753,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyDiagnosticForImplicitImplementationWhenDirectiveIsInsideTypeBody()
     {
         const string testData = """
@@ -2723,6 +2798,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticWhenConditionalRegionEnclosesPartialDeclaration()
     {
         const string testData = """
@@ -2751,6 +2827,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticWhenConditionalRegionSuppliesAlternativeHeaders()
     {
         const string testData = """
@@ -2778,6 +2855,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticWhenInterfaceMemberIsConditional()
     {
         const string testData = """
@@ -2805,6 +2883,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticWhenInterfaceBaseListIsConditional()
     {
         const string testData = """
@@ -2837,6 +2916,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticWhenFileOfTypeContainsUnrelatedConditionalRegion()
     {
         const string testData = """
@@ -2862,6 +2942,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyDiagnosticForImplicitImplementationWhenFileContainsOnlyPragmaDirective()
     {
         const string testData = """
@@ -2903,6 +2984,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyNoDiagnosticWhenInterfaceFileContainsConditionalRegion()
     {
         const string testData = """
@@ -2934,6 +3016,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-003")]
     public async Task VerifyDiagnosticWhenOnlyUnrelatedFileContainsConditionalRegion()
     {
         const string testData = """
@@ -2984,6 +3067,399 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                          test.FixedState.Sources.Add(("/0/Test2.cs", unrelatedData));
                      },
                      Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the documentation comment of an override, an implicit implementation, and a field-like event whose events all implement interface events is reported, while a nested inheritdoc satisfies the rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
+    public async Task VerifySpecificationExampleReportsDocumentedMembersThatInheritTheirDocumentation()
+    {
+        const string source = """
+                              using System;
+
+                              /// <summary>
+                              /// Base
+                              /// </summary>
+                              public abstract class B
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  public abstract void Run();
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+                                  public abstract int Value { get; }
+                              }
+
+                              /// <summary>
+                              /// Notifier
+                              /// </summary>
+                              public interface INotifier
+                              {
+                                  /// <summary>
+                                  /// Raised first
+                                  /// </summary>
+                                  event EventHandler First;
+
+                                  /// <summary>
+                                  /// Raised second
+                                  /// </summary>
+                                  event EventHandler Second;
+
+                                  /// <summary>
+                                  /// Raised third
+                                  /// </summary>
+                                  event EventHandler Third;
+                              }
+
+                              /// <summary>
+                              /// Derived
+                              /// </summary>
+                              public class C : B, IDisposable, INotifier
+                              {
+                                  ///{|#0: <summary>Raised</summary>
+                              |}    public event EventHandler First, Second;
+
+                                  /// <summary>
+                                  /// Raised as well
+                                  /// </summary>
+                                  public event EventHandler Third, Fourth;
+
+                                  ///{|#1: <summary>Runs here</summary>
+                              |}    public override void Run()
+                                  {
+                                  }
+
+                                  /// <inheritdoc/>
+                                  /// <remarks>
+                                  /// <inheritdoc/>
+                                  /// </remarks>
+                                  public override int Value => 0;
+
+                                  ///{|#2: <summary>Disposes</summary>
+                              |}    public void Dispose()
+                                  {
+                                  }
+
+                                  public override string ToString() => "";
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an overload, a member beside an explicit implementation, a base member only a derived type maps, an interface member hiding a base interface member, and an explicit implementation with inheritdoc are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-002")]
+    public async Task VerifySpecificationExampleDoesNotReportMembersThatOnlyResembleInheritedOnes()
+    {
+        const string source = """
+                              using System;
+
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  void Run();
+                              }
+
+                              /// <summary>
+                              /// Derived contract
+                              /// </summary>
+                              public interface J : I
+                              {
+                                  /// <summary>
+                                  /// Runs differently
+                                  /// </summary>
+                                  new void Run();
+                              }
+
+                              /// <summary>
+                              /// Base
+                              /// </summary>
+                              public class B
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  public void Run()
+                                  {
+                                  }
+                              }
+
+                              /// <summary>
+                              /// Derived
+                              /// </summary>
+                              public class D : B, I
+                              {
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C : I
+                              {
+                                  /// <inheritdoc/>
+                                  void I.Run()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs as well
+                                  /// </summary>
+                                  public void Run()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Runs with a value
+                                  /// </summary>
+                                  /// <param name="value">Value</param>
+                                  public void Run(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: with an #if in the file of the type, the override is still reported while the implicit implementation is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-003")]
+    [Requirement("RH8201-004")]
+    public async Task VerifySpecificationExampleConditionalInterfaceListSuppressesOnlyImplicitImplementations()
+    {
+        const string source = """
+                              using System;
+
+                              /// <summary>
+                              /// Base
+                              /// </summary>
+                              public abstract class B
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  public abstract void Run();
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C : B, IDisposable
+                              #if FEATURE
+                                  , ICloneable
+                              #endif
+                              {
+                                  ///{|#0: <summary>Runs here</summary>
+                              |}    public override void Run()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Disposes
+                                  /// </summary>
+                                  public void Dispose()
+                                  {
+                                  }
+
+                              #if FEATURE
+                                  /// <inheritdoc/>
+                                  public object Clone() => this;
+                              #endif
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a region directive in the file does not keep an implicit implementation from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-003")]
+    [Requirement("RH8201-004")]
+    public async Task VerifySpecificationExampleRegionDirectiveDoesNotSuppressImplicitImplementation()
+    {
+        const string source = """
+                              using System;
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C : IDisposable
+                              {
+                                  #region Methods
+
+                                  ///{|#0: <summary>Disposes</summary>
+                              |}    public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix replaces a single-line and a delimited documentation comment with inheritdoc, keeping the ordinary comment before it, the attribute list after it, and the comment that followed the closing delimiter on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-004")]
+    [Requirement("RH8201-005")]
+    public async Task VerifySpecificationExampleReplacesCommentWithInheritdoc()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Base
+                              /// </summary>
+                              public abstract class B
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  public abstract void Run();
+
+                                  /// <summary>
+                                  /// Stops
+                                  /// </summary>
+                                  public abstract void Stop();
+                              }
+
+                              /// <summary>
+                              /// Derived
+                              /// </summary>
+                              public class C : B
+                              {
+                                  // Ordinary comment
+                                  ///{|#0: <summary>
+                                  /// Runs here
+                                  /// </summary>
+                                  /// <remarks>
+                                  /// Differs
+                                  /// </remarks>
+                              |}    [System.Obsolete]
+                                  public override void Run()
+                                  {
+                                  }
+
+                                  /**{|#1: <summary>Stops here</summary> */|} // Trailing
+                                  public override void Stop()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Base
+                                   /// </summary>
+                                   public abstract class B
+                                   {
+                                       /// <summary>
+                                       /// Runs
+                                       /// </summary>
+                                       public abstract void Run();
+
+                                       /// <summary>
+                                       /// Stops
+                                       /// </summary>
+                                       public abstract void Stop();
+                                   }
+
+                                   /// <summary>
+                                   /// Derived
+                                   /// </summary>
+                                   public class C : B
+                                   {
+                                       // Ordinary comment
+                                       /// <inheritdoc/>
+                                       [System.Obsolete]
+                                       public override void Run()
+                                       {
+                                       }
+
+                                       /// <inheritdoc/>
+                                       // Trailing
+                                       public override void Stop()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps preprocessor directives at column 0 before and after the replaced comment in the leading trivia of the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifyFixKeepsColumnZeroDirectivesAroundComment()
+    {
+        const string source = """
+                              /// <summary>Base</summary>
+                              public abstract class B
+                              {
+                                  /// <summary>Runs</summary>
+                                  public abstract void Run();
+                              }
+
+                              /// <summary>Derived</summary>
+                              public class C : B
+                              {
+                              #pragma warning disable CS0618
+                                  ///{|#0: <summary>Runs here</summary>
+                              |}#pragma warning restore CS0618
+                                  public override void Run()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   /// <summary>Base</summary>
+                                   public abstract class B
+                                   {
+                                       /// <summary>Runs</summary>
+                                       public abstract void Run();
+                                   }
+
+                                   /// <summary>Derived</summary>
+                                   public class C : B
+                                   {
+                                   #pragma warning disable CS0618
+                                       /// <inheritdoc/>
+                                   #pragma warning restore CS0618
+                                       public override void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
     }
 
     #endregion // Methods

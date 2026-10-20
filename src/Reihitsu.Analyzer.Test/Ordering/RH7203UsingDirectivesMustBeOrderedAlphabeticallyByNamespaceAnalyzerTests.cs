@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -21,6 +22,9 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-003")]
+    [Requirement("RH7203-004")]
     public async Task RegularUsingsAreReportedAndFixedWhenTheyAreNotAlphabeticallyOrdered()
     {
         const string testCode = """
@@ -87,6 +91,7 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-002")]
     public async Task SystemAndMicrosoftGroupsDoNotProduceDiagnosticsWhenIndividuallySorted()
     {
         const string testCode = """
@@ -143,6 +148,8 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
     public async Task MicrosoftUsingsAreFixedWithoutMovingSortedSystemGroup()
     {
         const string testCode = """
@@ -244,6 +251,8 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-002")]
+    [Requirement("SHARED-USING-004")]
     public async Task OrdinalDistinctRootGroupsDoNotProduceCrossGroupDiagnostics()
     {
         const string testCode = """
@@ -276,6 +285,7 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-004")]
     public async Task CodeFixDoesNotFormatFollowingType()
     {
         const string testCode = """
@@ -348,6 +358,8 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("SHARED-USING-009")]
     public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
     {
         const string testCode = """
@@ -380,6 +392,139 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that every regular directive sorted before the directive of its group directly above it is reported on its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-003")]
+    public async Task EveryDirectiveSortedBeforeItsNeighborIsReportedOnItsName()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:System|};
+                                using Microsoft.CodeAnalysis.CSharp;
+                                using {|RH7203:Microsoft.CodeAnalysis|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the order within a group ignores case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("SHARED-USING-007")]
+    public async Task CaseDoesNotDecideTheOrder()
+    {
+        const string testCode = """
+                                using System.Xml;
+                                using {|RH7203:System.collections|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that equal keys, directives of other groups, and static and alias directives are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-002")]
+    [Requirement("SHARED-USING-004")]
+    [Requirement("SHARED-USING-007")]
+    public async Task EqualKeysOtherGroupsAndOtherKindsAreNotReported()
+    {
+        const string testCode = """
+                                using System.collections;
+                                using System.Collections;
+
+                                using Microsoft.B;
+                                using microsoft.A;
+
+                                using static System.Math;
+                                using static System.Console;
+
+                                using B = System.Text;
+                                using A = System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes the whole using block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    public async Task CodeFixOrganizesTheWholeBlock()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:System|};
+                                using Microsoft.CodeAnalysis.CSharp;
+                                using {|RH7203:Microsoft.CodeAnalysis|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+
+                                 using Microsoft.CodeAnalysis;
+                                 using Microsoft.CodeAnalysis.CSharp;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

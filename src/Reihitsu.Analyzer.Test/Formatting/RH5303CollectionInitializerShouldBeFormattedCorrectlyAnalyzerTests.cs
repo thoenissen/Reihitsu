@@ -21,6 +21,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyDiagnosticAndCodeFixForExplicitCollectionInitializer()
     {
         const string testData = """
@@ -64,6 +67,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyDiagnosticAndCodeFixForTargetTypedCollectionInitializer()
     {
         const string testData = """
@@ -107,6 +113,10 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyDiagnosticAndCodeFixForComplexElementInitializer()
     {
         const string testData = """
@@ -170,6 +180,10 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyDiagnosticAndCodeFixForComplexElementClosingBrace()
     {
         const string testData = """
@@ -221,6 +235,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-002")]
     public async Task VerifyNoDiagnosticForCorrectExplicitCollectionInitializer()
     {
         const string testData = """
@@ -247,6 +263,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-002")]
     public async Task VerifyNoDiagnosticForCorrectTargetTypedCollectionInitializer()
     {
         const string testData = """
@@ -273,6 +291,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
     public async Task VerifyNoDiagnosticForCorrectComplexElementInitializer()
     {
         const string testData = """
@@ -309,6 +329,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
     public async Task VerifyNoDiagnosticForCommentPrefixedComplexElementTokens()
     {
         const string testData = """
@@ -340,6 +363,10 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyStandaloneCommentBeforeComplexOpenBraceIsDetectedAndFixed()
     {
         const string testData = """
@@ -393,6 +420,11 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyMultilineCommentBeforeComplexExpressionIsDetectedAndFixed()
     {
         const string testData = """
@@ -448,6 +480,10 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyDocumentationContinuationBeforeComplexOpenBraceIsDetectedAndFixed()
     {
         const string testData = """
@@ -503,6 +539,11 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyDocumentationContinuationBeforeComplexExpressionIsDetectedAndFixed()
     {
         const string testData = """
@@ -558,6 +599,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5303-002")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyComplexElementOnCollectionOpenBraceLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -608,6 +652,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
     public async Task VerifyNoDiagnosticForSingleLineComplexElementInitializer()
     {
         const string testData = """
@@ -690,6 +736,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-001")]
     public async Task VerifyNoDiagnosticForCommentPrefixedCollectionOpeningBrace()
     {
         const string testData = """
@@ -715,6 +763,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-001")]
     public async Task VerifyNoDiagnosticForCommentPrefixedCollectionClosingBrace()
     {
         const string testData = """
@@ -740,6 +790,10 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-004")]
+    [Requirement("RH5303-005")]
     public async Task VerifyShiftedCommentBeforeCollectionOpeningBraceIsDetectedAndFixed()
     {
         const string testData = """
@@ -870,6 +924,231 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testData,
                      fixedData,
                      Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a collection initializer on the line of new is reported on the whole object creation, while a
+    /// target-typed creation with its braces in the column of new is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-001")]
+    [Requirement("RH5303-004")]
+    public async Task VerifyBracesOutsideColumnOfNewAreReportedOnCreation()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5303:new List<int> { 1, 2 }|};
+                                        List<int> b = new()
+                                                      {
+                                                          1
+                                                      };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an element on the line of an earlier element and an element outside its column are each reported
+    /// on the element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-002")]
+    [Requirement("RH5303-004")]
+    public async Task VerifyElementsOutsideTheirLineOrColumnAreReportedOnTheElement()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new List<int>
+                                                {
+                                                    1, {|RH5303:2|},
+                                                  {|RH5303:3|}
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an element on the line of the opening brace is reported on the element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-002")]
+    [Requirement("RH5303-004")]
+    public async Task VerifyElementOnLineOfOpeningBraceIsReported()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new List<int>
+                                                {   {|RH5303:1|},
+                                                    2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a complex element on one line and a wrapped complex element laid out as a block are not reported,
+    /// while a misplaced expression is reported on that expression and a misplaced brace on the whole complex element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5303-003")]
+    [Requirement("RH5303-004")]
+    public async Task VerifyWrappedComplexElementsAreLaidOutAsBlocks()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    { 1, 2 },
+                                                    {
+                                                        3,
+                                                        4
+                                                    },
+                                                    {
+                                                        5,
+                                                      {|RH5303:6|}
+                                                    },
+                                                    {
+                                                        7, {|RH5303:8|}
+                                                    },
+                                                    {|RH5303:{
+                                                        9,
+                                                        10
+                                                  }|}
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the collection initializer with every element on its own line one level deeper
+    /// and every expression of a wrapped complex element on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    public async Task VerifyFixLaysOutCollectionInitializer()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new Dictionary<int, int>
+                                                {
+                                                    {
+                                                        1, {|RH5303:2|}
+                                                    },
+                                                  {|RH5303:{ 3, 4 }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = new Dictionary<int, int>
+                                                 {
+                                                     {
+                                                         1,
+                                                         2
+                                                     },
+                                                     { 3, 4 }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the collection initializer with every element on its own line one level deeper
+    /// and every expression of a wrapped complex element on its own line, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    public async Task VerifyFixLaysOutCollectionInitializerWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new Dictionary<int, int>
+                                                {
+                                                    {
+                                                        1, {|RH5303:2|}
+                                                    },
+                                                  {|RH5303:{ 3, 4 }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = new Dictionary<int, int>
+                                                 {
+                                                     {
+                                                         1,
+                                                         2
+                                                     },
+                                                     { 3, 4 }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

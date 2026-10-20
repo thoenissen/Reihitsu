@@ -21,6 +21,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-001")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyOpeningBraceOnNextLineAfterAssignmentIsDetectedAndFixed()
     {
         const string testData = """
@@ -73,6 +76,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyMisalignedBracesAreDetectedAndFixed()
     {
         const string testData = """
@@ -124,6 +130,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-002")]
     public async Task VerifyNoDiagnosticForCorrectlyFormattedMultilineNestedCollectionInitializer()
     {
         const string testData = """
@@ -234,6 +241,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-002")]
     public async Task VerifyNoDiagnosticForCorrectlyFormattedTargetTypedNestedCollectionInitializer()
     {
         const string testData = """
@@ -264,6 +272,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyDiagnosticForMultipleElementsOnSameLineInMultilineInitializer()
     {
         const string testData = """
@@ -316,6 +327,10 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyComplexElementInteriorMisalignmentIsDetectedAndFixed()
     {
         const string testData = """
@@ -375,6 +390,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyShiftedComplexElementAnchorIsDetectedAndFixed()
     {
         const string testData = """
@@ -434,6 +452,8 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
     public async Task VerifyNoDiagnosticForCorrectlyFormattedComplexElement()
     {
         const string testData = """
@@ -468,6 +488,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
     public async Task VerifyNoDiagnosticForCommentPrefixedComplexElementTokens()
     {
         const string testData = """
@@ -503,6 +526,11 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyStandaloneCommentBeforeComplexCloseBraceIsDetectedAndFixed()
     {
         const string testData = """
@@ -565,6 +593,11 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyMultilineCommentBeforeAssignmentOwnedComplexExpressionIsDetectedAndFixed()
     {
         const string testData = """
@@ -628,6 +661,11 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("SHARED-INIT-002")]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyDocumentationContinuationBeforeComplexCloseBraceIsDetectedAndFixed()
     {
         const string testData = """
@@ -692,6 +730,8 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
     public async Task VerifyNoDiagnosticForCommentPrefixedNestedCollectionClosingBrace()
     {
         const string testData = """
@@ -722,6 +762,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyMisalignedOrdinaryElementsAreDetectedAndFixed()
     {
         const string testData = """
@@ -773,6 +816,8 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
     public async Task VerifyNoDiagnosticForCommentPrefixedOrdinaryElements()
     {
         const string testData = """
@@ -804,6 +849,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("RH5304-004")]
     public async Task VerifyFixAllConvergesForOrdinaryElementAssignments()
     {
         const string testData = """
@@ -859,6 +907,203 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
                      Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that an assignment whose equals sign is below its target, and one whose opening brace is below its
+    /// equals sign, are each reported on the whole assignment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-001")]
+    [Requirement("RH5304-003")]
+    public async Task VerifySplitAssignmentIsReportedOnTheAssignment()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|RH5304:L
+                                                        = { 1 }|}
+                                                };
+                                        var b = new C
+                                                {
+                                                    {|RH5304:L =
+                                                    {
+                                                        1
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped nested collection initializer is reported on the assignment when its closing brace, an
+    /// element line, an element column, or a complex element is out of place, and is not reported when it is laid out
+    /// as a block under its opening brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-002")]
+    [Requirement("RH5304-003")]
+    [Requirement("SHARED-INIT-002")]
+    public async Task VerifyWrappedCollectionInitializerThatIsNotABlockIsReported()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> A { get; } = new List<int>();
+                                    List<int> B { get; } = new List<int>();
+                                    List<int> E { get; } = new List<int>();
+                                    List<int> L { get; } = new List<int>();
+                                    Dictionary<int, int> D { get; } = new Dictionary<int, int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|RH5304:A = {
+                                                            1
+                                                      }|},
+                                                    {|RH5304:B = {
+                                                            1, 2
+                                                        }|},
+                                                    {|RH5304:E = {
+                                                          1
+                                                        }|},
+                                                    {|RH5304:D = {
+                                                            {
+                                                                1,
+                                                              2
+                                                            }
+                                                        }|},
+                                                    L = {
+                                                            1,
+                                                            2
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the opening brace on the line of the equals sign, every element on its own line one
+    /// level deeper than the opening brace, and the closing brace in the column of the opening brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-004")]
+    public async Task VerifyFixPutsOpeningBraceOnEqualsLineAndLaysOutBlock()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|RH5304:L =
+                                                    {
+                                                        1,
+                                                        2
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     List<int> L { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     L = {
+                                                             1,
+                                                             2
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts the opening brace on the line of the equals sign, every element on its own line one
+    /// level deeper than the opening brace, and the closing brace in the column of the opening brace, with CRLF line
+    /// endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5304-004")]
+    public async Task VerifyFixPutsOpeningBraceOnEqualsLineAndLaysOutBlockWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    {|RH5304:L =
+                                                    {
+                                                        1,
+                                                        2
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     List<int> L { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     L = {
+                                                             1,
+                                                             2
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

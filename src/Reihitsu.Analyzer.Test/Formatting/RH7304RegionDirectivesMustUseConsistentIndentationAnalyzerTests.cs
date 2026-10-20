@@ -22,6 +22,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-001")]
     public async Task VerifyNoDiagnosticsWhenRegionDirectivesMatchContainingScope()
     {
         const string testData = """
@@ -78,6 +79,9 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("RH7304-003")]
+    [Requirement("RH7304-004")]
     public async Task VerifyMisindentedTypeLevelRegionDirectivesAreDetectedAndFixed()
     {
         const string testData = """
@@ -111,6 +115,8 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("RH7304-004")]
     public async Task VerifyMisindentedNestedTypeRegionDirectivesAreDetectedAndFixed()
     {
         const string testData = """
@@ -150,6 +156,8 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("RH7304-004")]
     public async Task VerifyMisindentedNestedRegionDirectivesAreDetectedAndFixed()
     {
         const string testData = """
@@ -191,6 +199,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-004")]
     public async Task VerifyCodeFixOnlyChangesDirectiveIndentation()
     {
         const string testData = """
@@ -224,6 +233,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-001")]
     public async Task VerifyIndentationIsInferredFromContainingCode()
     {
         const string testData = """
@@ -257,6 +267,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7304-001")]
     public async Task VerifyRegionDirectivesWithinElementBodiesAreIgnored()
     {
         const string testData = """
@@ -451,6 +462,110 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
 
         await Verify(testData,
                      Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that each region directive indented unlike the first token of its region is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("RH7304-003")]
+    [Requirement("SHARED-TYPEREGION-005")]
+    public async Task DirectivesIndentedUnlikeTheFirstTokenOfTheRegionAreReported()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                {|RH7304:#region Types|}
+                                    class C
+                                    {
+                                    {|RH7304:#region Fields|}
+
+                                          private int _a;
+
+                                    {|RH7304:#endregion // Fields|}
+                                    }
+                                {|RH7304:#endregion|}
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that only the misaligned directive of a pair is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("RH7304-003")]
+    public async Task OnlyTheMisalignedDirectiveOfAPairIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _a;
+
+                                  {|RH7304:#endregion // Fields|}
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the directives of a region without code are not reported, whatever their indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-002")]
+    public async Task RegionWithoutCodeIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #region Empty
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix indents both directives of the region like its first token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-004")]
+    public async Task CodeFixIndentsBothDirectivesLikeTheFirstToken()
+    {
+        const string testData = """
+                                class C
+                                {
+                                {|RH7304:#region Fields|}
+
+                                    private int _a;
+
+                                  {|RH7304:#endregion // Fields|}
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     #endregion // Tests

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -21,6 +22,9 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("RH7204-003")]
+    [Requirement("RH7204-004")]
     public async Task AliasUsingsAreReportedAndFixedWhenTheyAreNotAlphabeticallyOrdered()
     {
         const string testCode = """
@@ -51,6 +55,8 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7204-002")]
+    [Requirement("SHARED-USING-004")]
     public async Task AliasUsingsInDifferentTargetGroupsAreNotReported()
     {
         const string testCode = """
@@ -84,6 +90,8 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("RH7204-004")]
     public async Task AliasUsingsInSameTargetGroupAreReportedWhenOutOfOrder()
     {
         const string testCode = """
@@ -112,6 +120,8 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("SHARED-USING-009")]
     public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
     {
         const string testCode = """
@@ -123,6 +133,162 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that every alias sorted before the alias of its group directly above it is reported on its alias name, also when case differs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("RH7204-003")]
+    [Requirement("SHARED-USING-007")]
+    public async Task EveryAliasSortedBeforeItsNeighborIsReportedOnItsAliasName()
+    {
+        const string testCode = """
+                                using b = System.Text;
+                                using {|RH7204:A|} = System.IO;
+
+                                using Beta = Microsoft.CodeAnalysis.SyntaxNode;
+                                using {|RH7204:Alpha|} = Microsoft.CodeAnalysis.SyntaxToken;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the aliases of the global section are checked on their own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("SHARED-USING-002")]
+    public async Task GlobalSectionIsCheckedOnItsOwn()
+    {
+        const string testCode = """
+                                global using B = System.Text;
+                                global using {|RH7204:A|} = System.IO;
+
+                                using C2 = System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                using B = System.Text;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using A = System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an alias of another group and regular directives are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-002")]
+    [Requirement("SHARED-USING-004")]
+    public async Task AliasesOfOtherGroupsAndOtherKindsAreNotReported()
+    {
+        const string testCode = """
+                                using X = Microsoft.CodeAnalysis.SyntaxNode;
+                                using A = System.IO;
+
+                                using System.Linq;
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes the whole using block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-004")]
+    public async Task CodeFixOrganizesTheWholeBlock()
+    {
+        const string testCode = """
+                                using b = System.Text;
+                                using {|RH7204:A|} = System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using A = System.IO;
+                                 using b = System.Text;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix leaves the code after the using block unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-004")]
+    public async Task CodeFixLeavesTheCodeAfterTheBlockUnchanged()
+    {
+        const string testCode = """
+                                using b = System.Text;
+                                using {|RH7204:A|} = System.IO;
+
+                                class C
+                                {
+                                    void M( ) {   }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using A = System.IO;
+                                 using b = System.Text;
+
+                                 class C
+                                 {
+                                     void M( ) {   }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests
