@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| ID prefix | SHARED-BRACE |
+| ID prefix | SHARED-AFTERBRACE |
 | Status | Active |
 | Code owners | `BlankLineCodeFixUtilities` |
 | Uses | SHARED-BLANK-003, FMT-BLANK-005 |
@@ -16,7 +16,7 @@ This spec covers where a code fix puts the blank line that SHARED-BLANK-003 requ
 
 ## Requirements
 
-### SHARED-BRACE-001 — The blank line goes directly before the next statement
+### SHARED-AFTERBRACE-001 — The blank line goes directly before the next statement
 
 When a line break outside any comment stands between the closing brace and the next statement, the code fix MUST insert one line break, in the line ending the document already uses, at the start of the next statement's leading trivia, or directly after the last preprocessor directive in that trivia when there is one. A comment between the brace and the statement therefore stays directly above the statement, below the new blank line, and a directive stays directly below the brace.
 

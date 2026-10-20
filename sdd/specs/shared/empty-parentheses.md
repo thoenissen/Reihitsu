@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| ID prefix | SHARED-EMPTY |
+| ID prefix | SHARED-PARENS |
 | Status | Active |
 | Code owners | `EmptyParenthesesAnalyzerBase<TNode>` |
 | Uses | — |
@@ -16,7 +16,7 @@ This spec covers what the rules share that report an empty pair of parentheses t
 
 ## Requirements
 
-### SHARED-EMPTY-001 — The diagnostic covers the empty list
+### SHARED-PARENS-001 — The diagnostic covers the empty list
 
 The rule MUST report one diagnostic per empty list, from its `(` to its `)`.
 
@@ -33,7 +33,7 @@ class C
 }
 ```
 
-### SHARED-EMPTY-002 — The fix removes the empty list
+### SHARED-PARENS-002 — The fix removes the empty list
 
 For a reported list that holds nothing but whitespace between `(` and `)`, the code fix MUST remove the list from `(` to `)`. A comment in front of `(` MUST stay.
 
