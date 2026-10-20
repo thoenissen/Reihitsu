@@ -33,6 +33,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
 | [shared/operator-spacing.md](shared/operator-spacing.md) | SHARED-OPSPACE | `OperatorSpacingCodeFixProviderBase` |
 | [shared/ordering-move-safety.md](shared/ordering-move-safety.md) | SHARED-ORDER | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
+| [shared/region-descriptions.md](shared/region-descriptions.md) | SHARED-REGDESC | `RegionDescriptionAnalyzerBase` |
 | [shared/region-directive-blank-lines.md](shared/region-directive-blank-lines.md) | SHARED-REGION | `RegionDirectiveBlankLineAnalyzerBase`, `RegionDirectiveBlankLineCodeFixProviderBase` |
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
 | [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
@@ -40,6 +41,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/statement-braces.md](shared/statement-braces.md) | SHARED-BRACE | `StatementBracesCodeFixProviderBase` |
 | [shared/token-gap-fixes.md](shared/token-gap-fixes.md) | SHARED-GAP | `CommentSafeSpanReplacementCodeFixProviderBase` |
 | [shared/trailing-commas.md](shared/trailing-commas.md) | SHARED-TRAIL | `TrailingCommaAnalyzerBase<TNode>`, `TrailingCommaRemovalCodeFixProviderBase`, `TrailingCommaCodeFixHelper` |
+| [shared/type-regions.md](shared/type-regions.md) | SHARED-TYPEREGION | `TypesOrganizedWithRegionsAnalyzerBase` |
 | [shared/using-directive-ordering.md](shared/using-directive-ordering.md) | SHARED-USING | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
 | [shared/whitespace-removal-fixes.md](shared/whitespace-removal-fixes.md) | SHARED-WS | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase`, `CollapseTokenGapCodeFixProviderBase` |
 | [analyzer/RH0001.md](analyzer/RH0001.md) | RH0001 | `RH0001ConfigurationFileMustBeValidAnalyzer`, `ConfigurationManager`, `ConfigurationLoadResult`, `ConfigurationValidationError`, `CopyrightHeaderTemplateResolver` |
@@ -258,6 +260,25 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH6023.md](analyzer/RH6023.md) | RH6023 | `RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer`, `RH6023AssignmentOperatorsMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH6024.md](analyzer/RH6024.md) | RH6024 | `RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer`, `RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider` |
 | [analyzer/RH7103.md](analyzer/RH7103.md) | RH7103 | `RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer`, `RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider` |
+| [analyzer/RH7201.md](analyzer/RH7201.md) | RH7201 | `RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer`, `RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider` |
+| [analyzer/RH7202.md](analyzer/RH7202.md) | RH7202 | `RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer`, `RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider` |
+| [analyzer/RH7203.md](analyzer/RH7203.md) | RH7203 | `RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer`, `RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceCodeFixProvider` |
+| [analyzer/RH7204.md](analyzer/RH7204.md) | RH7204 | `RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer`, `RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider` |
+| [analyzer/RH7205.md](analyzer/RH7205.md) | RH7205 | `RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer`, `RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider` |
+| [analyzer/RH7206.md](analyzer/RH7206.md) | RH7206 | `RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer`, `RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyCodeFixProvider` |
+| [analyzer/RH7207.md](analyzer/RH7207.md) | RH7207 | `RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer`, `RH7207UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider` |
+| [analyzer/RH7301.md](analyzer/RH7301.md) | RH7301 | `RH7301RegionsShouldMatchAnalyzer`, `RH7301RegionsShouldMatchCodeFixProvider` |
+| [analyzer/RH7302.md](analyzer/RH7302.md) | RH7302 | `RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer`, `RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider` |
+| [analyzer/RH7303.md](analyzer/RH7303.md) | RH7303 | `RH7303DoNotPlaceRegionsWithinElementsAnalyzer`, `RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider` |
+| [analyzer/RH7304.md](analyzer/RH7304.md) | RH7304 | `RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer`, `RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider` |
+| [analyzer/RH7305.md](analyzer/RH7305.md) | RH7305 | `RH7305TypesShouldBeOrganizedWithRegionsAnalyzer` |
+| [analyzer/RH7305A.md](analyzer/RH7305A.md) | RH7305A | `RH7305ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer` |
+| [analyzer/RH7306.md](analyzer/RH7306.md) | RH7306 | `RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer`, `RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider` |
+| [analyzer/RH7307.md](analyzer/RH7307.md) | RH7307 | `RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer` |
+| [analyzer/RH7308.md](analyzer/RH7308.md) | RH7308 | `RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer` |
+| [analyzer/RH7309.md](analyzer/RH7309.md) | RH7309 | `RH7309RegionsShouldFollowCategoryOrderAnalyzer`, `RH7309RegionsShouldFollowCategoryOrderCodeFixProvider`, `RegionCategoryUtilities` |
+| [analyzer/RH7310.md](analyzer/RH7310.md) | RH7310 | `RH7310EmptyRegionsShouldBeRemovedAnalyzer`, `RH7310EmptyRegionsShouldBeRemovedCodeFixProvider` |
+| [analyzer/RH7311.md](analyzer/RH7311.md) | RH7311 | `RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer` |
 | [analyzer/RH8001.md](analyzer/RH8001.md) | RH8001 | `RH8001NonPrivateClassesMustBeDocumentedAnalyzer` |
 | [analyzer/RH8002.md](analyzer/RH8002.md) | RH8002 | `RH8002PrivateClassesMustBeDocumentedAnalyzer` |
 | [analyzer/RH8003.md](analyzer/RH8003.md) | RH8003 | `RH8003NonPrivateStructsMustBeDocumentedAnalyzer` |
