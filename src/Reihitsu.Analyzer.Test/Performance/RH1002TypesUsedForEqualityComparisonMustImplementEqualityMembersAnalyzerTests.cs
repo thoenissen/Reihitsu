@@ -2169,5 +2169,157 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
         await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifying that a constant with the value <see langword="null"/> converted by the <see langword="as"/> operator,
+    /// whether it is a <see langword="const"/> field or the literal, is not a custom comparer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyConstantNullConvertedByAsIsNotCustomComparer()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  const IEqualityComparer<S> NoComparer = null;
+
+                                  void M(IEnumerable<S> items)
+                                  {
+                                      items.{|#0:Distinct|}(NoComparer as IEqualityComparer<S>);
+                                      items.{|#1:Distinct|}(null as IEqualityComparer<S>);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that a property other than <c>EqualityComparer&lt;T&gt;.Default</c> and a method call are custom
+    /// comparers, also when the call returns <see langword="null"/>, while <c>EqualityComparer&lt;T&gt;.Default</c> is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyPropertyOrMethodCallArgumentIsCustomComparer()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> Prop { get; set; }
+
+                                  IEqualityComparer<S> Make() => null;
+
+                                  void M(IEnumerable<S> items)
+                                  {
+                                      items.Distinct(Prop);
+                                      items.Distinct(Make());
+                                      items.{|#0:Distinct|}(EqualityComparer<S>.Default);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a field that is not a constant or an object creation converted by the <see langword="as"/>
+    /// operator is a custom comparer, while the literal <see langword="null"/> converted by it is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyCustomFormConvertedByAsIsCustomComparer()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class SComparer : IEqualityComparer<S>
+                              {
+                                  public bool Equals(S x, S y) => true;
+
+                                  public int GetHashCode(S obj) => 0;
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> _field;
+                                  object _boxed;
+
+                                  void M(IEnumerable<S> items)
+                                  {
+                                      items.Distinct(_field as IEqualityComparer<S>);
+                                      items.Distinct(_boxed as IEqualityComparer<S>);
+                                      items.Distinct(new SComparer() as IEqualityComparer<S>);
+                                      items.{|#0:Distinct|}(null as IEqualityComparer<S>);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a null-conditional access whose receiver is a field that is not a constant, a property, or a
+    /// method call is a custom comparer, while one whose receiver is a cast of <see langword="null"/> is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EQUAL-002")]
+    public async Task VerifyNullConditionalAccessOnFieldPropertyOrCallIsCustomComparer()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              struct S
+                              {
+                              }
+
+                              class Holder
+                              {
+                                  public IEqualityComparer<S> Comparer { get; set; }
+                              }
+
+                              class C
+                              {
+                                  Holder _holder;
+
+                                  Holder HolderProp { get; set; }
+
+                                  Holder MakeHolder() => null;
+
+                                  void M(IEnumerable<S> items)
+                                  {
+                                      items.Distinct(_holder?.Comparer);
+                                      items.Distinct(HolderProp?.Comparer);
+                                      items.Distinct(MakeHolder()?.Comparer);
+                                      items.{|#0:Distinct|}(((Holder)null)?.Comparer);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+    }
+
     #endregion // Methods
 }

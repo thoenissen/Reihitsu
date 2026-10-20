@@ -1401,5 +1401,104 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
         await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a variable as initial value inside parentheses or behind the null-forgiving operator <c>!</c>
+    /// leaves the declared type reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-003")]
+    public async Task VerifyWrappedVariableInitialValueLeavesDeclaredTypeReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  Dictionary<{|#0:S|}, int> _other;
+
+                                  void M()
+                                  {
+                                      Dictionary<{|#1:S|}, int> a = (_other);
+                                      Dictionary<{|#2:S|}, int> b = _other!;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional expression with a constant condition leaves the declared type reported when its
+    /// chosen branch passes no comparer, whichever branch that is, and exempts it when its chosen branch passes a custom
+    /// comparer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-003")]
+    public async Task VerifyConstantConditionChoosingCreationWithoutComparerLeavesDeclaredTypeReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> _comparer;
+
+                                  void M()
+                                  {
+                                      Dictionary<{|#0:S|}, int> a = true ? new() : new(_comparer);
+                                      Dictionary<{|#1:S|}, int> b = false ? new(_comparer) : new();
+                                      Dictionary<S, int> c = false ? new() : new(_comparer);
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that a <see langword="switch"/> expression leaves the declared type reported when one of its arms
+    /// passes no comparer or is a variable while another arm passes a custom comparer, and exempts it when every arm
+    /// passes a custom comparer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH1001-003")]
+    public async Task VerifySwitchWithArmWithoutCustomComparerLeavesDeclaredTypeReported()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              struct S
+                              {
+                              }
+
+                              class C
+                              {
+                                  IEqualityComparer<S> _comparer;
+                                  int _mode;
+                                  Dictionary<{|#0:S|}, int> _other;
+
+                                  void M()
+                                  {
+                                      Dictionary<{|#1:S|}, int> a = _mode switch { 0 => new(_comparer), _ => new() };
+                                      Dictionary<{|#2:S|}, int> b = _mode switch { 0 => _other, _ => new(_comparer) };
+                                      Dictionary<S, int> c = _mode switch { 0 => new(_comparer), _ => new(_comparer) };
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
+    }
+
     #endregion // Methods
 }
