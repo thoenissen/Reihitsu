@@ -23,6 +23,8 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0002-001")]
+    [Requirement("RH0002-002")]
     public async Task DocumentationModeNone()
     {
         const string source = """
@@ -40,6 +42,7 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0002-001")]
     public async Task DocumentationModeParse()
     {
         const string source = """
@@ -55,6 +58,8 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH0002-001")]
+    [Requirement("RH0002-002")]
     public async Task DiagnosticReportedForEverySyntaxTreeWithDocumentationModeNone()
     {
         await Verify("""
@@ -76,6 +81,83 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
                                                                                           .WithMessage(AnalyzerResources.RH0002MessageFormat),
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(1, DiagnosticLocationOptions.InterpretAsMarkupKey)
+                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a file parsed in the documentation mode <see cref="DocumentationMode.Diagnose"/> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0002-001")]
+    public async Task DocumentationModeDiagnose()
+    {
+        const string source = """
+                              namespace N;
+
+                              class C
+                              {
+                              }
+                              """;
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add((solution, projectId) => ApplyDocumentationMode(solution, projectId, DocumentationMode.Diagnose)));
+    }
+
+    /// <summary>
+    /// Verifying that a file with documentation mode none is reported on its first token, also when the token is
+    /// preceded by comments and a documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0002-001")]
+    [Requirement("RH0002-002")]
+    public async Task DocumentationModeNoneIsReportedOnFirstTokenAfterLeadingComments()
+    {
+        const string source = """
+                              // File header
+
+                              /// <summary>
+                              /// Documented
+                              /// </summary>
+                              {|#0:class|} C
+                              {
+                              }
+                              """;
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeNone),
+                     Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
+                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a file holding only a comment is reported with the empty span after its final line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0002-002")]
+    public async Task DocumentationModeNoneCommentsOnlyFileIsReportedAtEndOfFile()
+    {
+        const string source = "// Only a comment\n{|#0:|}";
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeNone),
+                     Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
+                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an empty file is reported with the empty span at its start
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0002-002")]
+    public async Task DocumentationModeNoneEmptyFileIsReportedAtStart()
+    {
+        await Verify("{|#0:|}",
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeNone),
+                     Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
                                                                                           .WithMessage(AnalyzerResources.RH0002MessageFormat));
     }
 

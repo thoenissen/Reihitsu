@@ -20,6 +20,8 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2103-001")]
+    [Requirement("RH2103-002")]
     public async Task VerifyDiagnosticsForParameterizedStructPrimaryConstructors()
     {
         const string source = """
@@ -42,6 +44,7 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2103-001")]
     public async Task VerifyNoDiagnosticsForParameterlessStructPrimaryConstructors()
     {
         const string source = """
@@ -60,6 +63,7 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2103-001")]
     public async Task VerifyNoDiagnosticsForStructsWithoutPrimaryConstructors()
     {
         const string source = """
@@ -81,6 +85,7 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2103-001")]
     public async Task VerifyNoDiagnosticsForRecordStructs()
     {
         const string source = """
@@ -90,6 +95,64 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifying that plain, readonly, and partial structs with primary-constructor parameters are reported on their
+    /// identifier, and that empty primary constructors, structs without one, and record structs are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2103-001")]
+    [Requirement("RH2103-002")]
+    public async Task VerifyReadonlyAndPartialStructsWithPrimaryConstructorParametersAreReported()
+    {
+        const string source = """
+                              struct {|#0:Size|}(int width, int height)
+                              {
+                                  public int Area => width * height;
+                              }
+
+                              readonly struct {|#1:Id|}(int value)
+                              {
+                                  public int Value => value;
+                              }
+
+                              partial struct {|#2:Part|}(int value)
+                              {
+                              }
+
+                              struct Empty()
+                              {
+                              }
+
+                              struct Plain
+                              {
+                              }
+
+                              record struct Point(int X);
+                              """;
+
+        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2103MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that the diagnostic is on the struct identifier when the parameter list spans several lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2103-002")]
+    public async Task VerifyDiagnosticIsOnIdentifierWhenParameterListSpansSeveralLines()
+    {
+        const string source = """
+                              struct {|#0:Size|}(
+                                  int width,
+                                  int height)
+                              {
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2103MessageFormat));
     }
 
     #endregion // Tests
