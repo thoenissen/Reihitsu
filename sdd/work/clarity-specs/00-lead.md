@@ -46,3 +46,4 @@ Rules: RH3001–RH3007, RH3101–RH3107, RH3201, RH3203–RH3208 (21 rules). One
 ## Lane widened: tests → tooling
 
 The decision records under `squad/decisions/` classify as tooling (`LANE CHECK: mismatch — claimed tests, diff needs tooling`). Widened before any implementer stage, along docs → tests → tooling, as the merged batch thoenissen/Reihitsu#1101 did for the same reason. The tooling lane adds the auditor. The implementer stays skipped unless a test fails against the unchanged production code (which this run must not change anyway).
+- Test implementer findings (escalation 4, 2026-10-20): spec author corrects the SHARED-BODY-001 example span and narrows RH3103-003 to exclude alias-qualified names; tests unchanged (`squad/decisions/2026-10-20-997-test-findings-spec-corrections.md`).
