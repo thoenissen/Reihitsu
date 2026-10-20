@@ -816,6 +816,146 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
         await VerifyNoCodeFixIsOffered(testCode);
     }
 
+    /// <summary>
+    /// Characterizes that a negation that is the whole expression of an object creation argument is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeObjectCreationArgumentIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    C(bool b)
+                                    {
+                                    }
+
+                                    static C Run(bool y)
+                                    {
+                                        return new C({|RH3001:!|}y);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that a negation that is the whole expression of an element access argument is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeElementAccessArgumentIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int this[bool b] => 0;
+
+                                    int Run(bool y)
+                                    {
+                                        return this[{|RH3001:!|}y];
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that a negation that is the whole expression of an attribute argument is reported and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeAttributeArgumentIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class A : System.Attribute
+                                {
+                                    public A(bool b)
+                                    {
+                                    }
+                                }
+
+                                [A({|RH3001:!|}true)]
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that a negation that is a whole element of a collection expression is reported and no code fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeCollectionExpressionElementIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void Run(bool x, bool y)
+                                    {
+                                        bool[] a = [{|RH3001:!|}x, y];
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that a negation that is the whole constant pattern of an <c>is</c> expression is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeIsPatternIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool Run(bool x)
+                                    {
+                                        return x is {|RH3001:!|}true;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Characterizes that a negation that is the whole constant pattern of a <c>switch</c> expression arm is reported
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NegationAsAWholeSwitchArmPatternIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int Run(bool x)
+                                    {
+                                        return x switch
+                                               {
+                                                   {|RH3001:!|}true => 1,
+                                                   _ => 2
+                                               };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -7661,6 +7661,78 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
     }
 
     /// <summary>
+    /// Verifies parentheses around the expression body of a local function are reported over the pair and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesAroundTheExpressionBodyOfALocalFunctionAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        int L() => {|RH3002:(a)|};
+
+                                        return L();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         int L() => a;
+
+                                         return L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies parentheses around the left side of an assignment are reported over the pair and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-001")]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesAroundTheLeftSideOfAnAssignmentAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    void M()
+                                    {
+                                        {|RH3002:(_a)|} = 3;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     void M()
+                                     {
+                                         _a = 3;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies a conditional expression as the operand of a throw expression keeps its parentheses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
