@@ -156,6 +156,11 @@ Not covered by 7a, still individual questions (round 7b): see round7 plan file.
 
 Round 7a bookkeeping DONE 2026-10-20 (agent): 31 new issues #1260-#1290 (N01 = #1260 SDD P15-P22; mapping in `round7-created.md`), 17 existing extended (#1138 body P14a-d/P23/P24, #1241 retitled, others commented), 43 question issues closed, 19 commented and left open, #912 summary comment posted. 26 questions open -> `round7-open.md` (round 7b). Next: round 7b to maintainer, then batch prompts #985, #995, #993.
 
+## Round 7b decided (maintainer 2026-10-20)
+
+Items numbered as in the question message; file `round7-open.md` has the full text (its groups A-H). ALL answered A, i.e. the first option of each question there — in particular against the earlier recommendation: item 11 (#1247 Q2) A = look through Nullable<S> and tuples (behavior change, new diagnostics, a specialized extension), item 18 (#1251 Q4) A = report a property with `field` ONLY when it can be replaced by an auto-property without losing logic (maintainer: "nur melden, wenn man das property durch ein field ohne logik verlust ersetzen kann"), item 20 (#1252 Q1) A = report explicit interface implementations too (maintainer: the interface dictates `void`, not `async`; so the `async` is the implementation's choice; fix withheld when the interface dictates the void return type, P23). Item 5 (#1175 Q4 case 3) A = insert nothing. Item 4 (#1185 Q1) A = withhold the fix when a comment stands directly above a region block.
+Mapping to round7-open.md: 1=#1214 Q1+#1218 Q4, 2=#1176 Q2, 3=#1177 Q1, 4=#1185 Q1, 5=#1175 Q4c3, 6=#1195 Q2+#1199 Q3, 7=#1196 Q1, 8=#1200 Q2, 9=#1245 Q3, 10=#1247 Q1, 11=#1247 Q2, 12=#1247 Q3, 13=#1247 Q6, 14=#1248 Q2+Q3, 15=#1249 Q1, 16=#1249 Q2, 17=#1250 Q1, 18=#1251 Q4, 19=#1251 Q5, 20=#1252 Q1, 21=#1254 Q1, 22=#1254 Q2, 23=#1256 Q4.
+
 ## Waiting for maintainer
 
 - 2026-10-19: round 6 squads running (#984, #991, #992, #994, #996, #997). Maintainer to confirm #1160 reading `M(/* c */ 1)` → `M( /* c */ 1)`. Earlier: verified on GitHub — #1068 (PR #1100), #1069 (PR #1099), #981, #983, #987, #990 merged; no open PRs. Coordinator runs inventory of the 24 new open-question issues, then question round 5, then next batch prompts.
