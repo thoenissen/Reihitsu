@@ -186,6 +186,16 @@ Round 5c decided (maintainer 2026-10-19): C1 ok → P11 adopted ("formatter may 
 Round 5c bookkeeping DONE: #1154 RH5110 record struct, #1155 RH5111 nested assignment, #1156 RH5103 (pred. last line + top level), #1157 RH5204 non-keyword lines (blocked by #951), #1158 RH5108 more parameter lists, #1159 new rule attribute argument lists, #1160 new rule comment does not touch code (agent's readings: `M(/* c */ 1)` → `M( /* c */ 1)`; lands with/after #1078; doc comment documenting a declaration out of scope), #1161 SDD record P11. Closed #1108, #1114–#1116, #1118–#1120, #1124. ALL ROUND-5 QUESTION ISSUES CLOSED. #912 comment https://github.com/thoenissen/Reihitsu/issues/912#issuecomment-6271914785
 (P11 instances and #1108 resolved in 5c.)
 
+## Phase 5 plan: triage of follow-up issues (maintainer 2026-10-20; do not start before SDD is established)
+
+Goal: no follow-up issue stays in milestone `SDD` or `Triage`. Every one of the ~250 follow-ups (#948-#976, #1068-#1105, #1131-#1161, #1239-#1300, plus #946 and the rest) is decided as follows:
+1. Critical? -> next version, milestone 1.2.
+2. Can it be rated an extension (new capability, behavior change, e.g. the formatter also correcting `#region   Fields` spaces)? -> milestone vNext.
+3. Only an internal improvement (cleanup, refactoring, test/doc)? -> milestone Maintenance.
+4. Bugs that remain after that: prioritize them and, depending on their number, decide how to proceed (batching, order, squads per batch).
+Also: check whether every issue labeled "bug" really is a bug. Example: "formatter cannot remove spaces in `#region   Fields`" is labeled bug but is desirable and counts as an EXTENSION (-> relabel, vNext). Behavior-change issues from principle decisions (new diagnostics, widened rules, P16 etc.) are extensions by default unless the maintainer says otherwise.
+Before fixing: bring all follow-ups into the format of the issue templates (.github/ISSUE_TEMPLATE) and decide whether more issue templates are needed (e.g. SDD follow-up / clarification / behavior change / new rule). Triage is a coordinated step: coordinator proposes classification per issue in rounds with code examples, maintainer decides; agents do the bulk relabel/milestone/reformat bookkeeping.
+
 ## Phase 4 run order (sequential, one batch at a time; maintainer 2026-10-17)
 
 Status: open / running / PR #… / merged.
@@ -256,6 +266,7 @@ Shared specs: new ones are created by the first batch of a family; "if shared" =
 ## Collected for later phases
 
 - Clarifications per spec batch: —
+- Phase 5 triage of all follow-ups: see section 'Phase 5 plan'.
 - Bug issues to draft (phase 2): #919 Q1, #919 Q3, #930 Q1, #930 Q2 (maybe one issue for RH2005), #926 Q1, #926 Q2, #928 Q1, #929 Q1, #922 Q1(+#921 Q3), #922 Q2, #922 Q3, #921 Q2, #918 Q3, continuation rule (#921 Q1/#918 Q5/#913 Q2+Q4)
 - Cleanup issues (phase 2): #919 Q2, #921 Q4
 - #946 (RH5005/RH5006 `await using`/`await foreach` fix never converges) → phase 2; blocks RH5005/RH5006 specs.
